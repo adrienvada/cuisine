@@ -7,6 +7,14 @@
   <meta name="description" content="Le carnet de recettes d'Evadri — recettes, mode cuisine pas-à-pas et liste de courses.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#42603A">
+  <!-- Aperçu quand on partage le carnet ; chaque recette a le sien dans r/ -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Carnet de cuisine">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="🌿 Le carnet de cuisine d'Evadri">
+  <meta property="og:description" content="Recettes illustrées, mode cuisine pas-à-pas et liste de courses automatique.">
+  <meta property="og:image" content="https://adrienvada.fr/cuisine/icons/icon-512.png">
+  <meta name="twitter:card" content="summary">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -26,6 +34,13 @@
     <a href="#/" data-tab="home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <span>Recettes</span>
+    </a>
+    <a href="#/menu" data-tab="menu">
+      <span class="cart-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3v7"/></svg>
+        <span class="badge" id="menu-badge" hidden></span>
+      </span>
+      <span>Au menu</span>
     </a>
     <a href="#/courses" data-tab="courses">
       <span class="cart-wrap">

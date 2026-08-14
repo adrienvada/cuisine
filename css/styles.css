@@ -232,6 +232,26 @@ a { color: var(--green); }
 
 .card .visual svg { width: 76%; height: 86%; }
 
+/* Partager depuis la vignette, sans ouvrir la recette */
+.card-share {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 30px; height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255, 253, 247, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(44, 51, 38, 0.18);
+  color: var(--green-deep);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+
+.card .visual .card-share svg { width: 15px; height: 15px; }
+
+.card-share:active { transform: scale(0.9); background: var(--green-tint); }
+
 .card .body { padding: 10px 12px 12px; }
 
 .card h3 { font-size: 18px; line-height: 1.15; font-weight: 700; }
@@ -241,6 +261,8 @@ a { color: var(--green); }
 .card .meta svg { width: 13px; height: 13px; }
 
 .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
+
+.nowrap { white-space: nowrap; }
 
 .empty-illo { display: flex; justify-content: center; padding-top: 26px; margin-bottom: -30px; }
 .empty-illo svg { width: 110px; height: 36px; opacity: 0.9; }
@@ -520,6 +542,8 @@ a { color: var(--green); }
 
 .cook-top .title { font-family: var(--serif); font-style: italic; font-size: 16px; color: #CBD3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
 
+.cook-tools { display: flex; gap: 8px; }
+
 .cook-close {
   background: rgba(244, 239, 224, 0.12);
   border: none;
@@ -528,7 +552,12 @@ a { color: var(--green); }
   width: 38px; height: 38px;
   font-size: 18px;
   display: flex; align-items: center; justify-content: center;
+  padding: 0;
 }
+
+.cook-close svg { width: 17px; height: 17px; }
+
+.cook-close:active { background: rgba(244, 239, 224, 0.24); }
 
 .cook-progress { display: flex; gap: 5px; margin: 16px 0 4px; }
 
@@ -602,6 +631,94 @@ a { color: var(--green); }
 .cook-nav button.main { background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; }
 
 .cook-nav button:disabled { opacity: 0.35; }
+
+/* ---------- Au menu ---------- */
+
+.menu-list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+
+.menu-card {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 11px;
+}
+
+.mc-visual {
+  flex: none;
+  width: 88px;
+  align-self: stretch;
+  min-height: 88px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  text-decoration: none;
+}
+
+.mc-visual img { width: 100%; height: 100%; object-fit: cover; }
+.mc-visual svg { width: 82%; height: 88%; }
+
+.mc-body { flex: 1; min-width: 0; }
+
+.mc-title { text-decoration: none; color: inherit; }
+
+.mc-title h3 { font-size: 19px; line-height: 1.14; font-weight: 700; padding-right: 22px; }
+
+.menu-card .meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: 12.5px; color: var(--muted); margin-top: 4px;
+}
+
+.menu-card .meta svg { width: 13px; height: 13px; }
+
+.mc-portions { margin-top: 9px; }
+
+.mc-portions .val { min-width: 0; font-size: 13px; }
+
+.mc-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+.mc-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+.mc-btn svg { width: 15px; height: 15px; }
+
+.mc-btn:active { background: var(--green-tint); }
+
+.mc-x {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 24px; height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--paper-deep);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+
+.menu-chip-link { color: var(--green-deep); padding: 7px 13px; font-weight: 600; }
+.menu-chip-link svg { width: 15px; height: 15px; }
 
 /* ---------- Liste de courses ---------- */
 
@@ -737,7 +854,10 @@ a { color: var(--green); }
   font-weight: 500;
 }
 
-.course-actions { display: flex; gap: 10px; margin-top: 18px; }
+/* Côte à côte quand la place le permet, empilés sur les petits écrans */
+.course-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+.course-actions .btn { flex: 1 1 210px; }
 
 .link-danger {
   background: none;
