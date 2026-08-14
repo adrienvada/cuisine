@@ -8,7 +8,11 @@
      porte ses ingrédients et son étape ; dans `steps`, l'emplacement est
      marqué `{ choice: "<id du groupe>" }` et prend l'étape de l'option choisie.
    - `addons` : suppléments cochables. Chaque supplément porte ses ingrédients
-     et `step: { i, txt }` — le geste qui vient enrichir l'étape d'index `i`. */
+     et `step: { i, txt }` — le geste qui vient enrichir l'étape d'index `i`.
+
+   `discovered` (facultatif) : où la recette a été découverte. La phrase
+   commence par sa préposition, elle complète « Découverte … » —
+   « à l'hôtel … », « au Murmure du Son », « chez Mamie »… */
 
 const RECIPES = [
   {
@@ -640,6 +644,7 @@ const RECIPES = [
     image: "img/cocktail-concombre-menthe.jpg",
     title: "Cocktail concombre, citron vert & menthe",
     subtitle: "Sans alcool, glacé, terriblement rafraîchissant",
+    discovered: "à l'hôtel Park Plaza Victoria, à Amsterdam",
     category: "Boissons",
     tags: ["sans alcool", "frais", "été"],
     emoji: "🥒",
@@ -810,6 +815,7 @@ const RECIPES = [
     image: "img/salade-champetre.jpg",
     title: "Salade champêtre : feuille de chêne, haricots verts, petits pois & patates",
     subtitle: "Tiède, moutardée, comme un déjeuner à la campagne",
+    discovered: "au Murmure du Son, festival à Eu",
     category: "Salades",
     tags: ["tiède", "végétarien", "complet"],
     emoji: "🥗",
@@ -900,6 +906,7 @@ const RECIPES = [
     image: "img/salade-lentilles-feta.jpg",
     title: "Salade de lentilles, feta, pomme verte & tomates",
     subtitle: "Terreuse et croquante, relevée d'une vinaigrette persil-échalote",
+    discovered: "au Murmure du Son, festival à Eu",
     category: "Salades",
     tags: ["légumineuses", "végétarien", "complet"],
     emoji: "🍏",
