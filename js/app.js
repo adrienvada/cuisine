@@ -172,8 +172,8 @@ function renderHome() {
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   app.innerHTML = `
     <header class="masthead fade-in">
-      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
-      <h1>Cuisine</h1>
+      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de cuisine</p>${ILLO.D.sprigR}</div>
+      <h1>d'Evadri</h1>
       <p class="byline">par <span class="u">Adrien Vada</span> ${ILLO.D.heart}</p>
     </header>
     <div class="searchbar">
