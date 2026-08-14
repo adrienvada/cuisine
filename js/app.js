@@ -266,7 +266,7 @@ function route() {
     renderMenu();
   } else if (parts[0] === "recette" && byId(parts[1])) {
     document.querySelector('[data-tab="home"]').classList.add("active");
-    if (parts[2] === "cuisine") renderCook(byId(parts[1]));
+    if (parts[2] === "cuisine") renderCook(byId(parts[1]), parts[3]);
     else renderRecipe(byId(parts[1]));
   } else {
     document.querySelector('[data-tab="home"]').classList.add("active");
@@ -539,7 +539,9 @@ function drawTray() {
   tray.innerHTML = state.timers.map(t => {
     const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
     const done = left === 0;
-    return `<button class="timer-pill ${done ? "done" : ""}" data-timer="${t.id}" aria-label="Minuteur : ${t.label}">
+    const r = byId(t.rid);
+    return `<button class="timer-pill ${done ? "done" : ""}" data-timer="${t.id}"
+      aria-label="Minuteur « ${t.label} »${r ? ` — revenir à l'étape de ${r.title}` : ""}">
       ${ICON.timer}
       <span class="t-label">${t.emoji} ${t.label}</span>
       <span class="t-clock" data-clock="${t.id}">${done ? "Prêt !" : fmtClock(left)}</span>
@@ -581,8 +583,11 @@ function beep() {
   if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 500]);
 }
 
-function renderCook(r) {
-  cookIdx = 0;
+/* `step` (facultatif, depuis l'adresse) ouvre directement l'étape voulue —
+   c'est par là qu'une bulle de minuteur ramène à ce qui est en train de cuire. */
+function renderCook(r, step) {
+  const at = parseInt(step, 10);
+  cookIdx = Number.isInteger(at) ? Math.min(Math.max(at, 0), r.steps.length - 1) : 0;
   // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
   // « Terminer » compterait la recette deux fois.
   let finished = false;
@@ -931,12 +936,18 @@ route();
 drawTray();
 ensureTick();
 
+/* Une bulle ramène à l'étape qui tourne, même depuis une autre recette ;
+   la croix, elle, arrête le minuteur. */
 document.getElementById("timer-tray").addEventListener("click", e => {
   const pill = e.target.closest("[data-timer]");
   if (!pill) return;
   const t = state.timers.find(x => x.id === pill.dataset.timer);
   if (!t) return;
-  if (Date.now() >= t.end || e.target.closest(".t-x")) cancelTimer(t.id);
+  if (e.target.closest(".t-x")) { cancelTimer(t.id); return; }
+  const target = `#/recette/${t.rid}/cuisine/${t.step}`;
+  // Même adresse (on a avancé d'étape sans changer le hash) : pas d'événement, on redessine.
+  if (location.hash === target) route();
+  else location.hash = target;
 });
 
 if ("serviceWorker" in navigator) {

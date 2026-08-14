@@ -943,7 +943,9 @@ body.cooking .timer-pill:not(.done) {
 
 .timer-pill .t-clock { font-variant-numeric: tabular-nums; color: var(--gold); }
 
-.timer-pill .t-x { opacity: 0.7; font-size: 12px; }
+/* La bulle entière ramène à l'étape : la croix a besoin d'une zone de
+   contact confortable pour rester distincte (padding compensé par la marge). */
+.timer-pill .t-x { opacity: 0.7; font-size: 12px; padding: 6px; margin: -6px; }
 
 .timer-pill.done {
   background: var(--gold);
