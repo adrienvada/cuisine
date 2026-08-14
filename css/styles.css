@@ -24,6 +24,24 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
+html[data-theme="dark"] {
+  --paper: #1C2019;
+  --paper-deep: #15180F;
+  --card: #242920;
+  --ink: #EDE9DC;
+  --ink-soft: #C4C2B4;
+  --muted: #8F9384;
+  --green: #7BA36C;
+  --green-deep: #9AC28A;
+  --green-tint: #2A3324;
+  --gold: #D9AE63;
+  --gold-tint: #362E1D;
+  --gold-deep: #E8C889;
+  --terra: #D68E5F;
+  --line: #383E31;
+  --line-soft: #2E3327;
+}
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html { height: 100%; }
@@ -37,7 +55,34 @@ body {
   background: var(--paper);
   min-height: 100%;
   overscroll-behavior-y: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ---------- Bascule mode sombre ---------- */
+
+.theme-toggle {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: 14px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.theme-toggle svg { width: 20px; height: 20px; }
+
+.theme-toggle .icon-moon { display: none; }
+
+html[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 
 /* Grain papier, comme une page de carnet */
 body {
