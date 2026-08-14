@@ -1,4 +1,4 @@
-/* Données des recettes — Carnet de cuisine d'Adrien
+/* Données des recettes — Carnet de cuisine d'Evadri
    Chaque ingrédient : qty/unit pour la recette, rayon + éventuel `shop`
    (quantité/libellé côté courses), `cid` = identifiant commun pour fusionner
    les quantités entre recettes, `course:false` = exclu de la liste. */
@@ -6,6 +6,7 @@
 const RECIPES = [
   {
     id: "focaccia-romarin",
+    image: "img/focaccia-romarin.jpg",
     title: "Focaccia maison au romarin",
     subtitle: "Moelleuse, alvéolée, sans pétrissage difficile",
     category: "Apéro",
@@ -58,6 +59,7 @@ const RECIPES = [
 
   {
     id: "torsades-pesto",
+    image: "img/torsades-pesto.jpg",
     title: "Torsades feuilletées au pesto",
     subtitle: "Croustillantes, dorées, prêtes en 30 minutes",
     category: "Apéro",
@@ -101,6 +103,7 @@ const RECIPES = [
 
   {
     id: "dip-chevre-herbes",
+    image: "img/dip-chevre-herbes.jpg",
     title: "Dip de chèvre frais « double herbes »",
     subtitle: "Frais, onctueux, sans cuisson",
     category: "Apéro",
@@ -140,6 +143,7 @@ const RECIPES = [
 
   {
     id: "houmous-petits-pois-menthe",
+    image: "img/houmous-petits-pois-menthe.jpg",
     title: "Houmous de petits pois frais & menthe",
     subtitle: "Vert vif, crémeux, incroyablement frais",
     category: "Apéro",
@@ -190,6 +194,7 @@ const RECIPES = [
 
   {
     id: "salade-kale-pomme-oeuf",
+    image: "img/salade-kale-pomme-oeuf.jpg",
     title: "Salade croquante de kale, pomme & œuf mollet",
     subtitle: "Kale massé, fruits secs torréfiés, œuf coulant",
     category: "Salades",
@@ -250,6 +255,7 @@ const RECIPES = [
 
   {
     id: "veloute-butternut-shiitakes",
+    image: "img/veloute-butternut-shiitakes.jpg",
     title: "Velouté onctueux de butternut, shiitakés & artichauts poêlés",
     subtitle: "Réconfortant, caramélisé, garni de champignons dorés",
     category: "Soupes",
@@ -308,6 +314,7 @@ const RECIPES = [
 
   {
     id: "gravlax-saumon-yuzu",
+    image: "img/gravlax-saumon-yuzu.jpg",
     title: "Gravlax de saumon, émulsion yuzu & ciboulette",
     subtitle: "Saumon mariné maison, émulsion acidulée et aérienne",
     category: "Entrées",
