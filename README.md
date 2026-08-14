@@ -18,6 +18,13 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 
 Les recettes vivent dans [`js/recipes.js`](js/recipes.js) : un objet par recette (titre, temps, ingrédients avec rayon de courses, étapes avec astuces et minuteurs).
 
+Champ facultatif `discovered` — où la recette a été découverte, affiché en pastille dorée sur la fiche et repris dans le partage. La phrase commence par sa préposition, elle complète « Découverte … » :
+
+```js
+discovered: "au Murmure du Son, festival à Eu",   // → « Découverte au Murmure du Son, festival à Eu »
+discovered: "à l'hôtel Park Plaza Victoria, à Amsterdam",
+```
+
 Le plus simple : **donner la recette à Claude** (photo, texte, lien…) et lui demander de l'ajouter au carnet — il la structurera et la publiera.
 
 ## Illustrations & photos
