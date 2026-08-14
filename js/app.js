@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [] },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {} },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -163,6 +163,125 @@ function toggleMenu(id) {
 
 function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
 
+/* ---------- Composer sa version : choix (vinaigrette…) et suppléments ----------
+   La version choisie vit dans state.choices / state.addons ; ingrédients et
+   étapes « effectifs » en découlent partout (recette, cuisine, partage, courses). */
+
+const choiceList = r => r.choices || [];
+const addonList = r => r.addons || [];
+const customizable = r => choiceList(r).length || addonList(r).length;
+
+function optionOf(r, choice) {
+  const sel = (state.choices[r.id] || {})[choice.id];
+  return choice.options.find(o => o.id === sel) || choice.options[0];
+}
+
+function selectedAddons(r) {
+  const sel = state.addons[r.id] || [];
+  return addonList(r).filter(a => sel.includes(a.id));
+}
+
+function setChoice(rid, cid, oid) {
+  (state.choices[rid] = state.choices[rid] || {})[cid] = oid;
+  save();
+}
+
+function toggleAddon(rid, aid) {
+  const sel = state.addons[rid] = state.addons[rid] || [];
+  const i = sel.indexOf(aid);
+  if (i >= 0) sel.splice(i, 1); else sel.push(aid);
+  save();
+}
+
+/* Ingrédients réellement nécessaires : base + option choisie de chaque groupe + suppléments. */
+function effectiveIngredients(r) {
+  const list = [...r.ingredients];
+  for (const c of choiceList(r)) list.push(...optionOf(r, c).ingredients);
+  for (const a of selectedAddons(r)) list.push(...a.ingredients.map(i => ({ ...i, addon: a.label })));
+  return list;
+}
+
+/* Étapes réellement suivies : les emplacements `{choice}` prennent l'étape de
+   l'option choisie, et chaque supplément vient enrichir la sienne (`extras`). */
+function effectiveSteps(r) {
+  const steps = r.steps.map(s => {
+    if (!s.choice) return { ...s };
+    const c = choiceList(r).find(x => x.id === s.choice);
+    return c ? { ...optionOf(r, c).step } : { ...s };
+  });
+  for (const a of selectedAddons(r)) {
+    if (!a.step) continue;
+    const s = steps[Math.min(a.step.i, steps.length - 1)];
+    (s.extras = s.extras || []).push({ emoji: a.emoji, label: a.label, txt: a.step.txt });
+  }
+  return steps;
+}
+
+/* Résumé lisible de la version : « Citron & menthe · + tomates cerises, avocat » */
+function versionSummary(r) {
+  const parts = choiceList(r).map(c => optionOf(r, c).label);
+  const adds = selectedAddons(r).map(a => a.label.toLowerCase());
+  if (adds.length) parts.push("+ " + adds.join(", "));
+  return parts.join(" · ");
+}
+
+/* Le geste d'un supplément, affiché dans l'étape concernée. */
+const extrasHtml = s => (s.extras || []).map(x => `<div class="addon-note">
+  <span class="a-emoji">${x.emoji || "✚"}</span>
+  <div class="a-body"><b>${x.label}</b>${x.txt}</div>
+</div>`).join("");
+
+/* Chips de sélection, partagées entre la page recette et la sheet d'ajout. */
+const pickChipsHtml = r => `
+  ${choiceList(r).map(c => `
+    <p class="pick-label">${c.label}</p>
+    <div class="pick-row">${c.options.map(o => `
+      <button class="chip pick ${optionOf(r, c).id === o.id ? "on" : ""}" data-choice="${c.id}" data-option="${o.id}" aria-pressed="${optionOf(r, c).id === o.id}">${o.emoji ? o.emoji + " " : ""}${o.label}</button>`).join("")}
+    </div>`).join("")}
+  ${addonList(r).length ? `
+    <p class="pick-label">Les petits plus</p>
+    <div class="pick-row">${addonList(r).map(a => {
+      const on = selectedAddons(r).some(x => x.id === a.id);
+      return `<button class="chip pick ${on ? "on" : ""}" data-addon="${a.id}" aria-pressed="${on}">${a.emoji ? a.emoji + " " : ""}${a.label}</button>`;
+    }).join("")}
+    </div>` : ""}`;
+
+/* Applique un tap sur une chip (choix ou supplément). Renvoie true si l'état a changé. */
+function onPickClick(e, r) {
+  const oc = e.target.closest("[data-choice]");
+  if (oc) { setChoice(r.id, oc.dataset.choice, oc.dataset.option); return true; }
+  const oa = e.target.closest("[data-addon]");
+  if (oa) { toggleAddon(r.id, oa.dataset.addon); return true; }
+  return false;
+}
+
+/* La sheet « façon fast-food » à l'ajout au menu : composer, ou ajouter tel quel. */
+function openAddSheet(r, done) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop";
+  const draw = () => {
+    const n = selectedAddons(r).length;
+    backdrop.innerHTML = `
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="Composer ${r.title}">
+        <div class="sheet-grip"></div>
+        <h3>${r.emoji} Des envies en plus ?</h3>
+        <p class="sheet-sub">Compose ta version — ou ajoute la recette telle quelle.</p>
+        ${pickChipsHtml(r)}
+        <button class="btn primary sheet-add" id="sheet-add">
+          ${ICON.cart} ${n ? `Ajouter avec ${n} supplément${n > 1 ? "s" : ""}` : "Ajouter tel quel"}
+        </button>
+      </div>`;
+  };
+  const close = added => { backdrop.remove(); done(added); };
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop) return close(false);
+    if (e.target.closest("#sheet-add")) return close(true);
+    if (onPickClick(e, r)) draw();
+  });
+  draw();
+  document.body.appendChild(backdrop);
+}
+
 /* Nombre d'articles qu'il reste à prendre — le badge de l'onglet Courses. */
 function courseTodo() {
   return buildCourseList().filter(i => !state.checked[i.key]).length
@@ -206,13 +325,16 @@ function recipeShareText(r) {
   if (t.repos) times.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);
   times.push(t.cuisson != null ? `Cuisson ${fmtTime(t.cuisson)}` : "Sans cuisson");
 
-  const lines = [`${r.emoji} ${r.title}`, r.subtitle, "", times.join(" · "), "", `Pour ${p} ${r.portions.label} :`];
-  for (const ing of r.ingredients) {
+  const lines = [`${r.emoji} ${r.title}`, r.subtitle, "", times.join(" · ")];
+  const vs = versionSummary(r);
+  if (vs) lines.push(`Version : ${vs}`);
+  lines.push("", `Pour ${p} ${r.portions.label} :`);
+  for (const ing of effectiveIngredients(r)) {
     const q = scaleQty(ing.qty, ing.unit, f);
     const qty = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "");
-    lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.optional ? " (optionnel)" : ""}`);
+    lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.addon ? " (supplément)" : ing.optional ? " (optionnel)" : ""}`);
   }
-  lines.push("", `Les ${r.steps.length} étapes en pas-à-pas, avec les minuteurs :`);
+  lines.push("", `Les ${effectiveSteps(r).length} étapes en pas-à-pas, avec les minuteurs :`);
   return lines.join("\n");
 }
 
@@ -227,7 +349,8 @@ function shareMenu() {
   if (!list.length) return toast("Le menu est vide");
   const lines = ["🌿 Au menu du carnet de cuisine", ""];
   for (const r of list) {
-    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r)} ${r.portions.label}`, recipeUrl(r), "");
+    const vs = versionSummary(r);
+    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r), "");
   }
   shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
 }
@@ -271,7 +394,9 @@ function route() {
 
 function matches(r, q) {
   if (!q) return true;
-  const hay = [r.title, r.subtitle, r.category, ...(r.tags || []), ...r.ingredients.map(i => i.name)].join(" ").toLowerCase();
+  const hay = [r.title, r.subtitle, r.category, ...(r.tags || []), ...r.ingredients.map(i => i.name),
+    ...addonList(r).map(a => a.label),
+    ...choiceList(r).flatMap(c => c.options.map(o => o.label))].join(" ").toLowerCase();
   return q.toLowerCase().split(/\s+/).every(w => hay.includes(w));
 }
 
@@ -381,19 +506,15 @@ function renderRecipe(r) {
       <ul class="ing-list" id="ing-list"></ul>
     </section>
 
+    ${customizable(r) ? `
+    <section class="section">
+      <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Composez votre version</span></h2>
+      <div id="pick-zone"></div>
+    </section>` : ""}
+
     <section class="section">
       <h2><span class="h-title"><span class="h-deco">${ILLO.D.toque}</span>Préparation</span></h2>
-      <ol class="steps">
-        ${r.steps.map((s, i) => `
-          <li>
-            <span class="num">${i + 1}</span>
-            <div>
-              <h3>${s.t}</h3>
-              <p>${s.txt}</p>
-              ${s.tip ? tipHtml(s.tip) : ""}
-            </div>
-          </li>`).join("")}
-      </ol>
+      <ol class="steps" id="steps-list"></ol>
     </section>
 
     ${r.note ? `<p class="recipe-note">« ${r.note} »<span class="n-heart">${ILLO.D.heart}</span><span class="n-flourish">${ILLO.D.flourish}</span></p>` : ""}
@@ -416,15 +537,41 @@ function renderRecipe(r) {
     const p = state.portions[r.id] || r.portions.base;
     const f = p / r.portions.base;
     document.getElementById("p-val").textContent = `${p} ${r.portions.label}`;
-    document.getElementById("ing-list").innerHTML = r.ingredients.map(ing => {
+    document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map(ing => {
       const q = scaleQty(ing.qty, ing.unit, f);
       const qtyStr = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "—");
       return `<li>
         <span class="qty">${qtyStr}</span>
-        <span>${ing.name}${ing.optional ? `<span class="opt">optionnel</span>` : ""}${ing.note ? `<span class="note"> — ${ing.note}</span>` : ""}</span>
+        <span>${ing.name}${ing.addon ? `<span class="opt sup">supplément</span>` : ""}${ing.optional ? `<span class="opt">optionnel</span>` : ""}${ing.note ? `<span class="note"> — ${ing.note}</span>` : ""}</span>
       </li>`;
     }).join("");
   };
+
+  const drawSteps = () => {
+    document.getElementById("steps-list").innerHTML = effectiveSteps(r).map((s, i) => `
+      <li>
+        <span class="num">${i + 1}</span>
+        <div>
+          <h3>${s.t}</h3>
+          <p>${s.txt}</p>
+          ${extrasHtml(s)}
+          ${s.tip ? tipHtml(s.tip) : ""}
+        </div>
+      </li>`).join("");
+  };
+
+  const drawPicks = () => {
+    const zone = document.getElementById("pick-zone");
+    if (zone) zone.innerHTML = pickChipsHtml(r);
+  };
+
+  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); };
+
+  if (customizable(r)) {
+    document.getElementById("pick-zone").addEventListener("click", e => {
+      if (onPickClick(e, r)) { drawVersion(); updateBadge(); }
+    });
+  }
 
   document.getElementById("p-minus").addEventListener("click", () => {
     const p = state.portions[r.id] || r.portions.base;
@@ -434,15 +581,27 @@ function renderRecipe(r) {
     const p = state.portions[r.id] || r.portions.base;
     if (p < 24) { state.portions[r.id] = p + 1; save(); drawIngredients(); }
   });
-  document.getElementById("add-list").addEventListener("click", e => {
-    if (toggleMenu(r.id)) {
-      e.currentTarget.className = "btn added";
-      e.currentTarget.innerHTML = ICON.check + " Au menu";
-      toast("Au menu — ingrédients ajoutés aux courses");
-    } else {
-      e.currentTarget.className = "btn secondary";
-      e.currentTarget.innerHTML = ICON.cart + " Ajouter au menu";
+  const addBtn = document.getElementById("add-list");
+  const drawAddBtn = () => {
+    addBtn.className = inMenu(r.id) ? "btn added" : "btn secondary";
+    addBtn.innerHTML = inMenu(r.id) ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu";
+  };
+  addBtn.addEventListener("click", () => {
+    if (inMenu(r.id)) {
+      toggleMenu(r.id); drawAddBtn();
       toast("Retirée du menu");
+    } else if (customizable(r)) {
+      /* Façon fast-food : composer sa version, ou ajouter tel quel d'un tap. */
+      openAddSheet(r, added => {
+        drawVersion(); updateBadge();
+        if (!added) return;
+        toggleMenu(r.id); drawAddBtn();
+        const n = selectedAddons(r).length;
+        toast(n ? `Au menu avec ${n} supplément${n > 1 ? "s" : ""} — courses à jour` : "Au menu — ingrédients ajoutés aux courses");
+      });
+    } else {
+      toggleMenu(r.id); drawAddBtn();
+      toast("Au menu — ingrédients ajoutés aux courses");
     }
   });
 
@@ -470,7 +629,7 @@ function renderRecipe(r) {
     save(); drawVerdict();
   });
 
-  drawIngredients();
+  drawVersion();
   drawVerdict();
 }
 
@@ -573,14 +732,16 @@ function beep() {
 
 function renderCook(r) {
   cookIdx = 0;
+  // La version composée (vinaigrette choisie, suppléments) dicte les étapes.
+  const steps = effectiveSteps(r);
   // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
   // « Terminer » compterait la recette deux fois.
   let finished = false;
   acquireWakeLock();
   document.body.classList.add("cooking");
   const draw = () => {
-    const s = r.steps[cookIdx];
-    const last = cookIdx === r.steps.length - 1;
+    const s = steps[cookIdx];
+    const last = cookIdx === steps.length - 1;
     app.innerHTML = `
       <div class="cook">
         <div class="cook-top">
@@ -590,13 +751,14 @@ function renderCook(r) {
             <button class="cook-close" id="cook-close" aria-label="Fermer">✕</button>
           </span>
         </div>
-        <div class="cook-progress">${r.steps.map((_, i) => `<i class="${i <= cookIdx ? "done" : ""}"></i>`).join("")}</div>
+        <div class="cook-progress">${steps.map((_, i) => `<i class="${i <= cookIdx ? "done" : ""}"></i>`).join("")}</div>
         <div class="cook-body">
           <div>
-            <p class="cook-step-label">Étape ${cookIdx + 1} / ${r.steps.length}</p>
+            <p class="cook-step-label">Étape ${cookIdx + 1} / ${steps.length}</p>
             <h2>${s.t}</h2>
             <span class="cook-flourish">${ILLO.D.flourish}</span>
             <p class="txt">${s.txt}</p>
+            ${extrasHtml(s)}
             ${s.tip ? tipHtml(s.tip) : ""}
             <div class="cook-timer" id="timer-zone"></div>
           </div>
@@ -622,7 +784,7 @@ function renderCook(r) {
       else { cookIdx++; draw(); }
     });
     drawTimerZone(s);
-    refreshZone = () => drawTimerZone(r.steps[cookIdx]);
+    refreshZone = () => drawTimerZone(steps[cookIdx]);
   };
 
   const drawTimerZone = s => {
@@ -696,6 +858,7 @@ function renderMenu() {
               ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
               ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
             </div>
+            ${versionSummary(r) ? `<p class="mc-version">${versionSummary(r)}</p>` : ""}
             <span class="portions mc-portions">
               <button data-minus="${r.id}" aria-label="Moins de portions">−</button>
               <span class="val">${portionsOf(r)} ${r.portions.label}</span>
@@ -749,7 +912,7 @@ function buildCourseList() {
     const r = byId(id);
     if (!r) continue;
     const f = (state.portions[id] || r.portions.base) / r.portions.base;
-    for (const ing of r.ingredients) {
+    for (const ing of effectiveIngredients(r)) {
       if (ing.course === false) continue;
       const shop = ing.shop || {};
       const key = ing.cid || ing.name.toLowerCase();
@@ -760,7 +923,7 @@ function buildCourseList() {
       const note = shop.note || null;
       const scaled = qty == null ? null : qty * f;
       if (!map.has(key)) {
-        map.set(key, { key, label, unit, qty: scaled, qtyText, rayon: ing.rayon, notes: note ? [note] : [], optional: !!ing.optional });
+        map.set(key, { key, label, unit, qty: scaled, qtyText, rayon: ing.rayon, notes: note ? [note] : [], optional: !!ing.optional, addon: !!ing.addon });
       } else {
         const it = map.get(key);
         if (it.qty != null && scaled != null && it.unit === unit) it.qty += scaled;
@@ -768,6 +931,7 @@ function buildCourseList() {
         if (note && !it.notes.includes(note)) it.notes.push(note);
         if (!it.qtyText && qtyText) it.qtyText = qtyText;
         it.optional = it.optional && !!ing.optional;
+        it.addon = it.addon && !!ing.addon;
       }
     }
   }
@@ -831,7 +995,7 @@ function renderCourses() {
             <li><label>
               <input type="checkbox" data-key="${it.key}" ${state.checked[it.key] ? "checked" : ""}>
               <span class="tick">${ICON.check}</span>
-              <span class="lbl">${it.label}${it.optional ? ` <span class="opt" style="font-size:11.5px;color:var(--gold)">optionnel</span>` : ""}${it.notes && it.notes.length ? `<span class="cnote">${it.notes.join(" · ")}</span>` : ""}</span>
+              <span class="lbl">${it.label}${it.addon ? ` <span class="sup-tag">supplément</span>` : ""}${it.optional ? ` <span class="opt" style="font-size:11.5px;color:var(--gold)">optionnel</span>` : ""}${it.notes && it.notes.length ? `<span class="cnote">${it.notes.join(" · ")}</span>` : ""}</span>
               <span class="cqty">${it.extra ? "" : courseQtyStr(it)}</span>
               ${it.extra ? `<button class="x" data-remove-extra="${it.key.slice(2)}" style="border:none;background:none;color:var(--muted);font-size:14px" aria-label="Supprimer">✕</button>` : ""}
             </label></li>`).join("")}

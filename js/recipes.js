@@ -1,7 +1,14 @@
 /* Données des recettes — Carnet de cuisine d'Evadri
    Chaque ingrédient : qty/unit pour la recette, rayon + éventuel `shop`
    (quantité/libellé côté courses), `cid` = identifiant commun pour fusionner
-   les quantités entre recettes, `course:false` = exclu de la liste. */
+   les quantités entre recettes, `course:false` = exclu de la liste.
+
+   Composer sa version, façon fast-food :
+   - `choices` : groupes à choix unique (ex. la vinaigrette). Chaque option
+     porte ses ingrédients et son étape ; dans `steps`, l'emplacement est
+     marqué `{ choice: "<id du groupe>" }` et prend l'étape de l'option choisie.
+   - `addons` : suppléments cochables. Chaque supplément porte ses ingrédients
+     et `step: { i, txt }` — le geste qui vient enrichir l'étape d'index `i`. */
 
 const RECIPES = [
   {
@@ -54,6 +61,19 @@ const RECIPES = [
         txt: "Parsemez de brins de romarin frais enfoncés légèrement dans les trous et de fleur de sel. Enfournez pour 20 à 25 min jusqu'à ce que la croûte soit intensément dorée et croustillante. Laissez tiédir sur une grille avant de découper.",
         timer: 20
       }
+    ],
+    addons: [
+      { id: "olives", label: "Olives noires", emoji: "🫒",
+        ingredients: [{ name: "Olives noires", qty: 100, unit: "g", note: "dénoyautées", rayon: "Épicerie", cid: "olives",
+          shop: { label: "Olives noires (type Kalamata)" } }],
+        step: { i: 3, txt: "Enfoncez les olives dans les cratères en même temps que le romarin." } },
+      { id: "tomates-cerises", label: "Tomates cerises", emoji: "🍅",
+        ingredients: [{ name: "Tomates cerises", qty: 150, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" }],
+        step: { i: 3, txt: "Coupez les tomates cerises en deux et enfoncez-les dans la pâte, face coupée vers le haut, avant d'enfourner." } },
+      { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
+        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge",
+          shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
+        step: { i: 3, txt: "Répartissez l'oignon rouge émincé en très fines lamelles sur la surface, avec un filet d'huile pour qu'il confise." } }
     ]
   },
 
@@ -98,6 +118,15 @@ const RECIPES = [
         txt: "Déposez les torsades sur une plaque recouverte de papier cuisson. Badigeonnez de jaune d'œuf dilué d'une goutte d'eau. Enfournez à 200 °C pendant 12 à 15 min. Elles doivent être bien gonflées et dorées.",
         timer: 13
       }
+    ],
+    addons: [
+      { id: "chorizo", label: "Chorizo", emoji: "🌶️",
+        ingredients: [{ name: "Chorizo en fines tranches", qty: 50, unit: "g", rayon: "Produits frais", cid: "chorizo" }],
+        step: { i: 0, txt: "Disposez les tranches de chorizo sur le pesto avant de replier la pâte." } },
+      { id: "sesame", label: "Graines de sésame", emoji: "✨",
+        ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "sesame",
+          shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
+        step: { i: 3, txt: "Parsemez les torsades de graines de sésame juste après la dorure au jaune d'œuf." } }
     ]
   },
 
@@ -138,6 +167,18 @@ const RECIPES = [
         t: "L'assemblage",
         txt: "Incorporez les herbes, ajoutez les zestes de citron, salez légèrement et poivrez généreusement. Réservez au frais. Servez avec la focaccia ou des radis croquants."
       }
+    ],
+    addons: [
+      { id: "noix", label: "Noix concassées", emoji: "🌰",
+        ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Épicerie", cid: "noix" }],
+        step: { i: 2, txt: "Parsemez le dip de noix grossièrement concassées au moment de servir." } },
+      { id: "miel", label: "Filet de miel", emoji: "🍯",
+        ingredients: [{ name: "Miel", qty: null, qtyText: "1 filet", rayon: "Épicerie", cid: "miel",
+          shop: { label: "Miel", qty: 1, unit: "pot" } }],
+        step: { i: 2, txt: "Terminez par un filet de miel : le sucré-salé fait merveille avec le chèvre." } },
+      { id: "radis", label: "Radis à tremper", emoji: "🌱",
+        ingredients: [{ name: "Radis", qty: 1, unit: "botte", rayon: "Fruits, légumes & herbes", cid: "radis" }],
+        step: { i: 2, txt: "Servez avec les radis équeutés, à tremper directement dans le dip." } }
     ]
   },
 
@@ -189,6 +230,19 @@ const RECIPES = [
         t: "Dressage",
         txt: "Servez dans un joli bol, creusez un sillon, ajoutez un filet d'huile d'olive et décorez de quelques petits pois entiers et de feuilles de menthe."
       }
+    ],
+    addons: [
+      { id: "feta", label: "Feta émiettée", emoji: "🧀",
+        ingredients: [{ name: "Feta", qty: 50, unit: "g", rayon: "Produits frais", cid: "feta" }],
+        step: { i: 3, txt: "Émiettez la feta sur le houmous au moment du dressage." } },
+      { id: "sesame", label: "Sésame torréfié", emoji: "✨",
+        ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "sesame",
+          shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
+        step: { i: 3, txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous." } },
+      { id: "pita", label: "Pains pita", emoji: "🫓",
+        ingredients: [{ name: "Pains pita", qty: 4, unit: "", rayon: "Épicerie", cid: "pita",
+          shop: { label: "Pains pita", qty: 1, unit: "paquet" } }],
+        step: { i: 3, txt: "Faites tiédir les pitas au grille-pain et coupez-les en quartiers, pour saucer généreusement." } }
     ]
   },
 
@@ -214,13 +268,64 @@ const RECIPES = [
         shop: { label: "Œufs frais" } },
       { name: "Persil plat", qty: 0.5, unit: "bouquet", rayon: "Fruits, légumes & herbes", cid: "persil",
         shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
-      { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+      { name: "Huile d'olive", qty: 1, unit: "c. à s.", note: "pour masser le kale", rayon: "Épicerie", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null } },
-      { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
-      { name: "Moutarde", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
-        shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
       { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "vinaigrette", label: "La vinaigrette",
+      options: [
+        { id: "moutarde-cidre", label: "Moutarde & cidre", emoji: "🥄",
+          ingredients: [
+            { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } },
+            { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
+            { name: "Moutarde", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } }
+          ],
+          step: { t: "Vinaigrette moutarde & cidre",
+            txt: "Fouettez la moutarde avec le vinaigre de cidre, du sel et du poivre, puis montez en émulsion avec l'huile d'olive.",
+            tip: { t: "Astuce du chef", txt: "Versez l'huile en filet sans cesser de fouetter : l'émulsion tiendra jusqu'au service sans retomber." } } },
+        { id: "tahini-citron", label: "Tahini & citron", emoji: "🥣",
+          ingredients: [
+            { name: "Tahini (crème de sésame)", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "tahini",
+              shop: { label: "Tahini (crème de sésame)", qty: 1, unit: "pot" } },
+            { name: "Citron jaune", qty: 0.5, unit: "", note: "le jus — vinaigrette", rayon: "Fruits, légumes & herbes", cid: "citron",
+              shop: { label: "Citron jaune non traité" } },
+            { name: "Huile d'olive", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } }
+          ],
+          step: { t: "Sauce crémeuse tahini-citron",
+            txt: "Délayez le tahini avec le jus de citron et 2 à 3 c. à s. d'eau froide jusqu'à obtenir une crème nappante, puis ajoutez l'huile d'olive, du sel et du poivre.",
+            tip: { t: "Astuce du chef", txt: "Le tahini épaissit d'abord au contact du citron avant de se détendre : ajoutez l'eau cuillère par cuillère, la texture soyeuse arrive d'un coup." } } },
+        { id: "miel-moutarde", label: "Miel & moutarde", emoji: "🍯",
+          ingredients: [
+            { name: "Miel", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "miel",
+              shop: { label: "Miel", qty: 1, unit: "pot" } },
+            { name: "Moutarde", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+            { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
+            { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } }
+          ],
+          step: { t: "Vinaigrette miel-moutarde",
+            txt: "Mélangez le miel, la moutarde et le vinaigre de cidre, salez, poivrez, puis émulsionnez avec l'huile d'olive.",
+            tip: { t: "Astuce du chef", txt: "Le miel adoucit l'amertume résiduelle du kale : goûtez et ajustez la balance sucré-acide en fin d'émulsion." } } }
+      ]
+    }],
+    addons: [
+      { id: "avocat", label: "Avocat", emoji: "🥑",
+        ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "avocat",
+          shop: { label: "Avocats mûrs" } }],
+        step: { i: 5, txt: "Coupez l'avocat en lamelles au dernier moment et citronnez-les légèrement pour qu'elles restent vertes." } },
+      { id: "parmesan", label: "Copeaux de parmesan", emoji: "🧀",
+        ingredients: [{ name: "Parmesan en bloc", qty: 40, unit: "g", rayon: "Produits frais", cid: "parmesan" }],
+        step: { i: 5, txt: "Prélevez des copeaux de parmesan à l'économe et répartissez-les sur la salade." } },
+      { id: "cranberries", label: "Cranberries séchées", emoji: "🍒",
+        ingredients: [{ name: "Cranberries séchées", qty: 40, unit: "g", rayon: "Épicerie", cid: "cranberries",
+          shop: { label: "Cranberries séchées", qty: 1, unit: "sachet" } }],
+        step: { i: 5, txt: "Parsemez les cranberries avec les fruits secs torréfiés, pour une note sucrée qui répond au kale." } }
     ],
     steps: [
       {
@@ -245,9 +350,10 @@ const RECIPES = [
         timer: 6,
         tip: { t: "Astuce du chef", txt: "Plongez immédiatement les œufs dans un grand bol d'eau glacée dès la fin du chrono pour stopper la cuisson et faciliter l'écalage." }
       },
+      { choice: "vinaigrette" },
       {
         t: "Assemblage et assaisonnement",
-        txt: "Émulsionnez les ingrédients de la vinaigrette. Dans les assiettes, dressez le kale massé, la pomme, le persil, les graines torréfiées et les noix. Déposez l'œuf mollet délicatement écalé au centre et ouvrez-le au dernier moment.",
+        txt: "Dans les assiettes, dressez le kale massé, la pomme, le persil, les graines torréfiées et les noix. Nappez de vinaigrette, déposez l'œuf mollet délicatement écalé au centre et ouvrez-le au dernier moment.",
         tip: { t: "Astuce du chef", txt: "Écalez l'œuf mollet directement sous un filet d'eau tiède pour que la coquille glisse toute seule sans abîmer le blanc." }
       }
     ]
@@ -309,6 +415,19 @@ const RECIPES = [
         txt: "Versez le velouté chaud dans des assiettes creuses, puis disposez harmonieusement les shiitakés et les artichauts dorés par-dessus.",
         tip: { t: "Astuce du chef", txt: "Terminez par un filet de l'huile de marinade des artichauts sur le dessus pour ajouter une touche aromatique instantanée." }
       }
+    ],
+    addons: [
+      { id: "graines-courge", label: "Graines de courge torréfiées", emoji: "🎃",
+        ingredients: [{ name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "graines-courge",
+          shop: { label: "Graines de courge", qty: 1, unit: "sachet" } }],
+        step: { i: 4, txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté." } },
+      { id: "croutons", label: "Croûtons dorés", emoji: "🍞",
+        ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranches", rayon: "Épicerie", cid: "pain",
+          shop: { label: "Pain de campagne" } }],
+        step: { i: 4, txt: "Taillez le pain en petits dés et faites-les dorer dans un peu de beurre pour des croûtons croustillants." } },
+      { id: "chataignes", label: "Châtaignes poêlées", emoji: "🌰",
+        ingredients: [{ name: "Châtaignes cuites", qty: 100, unit: "g", note: "sous vide ou en bocal", rayon: "Épicerie", cid: "chataignes" }],
+        step: { i: 1, txt: "Faites dorer les châtaignes grossièrement émiettées avec les shiitakés." } }
     ]
   },
 
@@ -366,6 +485,15 @@ const RECIPES = [
         timer: 15,
         tip: { t: "Astuce du chef", txt: "Placez le filet 15 minutes au congélateur juste avant la découpe pour raffermir la chair et réussir des tranches d'une finesse incomparable." }
       }
+    ],
+    addons: [
+      { id: "capres", label: "Câpres", emoji: "🌿",
+        ingredients: [{ name: "Câpres", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "capres",
+          shop: { label: "Câpres", qty: 1, unit: "bocal" } }],
+        step: { i: 4, txt: "Parsemez le saumon de câpres bien égouttées en même temps que la ciboulette." } },
+      { id: "blinis", label: "Blinis tièdes", emoji: "🥞",
+        ingredients: [{ name: "Blinis", qty: 1, unit: "paquet", rayon: "Produits frais", cid: "blinis" }],
+        step: { i: 4, txt: "Faites tiédir les blinis à la poêle sans matière grasse et servez-les à côté du gravlax." } }
     ]
   },
 
@@ -429,6 +557,16 @@ const RECIPES = [
         txt: "Sortez les beignets avec une écumoire et déposez-les immédiatement sur du papier absorbant. Servez bien chaud avec la sauce fraîche.",
         tip: { t: "Astuce du chef", txt: "Saupoudrez une pincée de fleur de sel et un zeste de citron juste au moment où les beignets sortent de la friture." }
       }
+    ],
+    addons: [
+      { id: "miel", label: "Filet de miel", emoji: "🍯",
+        ingredients: [{ name: "Miel", qty: null, qtyText: "1 filet", rayon: "Épicerie", cid: "miel",
+          shop: { label: "Miel", qty: 1, unit: "pot" } }],
+        step: { i: 4, txt: "Nappez les beignets chauds d'un filet de miel juste avant de servir, façon sucré-salé." } },
+      { id: "harissa", label: "Sauce relevée à la harissa", emoji: "🌶️",
+        ingredients: [{ name: "Harissa", qty: 1, unit: "c. à c.", rayon: "Épicerie", cid: "harissa",
+          shop: { label: "Harissa", qty: 1, unit: "tube" } }],
+        step: { i: 0, txt: "Incorporez la harissa à la sauce yaourt pour une version qui pique gentiment." } }
     ]
   },
 
@@ -485,6 +623,15 @@ const RECIPES = [
         timer: 11,
         tip: { t: "Astuce du chef", txt: "Servez chaud à la cuillère à glace directement dans le plat, idéalement surmonté d'une boule de glace vanille pour un contraste chaud-froid irrésistible." }
       }
+    ],
+    addons: [
+      { id: "pecan", label: "Noix de pécan", emoji: "🌰",
+        ingredients: [{ name: "Noix de pécan", qty: 80, unit: "g", rayon: "Épicerie", cid: "pecan",
+          shop: { label: "Noix de pécan", qty: 1, unit: "sachet" } }],
+        step: { i: 3, txt: "Concassez grossièrement les noix de pécan et incorporez-les en même temps que les pépites." } },
+      { id: "glace-vanille", label: "Glace vanille", emoji: "🍨",
+        ingredients: [{ name: "Glace vanille", qty: 1, unit: "pot", rayon: "Produits frais", cid: "glace-vanille" }],
+        step: { i: 4, txt: "Déposez une boule de glace vanille sur chaque portion brûlante au moment de servir." } }
     ]
   },
 
@@ -539,6 +686,18 @@ const RECIPES = [
         timer: 15,
         tip: { t: "Astuce du chef", txt: "Placez vos verres de service au congélateur 15 minutes avant le dressage pour un effet givré élégant et un maintien au frais optimal." }
       }
+    ],
+    addons: [
+      { id: "gingembre", label: "Gingembre frais", emoji: "🫚",
+        ingredients: [{ name: "Gingembre frais", qty: null, qtyText: "2 cm", rayon: "Fruits, légumes & herbes", cid: "gingembre",
+          shop: { label: "Gingembre frais", qtyText: "un petit morceau" } }],
+        step: { i: 2, txt: "Râpez finement le gingembre dans le pichet pendant la macération, pour une pointe de piquant." } },
+      { id: "fruits-rouges", label: "Fruits rouges", emoji: "🍓",
+        ingredients: [{ name: "Fruits rouges", qty: 125, unit: "g", note: "framboises ou fraises", rayon: "Fruits, légumes & herbes", cid: "fruits-rouges" }],
+        step: { i: 4, txt: "Déposez quelques fruits rouges dans chaque verre avant de verser la boisson." } },
+      { id: "gin", label: "Version cocktail (gin)", emoji: "🍸",
+        ingredients: [{ name: "Gin", qty: 8, unit: "cl", note: "2 cl par verre — pour les adultes", rayon: "Épicerie", cid: "gin" }],
+        step: { i: 3, txt: "Pour la version adulte, ajoutez le gin (2 cl par verre) en même temps que l'eau glacée et mélangez." } }
     ]
   },
 
@@ -559,12 +718,65 @@ const RECIPES = [
         shop: { label: "Pois chiches au naturel", qty: 1, unit: "bocal", note: "environ 400 g" } },
       { name: "Feta", qty: 150, unit: "g", rayon: "Produits frais", cid: "feta" },
       { name: "Olives noires", qty: 80, unit: "g", note: "type Kalamata", rayon: "Épicerie", cid: "olives" },
-      { name: "Oignon rouge", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge" },
-      { name: "Huile d'olive extra-vierge", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
-        shop: { label: "Huile d'olive vierge extra", qty: null } },
-      { name: "Vinaigre balsamique", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-balsamique" },
-      { name: "Sel, poivre noir, origan séché", qty: null, note: "vinaigrette", rayon: "Assaisonnements", cid: "origan",
-        shop: { label: "Origan séché" } }
+      { name: "Oignon rouge", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge" }
+    ],
+    choices: [{
+      id: "vinaigrette", label: "La vinaigrette",
+      options: [
+        { id: "balsamique-origan", label: "Balsamique & origan", emoji: "🫒",
+          ingredients: [
+            { name: "Huile d'olive extra-vierge", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } },
+            { name: "Vinaigre balsamique", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-balsamique" },
+            { name: "Sel, poivre noir, origan séché", qty: null, note: "vinaigrette", rayon: "Assaisonnements", cid: "origan",
+              shop: { label: "Origan séché" } }
+          ],
+          step: { t: "Émulsion de la vinaigrette",
+            txt: "Dans un bol, fouettez le vinaigre balsamique avec le sel et l'origan séché, puis incorporez l'huile d'olive.",
+            tip: { t: "Astuce du chef", txt: "Ajoutez une cuillère à café de miel dans la vinaigrette balsamique pour adoucir l'acidité naturelle du vinaigre." } } },
+        { id: "citron-menthe", label: "Citron & menthe", emoji: "🍋",
+          ingredients: [
+            { name: "Citron jaune", qty: 1, unit: "", note: "le jus — vinaigrette", rayon: "Fruits, légumes & herbes", cid: "citron",
+              shop: { label: "Citron jaune non traité" } },
+            { name: "Huile d'olive extra-vierge", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } },
+            { name: "Menthe fraîche", qty: null, qtyText: "8 feuilles", note: "vinaigrette", rayon: "Fruits, légumes & herbes", cid: "menthe",
+              shop: { label: "Menthe fraîche", qty: 1, unit: "bouquet" } },
+            { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+              shop: { label: "Sel fin, poivre noir du moulin" } }
+          ],
+          step: { t: "Vinaigrette citron & menthe",
+            txt: "Fouettez le jus de citron avec le sel, incorporez l'huile d'olive en filet, puis ajoutez la menthe finement ciselée et un tour de moulin à poivre.",
+            tip: { t: "Astuce du chef", txt: "Ajoutez aussi quelques zestes de citron : ce sont eux qui portent les huiles essentielles, bien plus parfumées que le jus." } } },
+        { id: "yaourt-citron", label: "Crémeuse au yaourt", emoji: "🥣",
+          ingredients: [
+            { name: "Yaourt grec", qty: 100, unit: "g", note: "vinaigrette", rayon: "Produits frais", cid: "yaourt-grec" },
+            { name: "Citron jaune", qty: 0.5, unit: "", note: "le jus — vinaigrette", rayon: "Fruits, légumes & herbes", cid: "citron",
+              shop: { label: "Citron jaune non traité" } },
+            { name: "Ail", qty: 0.5, unit: "gousse", note: "vinaigrette", rayon: "Fruits, légumes & herbes", cid: "ail",
+              shop: { label: "Ail", qty: 2, unit: "gousses" } },
+            { name: "Huile d'olive extra-vierge", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } },
+            { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+              shop: { label: "Sel fin, poivre noir du moulin" } }
+          ],
+          step: { t: "Sauce crémeuse au yaourt",
+            txt: "Mélangez le yaourt grec, le jus de citron, l'ail finement râpé et l'huile d'olive. Salez, poivrez.",
+            tip: { t: "Astuce du chef", txt: "Râpez l'ail à la microplane plutôt que de le hacher : il se fond dans la sauce sans laisser de morceaux piquants." } } }
+      ]
+    }],
+    addons: [
+      { id: "tomates-cerises", label: "Tomates cerises", emoji: "🍅",
+        ingredients: [{ name: "Tomates cerises", qty: 200, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" }],
+        step: { i: 4, txt: "Coupez les tomates cerises en deux et ajoutez-les au moment du mélange." } },
+      { id: "concombre", label: "Concombre", emoji: "🥒",
+        ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "concombre",
+          shop: { label: "Concombre bio", qty: 1, unit: "" } }],
+        step: { i: 4, txt: "Taillez le concombre en demi-rondelles et incorporez-le à la salade." } },
+      { id: "avocat", label: "Avocat", emoji: "🥑",
+        ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "avocat",
+          shop: { label: "Avocats mûrs" } }],
+        step: { i: 4, txt: "Ajoutez l'avocat en dés au tout dernier moment, avec un trait de jus de citron pour qu'il reste vert." } }
     ],
     steps: [
       {
@@ -583,11 +795,7 @@ const RECIPES = [
         txt: "Dénoyautez les olives si nécessaire et émiettez la feta à la main en gros morceaux.",
         tip: { t: "Astuce du chef", txt: "Émiettez la feta à la main plutôt que de la couper en dés au couteau pour obtenir des bords irréguliers qui accrochent mieux la vinaigrette." }
       },
-      {
-        t: "Émulsion de la vinaigrette",
-        txt: "Dans un bol, fouettez le vinaigre balsamique avec le sel et l'origan séché, puis incorporez l'huile d'olive.",
-        tip: { t: "Astuce du chef", txt: "Ajoutez une cuillère à café de miel dans la vinaigrette balsamique pour adoucir l'acidité naturelle du vinaigre." }
-      },
+      { choice: "vinaigrette" },
       {
         t: "Assemblage",
         txt: "Mélangez tous les ingrédients dans un saladier et laissez reposer 15 minutes avant de servir.",
@@ -613,15 +821,52 @@ const RECIPES = [
       { name: "Haricots verts frais", qty: 200, unit: "g", rayon: "Fruits, légumes & herbes", cid: "haricots-verts" },
       { name: "Petits pois frais ou surgelés", qty: 150, unit: "g", rayon: "Produits frais", cid: "petits-pois" },
       { name: "Petites pommes de terre nouvelles", qty: 300, unit: "g", note: "type Charlotte ou Grenaille", rayon: "Fruits, légumes & herbes", cid: "pommes-terre" },
-      { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette moutardée", rayon: "Épicerie", cid: "moutarde",
-        shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
-      { name: "Moutarde à l'ancienne", qty: 1, unit: "c. à c.", note: "vinaigrette moutardée", rayon: "Épicerie", cid: "moutarde-ancienne",
-        shop: { label: "Moutarde à l'ancienne", qty: 1, unit: "pot" } },
-      { name: "Vinaigre de vin", qty: 1, unit: "c. à s.", note: "vinaigrette moutardée", rayon: "Épicerie", cid: "vinaigre-vin" },
-      { name: "Huile neutre ou de tournesol", qty: 3, unit: "c. à s.", note: "vinaigrette moutardée", rayon: "Épicerie", cid: "huile-neutre",
-        shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } },
       { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "vinaigrette", label: "La vinaigrette",
+      options: [
+        { id: "moutardee", label: "Moutardée à l'ancienne", emoji: "🥄",
+          ingredients: [
+            { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+            { name: "Moutarde à l'ancienne", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde-ancienne",
+              shop: { label: "Moutarde à l'ancienne", qty: 1, unit: "pot" } },
+            { name: "Vinaigre de vin", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-vin" },
+            { name: "Huile neutre ou de tournesol", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-neutre",
+              shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } }
+          ],
+          step: { t: "Vinaigrette moutardée",
+            txt: "Mélangez les deux moutardes, le vinaigre, le sel et le poivre, puis montez en émulsion avec l'huile.",
+            tip: { t: "Astuce du chef", txt: "Utilisez la moutarde à l'ancienne en complément de la moutarde fine pour apporter du relief et une texture agréable grâce aux grains." } } },
+        { id: "miel-cidre", label: "Douceur miel & cidre", emoji: "🍯",
+          ingredients: [
+            { name: "Miel", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "miel",
+              shop: { label: "Miel", qty: 1, unit: "pot" } },
+            { name: "Vinaigre de cidre", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
+            { name: "Moutarde de Dijon", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+            { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } }
+          ],
+          step: { t: "Vinaigrette douce miel-cidre",
+            txt: "Délayez le miel et la moutarde dans le vinaigre de cidre avec le sel et le poivre, puis émulsionnez avec l'huile d'olive.",
+            tip: { t: "Astuce du chef", txt: "Cette version douce met en valeur les légumes verts tièdes : nappez-les quand ils sont encore chauds pour qu'ils s'en imprègnent." } } }
+      ]
+    }],
+    addons: [
+      { id: "radis", label: "Radis croquants", emoji: "🌱",
+        ingredients: [{ name: "Radis", qty: 0.5, unit: "botte", rayon: "Fruits, légumes & herbes", cid: "radis",
+          shop: { label: "Radis", qty: 1, unit: "botte" } }],
+        step: { i: 4, txt: "Émincez les radis en fines rondelles et ajoutez-les pour le croquant." } },
+      { id: "tomates-cerises", label: "Tomates cerises", emoji: "🍅",
+        ingredients: [{ name: "Tomates cerises", qty: 150, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" }],
+        step: { i: 4, txt: "Coupez les tomates cerises en deux et répartissez-les dans la salade." } },
+      { id: "croutons", label: "Croûtons à l'ail", emoji: "🍞",
+        ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranches", rayon: "Épicerie", cid: "pain",
+          shop: { label: "Pain de campagne" } }],
+        step: { i: 4, txt: "Faites dorer des dés de pain à la poêle avec un filet d'huile et une gousse d'ail écrasée, puis parsemez-en la salade." } }
     ],
     steps: [
       {
@@ -641,11 +886,7 @@ const RECIPES = [
         txt: "Lavez et essorez délicatement les feuilles de salade feuille de chêne.",
         tip: { t: "Astuce du chef", txt: "Essorez parfaitement la salade : l'excès d'eau empêche la vinaigrette d'adhérer aux feuilles." }
       },
-      {
-        t: "Vinaigrette moutardée",
-        txt: "Mélangez les deux moutardes, le vinaigre, le sel et le poivre, puis montez en émulsion avec l'huile.",
-        tip: { t: "Astuce du chef", txt: "Utilisez la moutarde à l'ancienne en complément de la moutarde fine pour apporter du relief et une texture agréable grâce aux grains." }
-      },
+      { choice: "vinaigrette" },
       {
         t: "Assemblage tiède",
         txt: "Coupez les pommes de terre tièdes en rondelles, mélangez-les avec les haricots, les petits pois et la salade, puis nappez de vinaigrette.",
@@ -671,14 +912,64 @@ const RECIPES = [
       { name: "Pomme verte (Granny Smith)", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "pomme",
         shop: { label: "Pommes croquantes (Granny Smith ou Gala)" } },
       { name: "Tomates fermes", qty: 2, unit: "", note: "ou 150 g de tomates cerises", rayon: "Fruits, légumes & herbes", cid: "tomates" },
-      { name: "Échalote", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "echalote" },
-      { name: "Persil plat", qty: 0.5, unit: "bouquet", rayon: "Fruits, légumes & herbes", cid: "persil",
-        shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
-      { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
-        shop: { label: "Huile d'olive vierge extra", qty: null } },
-      { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
       { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "vinaigrette", label: "La vinaigrette",
+      options: [
+        { id: "persil-echalote", label: "Persil & échalote au cidre", emoji: "🌿",
+          ingredients: [
+            { name: "Échalote", qty: 1, unit: "", note: "vinaigrette", rayon: "Fruits, légumes & herbes", cid: "echalote" },
+            { name: "Persil plat", qty: 0.5, unit: "bouquet", note: "vinaigrette", rayon: "Fruits, légumes & herbes", cid: "persil",
+              shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
+            { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-olive",
+              shop: { label: "Huile d'olive vierge extra", qty: null } },
+            { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" }
+          ],
+          step: { t: "Vinaigrette persil-échalote",
+            txt: "Hachez finement l'échalote et ciselez le persil plat. Mélangez-les dans un bol avec le vinaigre de cidre, du sel et du poivre, puis incorporez l'huile d'olive.",
+            tip: { t: "Astuce du chef", txt: "Laissez l'échalote macérer 5 minutes dans le vinaigre avant d'ajouter l'huile pour adoucir sa saveur en bouche." } } },
+        { id: "moutardee", label: "Moutardée", emoji: "🥄",
+          ingredients: [
+            { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+            { name: "Vinaigre de vin", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-vin" },
+            { name: "Huile neutre ou de tournesol", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-neutre",
+              shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } }
+          ],
+          step: { t: "Vinaigrette moutardée",
+            txt: "Fouettez la moutarde avec le vinaigre de vin, le sel et le poivre, puis montez en émulsion avec l'huile.",
+            tip: { t: "Astuce du chef", txt: "Une vinaigrette bien moutardée réveille le côté terreux des lentilles : n'hésitez pas à forcer légèrement la dose." } } },
+        { id: "huile-noix", label: "À l'huile de noix", emoji: "🌰",
+          ingredients: [
+            { name: "Huile de noix", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "huile-noix",
+              shop: { label: "Huile de noix", qty: 1, unit: "bouteille" } },
+            { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" },
+            { name: "Moutarde", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
+              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } }
+          ],
+          step: { t: "Vinaigrette à l'huile de noix",
+            txt: "Mélangez la moutarde et le vinaigre de cidre avec le sel et le poivre, puis émulsionnez avec l'huile de noix.",
+            tip: { t: "Astuce du chef", txt: "L'huile de noix ne supporte pas la chaleur et rancit vite : conservez-la au réfrigérateur et réservez-la aux assaisonnements." } } }
+      ]
+    }],
+    addons: [
+      { id: "concombre", label: "Concombre", emoji: "🥒",
+        ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "concombre",
+          shop: { label: "Concombre bio", qty: 1, unit: "" } }],
+        step: { i: 1, txt: "Taillez le concombre en petits dés, comme la pomme, pour la fraîcheur." } },
+      { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
+        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge",
+          shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
+        step: { i: 1, txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
+      { id: "noix", label: "Noix concassées", emoji: "🌰",
+        ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Épicerie", cid: "noix" }],
+        step: { i: 3, txt: "Parsemez la salade de noix grossièrement concassées juste avant de servir." } },
+      { id: "avocat", label: "Avocat", emoji: "🥑",
+        ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "avocat",
+          shop: { label: "Avocats mûrs" } }],
+        step: { i: 3, txt: "Ajoutez l'avocat en dés au dernier moment, avec un trait de jus de citron pour qu'il reste vert." } }
     ],
     steps: [
       {
@@ -688,20 +979,11 @@ const RECIPES = [
         tip: { t: "Astuce du chef", txt: "Ne salez jamais l'eau de cuisson des lentilles dès le départ, car le sel durcit la peau de la légumineuse. Salez uniquement en fin de cuisson." }
       },
       {
-        t: "Découpe aromatique",
-        txt: "Hachez finement l'échalote et ciselez le persil plat fraîchement lavé.",
-        tip: { t: "Astuce du chef", txt: "Utilisez un couteau très aiguisé pour ciseler le persil sans l'écraser, ce qui évite qu'il ne rende son eau et perde sa saveur." }
-      },
-      {
         t: "Découpe des légumes et fruits",
         txt: "Taillez la pomme verte en petits dés réguliers et coupez les tomates en quartiers, ou en deux pour les tomates cerises.",
         tip: { t: "Astuce du chef", txt: "Épépinez les tomates avant de les couper en dés afin d'éviter qu'elles ne détrempent la salade de lentilles." }
       },
-      {
-        t: "Vinaigrette persil-échalote",
-        txt: "Dans un bol, mélangez l'échalote hachée, le persil, le vinaigre de cidre, du sel, du poivre et l'huile d'olive.",
-        tip: { t: "Astuce du chef", txt: "Laissez l'échalote macérer 5 minutes dans le vinaigre avant d'ajouter l'huile pour adoucir sa saveur en bouche." }
-      },
+      { choice: "vinaigrette" },
       {
         t: "Mélange et finition",
         txt: "Associez les lentilles tièdes ou refroidies, la pomme, les tomates et la feta émiettée, puis incorporez la vinaigrette.",

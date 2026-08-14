@@ -959,6 +959,97 @@ body.cooking .timer-pill:not(.done) {
 
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
 
+/* ---------- Composer sa version : choix & suppléments ---------- */
+
+.pick-label {
+  margin: 16px 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.pick-label:first-child { margin-top: 4px; }
+
+.pick-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip.pick { padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }
+
+.ing-list .opt.sup { color: var(--terra); }
+
+/* Le geste d'un supplément, glissé dans son étape */
+.addon-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px dashed var(--gold);
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.addon-note .a-emoji { flex: none; font-size: 17px; }
+
+.addon-note b {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+/* Badge « supplément » dans la liste de courses */
+.sup-tag {
+  font-size: 11.5px;
+  color: var(--terra);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+/* Carte du menu : rappel de la version composée */
+.mc-version { margin: 2px 0 0; font-family: var(--script); font-size: 15.5px; color: var(--green); }
+
+/* Sheet « Ajouter tel quel / composer » à l'ajout au menu */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(44, 51, 38, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade 0.2s ease;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  background: var(--paper);
+  border-radius: 22px 22px 0 0;
+  padding: 14px 20px calc(18px + var(--safe-b));
+  box-shadow: 0 -12px 40px rgba(44, 51, 38, 0.25);
+  animation: sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.sheet-grip { width: 42px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 14px; }
+
+.sheet h3 { margin: 0; font-family: var(--serif); font-size: 24px; color: var(--green-deep); }
+
+.sheet-sub { margin: 2px 0 4px; font-size: 13.5px; color: var(--muted); }
+
+.sheet .sheet-add { width: 100%; margin-top: 20px; }
+
+@keyframes sheet-up { from { transform: translateY(100%); } }
+
 @media (min-width: 480px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .hero .visual { height: 220px; }
