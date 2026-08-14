@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, added: {}, checked: {}, extras: [], filter: "Toutes", query: "", timers: [] },
+  { portions: {}, added: {}, checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [] },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -29,6 +29,59 @@ const ICON = {
   timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></svg>',
   chef: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>'
 };
+
+/* ---------- Verdicts & recettes déjà cuisinées ---------- */
+
+const VERDICTS = [
+  { id: "bof", label: "Bof" },
+  { id: "bien", label: "Bien" },
+  { id: "encore", label: "Encore !", tag: "♥ Encore !" }
+];
+
+const FAV_FILTER = "coup-de-coeur";
+
+const verdictOf = r => state.notes[r.id] || null;
+
+const isFav = r => state.notes[r.id] === "encore";
+
+const cookedOf = r => state.cooked[r.id] || { count: 0, last: null };
+
+function markCooked(id) {
+  const c = state.cooked[id] || { count: 0, last: null };
+  c.count += 1;
+  c.last = Date.now();
+  state.cooked[id] = c;
+  save();
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  const opts = { day: "numeric", month: "long" };
+  if (d.getFullYear() !== new Date().getFullYear()) opts.year = "numeric";
+  return d.toLocaleDateString("fr-FR", opts);
+}
+
+function cookedText(id) {
+  const c = state.cooked[id];
+  if (!c || !c.count) return "Pas encore cuisinée depuis le carnet.";
+  if (c.count === 1) return `Cuisinée une fois, le ${fmtDate(c.last)}.`;
+  return `Cuisinée ${c.count} fois · la dernière le ${fmtDate(c.last)}.`;
+}
+
+/* Visuel d'une recette : photo si dispo, sinon illustration dessinée, sinon emoji */
+function visualOf(r) {
+  if (r.image) return `<img src="${r.image}" alt="">`;
+  return ILLO.FOOD[r.id] || r.emoji;
+}
+
+/* Encadré d'astuce, façon livre de cuisine (toque ou plume selon le titre) */
+function tipHtml(tip) {
+  const astuce = /astuce|onctuosité/i.test(tip.t);
+  return `<div class="tip ${astuce ? "" : "beige"}">
+    <span class="tip-ico">${astuce ? ILLO.D.toque : ILLO.D.plume}</span>
+    <div class="tip-body"><b>${tip.t}</b>${tip.txt}</div>
+  </div>`;
+}
 
 function fmtTime(min) {
   if (min == null) return "";
@@ -113,19 +166,22 @@ function matches(r, q) {
 }
 
 function renderHome() {
-  const cats = ["Toutes", ...new Set(RECIPES.map(r => r.category))];
+  const anyFav = RECIPES.some(isFav);
+  if (state.filter === FAV_FILTER && !anyFav) { state.filter = "Toutes"; save(); }
+  const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...new Set(RECIPES.map(r => r.category))];
+  const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   app.innerHTML = `
     <header class="masthead fade-in">
-      <p class="eyebrow">Le carnet de</p>
+      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
-      <p class="byline">par Adrien Vada</p>
+      <p class="byline">par <span class="u">Adrien Vada</span> ${ILLO.D.heart}</p>
     </header>
     <div class="searchbar">
       ${ICON.search}
       <input id="search" type="search" placeholder="Une recette, un ingrédient…" value="${state.query}" autocomplete="off">
     </div>
     <div class="chips" id="chips">
-      ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${c}">${c}</button>`).join("")}
+      ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${c}">${chipLabel(c)}</button>`).join("")}
     </div>
     <div class="grid" id="grid"></div>
   `;
@@ -142,22 +198,39 @@ function renderHome() {
   drawGrid();
 }
 
+function inFilter(r) {
+  if (state.filter === "Toutes") return true;
+  if (state.filter === FAV_FILTER) return isFav(r);
+  return r.category === state.filter;
+}
+
 function drawGrid() {
-  const list = RECIPES.filter(r => (state.filter === "Toutes" || r.category === state.filter) && matches(r, state.query));
+  const list = RECIPES.filter(r => inFilter(r) && matches(r, state.query));
+  // Dans les coups de cœur, les plus cuisinées passent devant.
+  if (state.filter === FAV_FILTER) {
+    list.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
+  }
   const grid = document.getElementById("grid");
   if (!list.length) {
     grid.innerHTML = `<p class="empty" style="grid-column:1/-1">Aucune recette ne correspond…<br>La prochaine fournée arrive bientôt !</p>`;
     return;
   }
-  grid.innerHTML = list.map(r => `
+  grid.innerHTML = list.map(r => {
+    const v = VERDICTS.find(x => x.id === verdictOf(r));
+    const c = cookedOf(r);
+    return `
     <a class="card fade-in" href="#/recette/${r.id}">
-      <div class="visual" style="background:${r.color}22">${r.image ? `<img src="${r.image}" alt="">` : r.emoji}</div>
+      <div class="visual" style="background:${r.color}22">${visualOf(r)}</div>
       <div class="body">
         <h3>${r.title}</h3>
         <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
+        ${v || c.count ? `<div class="tagrow">
+          ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
+          ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
+        </div>` : ""}
       </div>
-    </a>
-  `).join("");
+    </a>`;
+  }).join("");
 }
 
 /* ---------- Page recette ---------- */
@@ -170,7 +243,10 @@ function renderRecipe(r) {
     <div class="topbar fade-in">
       <a class="btn-icon" href="#/">${ICON.back} Recettes</a>
     </div>
-    <div class="hero"><div class="visual" style="background:${r.color}33">${r.image ? `<img src="${r.image}" alt="">` : r.emoji}</div></div>
+    <div class="hero"><div class="visual" style="background:${r.color}33">
+      ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
+      ${visualOf(r)}
+    </div></div>
     <div class="r-head">
       <h1>${r.title}</h1>
       <p class="subtitle">${r.subtitle}</p>
@@ -182,7 +258,7 @@ function renderRecipe(r) {
     </div>
 
     <section class="section">
-      <h2>Ingrédients
+      <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Ingrédients</span>
         <span class="portions">
           <button id="p-minus" aria-label="Moins de portions">−</button>
           <span class="val" id="p-val"></span>
@@ -193,7 +269,7 @@ function renderRecipe(r) {
     </section>
 
     <section class="section">
-      <h2>Préparation</h2>
+      <h2><span class="h-title"><span class="h-deco">${ILLO.D.toque}</span>Préparation</span></h2>
       <ol class="steps">
         ${r.steps.map((s, i) => `
           <li>
@@ -201,13 +277,19 @@ function renderRecipe(r) {
             <div>
               <h3>${s.t}</h3>
               <p>${s.txt}</p>
-              ${s.tip ? `<div class="tip"><b>${s.tip.t}</b>${s.tip.txt}</div>` : ""}
+              ${s.tip ? tipHtml(s.tip) : ""}
             </div>
           </li>`).join("")}
       </ol>
     </section>
 
-    ${r.note ? `<p class="recipe-note">« ${r.note} »</p>` : ""}
+    ${r.note ? `<p class="recipe-note">« ${r.note} »<span class="n-heart">${ILLO.D.heart}</span><span class="n-flourish">${ILLO.D.flourish}</span></p>` : ""}
+
+    <section class="section verdict">
+      <h2>Alors, verdict ?</h2>
+      <div class="verdict-row" id="verdict-row"></div>
+      <p class="cooked-line" id="cooked-line"></p>
+    </section>
 
     <div class="actions">
       <button class="btn ${inList ? "added" : "secondary"}" id="add-list">
@@ -253,7 +335,31 @@ function renderRecipe(r) {
     }
     save(); updateBadge();
   });
+
+  const drawVerdict = () => {
+    const cur = verdictOf(r);
+    document.getElementById("verdict-row").innerHTML = VERDICTS.map(v => `
+      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}">${v.label}</button>
+    `).join("");
+    document.getElementById("cooked-line").textContent = cookedText(r.id);
+  };
+
+  document.getElementById("verdict-row").addEventListener("click", e => {
+    const b = e.target.closest("[data-verdict]");
+    if (!b) return;
+    const v = b.dataset.verdict;
+    if (state.notes[r.id] === v) {
+      delete state.notes[r.id];
+      toast("Verdict effacé");
+    } else {
+      state.notes[r.id] = v;
+      toast(v === "encore" ? "Un coup de cœur de plus ♥" : `Notée « ${VERDICTS.find(x => x.id === v).label} »`);
+    }
+    save(); drawVerdict();
+  });
+
   drawIngredients();
+  drawVerdict();
 }
 
 /* ---------- Minuteurs multiples ----------
@@ -355,6 +461,9 @@ function beep() {
 
 function renderCook(r) {
   cookIdx = 0;
+  // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
+  // « Terminer » compterait la recette deux fois.
+  let finished = false;
   acquireWakeLock();
   document.body.classList.add("cooking");
   const draw = () => {
@@ -371,8 +480,9 @@ function renderCook(r) {
           <div>
             <p class="cook-step-label">Étape ${cookIdx + 1} / ${r.steps.length}</p>
             <h2>${s.t}</h2>
+            <span class="cook-flourish">${ILLO.D.flourish}</span>
             <p class="txt">${s.txt}</p>
-            ${s.tip ? `<div class="tip"><b>${s.tip.t}</b>${s.tip.txt}</div>` : ""}
+            ${s.tip ? tipHtml(s.tip) : ""}
             <div class="cook-timer" id="timer-zone"></div>
           </div>
         </div>
@@ -385,7 +495,14 @@ function renderCook(r) {
     document.getElementById("cook-close").addEventListener("click", () => { history.back(); });
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
     document.getElementById("next").addEventListener("click", () => {
-      if (last) { location.hash = `#/recette/${r.id}`; toast("Bon appétit !"); }
+      if (last) {
+        if (finished) return;
+        finished = true;
+        const first = !verdictOf(r);
+        markCooked(r.id);
+        location.hash = `#/recette/${r.id}`;
+        toast(first ? "Bon appétit ! Alors, verdict ?" : "Bon appétit !");
+      }
       else { cookIdx++; draw(); }
     });
     drawTimerZone(s);
@@ -472,7 +589,11 @@ function renderCourses() {
 
   if (!ids.length && !extras.length) {
     app.innerHTML = `
-      <header class="page-head fade-in"><h1>Liste de courses</h1></header>
+      <header class="page-head courses-head fade-in">
+        <div class="head-branch">${ILLO.D.olive}</div>
+        <h1>Liste de courses</h1>
+      </header>
+      <div class="empty-illo cheers">${ILLO.D.cheers}</div>
       <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche « Liste de courses » : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.</p>
       <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
     `;
@@ -489,7 +610,8 @@ function renderCourses() {
 
   app.innerHTML = `
     <div id="courses-root">
-    <header class="page-head fade-in">
+    <header class="page-head courses-head fade-in">
+      <div class="head-branch">${ILLO.D.olive}</div>
       <h1>Liste de courses</h1>
       <p>${ids.length ? `Pour ${ids.length} recette${ids.length > 1 ? "s" : ""} — quantités fusionnées par rayon` : "Articles ajoutés à la main"}</p>
     </header>

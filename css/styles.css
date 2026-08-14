@@ -12,11 +12,14 @@
   --green-deep: #31492B;
   --green-tint: #E4EADD;
   --gold: #C1913F;
+  --gold-tint: #F4EAD5;
+  --gold-deep: #8A6420;
   --terra: #BC6B3D;
   --line: #E2DAC5;
   --line-soft: #ECE5D2;
   --radius: 16px;
   --serif: "Cormorant Garamond", Georgia, serif;
+  --script: "Caveat", "Bradley Hand", cursive;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
@@ -34,6 +37,11 @@ body {
   background: var(--paper);
   min-height: 100%;
   overscroll-behavior-y: none;
+}
+
+/* Grain papier, comme une page de carnet */
+body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.42 0 0 0 0 0.3 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 #app {
@@ -106,18 +114,49 @@ a { color: var(--green); }
 
 .masthead { padding: 26px 0 6px; text-align: center; }
 
+.mast-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--green);
+}
+
+.mast-row svg { width: 44px; height: 15px; opacity: 0.85; }
+
 .masthead .eyebrow {
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold);
   font-weight: 600;
-  margin: 0 0 2px;
+  margin: 0;
 }
 
-.masthead h1 { font-size: 40px; line-height: 1.05; }
+.masthead h1 {
+  font-family: var(--script);
+  font-weight: 700;
+  font-size: 58px;
+  line-height: 1;
+  color: var(--green-deep);
+  transform: rotate(-2deg);
+  margin-top: 2px;
+}
 
-.masthead .byline { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--ink-soft); margin: 4px 0 0; }
+.masthead .byline {
+  font-family: var(--script);
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin: 6px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.masthead .byline .u { border-bottom: 1.5px solid var(--gold); padding-bottom: 1px; }
+
+.masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
 
 .searchbar {
   display: flex;
@@ -186,9 +225,12 @@ a { color: var(--green); }
   align-items: center;
   justify-content: center;
   font-size: 52px;
+  position: relative;
 }
 
 .card .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+.card .visual svg { width: 76%; height: 86%; }
 
 .card .body { padding: 10px 12px 12px; }
 
@@ -199,6 +241,10 @@ a { color: var(--green); }
 .card .meta svg { width: 13px; height: 13px; }
 
 .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
+
+.empty-illo { display: flex; justify-content: center; padding-top: 26px; margin-bottom: -30px; }
+.empty-illo svg { width: 110px; height: 36px; opacity: 0.9; }
+.empty-illo.cheers svg { width: 54px; height: 48px; color: var(--gold); }
 
 /* ---------- Page recette ---------- */
 
@@ -232,15 +278,24 @@ a { color: var(--green); }
   border: 1px solid var(--line);
 }
 
-.hero .visual { height: 170px; display: flex; align-items: center; justify-content: center; font-size: 84px; }
+.hero .visual { height: 170px; display: flex; align-items: center; justify-content: center; font-size: 84px; position: relative; }
 
 .hero .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero .visual > svg { width: 56%; height: 82%; }
+
+.hero .corner { position: absolute; width: 54px; height: 54px; opacity: 0.9; pointer-events: none; }
+.hero .corner svg { width: 100%; height: 100%; }
+.hero .corner.tl { top: 6px; left: 8px; transform: scaleY(-1); }
+.hero .corner.tr { top: 6px; right: 8px; transform: scale(-1, -1); }
+.hero .corner.bl { bottom: 6px; left: 8px; }
+.hero .corner.br { bottom: 6px; right: 8px; transform: scaleX(-1); }
 
 .r-head { padding: 4px 2px; }
 
 .r-head h1 { font-size: 32px; line-height: 1.08; margin-top: 14px; }
 
-.r-head .subtitle { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--ink-soft); margin: 4px 0 0; }
+.r-head .subtitle { font-family: var(--script); font-size: 20px; font-weight: 500; color: var(--ink-soft); margin: 4px 0 0; }
 
 .timerow {
   display: flex;
@@ -272,6 +327,10 @@ a { color: var(--green); }
   justify-content: space-between;
   gap: 10px;
 }
+
+.h-deco { display: inline-flex; align-self: center; color: var(--green); margin-right: 2px; }
+.h-deco svg { width: 19px; height: 18px; }
+.h-title { flex: 1; display: inline-flex; align-items: baseline; gap: 8px; }
 
 .portions {
   display: inline-flex;
@@ -341,22 +400,36 @@ a { color: var(--green); }
 .tip {
   margin-top: 10px;
   background: var(--green-tint);
-  border-radius: 12px;
+  border-left: 3px solid var(--green);
+  border-radius: 4px 12px 12px 4px;
   padding: 10px 14px;
   font-size: 14px;
   color: var(--green-deep);
+  display: flex;
+  gap: 10px;
 }
 
-.tip b { display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; color: var(--green); }
+.tip-ico { flex: none; color: var(--green); margin-top: 1px; }
+.tip-ico svg { width: 20px; height: 20px; }
+.tip-body { flex: 1; font-family: var(--serif); font-style: italic; font-size: 15.5px; line-height: 1.45; }
+
+.tip b { display: block; font-family: var(--sans); font-style: normal; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; color: var(--green); }
+
+.tip.beige { background: #F1EBDB; border-left-color: var(--gold); color: #6B5C3A; }
+.tip.beige b, .tip.beige .tip-ico { color: var(--gold); }
 
 .recipe-note {
-  margin: 20px 0 8px;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 18px;
+  margin: 22px 0 8px;
+  font-family: var(--script);
+  font-size: 22px;
+  font-weight: 500;
   text-align: center;
-  color: var(--ink-soft);
+  color: var(--green-deep);
+  transform: rotate(-1.2deg);
 }
+
+.recipe-note .n-heart { display: inline-block; width: 16px; height: 14px; color: var(--terra); margin-left: 4px; }
+.recipe-note .n-flourish { display: block; width: 110px; margin: 2px auto 0; color: var(--gold); }
 
 .actions {
   position: sticky;
@@ -388,6 +461,47 @@ a { color: var(--green); }
 .btn.secondary { background: var(--card); color: var(--green-deep); }
 
 .btn.added { background: var(--green-tint); border-color: var(--green-tint); color: var(--green-deep); box-shadow: none; }
+
+/* ---------- Verdict & coups de cœur ---------- */
+
+.verdict-row { display: flex; gap: 8px; margin-top: 12px; }
+
+.verdict-btn {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  border-radius: 12px;
+  padding: 12px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.verdict-btn:active { transform: scale(0.96); }
+
+.verdict-btn.on.v-bof { background: var(--paper-deep); color: var(--ink-soft); }
+.verdict-btn.on.v-bien { background: var(--gold-tint); border-color: var(--gold); color: var(--gold-deep); }
+.verdict-btn.on.v-encore { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.22); }
+
+.cooked-line {
+  margin: 12px 0 0;
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
+
+/* Pastille de verdict sur les vignettes */
+
+.tagrow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+
+.verdict-tag { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
+
+.verdict-tag.v-bof { background: var(--paper-deep); color: var(--muted); }
+.verdict-tag.v-bien { background: var(--gold-tint); color: var(--gold-deep); }
+.verdict-tag.v-encore { background: var(--green-tint); color: var(--green-deep); }
+
+.cook-count { font-size: 11.5px; color: var(--muted); }
 
 /* ---------- Mode cuisine ---------- */
 
@@ -426,7 +540,9 @@ a { color: var(--green); }
 
 .cook-step-label { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 
-.cook-body h2 { font-family: var(--serif); font-size: 31px; color: #FDFBF3; margin: 6px 0 12px; line-height: 1.1; }
+.cook-body h2 { font-family: var(--serif); font-size: 31px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.1; }
+
+.cook-flourish { display: block; width: 88px; height: 12px; color: var(--gold); margin: 0 0 12px; opacity: 0.9; }
 
 .cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #E9E4D2; }
 
@@ -492,6 +608,25 @@ a { color: var(--green); }
 .page-head h1 { font-size: 32px; }
 
 .page-head p { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+
+/* En-tête de la liste de courses, façon bandeau du livre */
+.courses-head { text-align: center; }
+
+.courses-head h1 {
+  font-family: var(--sans);
+  background: var(--green);
+  color: #F6F2E2;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--green-deep);
+}
+
+.courses-head .head-branch { display: flex; justify-content: center; margin-bottom: 10px; }
+.courses-head .head-branch svg { width: 120px; height: 38px; }
 
 .menu-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
 

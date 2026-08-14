@@ -1,6 +1,6 @@
 /* Service worker — cache l'application pour un usage hors ligne */
 
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `carnet-cuisine-${VERSION}`;
 
 const CORE = [
@@ -9,6 +9,7 @@ const CORE = [
   "css/styles.css",
   "js/app.js",
   "js/recipes.js",
+  "js/illos.js",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",
