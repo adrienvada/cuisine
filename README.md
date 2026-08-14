@@ -47,7 +47,8 @@ Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dan
    hexdata = re.search(r'«data PNGf([0-9A-Fa-f]+)»', content).group(1)
    open('img/ID-RECETTE-raw.png', 'wb').write(bytes.fromhex(hexdata))
    "
-   sips -Z 1200 -s format jpeg -s formatOptions 78 img/ID-RECETTE-raw.png --out img/ID-RECETTE.jpg
+   sips -Z 800 -s format jpeg -s formatOptions 78 img/ID-RECETTE-raw.png --out img/ID-RECETTE.jpg
+   # 800 px suffit : les photos s'affichent en vignettes (~190 px) et en héro (~640 px max)
    rm img/ID-RECETTE-raw.png /tmp/clip.txt
    ```
 5. Ajouter `image: "img/ID-RECETTE.jpg",` juste après `id:` dans `js/recipes.js`.

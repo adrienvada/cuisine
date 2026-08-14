@@ -47,6 +47,27 @@ function discoveredHtml(r) {
   return `<p class="disc-row"><span class="discovered">${ICON.pin}Découverte ${r.discovered}</span></p>`;
 }
 
+/* Version abrégée de `discovered` pour la pastille des vignettes :
+   sans article/préposition d'intro, et sans détail superflu — juste
+   « Lieu, Ville ». Ex. « à l'hôtel Park Plaza Victoria, à Amsterdam »
+   → « Hôtel Pla. Vic., Amsterdam ». */
+function abbrevDiscovered(text) {
+  const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const abbrevWord = w => (w.length <= 3 ? w : w.slice(0, 3) + ".");
+  const abbrevPlace = phrase => {
+    const [first, ...rest] = phrase.split(/\s+/);
+    const kept = rest.length > 2 ? rest.slice(rest.length - 2) : rest;
+    return [capFirst(first), ...kept.map(abbrevWord)].join(" ");
+  };
+  const stripped = text.replace(/^\s*(à l['’]|au\s|à la\s|aux\s|chez\s|du\s|des\s|de l['’]|en\s|à\s)/i, "").trim();
+  const commaIdx = stripped.indexOf(",");
+  if (commaIdx === -1) return abbrevPlace(stripped);
+  const place = stripped.slice(0, commaIdx).trim();
+  const cityWords = stripped.slice(commaIdx + 1).trim().split(/\s+/);
+  const city = capFirst(cityWords[cityWords.length - 1].replace(/[.,;:]+$/, ""));
+  return `${abbrevPlace(place)}, ${city}`;
+}
+
 /* ---------- Verdicts & recettes déjà cuisinées ---------- */
 
 const VERDICTS = [
@@ -85,9 +106,11 @@ function cookedText(id) {
   return `Cuisinée ${c.count} fois · la dernière le ${fmtDate(c.last)}.`;
 }
 
-/* Visuel d'une recette : photo si dispo, sinon illustration dessinée, sinon emoji */
-function visualOf(r) {
-  if (r.image) return `<img src="${r.image}" alt="">`;
+/* Visuel d'une recette : photo si dispo, sinon illustration dessinée, sinon emoji.
+   Les vignettes chargent en différé ; passer eager=true pour l'image principale
+   d'une page (elle doit arriver tout de suite). */
+function visualOf(r, eager) {
+  if (r.image) return `<img src="${r.image}" alt=""${eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'}>`;
   return ILLO.FOOD[r.id] || r.emoji;
 }
 
@@ -519,12 +542,14 @@ function drawGrid() {
       </div>
       <div class="body">
         <h3>${r.title}</h3>
-        <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
-        ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${r.discovered}</span></div>` : ""}
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
         </div>` : ""}
+        <div class="card-foot">
+          <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
+          ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
+        </div>
       </div>
     </a>`;
   }).join("");
@@ -544,7 +569,7 @@ function renderRecipe(r) {
     </div>
     <div class="hero"><div class="visual" style="background:${r.color}33">
       ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
-      ${visualOf(r)}
+      ${visualOf(r, true)}
     </div></div>
     <div class="r-head">
       <h1>${r.title}</h1>
@@ -1189,3 +1214,23 @@ document.getElementById("timer-tray").addEventListener("click", e => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
+
+/* ---------- Mode sombre ---------- */
+
+(function initThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  function apply(dark) {
+    document.documentElement.toggleAttribute("data-theme", dark);
+    if (dark) document.documentElement.setAttribute("data-theme", "dark");
+    btn.setAttribute("aria-pressed", String(dark));
+    btn.setAttribute("aria-label", dark ? "Activer le mode clair" : "Activer le mode sombre");
+    if (meta) meta.setAttribute("content", dark ? "#15180F" : "#42603A");
+  }
+  apply(document.documentElement.getAttribute("data-theme") === "dark");
+  btn.addEventListener("click", () => {
+    const dark = document.documentElement.getAttribute("data-theme") !== "dark";
+    apply(dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  });
+})();
