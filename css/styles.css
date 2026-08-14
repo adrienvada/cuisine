@@ -637,7 +637,11 @@ a { color: var(--green); }
 
 /* ---------- Mode cuisine ---------- */
 
+/* Toujours les couleurs du mode clair, même quand le reste du site
+   est en mode sombre : le mode cuisine était déjà sombre par design. */
 .cook {
+  --green-deep: #31492B;
+  --gold: #C1913F;
   position: fixed;
   inset: 0;
   background: var(--green-deep);
