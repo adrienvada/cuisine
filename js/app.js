@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {} },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {} },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -37,8 +37,15 @@ const ICON = {
   play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98m-.01-10.98-6.82 3.98"/></svg>',
   timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></svg>',
-  chef: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>'
+  chef: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.99-5.1 9.9-7.34 11.86a1 1 0 0 1-1.32 0C9.1 19.9 4 14.99 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
 };
+
+/* Pastille « Découverte à… » — facultative, cf. l'en-tête de recipes.js */
+function discoveredHtml(r) {
+  if (!r.discovered) return "";
+  return `<p class="disc-row"><span class="discovered">${ICON.pin}Découverte ${r.discovered}</span></p>`;
+}
 
 /* ---------- Verdicts & recettes déjà cuisinées ---------- */
 
@@ -288,6 +295,48 @@ function courseTodo() {
     + state.extras.filter(x => !state.checked["x-" + x.id]).length;
 }
 
+/* ---------- Cuisine en cours ----------
+   Où l'on en est dans chaque recette entamée, pour pouvoir reprendre après
+   être allé voir ailleurs. Oubliée à « Terminer », à « Repartir du début »,
+   ou d'elle-même au bout de 12 h — inutile de proposer de reprendre un repas
+   d'avant-hier. */
+
+const COOKING_TTL = 12 * 3600 * 1000;
+
+function cookingStep(r) {
+  const c = state.cooking[r.id];
+  if (!c) return null;
+  if (Date.now() - c.at > COOKING_TTL) { forgetCooking(r.id); return null; }
+  return Math.min(c.step, r.steps.length - 1);
+}
+
+function setCooking(id, step) {
+  state.cooking[id] = { step, at: Date.now() };
+  save();
+}
+
+function forgetCooking(id) { delete state.cooking[id]; save(); }
+
+/* Adresse du mode cuisine : sur l'étape en cours s'il y en a une. */
+function cookHref(r) {
+  const step = cookingStep(r);
+  return `#/recette/${r.id}/cuisine${step ? "/" + step : ""}`;
+}
+
+const hasRunningTimer = id => state.timers.some(t => t.rid === id);
+
+/* Fermer avec la croix, c'est vouloir sortir : sans ce garde-fou, la reprise
+   automatique renverrait aussitôt dans le mode cuisine qu'on vient de quitter.
+   Levé dès qu'on y retourne de soi-même. */
+const noAutoResume = new Set();
+
+/* Un minuteur qui tourne signe une vraie séance de cuisine : on y retourne
+   directement. Sinon, la fiche s'ouvre normalement avec un bouton Reprendre. */
+function autoResumeStep(r) {
+  if (noAutoResume.has(r.id) || !hasRunningTimer(r.id)) return null;
+  return cookingStep(r);
+}
+
 /* ---------- Partage ---------- */
 
 const SITE_FALLBACK = "https://adrienvada.fr/cuisine/";
@@ -325,7 +374,9 @@ function recipeShareText(r) {
   if (t.repos) times.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);
   times.push(t.cuisson != null ? `Cuisson ${fmtTime(t.cuisson)}` : "Sans cuisson");
 
-  const lines = [`${r.emoji} ${r.title}`, r.subtitle, "", times.join(" · ")];
+  const lines = [`${r.emoji} ${r.title}`, r.subtitle];
+  if (r.discovered) lines.push(`📍 Découverte ${r.discovered}`);
+  lines.push("", times.join(" · "));
   const vs = versionSummary(r);
   if (vs) lines.push(`Version : ${vs}`);
   lines.push("", `Pour ${p} ${r.portions.label} :`);
@@ -380,8 +431,15 @@ function route() {
     renderMenu();
   } else if (parts[0] === "recette" && byId(parts[1])) {
     document.querySelector('[data-tab="home"]').classList.add("active");
-    if (parts[2] === "cuisine") renderCook(byId(parts[1]));
-    else renderRecipe(byId(parts[1]));
+    const r = byId(parts[1]);
+    if (parts[2] === "cuisine") renderCook(r, parts[3]);
+    else {
+      const step = autoResumeStep(r);
+      // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
+      // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
+      if (step != null) return location.replace(`#/recette/${r.id}/cuisine/${step}`);
+      renderRecipe(r);
+    }
   } else {
     document.querySelector('[data-tab="home"]').classList.add("active");
     renderHome();
@@ -475,6 +533,8 @@ function drawGrid() {
 
 function renderRecipe(r) {
   const inList = inMenu(r.id);
+  // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
+  const resume = cookingStep(r) || null;
   const t = r.times;
   app.innerHTML = `
     <div class="topbar fade-in">
@@ -488,6 +548,7 @@ function renderRecipe(r) {
     <div class="r-head">
       <h1>${r.title}</h1>
       <p class="subtitle">${r.subtitle}</p>
+      ${discoveredHtml(r)}
       <div class="timerow">
         ${t.prep ? `<span class="timechip">${ICON.clock} Préparation : ${fmtTime(t.prep)}</span>` : ""}
         ${t.repos ? `<span class="timechip">${ICON.clock} ${r.reposLabel || "Repos"} : ${fmtTime(t.repos)}</span>` : ""}
@@ -529,8 +590,11 @@ function renderRecipe(r) {
       <button class="btn ${inList ? "added" : "secondary"}" id="add-list">
         ${inList ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu"}
       </button>
-      <a class="btn primary" href="#/recette/${r.id}/cuisine">${ICON.chef} Mode cuisine</a>
+      <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r)}">${ICON.chef}
+        ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : "Mode cuisine"}
+      </a>
     </div>
+    ${resume ? `<button class="link-restart" id="restart-cook">Repartir du début</button>` : ""}
   `;
 
   const drawIngredients = () => {
@@ -606,6 +670,11 @@ function renderRecipe(r) {
   });
 
   document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
+
+  if (resume) document.getElementById("restart-cook").addEventListener("click", () => {
+    forgetCooking(r.id);
+    location.hash = `#/recette/${r.id}/cuisine`;
+  });
 
   const drawVerdict = () => {
     const cur = verdictOf(r);
@@ -688,7 +757,9 @@ function drawTray() {
   tray.innerHTML = state.timers.map(t => {
     const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
     const done = left === 0;
-    return `<button class="timer-pill ${done ? "done" : ""}" data-timer="${t.id}" aria-label="Minuteur : ${t.label}">
+    const r = byId(t.rid);
+    return `<button class="timer-pill ${done ? "done" : ""}" data-timer="${t.id}"
+      aria-label="Minuteur « ${t.label} »${r ? ` — revenir à l'étape de ${r.title}` : ""}">
       ${ICON.timer}
       <span class="t-label">${t.emoji} ${t.label}</span>
       <span class="t-clock" data-clock="${t.id}">${done ? "Prêt !" : fmtClock(left)}</span>
@@ -730,10 +801,15 @@ function beep() {
   if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 500]);
 }
 
-function renderCook(r) {
-  cookIdx = 0;
+/* `step` (facultatif, depuis l'adresse) ouvre directement l'étape voulue —
+   c'est par là qu'une bulle de minuteur ramène à ce qui est en train de cuire. */
+function renderCook(r, step) {
   // La version composée (vinaigrette choisie, suppléments) dicte les étapes.
   const steps = effectiveSteps(r);
+  const at = parseInt(step, 10);
+  cookIdx = Number.isInteger(at) ? Math.min(Math.max(at, 0), steps.length - 1) : 0;
+  // On y revient de soi-même : la reprise automatique redevient légitime.
+  noAutoResume.delete(r.id);
   // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
   // « Terminer » compterait la recette deux fois.
   let finished = false;
@@ -742,6 +818,12 @@ function renderCook(r) {
   const draw = () => {
     const s = steps[cookIdx];
     const last = cookIdx === steps.length - 1;
+    if (!finished) {
+      setCooking(r.id, cookIdx);
+      // L'adresse suit l'étape sans encombrer l'historique : un rechargement,
+      // ou une PWA fermée par iOS, retrouve ainsi la bonne étape.
+      history.replaceState(null, "", `#/recette/${r.id}/cuisine/${cookIdx}`);
+    }
     app.innerHTML = `
       <div class="cook">
         <div class="cook-top">
@@ -769,7 +851,10 @@ function renderCook(r) {
         </div>
       </div>
     `;
-    document.getElementById("cook-close").addEventListener("click", () => { history.back(); });
+    document.getElementById("cook-close").addEventListener("click", () => {
+      noAutoResume.add(r.id);
+      history.back();
+    });
     document.getElementById("cook-share").addEventListener("click", () => shareRecipe(r.id));
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
     document.getElementById("next").addEventListener("click", () => {
@@ -778,6 +863,7 @@ function renderCook(r) {
         finished = true;
         const first = !verdictOf(r);
         markCooked(r.id);
+        forgetCooking(r.id);
         location.hash = `#/recette/${r.id}`;
         toast(first ? "Bon appétit ! Alors, verdict ?" : "Bon appétit !");
       }
@@ -865,7 +951,7 @@ function renderMenu() {
               <button data-plus="${r.id}" aria-label="Plus de portions">+</button>
             </span>
             <div class="mc-actions">
-              <a class="mc-btn" href="#/recette/${r.id}/cuisine">${ICON.chef} Cuisiner</a>
+              <a class="mc-btn" href="${cookHref(r)}">${ICON.chef} ${cookingStep(r) ? "Reprendre" : "Cuisiner"}</a>
               <button class="mc-btn" data-share="${r.id}">${ICON.share} Partager</button>
             </div>
           </div>
@@ -1085,12 +1171,18 @@ route();
 drawTray();
 ensureTick();
 
+/* Une bulle ramène à l'étape qui tourne, même depuis une autre recette ;
+   la croix, elle, arrête le minuteur. */
 document.getElementById("timer-tray").addEventListener("click", e => {
   const pill = e.target.closest("[data-timer]");
   if (!pill) return;
   const t = state.timers.find(x => x.id === pill.dataset.timer);
   if (!t) return;
-  if (Date.now() >= t.end || e.target.closest(".t-x")) cancelTimer(t.id);
+  if (e.target.closest(".t-x")) { cancelTimer(t.id); return; }
+  const target = `#/recette/${t.rid}/cuisine/${t.step}`;
+  // Même adresse (on a avancé d'étape sans changer le hash) : pas d'événement, on redessine.
+  if (location.hash === target) route();
+  else location.hash = target;
 });
 
 if ("serviceWorker" in navigator) {
