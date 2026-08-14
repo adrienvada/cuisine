@@ -540,12 +540,14 @@ function drawGrid() {
       </div>
       <div class="body">
         <h3>${r.title}</h3>
-        <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
-        ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
         </div>` : ""}
+        <div class="card-foot">
+          <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
+          ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
+        </div>
       </div>
     </a>`;
   }).join("");
