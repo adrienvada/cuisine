@@ -261,6 +261,22 @@ a { color: var(--green); }
 
 .card .meta svg { width: 13px; height: 13px; }
 
+/* Version résumée de la pastille « Découverte à… » sur la vignette */
+.card-disc {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  overflow: hidden;
+}
+
+.card-disc svg { width: 12px; height: 12px; flex: none; color: var(--gold); }
+
+.card-disc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
 
 .nowrap { white-space: nowrap; }
