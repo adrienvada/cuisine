@@ -106,9 +106,11 @@ function cookedText(id) {
   return `Cuisinée ${c.count} fois · la dernière le ${fmtDate(c.last)}.`;
 }
 
-/* Visuel d'une recette : photo si dispo, sinon illustration dessinée, sinon emoji */
-function visualOf(r) {
-  if (r.image) return `<img src="${r.image}" alt="">`;
+/* Visuel d'une recette : photo si dispo, sinon illustration dessinée, sinon emoji.
+   Les vignettes chargent en différé ; passer eager=true pour l'image principale
+   d'une page (elle doit arriver tout de suite). */
+function visualOf(r, eager) {
+  if (r.image) return `<img src="${r.image}" alt=""${eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'}>`;
   return ILLO.FOOD[r.id] || r.emoji;
 }
 
@@ -567,7 +569,7 @@ function renderRecipe(r) {
     </div>
     <div class="hero"><div class="visual" style="background:${r.color}33">
       ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
-      ${visualOf(r)}
+      ${visualOf(r, true)}
     </div></div>
     <div class="r-head">
       <h1>${r.title}</h1>
