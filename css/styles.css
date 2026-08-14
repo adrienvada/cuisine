@@ -550,6 +550,8 @@ a { color: var(--green); }
 
 .cook .tip b { color: var(--gold); }
 
+.cook .tip-ico { color: var(--gold); }
+
 .cook-timer {
   margin-top: 18px;
   display: flex;
