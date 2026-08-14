@@ -20,15 +20,29 @@ Le plus simple : **donner la recette à Claude** (photo, texte, lien…) et lui 
 
 ## Illustrations & photos
 
-Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dans [`js/illos.js`](js/illos.js) — clé = identifiant de la recette. Si une recette n'a pas d'illustration, son emoji prend le relais ; si elle a une **photo** (`image: "img/….png"`), la photo gagne.
+Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dans [`js/illos.js`](js/illos.js) — clé = identifiant de la recette. Si une recette n'a pas d'illustration, son emoji prend le relais ; si elle a une **photo** (`image: "img/….jpg"`), la photo gagne.
 
-Pour générer des photos réalistes avec Gemini (« nano banana ») :
+**Quand une nouvelle recette est ajoutée, générer aussi sa photo** avec Gemini (« nano banana ») — méthode gratuite via l'interface web, sans clé API (l'API `generativelanguage.googleapis.com` facture les images même avec un abonnement Google AI, contrairement au chat web) :
 
-```bash
-GEMINI_API_KEY=ta_clé node tools/generer-photos.mjs
-```
+1. Ouvrir [gemini.google.com/app](https://gemini.google.com/app) dans Chrome (connecté au compte d'Adrien), nouvelle discussion.
+2. Envoyer le prompt (remplacer `{titre}` et `{sous-titre}`) :
+   > Génère une image : Photographie culinaire professionnelle de style éditorial, pour un livre de cuisine méditerranéen. Lumière naturelle latérale douce, ombres délicates, tons chauds. Décor : table en bois patiné ou nappe en lin, vaisselle artisanale, quelques herbes fraîches autour. Cadrage en plongée légère (3/4), mise au point sur le plat, arrière-plan légèrement flou. Format 4:3. Aucun texte, aucune main, aucune personne dans l'image. Le plat : {titre}. {sous-titre}.
+3. Cliquer l'icône **Copier l'image** (pas « Télécharger » — ça déclenche une boîte de dialogue Chrome que l'automatisation ne peut pas valider).
+4. Récupérer l'image depuis le presse-papiers macOS et la compresser pour le web :
+   ```bash
+   osascript -e 'the clipboard as «class PNGf»' > /tmp/clip.txt
+   python3 -c "
+   import re
+   content = open('/tmp/clip.txt').read().strip()
+   hexdata = re.search(r'«data PNGf([0-9A-Fa-f]+)»', content).group(1)
+   open('img/ID-RECETTE-raw.png', 'wb').write(bytes.fromhex(hexdata))
+   "
+   sips -Z 1200 -s format jpeg -s formatOptions 78 img/ID-RECETTE-raw.png --out img/ID-RECETTE.jpg
+   rm img/ID-RECETTE-raw.png /tmp/clip.txt
+   ```
+5. Ajouter `image: "img/ID-RECETTE.jpg",` juste après `id:` dans `js/recipes.js`.
 
-La clé se crée en 30 secondes sur [Google AI Studio](https://aistudio.google.com) (« Get API key »). Le script ne touche qu'aux recettes sans photo et référence automatiquement l'image dans `js/recipes.js`.
+`tools/generer-photos.mjs` existe aussi (variante par clé API `GEMINI_API_KEY`) mais nécessite la facturation activée sur le projet Google Cloud — à éviter tant que la méthode web gratuite fonctionne.
 
 ## Développement
 

@@ -371,6 +371,7 @@ const RECIPES = [
 
   {
     id: "beignets-brebis-menthe",
+    image: "img/beignets-brebis-menthe.jpg",
     title: "Beignets de brebis à la menthe & sauce fraîche",
     subtitle: "Croustillants dehors, fondants dedans, sauce au yaourt mentholée",
     category: "Apéro",
@@ -433,6 +434,7 @@ const RECIPES = [
 
   {
     id: "scoopable-cookies",
+    image: "img/scoopable-cookies.jpg",
     title: "Scoopable cookies (cookies à la cuillère)",
     subtitle: "Mi-cuits, fondants, à servir à la cuillère à glace",
     category: "Desserts",
@@ -488,6 +490,7 @@ const RECIPES = [
 
   {
     id: "cocktail-concombre-menthe",
+    image: "img/cocktail-concombre-menthe.jpg",
     title: "Cocktail concombre, citron vert & menthe",
     subtitle: "Sans alcool, glacé, terriblement rafraîchissant",
     category: "Boissons",
@@ -541,6 +544,7 @@ const RECIPES = [
 
   {
     id: "salade-mediterraneenne",
+    image: "img/salade-mediterraneenne.jpg",
     title: "Salade méditerranéenne : pois chiches, feta & olives",
     subtitle: "Généreuse, ensoleillée, prête en un quart d'heure",
     category: "Salades",
@@ -595,6 +599,7 @@ const RECIPES = [
 
   {
     id: "salade-champetre",
+    image: "img/salade-champetre.jpg",
     title: "Salade champêtre : feuille de chêne, haricots verts, petits pois & patates",
     subtitle: "Tiède, moutardée, comme un déjeuner à la campagne",
     category: "Salades",
@@ -651,6 +656,7 @@ const RECIPES = [
 
   {
     id: "salade-lentilles-feta",
+    image: "img/salade-lentilles-feta.jpg",
     title: "Salade de lentilles, feta, pomme verte & tomates",
     subtitle: "Terreuse et croquante, relevée d'une vinaigrette persil-échalote",
     category: "Salades",
