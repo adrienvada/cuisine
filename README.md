@@ -1,6 +1,6 @@
 # Carnet de cuisine 🌿
 
-Le carnet de recettes d'Adrien — un site pensé pour smartphone : recettes illustrées, mode cuisine pas-à-pas et liste de courses automatique.
+Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes illustrées, mode cuisine pas-à-pas et liste de courses automatique.
 
 **Site : https://adrienvada.fr/cuisine/**
 

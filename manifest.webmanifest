@@ -1,7 +1,7 @@
 {
   "name": "Carnet de cuisine",
   "short_name": "Cuisine",
-  "description": "Le carnet de recettes d'Adrien — recettes, mode cuisine et liste de courses.",
+  "description": "Le carnet de recettes d'Evadri — recettes, mode cuisine et liste de courses.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
