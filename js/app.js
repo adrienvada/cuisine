@@ -47,6 +47,27 @@ function discoveredHtml(r) {
   return `<p class="disc-row"><span class="discovered">${ICON.pin}Découverte ${r.discovered}</span></p>`;
 }
 
+/* Version abrégée de `discovered` pour la pastille des vignettes :
+   sans article/préposition d'intro, et sans détail superflu — juste
+   « Lieu, Ville ». Ex. « à l'hôtel Park Plaza Victoria, à Amsterdam »
+   → « Hôtel Pla. Vic., Amsterdam ». */
+function abbrevDiscovered(text) {
+  const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const abbrevWord = w => (w.length <= 3 ? w : w.slice(0, 3) + ".");
+  const abbrevPlace = phrase => {
+    const [first, ...rest] = phrase.split(/\s+/);
+    const kept = rest.length > 2 ? rest.slice(rest.length - 2) : rest;
+    return [capFirst(first), ...kept.map(abbrevWord)].join(" ");
+  };
+  const stripped = text.replace(/^\s*(à l['’]|au\s|à la\s|aux\s|chez\s|du\s|des\s|de l['’]|en\s|à\s)/i, "").trim();
+  const commaIdx = stripped.indexOf(",");
+  if (commaIdx === -1) return abbrevPlace(stripped);
+  const place = stripped.slice(0, commaIdx).trim();
+  const cityWords = stripped.slice(commaIdx + 1).trim().split(/\s+/);
+  const city = capFirst(cityWords[cityWords.length - 1].replace(/[.,;:]+$/, ""));
+  return `${abbrevPlace(place)}, ${city}`;
+}
+
 /* ---------- Verdicts & recettes déjà cuisinées ---------- */
 
 const VERDICTS = [
@@ -520,7 +541,7 @@ function drawGrid() {
       <div class="body">
         <h3>${r.title}</h3>
         <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
-        ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${r.discovered}</span></div>` : ""}
+        ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
