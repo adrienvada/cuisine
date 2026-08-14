@@ -5,11 +5,21 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, added: {}, checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [] },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [] },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+/* Le menu est la source : la liste de courses en découle.
+   Avant, les recettes vivaient dans `added` ({id: true}), accroché aux courses —
+   on récupère ce qui s'y trouvait pour ne rien perdre. */
+if (!Array.isArray(state.menu)) state.menu = [];
+if (state.added) {
+  for (const id of Object.keys(state.added)) if (!state.menu.includes(id)) state.menu.push(id);
+  delete state.added;
+  save();
+}
 
 /* ---------- Utilitaires ---------- */
 
@@ -127,11 +137,108 @@ function toast(msg) {
   toast._h = setTimeout(() => { t.hidden = true; }, 2200);
 }
 
-function updateBadge() {
-  const n = Object.keys(state.added).length;
-  const b = document.getElementById("cart-badge");
+function setBadge(id, n) {
+  const b = document.getElementById(id);
   b.hidden = n === 0;
   b.textContent = n;
+}
+
+function updateBadge() {
+  setBadge("menu-badge", state.menu.length);
+  setBadge("cart-badge", courseTodo());
+}
+
+/* ---------- Le menu (source des courses) ---------- */
+
+const inMenu = id => state.menu.includes(id);
+
+const menuRecipes = () => state.menu.map(byId).filter(Boolean);
+
+function toggleMenu(id) {
+  if (inMenu(id)) state.menu = state.menu.filter(x => x !== id);
+  else state.menu.push(id);
+  save(); updateBadge();
+  return inMenu(id);
+}
+
+function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
+
+/* Nombre d'articles qu'il reste à prendre — le badge de l'onglet Courses. */
+function courseTodo() {
+  return buildCourseList().filter(i => !state.checked[i.key]).length
+    + state.extras.filter(x => !state.checked["x-" + x.id]).length;
+}
+
+/* ---------- Partage ---------- */
+
+const SITE_FALLBACK = "https://adrienvada.fr/cuisine/";
+
+/* Racine du site, telle qu'on y accède réellement (domaine, sous-dossier…). */
+function siteUrl() {
+  if (!/^https?:$/.test(location.protocol)) return SITE_FALLBACK;
+  return location.origin + location.pathname.replace(/[^/]*$/, "");
+}
+
+/* Chaque recette a une page `r/<id>.html` : elle porte la photo et le titre
+   pour l'aperçu dans les messageries, puis renvoie vers l'application.
+   (Générée par `node tools/generer-pages-partage.mjs`.) */
+function recipeUrl(r) { return siteUrl() + "r/" + r.id + ".html"; }
+
+function copyText(text, msg) {
+  if (!navigator.clipboard) return toast("Copie impossible sur cet appareil");
+  navigator.clipboard.writeText(text).then(() => toast(msg)).catch(() => toast("Copie impossible"));
+}
+
+async function shareOrCopy(data, copied) {
+  if (navigator.share) {
+    try { await navigator.share(data); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  copyText([data.text, data.url].filter(Boolean).join("\n"), copied);
+}
+
+/* Résumé d'une recette : de quoi lire l'essentiel dans la conversation,
+   aux portions actuellement affichées, et le lien pour le pas-à-pas illustré. */
+function recipeShareText(r) {
+  const p = portionsOf(r), f = p / r.portions.base, t = r.times;
+  const times = [];
+  if (t.prep) times.push(`Préparation ${fmtTime(t.prep)}`);
+  if (t.repos) times.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);
+  times.push(t.cuisson != null ? `Cuisson ${fmtTime(t.cuisson)}` : "Sans cuisson");
+
+  const lines = [`${r.emoji} ${r.title}`, r.subtitle, "", times.join(" · "), "", `Pour ${p} ${r.portions.label} :`];
+  for (const ing of r.ingredients) {
+    const q = scaleQty(ing.qty, ing.unit, f);
+    const qty = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "");
+    lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.optional ? " (optionnel)" : ""}`);
+  }
+  lines.push("", `Les ${r.steps.length} étapes en pas-à-pas, avec les minuteurs :`);
+  return lines.join("\n");
+}
+
+function shareRecipe(id) {
+  const r = byId(id);
+  if (!r) return;
+  shareOrCopy({ title: r.title, text: recipeShareText(r), url: recipeUrl(r) }, "Recette copiée !");
+}
+
+function shareMenu() {
+  const list = menuRecipes();
+  if (!list.length) return toast("Le menu est vide");
+  const lines = ["🌿 Au menu du carnet de cuisine", ""];
+  for (const r of list) {
+    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r)} ${r.portions.label}`, recipeUrl(r), "");
+  }
+  shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
+}
+
+/* Posé sur une vignette ou une carte du menu, le bouton ne doit pas ouvrir la recette. */
+function onShareClick(e) {
+  const b = e.target.closest("[data-share]");
+  if (!b) return;
+  e.preventDefault();
+  e.stopPropagation();
+  shareRecipe(b.dataset.share);
 }
 
 /* ---------- Routage ---------- */
@@ -145,6 +252,9 @@ function route() {
   if (parts[0] === "courses") {
     document.querySelector('[data-tab="courses"]').classList.add("active");
     renderCourses();
+  } else if (parts[0] === "menu") {
+    document.querySelector('[data-tab="menu"]').classList.add("active");
+    renderMenu();
   } else if (parts[0] === "recette" && byId(parts[1])) {
     document.querySelector('[data-tab="home"]').classList.add("active");
     if (parts[2] === "cuisine") renderCook(byId(parts[1]));
@@ -195,6 +305,7 @@ function renderHome() {
     document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
     drawGrid();
   });
+  document.getElementById("grid").addEventListener("click", onShareClick);
   drawGrid();
 }
 
@@ -220,7 +331,9 @@ function drawGrid() {
     const c = cookedOf(r);
     return `
     <a class="card fade-in" href="#/recette/${r.id}">
-      <div class="visual" style="background:${r.color}22">${visualOf(r)}</div>
+      <div class="visual" style="background:${r.color}22">${visualOf(r)}
+        <button class="card-share" data-share="${r.id}" aria-label="Partager ${r.title}">${ICON.share}</button>
+      </div>
       <div class="body">
         <h3>${r.title}</h3>
         <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
@@ -236,12 +349,12 @@ function drawGrid() {
 /* ---------- Page recette ---------- */
 
 function renderRecipe(r) {
-  const portions = state.portions[r.id] || r.portions.base;
-  const inList = !!state.added[r.id];
+  const inList = inMenu(r.id);
   const t = r.times;
   app.innerHTML = `
     <div class="topbar fade-in">
       <a class="btn-icon" href="#/">${ICON.back} Recettes</a>
+      <button class="btn-icon" id="share-recipe">${ICON.share} Partager</button>
     </div>
     <div class="hero"><div class="visual" style="background:${r.color}33">
       ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
@@ -293,7 +406,7 @@ function renderRecipe(r) {
 
     <div class="actions">
       <button class="btn ${inList ? "added" : "secondary"}" id="add-list">
-        ${inList ? ICON.check + " Dans la liste" : ICON.cart + " Liste de courses"}
+        ${inList ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu"}
       </button>
       <a class="btn primary" href="#/recette/${r.id}/cuisine">${ICON.chef} Mode cuisine</a>
     </div>
@@ -322,19 +435,18 @@ function renderRecipe(r) {
     if (p < 24) { state.portions[r.id] = p + 1; save(); drawIngredients(); }
   });
   document.getElementById("add-list").addEventListener("click", e => {
-    if (state.added[r.id]) {
-      delete state.added[r.id];
-      e.currentTarget.className = "btn secondary";
-      e.currentTarget.innerHTML = ICON.cart + " Liste de courses";
-      toast("Retirée de la liste de courses");
-    } else {
-      state.added[r.id] = true;
+    if (toggleMenu(r.id)) {
       e.currentTarget.className = "btn added";
-      e.currentTarget.innerHTML = ICON.check + " Dans la liste";
-      toast("Ajoutée à la liste de courses");
+      e.currentTarget.innerHTML = ICON.check + " Au menu";
+      toast("Au menu — ingrédients ajoutés aux courses");
+    } else {
+      e.currentTarget.className = "btn secondary";
+      e.currentTarget.innerHTML = ICON.cart + " Ajouter au menu";
+      toast("Retirée du menu");
     }
-    save(); updateBadge();
   });
+
+  document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
 
   const drawVerdict = () => {
     const cur = verdictOf(r);
@@ -473,7 +585,10 @@ function renderCook(r) {
       <div class="cook">
         <div class="cook-top">
           <span class="title">${r.title}</span>
-          <button class="cook-close" id="cook-close" aria-label="Fermer">✕</button>
+          <span class="cook-tools">
+            <button class="cook-close" id="cook-share" aria-label="Partager la recette">${ICON.share}</button>
+            <button class="cook-close" id="cook-close" aria-label="Fermer">✕</button>
+          </span>
         </div>
         <div class="cook-progress">${r.steps.map((_, i) => `<i class="${i <= cookIdx ? "done" : ""}"></i>`).join("")}</div>
         <div class="cook-body">
@@ -493,6 +608,7 @@ function renderCook(r) {
       </div>
     `;
     document.getElementById("cook-close").addEventListener("click", () => { history.back(); });
+    document.getElementById("cook-share").addEventListener("click", () => shareRecipe(r.id));
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
     document.getElementById("next").addEventListener("click", () => {
       if (last) {
@@ -541,11 +657,95 @@ function fmtClock(sec) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/* ---------- Au menu ---------- */
+
+function renderMenu() {
+  const list = menuRecipes();
+
+  if (!list.length) {
+    app.innerHTML = `
+      <header class="page-head courses-head fade-in">
+        <div class="head-branch">${ILLO.D.olive}</div>
+        <h1>Au menu</h1>
+      </header>
+      <div class="empty-illo cheers">${ILLO.D.cheers}</div>
+      <p class="empty">Aucune recette au menu.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : tu la retrouveras ici d'un geste, et ses ingrédients rejoindront la liste de courses.</p>
+      <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
+    `;
+    return;
+  }
+
+  const todo = courseTodo();
+  app.innerHTML = `
+    <div id="menu-root">
+    <header class="page-head courses-head fade-in">
+      <div class="head-branch">${ILLO.D.olive}</div>
+      <h1>Au menu</h1>
+      <p>${list.length} recette${list.length > 1 ? "s" : ""} · ${todo ? `${todo} article${todo > 1 ? "s" : ""} à prendre` : "courses terminées"}</p>
+    </header>
+    <div class="menu-list">
+      ${list.map(r => {
+        const c = cookedOf(r);
+        const v = VERDICTS.find(x => x.id === verdictOf(r));
+        return `
+        <article class="menu-card fade-in">
+          <a class="mc-visual" style="background:${r.color}22" href="#/recette/${r.id}" aria-label="${r.title}">${visualOf(r)}</a>
+          <div class="mc-body">
+            <a class="mc-title" href="#/recette/${r.id}"><h3>${r.title}</h3></a>
+            <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}
+              ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
+              ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
+            </div>
+            <span class="portions mc-portions">
+              <button data-minus="${r.id}" aria-label="Moins de portions">−</button>
+              <span class="val">${portionsOf(r)} ${r.portions.label}</span>
+              <button data-plus="${r.id}" aria-label="Plus de portions">+</button>
+            </span>
+            <div class="mc-actions">
+              <a class="mc-btn" href="#/recette/${r.id}/cuisine">${ICON.chef} Cuisiner</a>
+              <button class="mc-btn" data-share="${r.id}">${ICON.share} Partager</button>
+            </div>
+          </div>
+          <button class="mc-x" data-remove="${r.id}" aria-label="Retirer du menu">✕</button>
+        </article>`;
+      }).join("")}
+    </div>
+    <div class="course-actions">
+      <button class="btn secondary" id="share-menu">${ICON.share} Partager le repas</button>
+      <a class="btn primary" href="#/courses">${ICON.cart} Liste de courses</a>
+    </div>
+    <button class="link-danger" id="clear-menu">Vider le menu</button>
+    </div>
+  `;
+
+  document.getElementById("menu-root").addEventListener("click", e => {
+    onShareClick(e);
+    const rm = e.target.closest("[data-remove]");
+    if (rm) { toggleMenu(rm.dataset.remove); renderMenu(); return; }
+    const step = e.target.closest("[data-minus], [data-plus]");
+    if (!step) return;
+    const id = step.dataset.minus || step.dataset.plus;
+    const r = byId(id);
+    const p = portionsOf(r) + (step.dataset.plus ? 1 : -1);
+    if (p < 1 || p > 24) return;
+    state.portions[id] = p;
+    save(); updateBadge(); renderMenu();
+  });
+
+  document.getElementById("share-menu").addEventListener("click", shareMenu);
+
+  document.getElementById("clear-menu").addEventListener("click", () => {
+    if (!confirm("Retirer toutes les recettes du menu ?\nLes articles ajoutés à la main resteront dans la liste de courses.")) return;
+    state.menu = [];
+    save(); updateBadge(); renderMenu();
+  });
+}
+
 /* ---------- Liste de courses ---------- */
 
 function buildCourseList() {
   const map = new Map();
-  for (const id of Object.keys(state.added)) {
+  for (const id of state.menu) {
     const r = byId(id);
     if (!r) continue;
     const f = (state.portions[id] || r.portions.base) / r.portions.base;
@@ -583,7 +783,7 @@ function courseQtyStr(it) {
 }
 
 function renderCourses() {
-  const ids = Object.keys(state.added);
+  const ids = state.menu.filter(byId);
   const items = buildCourseList();
   const extras = state.extras;
 
@@ -594,7 +794,7 @@ function renderCourses() {
         <h1>Liste de courses</h1>
       </header>
       <div class="empty-illo cheers">${ILLO.D.cheers}</div>
-      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche « Liste de courses » : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.</p>
+      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.</p>
       <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
     `;
     return;
@@ -613,14 +813,15 @@ function renderCourses() {
     <header class="page-head courses-head fade-in">
       <div class="head-branch">${ILLO.D.olive}</div>
       <h1>Liste de courses</h1>
-      <p>${ids.length ? `Pour ${ids.length} recette${ids.length > 1 ? "s" : ""} — quantités fusionnées par rayon` : "Articles ajoutés à la main"}</p>
+      <p>${ids.length ? `D'après les ${ids.length} recette${ids.length > 1 ? "s" : ""} du menu — quantités fusionnées par rayon` : "Articles ajoutés à la main"}</p>
     </header>
     <div class="menu-chips">
       ${ids.map(id => {
         const r = byId(id);
         const p = state.portions[id] || r.portions.base;
-        return `<span class="menu-chip"><a href="#/recette/${id}" style="text-decoration:none;color:inherit">${r.emoji} ${r.title} · ${p} pers.</a><button class="x" data-remove="${id}" aria-label="Retirer">✕</button></span>`;
+        return `<span class="menu-chip"><a href="#/recette/${id}" style="text-decoration:none;color:inherit">${r.emoji} ${r.title} · ${p} ${r.portions.label}</a><button class="x" data-remove="${id}" aria-label="Retirer du menu">✕</button></span>`;
       }).join("")}
+      ${ids.length ? `<a class="menu-chip menu-chip-link" href="#/menu">${ICON.chef} Au menu</a>` : ""}
     </div>
     ${grouped.map(g => `
       <section class="rayon">
@@ -656,14 +857,14 @@ function renderCourses() {
     const v = document.getElementById("extra-input").value.trim();
     if (!v) return;
     state.extras.push({ id: Date.now().toString(36), name: v });
-    save(); renderCourses();
+    save(); updateBadge(); renderCourses();
   });
 
   document.getElementById("share").addEventListener("click", shareList);
 
   document.getElementById("clear").addEventListener("click", () => {
-    if (!confirm("Vider toute la liste de courses ?")) return;
-    state.added = {}; state.checked = {}; state.extras = [];
+    if (!confirm("Vider la liste de courses ?\nLe menu sera vidé lui aussi.")) return;
+    state.menu = []; state.checked = {}; state.extras = [];
     save(); updateBadge(); renderCourses();
   });
 
@@ -672,21 +873,21 @@ function renderCourses() {
     if (!cb) return;
     if (cb.checked) state.checked[cb.dataset.key] = true;
     else delete state.checked[cb.dataset.key];
-    save();
+    save(); updateBadge();
   }
 
   function onCourseClick(e) {
     const rm = e.target.closest("[data-remove]");
     if (rm) {
-      delete state.added[rm.dataset.remove];
-      save(); updateBadge(); renderCourses();
+      toggleMenu(rm.dataset.remove);
+      renderCourses();
       return;
     }
     const rx = e.target.closest("[data-remove-extra]");
     if (rx) {
       e.preventDefault();
       state.extras = state.extras.filter(x => x.id !== rx.dataset.removeExtra);
-      save(); renderCourses();
+      save(); updateBadge(); renderCourses();
     }
   }
 }
@@ -694,7 +895,7 @@ function renderCourses() {
 function shareList() {
   const items = buildCourseList();
   const lines = ["🛒 Liste de courses — Carnet de cuisine", ""];
-  const ids = Object.keys(state.added);
+  const ids = state.menu.filter(byId);
   if (ids.length) {
     lines.push("Menu : " + ids.map(id => byId(id).title).join(", "), "");
   }
@@ -711,12 +912,7 @@ function shareList() {
     }
     lines.push("");
   }
-  const text = lines.join("\n").trim();
-  if (navigator.share) {
-    navigator.share({ text }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(text).then(() => toast("Liste copiée !"));
-  }
+  shareOrCopy({ title: "Liste de courses", text: lines.join("\n").trim() }, "Liste copiée !");
 }
 
 /* ---------- Démarrage ---------- */
