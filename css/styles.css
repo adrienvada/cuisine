@@ -503,6 +503,25 @@ a { color: var(--green); }
 
 .btn.added { background: var(--green-tint); border-color: var(--green-tint); color: var(--green-deep); box-shadow: none; }
 
+/* « Reprendre » porte l'étape en second registre */
+.btn.resume span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.12; }
+
+.btn.resume small { font-size: 11.5px; font-weight: 500; opacity: 0.85; }
+
+.link-restart {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 10px 0 0;
+  margin: 0 auto;
+  display: block;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
 /* ---------- Verdict & coups de cœur ---------- */
 
 .verdict-row { display: flex; gap: 8px; margin-top: 12px; }

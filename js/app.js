@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [] },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], cooking: {} },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -176,6 +176,48 @@ function courseTodo() {
     + state.extras.filter(x => !state.checked["x-" + x.id]).length;
 }
 
+/* ---------- Cuisine en cours ----------
+   Où l'on en est dans chaque recette entamée, pour pouvoir reprendre après
+   être allé voir ailleurs. Oubliée à « Terminer », à « Repartir du début »,
+   ou d'elle-même au bout de 12 h — inutile de proposer de reprendre un repas
+   d'avant-hier. */
+
+const COOKING_TTL = 12 * 3600 * 1000;
+
+function cookingStep(r) {
+  const c = state.cooking[r.id];
+  if (!c) return null;
+  if (Date.now() - c.at > COOKING_TTL) { forgetCooking(r.id); return null; }
+  return Math.min(c.step, r.steps.length - 1);
+}
+
+function setCooking(id, step) {
+  state.cooking[id] = { step, at: Date.now() };
+  save();
+}
+
+function forgetCooking(id) { delete state.cooking[id]; save(); }
+
+/* Adresse du mode cuisine : sur l'étape en cours s'il y en a une. */
+function cookHref(r) {
+  const step = cookingStep(r);
+  return `#/recette/${r.id}/cuisine${step ? "/" + step : ""}`;
+}
+
+const hasRunningTimer = id => state.timers.some(t => t.rid === id);
+
+/* Fermer avec la croix, c'est vouloir sortir : sans ce garde-fou, la reprise
+   automatique renverrait aussitôt dans le mode cuisine qu'on vient de quitter.
+   Levé dès qu'on y retourne de soi-même. */
+const noAutoResume = new Set();
+
+/* Un minuteur qui tourne signe une vraie séance de cuisine : on y retourne
+   directement. Sinon, la fiche s'ouvre normalement avec un bouton Reprendre. */
+function autoResumeStep(r) {
+  if (noAutoResume.has(r.id) || !hasRunningTimer(r.id)) return null;
+  return cookingStep(r);
+}
+
 /* ---------- Partage ---------- */
 
 const SITE_FALLBACK = "https://adrienvada.fr/cuisine/";
@@ -266,8 +308,15 @@ function route() {
     renderMenu();
   } else if (parts[0] === "recette" && byId(parts[1])) {
     document.querySelector('[data-tab="home"]').classList.add("active");
-    if (parts[2] === "cuisine") renderCook(byId(parts[1]), parts[3]);
-    else renderRecipe(byId(parts[1]));
+    const r = byId(parts[1]);
+    if (parts[2] === "cuisine") renderCook(r, parts[3]);
+    else {
+      const step = autoResumeStep(r);
+      // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
+      // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
+      if (step != null) return location.replace(`#/recette/${r.id}/cuisine/${step}`);
+      renderRecipe(r);
+    }
   } else {
     document.querySelector('[data-tab="home"]').classList.add("active");
     renderHome();
@@ -359,6 +408,8 @@ function drawGrid() {
 
 function renderRecipe(r) {
   const inList = inMenu(r.id);
+  // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
+  const resume = cookingStep(r) || null;
   const t = r.times;
   app.innerHTML = `
     <div class="topbar fade-in">
@@ -418,8 +469,11 @@ function renderRecipe(r) {
       <button class="btn ${inList ? "added" : "secondary"}" id="add-list">
         ${inList ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu"}
       </button>
-      <a class="btn primary" href="#/recette/${r.id}/cuisine">${ICON.chef} Mode cuisine</a>
+      <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r)}">${ICON.chef}
+        ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : "Mode cuisine"}
+      </a>
     </div>
+    ${resume ? `<button class="link-restart" id="restart-cook">Repartir du début</button>` : ""}
   `;
 
   const drawIngredients = () => {
@@ -457,6 +511,11 @@ function renderRecipe(r) {
   });
 
   document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
+
+  if (resume) document.getElementById("restart-cook").addEventListener("click", () => {
+    forgetCooking(r.id);
+    location.hash = `#/recette/${r.id}/cuisine`;
+  });
 
   const drawVerdict = () => {
     const cur = verdictOf(r);
@@ -588,6 +647,8 @@ function beep() {
 function renderCook(r, step) {
   const at = parseInt(step, 10);
   cookIdx = Number.isInteger(at) ? Math.min(Math.max(at, 0), r.steps.length - 1) : 0;
+  // On y revient de soi-même : la reprise automatique redevient légitime.
+  noAutoResume.delete(r.id);
   // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
   // « Terminer » compterait la recette deux fois.
   let finished = false;
@@ -596,6 +657,12 @@ function renderCook(r, step) {
   const draw = () => {
     const s = r.steps[cookIdx];
     const last = cookIdx === r.steps.length - 1;
+    if (!finished) {
+      setCooking(r.id, cookIdx);
+      // L'adresse suit l'étape sans encombrer l'historique : un rechargement,
+      // ou une PWA fermée par iOS, retrouve ainsi la bonne étape.
+      history.replaceState(null, "", `#/recette/${r.id}/cuisine/${cookIdx}`);
+    }
     app.innerHTML = `
       <div class="cook">
         <div class="cook-top">
@@ -622,7 +689,10 @@ function renderCook(r, step) {
         </div>
       </div>
     `;
-    document.getElementById("cook-close").addEventListener("click", () => { history.back(); });
+    document.getElementById("cook-close").addEventListener("click", () => {
+      noAutoResume.add(r.id);
+      history.back();
+    });
     document.getElementById("cook-share").addEventListener("click", () => shareRecipe(r.id));
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
     document.getElementById("next").addEventListener("click", () => {
@@ -631,6 +701,7 @@ function renderCook(r, step) {
         finished = true;
         const first = !verdictOf(r);
         markCooked(r.id);
+        forgetCooking(r.id);
         location.hash = `#/recette/${r.id}`;
         toast(first ? "Bon appétit ! Alors, verdict ?" : "Bon appétit !");
       }
@@ -717,7 +788,7 @@ function renderMenu() {
               <button data-plus="${r.id}" aria-label="Plus de portions">+</button>
             </span>
             <div class="mc-actions">
-              <a class="mc-btn" href="#/recette/${r.id}/cuisine">${ICON.chef} Cuisiner</a>
+              <a class="mc-btn" href="${cookHref(r)}">${ICON.chef} ${cookingStep(r) ? "Reprendre" : "Cuisiner"}</a>
               <button class="mc-btn" data-share="${r.id}">${ICON.share} Partager</button>
             </div>
           </div>
