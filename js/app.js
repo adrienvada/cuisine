@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, added: {}, checked: {}, extras: [], filter: "Toutes", query: "" },
+  { portions: {}, added: {}, checked: {}, extras: [], filter: "Toutes", query: "", timers: [] },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -256,9 +256,73 @@ function renderRecipe(r) {
   drawIngredients();
 }
 
+/* ---------- Minuteurs multiples ----------
+   Chaque minuteur est persisté dans l'état ({rid, step, label, emoji, end})
+   et affiché partout via le plateau #timer-tray ; plusieurs peuvent tourner
+   en parallèle pendant qu'on avance sur d'autres étapes. */
+
+let tickInt = null, refreshZone = null;
+
+function startTimer(r, stepIdx, s) {
+  state.timers.push({
+    id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
+    rid: r.id, step: stepIdx, label: s.t, emoji: r.emoji,
+    end: Date.now() + s.timer * 60000, total: s.timer, fired: false
+  });
+  save(); drawTray(); ensureTick();
+}
+
+function cancelTimer(id) {
+  state.timers = state.timers.filter(t => t.id !== id);
+  save(); drawTray();
+  if (refreshZone) refreshZone();
+  if (!state.timers.length && tickInt) { clearInterval(tickInt); tickInt = null; }
+}
+
+function ensureTick() {
+  if (!tickInt && state.timers.length) tickInt = setInterval(tick, 500);
+}
+
+function tick() {
+  for (const t of state.timers) {
+    const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+    document.querySelectorAll(`[data-clock="${t.id}"]`).forEach(el => {
+      el.textContent = left === 0 && el.classList.contains("t-clock") ? "Prêt !" : fmtClock(left);
+      if (left === 0) {
+        el.classList.add("flash");
+        const pill = el.closest(".timer-pill");
+        if (pill) pill.classList.add("done");
+        const btn = el.nextElementSibling;
+        if (btn && btn.id === "timer-stop") btn.textContent = "OK";
+      }
+    });
+    if (left === 0 && !t.fired) {
+      t.fired = true; save();
+      beep();
+      document.title = "⏰ C'est prêt !";
+      setTimeout(() => { document.title = "Carnet de cuisine"; }, 5000);
+    }
+  }
+}
+
+function drawTray() {
+  const tray = document.getElementById("timer-tray");
+  tray.hidden = !state.timers.length;
+  tray.innerHTML = state.timers.map(t => {
+    const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+    const done = left === 0;
+    return `<button class="timer-pill ${done ? "done" : ""}" data-timer="${t.id}" aria-label="Minuteur : ${t.label}">
+      ${ICON.timer}
+      <span class="t-label">${t.emoji} ${t.label}</span>
+      <span class="t-clock" data-clock="${t.id}">${done ? "Prêt !" : fmtClock(left)}</span>
+      <span class="t-x" aria-hidden="true">✕</span>
+    </button>`;
+  }).join("");
+}
+
 /* ---------- Mode cuisine ---------- */
 
-let cookIdx = 0, wakeLock = null, timerInt = null, timerEnd = null;
+let cookIdx = 0, wakeLock = null;
 
 async function acquireWakeLock() {
   try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
@@ -270,10 +334,8 @@ document.addEventListener("visibilitychange", () => {
 
 function stopCookMode() {
   if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-}
-
-function stopTimer() {
-  clearInterval(timerInt); timerInt = null; timerEnd = null;
+  refreshZone = null;
+  document.body.classList.remove("cooking");
 }
 
 function beep() {
@@ -294,6 +356,7 @@ function beep() {
 function renderCook(r) {
   cookIdx = 0;
   acquireWakeLock();
+  document.body.classList.add("cooking");
   const draw = () => {
     const s = r.steps[cookIdx];
     const last = cookIdx === r.steps.length - 1;
@@ -322,37 +385,28 @@ function renderCook(r) {
     document.getElementById("cook-close").addEventListener("click", () => { history.back(); });
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
     document.getElementById("next").addEventListener("click", () => {
-      if (last) { stopTimer(); location.hash = `#/recette/${r.id}`; toast("Bon appétit !"); }
+      if (last) { location.hash = `#/recette/${r.id}`; toast("Bon appétit !"); }
       else { cookIdx++; draw(); }
     });
     drawTimerZone(s);
+    refreshZone = () => drawTimerZone(r.steps[cookIdx]);
   };
 
   const drawTimerZone = s => {
     const zone = document.getElementById("timer-zone");
     if (!zone) return;
-    if (timerEnd) {
-      const left = Math.max(0, Math.round((timerEnd - Date.now()) / 1000));
+    const t = state.timers.find(x => x.rid === r.id && x.step === cookIdx);
+    if (t) {
+      const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+      const done = left === 0;
       zone.innerHTML = `
-        <span class="clock ${left === 0 ? "flash" : ""}" id="clock">${fmtClock(left)}</span>
-        <button id="timer-stop">${left === 0 ? "OK" : "Annuler"}</button>`;
-      document.getElementById("timer-stop").addEventListener("click", () => { stopTimer(); drawTimerZone(s); });
+        <span class="clock ${done ? "flash" : ""}" data-clock="${t.id}">${fmtClock(left)}</span>
+        <button id="timer-stop">${done ? "OK" : "Annuler"}</button>`;
+      document.getElementById("timer-stop").addEventListener("click", () => cancelTimer(t.id));
     } else if (s.timer) {
       zone.innerHTML = `<button id="timer-start">${ICON.timer} Minuteur ${fmtTime(s.timer)}</button>`;
       document.getElementById("timer-start").addEventListener("click", () => {
-        timerEnd = Date.now() + s.timer * 60000;
-        timerInt = setInterval(() => {
-          const left = Math.max(0, Math.round((timerEnd - Date.now()) / 1000));
-          const c = document.getElementById("clock");
-          if (c) c.textContent = fmtClock(left);
-          if (left === 0) {
-            clearInterval(timerInt); timerInt = null;
-            beep();
-            if (c) c.classList.add("flash");
-            document.title = "⏰ C'est prêt !";
-            setTimeout(() => { document.title = "Carnet de cuisine"; }, 5000);
-          }
-        }, 500);
+        startTimer(r, cookIdx, s);
         drawTimerZone(s);
       });
     } else {
@@ -546,6 +600,16 @@ function shareList() {
 /* ---------- Démarrage ---------- */
 
 route();
+drawTray();
+ensureTick();
+
+document.getElementById("timer-tray").addEventListener("click", e => {
+  const pill = e.target.closest("[data-timer]");
+  if (!pill) return;
+  const t = state.timers.find(x => x.id === pill.dataset.timer);
+  if (!t) return;
+  if (Date.now() >= t.end || e.target.closest(".t-x")) cancelTimer(t.id);
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
