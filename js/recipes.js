@@ -42,7 +42,7 @@ const RECIPES = [
       { name: "Eau tiède", qty: 380, unit: "ml", course: false },
       { name: "Sel fin", qty: 10, unit: "g", rayon: "Assaisonnements", cid: "sel-fin",
         shop: { label: "Sel fin de cuisine", qtyText: "" } },
-      { name: "Huile d'olive vierge extra", qty: 8, unit: "cl", note: "3 cl pour la pâte + 5 cl pour le moule et la surface", rayon: "Épicerie", cid: "huile-olive",
+      { name: "Huile d'olive vierge extra", qty: 10, unit: "cl", note: "3 cl pour la pâte + 7 cl pour le moule et la surface", rayon: "Épicerie", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null, note: "de très bonne qualité, quantité généreuse" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", rayon: "Assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
