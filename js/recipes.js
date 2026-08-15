@@ -11,7 +11,9 @@
      et `step: { i, txt }` — le geste qui vient enrichir l'étape d'index `i`.
      `step.timer` (minutes) lui donne son propre compte à rebours en mode
      cuisine, indépendant de celui de l'étape : dès qu'un texte annonce une
-     durée, il lui faut son minuteur.
+     durée, il lui faut son minuteur. `step.adds` dit à quel poste ce temps
+     s'ajoute — "prep", "repos" ou "cuisson" — pour que les temps affichés
+     deviennent des fourchettes.
 
    `discovered` (facultatif) : où la recette a été découverte. La phrase
    commence par sa préposition, elle complète « Découverte … » —
@@ -256,7 +258,7 @@ const RECIPES = [
       { id: "sesame", label: "Sésame torréfié", emoji: "✨",
         ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "sesame",
           shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
-        step: { i: 3, timer: 2, txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous." } },
+        step: { i: 3, timer: 2, adds: "cuisson", txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous." } },
       { id: "pita", label: "Pains pita", emoji: "🫓",
         ingredients: [{ name: "Pains pita", qty: 4, unit: "", rayon: "Épicerie", cid: "pita",
           shop: { label: "Pains pita", qty: 1, unit: "paquet" } }],
@@ -440,7 +442,7 @@ const RECIPES = [
       { id: "graines-courge", label: "Graines de courge torréfiées", emoji: "🎃",
         ingredients: [{ name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "graines-courge",
           shop: { label: "Graines de courge", qty: 1, unit: "sachet" } }],
-        step: { i: 4, timer: 3, txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté." } },
+        step: { i: 4, timer: 3, adds: "cuisson", txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté." } },
       { id: "croutons", label: "Croûtons dorés", emoji: "🍞",
         ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranches", rayon: "Épicerie", cid: "pain",
           shop: { label: "Pain de campagne" } }],
@@ -1032,7 +1034,7 @@ const RECIPES = [
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
         ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge",
           shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
-        step: { i: 1, timer: 10, txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
+        step: { i: 1, timer: 10, adds: "repos", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
       { id: "noix", label: "Noix concassées", emoji: "🌰",
         ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Épicerie", cid: "noix" }],
         step: { i: 3, txt: "Parsemez la salade de noix grossièrement concassées juste avant de servir." } },

@@ -749,6 +749,13 @@ a { color: var(--green); }
 
 /* ---------- Au menu ---------- */
 
+.menu-order {
+  margin: 6px 0 0;
+  font-family: var(--script);
+  font-size: 16px;
+  color: var(--green);
+}
+
 .menu-list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
 
 .menu-card {

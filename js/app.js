@@ -154,8 +154,10 @@ function totalTime(r) {
 }
 
 /* Temps qu'ajouteraient tous les suppléments minutés (torréfier des graines,
-   faire tremper un oignon…). */
-const addonTime = r => (r.addons || []).reduce((n, a) => n + ((a.step && a.step.timer) || 0), 0);
+   faire tremper un oignon…). `poste` restreint à « prep », « repos » ou
+   « cuisson » ; sans lui, on additionne tout. */
+const addonTime = (r, poste) => (r.addons || []).reduce(
+  (n, a) => n + (a.step && a.step.timer && (!poste || a.step.adds === poste) ? a.step.timer : 0), 0);
 
 function rangeTime(min, max) {
   if (min === max) return fmtTime(min);
@@ -164,8 +166,16 @@ function rangeTime(min, max) {
   return `${fmtTime(min)} – ${fmtTime(max)}`;
 }
 
-/* Le total affiché : la recette nue, et jusqu'où elle monte si l'on prend tous
-   les suppléments qui demandent du temps. */
+/* Un temps affiché, en fourchette dès que des suppléments peuvent l'allonger.
+   Quand la recette nue n'a rien à ce poste, la fourchette n'aurait pas de sens :
+   on annonce « jusqu'à ». */
+function timeText(base, extra) {
+  if (!extra) return fmtTime(base);
+  if (!base) return `jusqu'à ${fmtTime(extra)}`;
+  return rangeTime(base, base + extra);
+}
+
+/* Le total : la recette nue, et jusqu'où elle monte avec tous les petits plus. */
 const totalTimeText = r => rangeTime(totalTime(r), totalTime(r) + addonTime(r));
 
 function fmtQty(q) {
@@ -216,7 +226,10 @@ function updateBadge() {
 
 const inMenu = id => state.menu.includes(id);
 
-const menuRecipes = () => state.menu.map(byId).filter(Boolean);
+/* Rangées dans l'ordre où il faut s'y mettre : la plus longue d'abord, pour que
+   tout arrive à table en même temps. À durée égale, l'ordre d'ajout tranche. */
+const menuRecipes = () => state.menu.map(byId).filter(Boolean)
+  .sort((a, b) => totalTime(b) - totalTime(a));
 
 function toggleMenu(id) {
   if (inMenu(id)) state.menu = state.menu.filter(x => x !== id);
@@ -619,9 +632,9 @@ function renderRecipe(r) {
       <p class="subtitle">${r.subtitle}</p>
       ${discoveredHtml(r)}
       <div class="timerow">
-        ${t.prep ? `<span class="timechip">${ICON.clock} Préparation : ${fmtTime(t.prep)}</span>` : ""}
-        ${t.repos ? `<span class="timechip">${ICON.clock} ${r.reposLabel || "Repos"} : ${fmtTime(t.repos)}</span>` : ""}
-        ${t.cuisson != null ? `<span class="timechip">${ICON.flame} Cuisson : ${fmtTime(t.cuisson)}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
+        ${t.prep || addonTime(r, "prep") ? `<span class="timechip">${ICON.clock} Préparation : ${timeText(t.prep || 0, addonTime(r, "prep"))}</span>` : ""}
+        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.clock} ${r.reposLabel || "Repos"} : ${timeText(t.repos || 0, addonTime(r, "repos"))}</span>` : ""}
+        ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
       </div>
     </div>
 
@@ -1039,6 +1052,7 @@ function renderMenu() {
       <div class="head-branch">${ILLO.D.olive}</div>
       <h1>Au menu</h1>
       <p>${list.length} recette${list.length > 1 ? "s" : ""} · ${todo ? `${todo} article${todo > 1 ? "s" : ""} à prendre` : "courses terminées"}</p>
+      ${list.length > 1 ? `<p class="menu-order">Dans l'ordre où s'y mettre : la plus longue en premier.</p>` : ""}
     </header>
     <div class="menu-list">
       ${list.map(r => {

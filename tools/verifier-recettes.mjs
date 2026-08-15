@@ -26,6 +26,7 @@ const RECIPES = new Function(`${src}; return RECIPES;`)();
 const RAYONS = new Function(`${src}; return RAYONS;`)();
 
 const DUREE = /(\d+(?:\s*à\s*\d+)?)\s*(minutes?|min\b|heures?|h\b)/i;
+const POSTES = ["prep", "repos", "cuisson"];
 const erreurs = [];
 const ko = m => erreurs.push(m);
 
@@ -49,6 +50,13 @@ for (const r of RECIPES) {
     const m = DUREE.exec(s.txt || "");
     if (m && !s.timer) ko(`${ref} annonce « ${m[0]} » sans minuteur`);
     if (s.timer && !m) ko(`${ref} a un minuteur de ${s.timer} min alors que son texte n'annonce aucune durée`);
+  }
+  /* Un supplément minuté doit dire à quel poste son temps s'ajoute, sinon il
+     gonfle le total sans apparaître dans aucune des fourchettes affichées. */
+  for (const a of r.addons || []) {
+    if (a.step && a.step.timer && !POSTES.includes(a.step.adds)) {
+      ko(`${r.id} / +${a.id} a un minuteur mais pas de \`adds\` valide (${POSTES.join(", ")})`);
+    }
   }
 
   /* 3. Ingrédients, y compris ceux des versions alternatives et des suppléments */
