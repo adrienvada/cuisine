@@ -305,8 +305,9 @@ a { color: var(--green); }
 
 .card h3 { font-size: 18px; line-height: 1.15; font-weight: 700; }
 
-/* Pied de vignette : durée + lieu, toujours calés en bas quel que soit
-   le nombre de lignes prises par le titre au-dessus. */
+/* Pied de vignette : le lieu puis la durée, calés en bas quel que soit le
+   nombre de lignes du titre — la durée, dernière, s'aligne ainsi d'une
+   vignette à l'autre, que la recette porte un lieu ou non. */
 .card-foot { margin-top: auto; padding-top: 7px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 
 .card .meta { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--muted); }

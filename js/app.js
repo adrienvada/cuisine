@@ -575,8 +575,8 @@ function drawGrid() {
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
         </div>` : ""}
         <div class="card-foot">
-          <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
           ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
+          <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
         </div>
       </div>
     </a>`;
