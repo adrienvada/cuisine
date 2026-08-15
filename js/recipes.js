@@ -767,7 +767,8 @@ const RECIPES = [
         shop: { label: "Pois chiches au naturel", qty: 1, unit: "bocal", note: "environ 400 g" } },
       { name: "Feta", qty: 150, unit: "g", rayon: "Produits frais", cid: "feta" },
       { name: "Olives noires", qty: 80, unit: "g", note: "type Kalamata", rayon: "Épicerie", cid: "olives" },
-      { name: "Oignon rouge", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge" }
+      { name: "Oignon rouge", qty: 0.25, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge" },
+      { name: "Tomates cerises", qty: 400, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" }
     ],
     choices: [{
       id: "vinaigrette", label: "La vinaigrette",
@@ -815,9 +816,6 @@ const RECIPES = [
       ]
     }],
     addons: [
-      { id: "tomates-cerises", label: "Tomates cerises", emoji: "🍅",
-        ingredients: [{ name: "Tomates cerises", qty: 200, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" }],
-        step: { i: 4, txt: "Coupez les tomates cerises en deux et ajoutez-les au moment du mélange." } },
       { id: "concombre", label: "Concombre", emoji: "🥒",
         ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "concombre",
           shop: { label: "Concombre bio", qty: 1, unit: "" } }],
@@ -843,6 +841,10 @@ const RECIPES = [
         t: "Préparation des olives et de la feta",
         txt: "Dénoyautez les olives si nécessaire et émiettez la feta à la main en gros morceaux.",
         tip: { t: "Astuce du chef", txt: "Émiettez la feta à la main plutôt que de la couper en dés au couteau pour obtenir des bords irréguliers qui accrochent mieux la vinaigrette." }
+      },
+      {
+        t: "Préparation des tomates",
+        txt: "Coupez les tomates cerises en deux."
       },
       { choice: "vinaigrette" },
       {
