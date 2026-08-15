@@ -72,7 +72,12 @@ function discoveredHtml(r) {
    → « Hôtel Pla. Vic., Amsterdam ». */
 function abbrevDiscovered(text) {
   const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
-  const abbrevWord = w => (w.length <= 3 ? w : w.slice(0, 3) + ".");
+  const abbrevWord = w => {
+    // Contraction (d'Aligre, l'Écailler…) : n'abrège que la partie après l'apostrophe.
+    const m = w.match(/^([a-zàâäéèêëïîôöùûüç]['’])(.+)$/i);
+    if (m) return m[1] + (m[2].length <= 3 ? m[2] : m[2].slice(0, 3) + ".");
+    return w.length <= 3 ? w : w.slice(0, 3) + ".";
+  };
   const abbrevPlace = phrase => {
     const [first, ...rest] = phrase.split(/\s+/);
     const kept = rest.length > 2 ? rest.slice(rest.length - 2) : rest;
