@@ -451,13 +451,14 @@ const RECIPES = [
   {
     id: "gravlax-saumon-yuzu",
     image: "img/gravlax-saumon-yuzu.jpg",
-    title: "Gravlax de saumon, émulsion yuzu & ciboulette",
-    subtitle: "Saumon mariné maison, émulsion acidulée et aérienne",
+    title: "Gravlax de saumon, sauce au yaourt bulgare & agrumes",
+    subtitle: "Fines herbes, pain suédois grillé et tomates anciennes",
+    discovered: "au Bercail, restaurant au bord de l'eau à Avignon",
     category: "Entrées",
     tags: ["poisson", "marinade", "chic"],
     emoji: "🐟",
     color: "#E38E7A",
-    times: { prep: 30, repos: 720 },
+    times: { prep: 30, repos: 720, cuisson: 2 },
     reposLabel: "Marinade",
     portions: { base: 6, label: "personnes" },
     ingredients: [
@@ -465,14 +466,26 @@ const RECIPES = [
       { name: "Gros sel", qty: 60, unit: "g", note: "mélange gravlax", rayon: "Assaisonnements", cid: "gros-sel" },
       { name: "Sucre de canne", qty: 60, unit: "g", note: "mélange gravlax", rayon: "Épicerie", cid: "sucre-canne" },
       { name: "Baies roses concassées", qty: 1, unit: "c. à s.", note: "mélange gravlax", rayon: "Assaisonnements", cid: "baies-roses" },
-      { name: "Jus de yuzu", qty: 3, unit: "c. à s.", note: "ou citron vert/jaune — émulsion", rayon: "Épicerie", cid: "yuzu",
-        shop: { label: "Jus de yuzu", qty: 1, unit: "flacon", note: "ou citron vert/jaune" } },
-      { name: "Jaune d'œuf", qty: 1, unit: "", note: "émulsion", rayon: "Produits frais", cid: "oeufs",
-        shop: { label: "Œufs frais" } },
-      { name: "Huile neutre ou d'olive douce", qty: 10, unit: "cl", note: "émulsion", rayon: "Épicerie", cid: "huile-neutre",
-        shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } },
-      { name: "Ciboulette fraîche", qty: 1, unit: "bouquet", rayon: "Fruits, légumes & herbes", cid: "ciboulette",
-        shop: { label: "Ciboulette fraîche", qty: 1, unit: "botte" } }
+      { name: "Yaourt bulgare", qty: 200, unit: "g", note: "sauce — ou yaourt grec bien épais", rayon: "Produits frais", cid: "yaourt-bulgare",
+        shop: { label: "Yaourt bulgare", qty: 1, unit: "pot", note: "ou yaourt grec bien épais" } },
+      { name: "Citron jaune non traité", qty: 1, unit: "", note: "zeste et jus — sauce", rayon: "Fruits, légumes & herbes", cid: "citron",
+        shop: { label: "Citron jaune non traité" } },
+      { name: "Orange non traitée", qty: 0.5, unit: "", note: "zeste et jus — sauce", rayon: "Fruits, légumes & herbes", cid: "orange",
+        shop: { label: "Orange non traitée", qty: 1, unit: "" } },
+      { name: "Huile d'olive vierge extra", qty: 1, unit: "c. à s.", note: "sauce, plus quelques gouttes au dressage", rayon: "Épicerie", cid: "huile-olive",
+        shop: { label: "Huile d'olive vierge extra", qty: null } },
+      { name: "Pain suédois", qty: 4, unit: "", note: "type polar bread, ou un pain plat fin", rayon: "Épicerie", cid: "pain-suedois",
+        shop: { label: "Pain suédois (polar bread)", qty: 1, unit: "paquet", note: "ou pain plat fin type naan" } },
+      { name: "Tomates anciennes", qty: 2, unit: "", note: "colorées et bien fermes", rayon: "Fruits, légumes & herbes", cid: "tomates" },
+      { name: "Tomates cerises multicolores", qty: 100, unit: "g", rayon: "Fruits, légumes & herbes", cid: "tomates-cerises" },
+      { name: "Cerfeuil frais", qty: 0.5, unit: "bouquet", note: "fines herbes", rayon: "Fruits, légumes & herbes", cid: "cerfeuil",
+        shop: { label: "Cerfeuil frais", qty: 1, unit: "bouquet" } },
+      { name: "Ciboulette fraîche", qty: 0.5, unit: "botte", note: "fines herbes", rayon: "Fruits, légumes & herbes", cid: "ciboulette",
+        shop: { label: "Ciboulette fraîche", qty: 1, unit: "botte" } },
+      { name: "Aneth frais", qty: 0.5, unit: "bouquet", note: "fines herbes", optional: true, rayon: "Fruits, légumes & herbes", cid: "aneth",
+        shop: { label: "Aneth frais", qty: 1, unit: "bouquet" } },
+      { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+        shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
     steps: [
       {
@@ -492,25 +505,35 @@ const RECIPES = [
         tip: { t: "Astuce du chef", txt: "Ne faites pas l'impasse sur le séchage : une chair bien sèche permet une découpe nette et évite une texture spongieuse." }
       },
       {
-        t: "Émulsion au yuzu",
-        txt: "Dans un récipient haut, fouettez le jaune d'œuf avec le jus de yuzu, puis versez l'huile en filet tout en montant au batteur électrique ou à l'immersion pour obtenir une texture légère et aérée.",
-        tip: { t: "Astuce du chef", txt: "Tous vos ingrédients (œuf, jus, huile) doivent être à la même température ambiante pour éviter que l'émulsion ne tourne." }
+        t: "La sauce au yaourt bulgare et agrumes",
+        txt: "Zestez le citron et la demi-orange, puis pressez-les. Fouettez le yaourt bulgare avec les zestes, 2 c. à s. de jus de citron, 1 c. à s. de jus d'orange, l'huile d'olive, du sel et du poivre. Réservez au frais.",
+        tip: { t: "Astuce du chef", txt: "Zestez toujours avant de presser — l'inverse est impossible. Et gardez la sauce bien épaisse : elle doit s'étaler d'un coup de cuillère dans l'assiette sans couler. Trop de jus et elle file." }
       },
       {
-        t: "Découpe et finition",
-        txt: "Placez le filet 15 minutes au congélateur pour raffermir la chair, puis tranchez-le en fines lamelles dans le sens opposé aux fibres, en inclinant bien la lame. Nappez d'émulsion et parsemez généreusement de ciboulette ciselée.",
+        t: "Raffermir et trancher",
+        txt: "Placez le filet 15 minutes au congélateur pour raffermir la chair, puis tranchez-le en fines lamelles dans le sens opposé aux fibres, en inclinant bien la lame.",
         timer: 15,
         tip: { t: "Astuce du chef", txt: "Un couteau long et fin, une seule passe par tranche, sans scier : c'est ce qui donne ces lamelles presque translucides. Une chair molle, elle, s'écrase sous la lame quelle que soit votre technique." }
+      },
+      {
+        t: "Pain grillé et dressage",
+        txt: "Passez les pains suédois 1 à 2 minutes sur un gril ou une poêle très chaude, juste pour les marquer. Étalez une large virgule de sauce dans chaque assiette, posez le pain à côté et drapez les lamelles de saumon dessus. Ajoutez les quartiers de tomate ancienne et quelques tomates cerises, parsemez de fines herbes ciselées et terminez par quelques gouttes d'huile d'olive.",
+        timer: 2,
+        tip: { t: "Astuce du chef", txt: "Dressez au tout dernier moment : le pain grillé ramollit vite sous le saumon froid, et c'est ce contraste tiède-croustillant contre froid-fondant qui fait tout le plat." }
       }
     ],
     addons: [
       { id: "capres", label: "Câpres", emoji: "🌿",
         ingredients: [{ name: "Câpres", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "capres",
           shop: { label: "Câpres", qty: 1, unit: "bocal" } }],
-        step: { i: 4, txt: "Parsemez le saumon de câpres bien égouttées en même temps que la ciboulette." } },
+        step: { i: 5, txt: "Parsemez le saumon de câpres bien égouttées en même temps que les fines herbes." } },
+      { id: "fleurs", label: "Fleurs comestibles", emoji: "🌸",
+        ingredients: [{ name: "Fleurs comestibles", qty: null, qtyText: "une pincée", note: "bleuet, souci, pétales de rose", rayon: "Fruits, légumes & herbes", cid: "fleurs-comestibles",
+          shop: { label: "Fleurs comestibles", note: "fraîches ou séchées, au rayon herbes" } }],
+        step: { i: 5, txt: "Éparpillez les pétales sur la sauce et le saumon au dernier moment : c'est ce qui donne à l'assiette son air de plat de chef." } },
       { id: "blinis", label: "Blinis tièdes", emoji: "🥞",
         ingredients: [{ name: "Blinis", qty: 1, unit: "paquet", rayon: "Produits frais", cid: "blinis" }],
-        step: { i: 4, txt: "Faites tiédir les blinis à la poêle sans matière grasse et servez-les à côté du gravlax." } }
+        step: { i: 5, txt: "Faites tiédir les blinis à la poêle sans matière grasse et servez-les à la place du pain suédois, ou en plus." } }
     ]
   },
 
