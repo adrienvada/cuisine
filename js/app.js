@@ -58,8 +58,8 @@ const ICON = {
   timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></svg>',
   /* Préparation : un couteau de chef — le temps qu'on passe les mains dedans. */
   knife: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 3.5 14.5 14.5C9 16.5 4.5 13 3.5 3.5z"/><path d="M15.6 13.4 20.6 18.4a1.6 1.6 0 0 1-2.2 2.2L13.4 15.6z"/></svg>',
-  /* Repos : un sablier — le temps qui passe sans nous. */
-  hourglass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"/><path d="M6 22h12"/><path d="M16.5 2v3.2a2 2 0 0 1-.6 1.5L12 10.5 8.1 6.7a2 2 0 0 1-.6-1.5V2"/><path d="M16.5 22v-3.2a2 2 0 0 0-.6-1.5L12 13.5l-3.9 3.8a2 2 0 0 0-.6 1.5V22"/></svg>',
+  /* Repos : deux Z — le temps où la recette travaille sans nous. */
+  zzz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5h5l-5 6h5"/><path d="M12 4h8l-8 9h8"/></svg>',
   chef: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>',
   pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.99-5.1 9.9-7.34 11.86a1 1 0 0 1-1.32 0C9.1 19.9 4 14.99 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
 };
@@ -183,17 +183,17 @@ function timeText(base, extra) {
 const totalTimeText = r => rangeTime(totalTime(r), totalTime(r) + addonTime(r));
 
 /* Les trois temps d'une vignette, chacun sous son icône : couteau pour ce qu'on
-   fait, sablier pour ce qu'on attend, flamme pour ce qui cuit. Un poste absent
-   ne prend pas de place — sauf l'absence de cuisson, qui est une information. */
+   fait, Z pour ce qu'on attend, flamme pour ce qui cuit. La recette nue, sans
+   fourchette — sur une vignette on annonce le temps le plus court, la fiche
+   détaille ce que les suppléments y ajoutent. Un poste absent ne prend pas de
+   place, sauf l'absence de cuisson, qui est une information. */
 function timeChipsHtml(r) {
   const t = r.times;
-  const part = (icone, base, extra) => `<span class="t-part">${icone} ${timeText(base, extra)}</span>`;
+  const part = (icone, min) => `<span class="t-part">${icone} ${fmtTime(min)}</span>`;
   return [
-    t.prep || addonTime(r, "prep") ? part(ICON.knife, t.prep || 0, addonTime(r, "prep")) : "",
-    t.repos || addonTime(r, "repos") ? part(ICON.hourglass, t.repos || 0, addonTime(r, "repos")) : "",
-    t.cuisson != null || addonTime(r, "cuisson")
-      ? part(ICON.flame, t.cuisson || 0, addonTime(r, "cuisson"))
-      : `<span class="t-part">${ICON.flame} sans cuisson</span>`
+    t.prep ? part(ICON.knife, t.prep) : "",
+    t.repos ? part(ICON.zzz, t.repos) : "",
+    t.cuisson != null ? part(ICON.flame, t.cuisson) : `<span class="t-part">${ICON.flame} sans cuisson</span>`
   ].join("");
 }
 
@@ -652,7 +652,7 @@ function renderRecipe(r) {
       ${discoveredHtml(r)}
       <div class="timerow">
         ${t.prep || addonTime(r, "prep") ? `<span class="timechip">${ICON.knife} Préparation : ${timeText(t.prep || 0, addonTime(r, "prep"))}</span>` : ""}
-        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.hourglass} ${r.reposLabel || "Repos"} : ${timeText(t.repos || 0, addonTime(r, "repos"))}</span>` : ""}
+        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.zzz} ${r.reposLabel || "Repos"} : ${timeText(t.repos || 0, addonTime(r, "repos"))}</span>` : ""}
         ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
       </div>
     </div>
