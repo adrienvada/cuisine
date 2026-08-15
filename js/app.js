@@ -225,6 +225,26 @@ function scaleQty(q, unit, factor) {
   return s;
 }
 
+/* Les quantités écrites au fil d'un texte — « 3 cl pour la pâte », « réservez
+   10 cl pour le mixage » — restaient figées quand on bougeait le curseur de
+   portions, et contredisaient alors la colonne des quantités juste à côté.
+   On les écrit désormais entre accolades pour qu'elles suivent l'échelle :
+   {3 cl}, {1-2 c. à s.}, {2} (sans unité). Une quantité laissée nue reste nue,
+   ce qui est voulu pour tout ce qui ne dépend pas des portions : une largeur
+   de bande en centimètres, un « 2 cl par verre ». */
+const QTE_ECHELLE = /\{(\d+(?:[.,]\d+)?)(?:\s*[–-]\s*(\d+(?:[.,]\d+)?))?\s*([^}]*)\}/g;
+
+function scaleText(txt, f) {
+  if (!txt) return txt;
+  return txt.replace(QTE_ECHELLE, (_, a, b, unit) => {
+    unit = unit.trim();
+    const q = n => scaleQty(parseFloat(n.replace(",", ".")), unit, f);
+    const min = q(a), max = b ? q(b) : min;
+    const nombre = min === max ? fmtQty(min) : `${fmtQty(min)} à ${fmtQty(max)}`;
+    return `${nombre} ${fmtUnit(unit, max)}`.trim();
+  });
+}
+
 function toast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg;
@@ -813,20 +833,21 @@ function renderRecipe(r) {
       const qtyStr = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "—");
       return `<li>
         <span class="qty">${qtyStr}</span>
-        <span>${ing.name}${ing.addon ? `<span class="opt sup">supplément</span>` : ""}${ing.optional ? `<span class="opt">optionnel</span>` : ""}${ing.note ? `<span class="note"> — ${ing.note}</span>` : ""}</span>
+        <span>${ing.name}${ing.addon ? `<span class="opt sup">supplément</span>` : ""}${ing.optional ? `<span class="opt">optionnel</span>` : ""}${ing.note ? `<span class="note"> — ${scaleText(ing.note, f)}</span>` : ""}</span>
       </li>`;
     }).join("");
   };
 
   const drawSteps = () => {
+    const f = (state.portions[r.id] || r.portions.base) / r.portions.base;
     document.getElementById("steps-list").innerHTML = effectiveSteps(r).map((s, i) => `
       <li>
         <span class="num">${i + 1}</span>
         <div>
           <h3>${s.t}</h3>
-          <p>${s.txt}</p>
-          ${extrasHtml(s)}
-          ${s.tip ? tipHtml(s.tip) : ""}
+          <p>${scaleText(s.txt, f)}</p>
+          ${scaleText(extrasHtml(s), f)}
+          ${s.tip ? scaleText(tipHtml(s.tip), f) : ""}
         </div>
       </li>`).join("");
   };
@@ -844,13 +865,16 @@ function renderRecipe(r) {
     });
   }
 
+  /* Les étapes citent elles aussi des quantités : elles se redessinent avec la
+     liste d'ingrédients, sinon les deux se contrediraient. */
+  const setPortions = p => { state.portions[r.id] = p; save(); drawIngredients(); drawSteps(); };
   document.getElementById("p-minus").addEventListener("click", () => {
     const p = state.portions[r.id] || r.portions.base;
-    if (p > 1) { state.portions[r.id] = p - 1; save(); drawIngredients(); }
+    if (p > 1) setPortions(p - 1);
   });
   document.getElementById("p-plus").addEventListener("click", () => {
     const p = state.portions[r.id] || r.portions.base;
-    if (p < 24) { state.portions[r.id] = p + 1; save(); drawIngredients(); }
+    if (p < 24) setPortions(p + 1);
   });
   const addBtn = document.getElementById("add-list");
   const drawAddBtn = () => {
@@ -1021,6 +1045,8 @@ function beep() {
 function renderCook(r, step) {
   // La version composée (vinaigrette choisie, suppléments) dicte les étapes.
   const steps = effectiveSteps(r);
+  // Les quantités citées dans les étapes suivent les portions réglées sur la fiche.
+  const f = portionsOf(r) / r.portions.base;
   const at = parseInt(step, 10);
   cookIdx = Number.isInteger(at) ? Math.min(Math.max(at, 0), steps.length - 1) : 0;
   // On y revient de soi-même : la reprise automatique redevient légitime.
@@ -1054,9 +1080,9 @@ function renderCook(r, step) {
             <p class="cook-step-label">Étape ${cookIdx + 1} / ${steps.length}</p>
             <h2>${s.t}</h2>
             <span class="cook-flourish">${ILLO.D.flourish}</span>
-            <p class="txt">${s.txt}</p>
-            ${extrasHtml(s, true)}
-            ${s.tip ? tipHtml(s.tip) : ""}
+            <p class="txt">${scaleText(s.txt, f)}</p>
+            ${scaleText(extrasHtml(s, true), f)}
+            ${s.tip ? scaleText(tipHtml(s.tip), f) : ""}
             <div class="cook-timer" id="timer-zone"></div>
           </div>
         </div>
