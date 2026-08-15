@@ -1086,7 +1086,7 @@ function renderMenu() {
         const c = cookedOf(r);
         const v = VERDICTS.find(x => x.id === verdictOf(r));
         return `
-        <article class="menu-card fade-in">
+        <article class="menu-card fade-in" data-open="${r.id}">
           <a class="mc-visual" style="background:${r.color}22" href="#/recette/${r.id}" aria-label="${r.title}">${visualOf(r)}</a>
           <div class="mc-body">
             <a class="mc-title" href="#/recette/${r.id}"><h3>${r.title}</h3></a>
@@ -1122,13 +1122,19 @@ function renderMenu() {
     const rm = e.target.closest("[data-remove]");
     if (rm) { toggleMenu(rm.dataset.remove); renderMenu(); return; }
     const step = e.target.closest("[data-minus], [data-plus]");
-    if (!step) return;
-    const id = step.dataset.minus || step.dataset.plus;
-    const r = byId(id);
-    const p = portionsOf(r) + (step.dataset.plus ? 1 : -1);
-    if (p < 1 || p > 24) return;
-    state.portions[id] = p;
-    save(); updateBadge(); renderMenu();
+    if (step) {
+      const id = step.dataset.minus || step.dataset.plus;
+      const r = byId(id);
+      const p = portionsOf(r) + (step.dataset.plus ? 1 : -1);
+      if (p < 1 || p > 24) return;
+      state.portions[id] = p;
+      save(); updateBadge(); renderMenu();
+      return;
+    }
+    /* Toute la carte ouvre la recette : les mains dans la farine, on ne vise pas
+       la vignette au millimètre. Les commandes qu'elle contient gardent la main. */
+    const carte = e.target.closest("[data-open]");
+    if (carte && !e.target.closest("a, button")) location.hash = `#/recette/${carte.dataset.open}`;
   });
 
   document.getElementById("share-menu").addEventListener("click", shareMenu);
@@ -1233,7 +1239,7 @@ function renderCourses() {
               <span class="tick">${ICON.check}</span>
               <span class="lbl">${it.label}${it.addon ? ` <span class="sup-tag">supplément</span>` : ""}${it.optional ? ` <span class="opt" style="font-size:11.5px;color:var(--gold)">optionnel</span>` : ""}${it.notes && it.notes.length ? `<span class="cnote">${it.notes.join(" · ")}</span>` : ""}</span>
               <span class="cqty">${it.extra ? "" : courseQtyStr(it)}</span>
-              ${it.extra ? `<button class="x" data-remove-extra="${it.key.slice(2)}" style="border:none;background:none;color:var(--muted);font-size:14px" aria-label="Supprimer">✕</button>` : ""}
+              ${it.extra ? `<button class="x" data-remove-extra="${it.key.slice(2)}" aria-label="Supprimer">✕</button>` : ""}
             </label></li>`).join("")}
         </ul>
       </section>`).join("")}
