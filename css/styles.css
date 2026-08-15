@@ -1157,6 +1157,11 @@ body.cooking .timer-pill:not(.done) {
 
 .pick-label:first-child { margin-top: 4px; }
 
+/* Dans la sheet, les chips sont enveloppées pour pouvoir être redessinées
+   seules : le premier libellé y redevient un premier enfant, on lui rend
+   l'espace qu'il avait sous le sous-titre. */
+.sheet-picks > .pick-label:first-child { margin-top: 16px; }
+
 .pick-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .chip.pick { padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }

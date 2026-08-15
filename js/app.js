@@ -362,26 +362,32 @@ function onPickClick(e, r) {
 function openAddSheet(r, done) {
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop";
-  const draw = () => {
+  backdrop.innerHTML = `
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Composer ${r.title}">
+      <div class="sheet-grip"></div>
+      <h3>${r.emoji} Des envies en plus ?</h3>
+      <p class="sheet-sub">Compose ta version — ou ajoute la recette telle quelle.</p>
+      <div class="sheet-picks">${pickChipsHtml(r)}</div>
+      <button class="btn primary sheet-add" id="sheet-add"></button>
+    </div>`;
+  const picks = backdrop.querySelector(".sheet-picks");
+  const valider = backdrop.querySelector("#sheet-add");
+
+  /* On ne réécrit que les chips et le libellé du bouton. Refaire la sheet
+     entière rejouerait son animation d'entrée à chaque supplément coché, et
+     la ferait remonter en haut alors qu'on vient d'y descendre. */
+  const rafraichir = () => {
     const n = selectedAddons(r).length;
-    backdrop.innerHTML = `
-      <div class="sheet" role="dialog" aria-modal="true" aria-label="Composer ${r.title}">
-        <div class="sheet-grip"></div>
-        <h3>${r.emoji} Des envies en plus ?</h3>
-        <p class="sheet-sub">Compose ta version — ou ajoute la recette telle quelle.</p>
-        ${pickChipsHtml(r)}
-        <button class="btn primary sheet-add" id="sheet-add">
-          ${ICON.cart} ${n ? `Ajouter avec ${n} supplément${n > 1 ? "s" : ""}` : "Ajouter tel quel"}
-        </button>
-      </div>`;
+    valider.innerHTML = `${ICON.cart} ${n ? `Ajouter avec ${n} supplément${n > 1 ? "s" : ""}` : "Ajouter tel quel"}`;
   };
+
   const close = added => { backdrop.remove(); done(added); };
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop) return close(false);
     if (e.target.closest("#sheet-add")) return close(true);
-    if (onPickClick(e, r)) draw();
+    if (onPickClick(e, r)) { picks.innerHTML = pickChipsHtml(r); rafraichir(); }
   });
-  draw();
+  rafraichir();
   document.body.appendChild(backdrop);
 }
 
