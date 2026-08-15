@@ -819,11 +819,11 @@ const RECIPES = [
       { id: "concombre", label: "Concombre", emoji: "🥒",
         ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "concombre",
           shop: { label: "Concombre bio", qty: 1, unit: "" } }],
-        step: { i: 4, txt: "Taillez le concombre en demi-rondelles et incorporez-le à la salade." } },
+        step: { i: 5, txt: "Taillez le concombre en demi-rondelles et incorporez-le à la salade." } },
       { id: "avocat", label: "Avocat", emoji: "🥑",
         ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "avocat",
           shop: { label: "Avocats mûrs" } }],
-        step: { i: 4, txt: "Ajoutez l'avocat en dés au tout dernier moment, avec un trait de jus de citron pour qu'il reste vert." } }
+        step: { i: 5, txt: "Ajoutez l'avocat en dés au tout dernier moment, avec un trait de jus de citron pour qu'il reste vert." } }
     ],
     steps: [
       {
