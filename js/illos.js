@@ -273,7 +273,7 @@ FOOD["veloute-butternut-shiitakes"] = `<svg viewBox="0 0 140 100" aria-hidden="t
   <g fill="#F3E0C0"><circle cx="44" cy="47" r="1.1"/><circle cx="98" cy="45" r="1.1"/><circle cx="62" cy="55" r="1"/></g>
 </svg>`;
 
-FOOD["gravlax-saumon-yuzu"] = `<svg viewBox="0 0 140 100" aria-hidden="true">
+FOOD["gravlax-saumon-yaourt-bulgare"] = `<svg viewBox="0 0 140 100" aria-hidden="true">
   <ellipse cx="70" cy="88" rx="58" ry="6.5" fill="#2C3326" opacity="0.09"/>
   <ellipse cx="70" cy="58" rx="58" ry="20" fill="#F2ECDA" stroke="#D9CBA6" stroke-width="1.8"/>
   <ellipse cx="70" cy="56" rx="46" ry="14.5" fill="#FDFBF3" stroke="#E5DBBC" stroke-width="1.2"/>

@@ -21,6 +21,25 @@ if (state.added) {
   save();
 }
 
+/* Recettes renommées : tout ce qui était rangé sous l'ancien identifiant suit,
+   sans quoi un renommage effacerait verdicts, compteurs et menu en cours. */
+(function migrerRenommages() {
+  let bouge = false;
+  for (const [ancien, actuel] of Object.entries(RECIPE_RENAMES)) {
+    for (const table of ["portions", "notes", "cooked", "cooking", "choices", "addons"]) {
+      const t = state[table];
+      if (!t || !(ancien in t)) continue;
+      if (!(actuel in t)) t[actuel] = t[ancien];   // l'existant l'emporte
+      delete t[ancien];
+      bouge = true;
+    }
+    for (const t of state.timers) if (t.rid === ancien) { t.rid = actuel; bouge = true; }
+  }
+  const menu = [...new Set(state.menu.map(id => RECIPE_RENAMES[id] || id))];
+  if (menu.join("|") !== state.menu.join("|")) { state.menu = menu; bouge = true; }
+  if (bouge) save();
+})();
+
 /* ---------- Utilitaires ---------- */
 
 const app = document.getElementById("app");
@@ -445,6 +464,11 @@ window.addEventListener("hashchange", route);
 function route() {
   stopCookMode();
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  // Un lien partagé avant un renommage doit continuer de tomber juste.
+  if (parts[0] === "recette" && RECIPE_RENAMES[parts[1]]) {
+    parts[1] = RECIPE_RENAMES[parts[1]];
+    return location.replace("#/" + parts.join("/"));
+  }
   document.querySelectorAll(".tabbar a").forEach(a => a.classList.remove("active"));
   if (parts[0] === "courses") {
     document.querySelector('[data-tab="courses"]').classList.add("active");

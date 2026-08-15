@@ -17,7 +17,12 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "r");
 const SITE = (process.env.SITE_URL || process.argv[2] || "https://adrienvada.fr/cuisine/").replace(/\/?$/, "/");
 
-const RECIPES = new Function(`${readFileSync(join(ROOT, "js", "recipes.js"), "utf8")}; return RECIPES;`)();
+const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
+const RECIPES = new Function(`${src}; return RECIPES;`)();
+/* Recettes renommées : on garde une page à l'ancienne adresse, sinon les liens
+   déjà envoyés tomberaient dans le vide. */
+const RENAMES = new Function(`${src}; return typeof RECIPE_RENAMES === "object" ? RECIPE_RENAMES : {};`)();
+const alias = Object.entries(RENAMES).filter(([, actuel]) => RECIPES.some(r => r.id === actuel));
 
 const esc = s => String(s == null ? "" : s)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -92,12 +97,16 @@ function page(r) {
 
 mkdirSync(OUT, { recursive: true });
 
-const keep = new Set(RECIPES.map(r => `${r.id}.html`));
+const keep = new Set([...RECIPES.map(r => `${r.id}.html`), ...alias.map(([ancien]) => `${ancien}.html`)]);
 for (const f of readdirSync(OUT)) {
   if (f.endsWith(".html") && !keep.has(f)) { unlinkSync(join(OUT, f)); console.log(`− ${f} (recette disparue)`); }
 }
 
 for (const r of RECIPES) writeFileSync(join(OUT, `${r.id}.html`), page(r));
+for (const [ancien, actuel] of alias) {
+  writeFileSync(join(OUT, `${ancien}.html`), page(RECIPES.find(r => r.id === actuel)));
+}
 
 console.log(`${RECIPES.length} page(s) d'aperçu générée(s) dans r/ — base : ${SITE}`);
+if (alias.length) console.log(`${alias.length} alias conservé(s) : ${alias.map(([a]) => a).join(", ")}`);
 console.log("Pense à committer le dossier r/.");

@@ -449,8 +449,8 @@ const RECIPES = [
   },
 
   {
-    id: "gravlax-saumon-yuzu",
-    image: "img/gravlax-saumon-yuzu.jpg",
+    id: "gravlax-saumon-yaourt-bulgare",
+    image: "img/gravlax-saumon-yaourt-bulgare.jpg",
     title: "Gravlax de saumon, sauce au yaourt bulgare & agrumes",
     subtitle: "Fines herbes, pain suédois grillé et tomates anciennes",
     discovered: "au Bercail, restaurant au bord de l'eau à Avignon",
@@ -1057,3 +1057,12 @@ const RECIPES = [
 ];
 
 const RAYONS = ["Épicerie", "Produits frais", "Fruits, légumes & herbes", "Assaisonnements", "Autre"];
+
+/* Identifiants renommés : ancien → actuel. Un identifiant sert de clé à trois
+   choses qui survivent au renommage — les données du navigateur (menu,
+   portions, verdicts, compteurs), les liens de partage déjà envoyés, et la
+   page d'aperçu correspondante. Cette table permet de les faire suivre.
+   Ne jamais retirer une entrée : un lien peut resurgir des années après. */
+const RECIPE_RENAMES = {
+  "gravlax-saumon-yuzu": "gravlax-saumon-yaourt-bulgare"
+};
