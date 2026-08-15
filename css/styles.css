@@ -617,8 +617,6 @@ a { color: var(--green); }
 
 .verdict-btn:active { transform: scale(0.96); }
 
-.verdict-btn.on.v-bof { background: var(--paper-deep); color: var(--ink-soft); }
-.verdict-btn.on.v-bien { background: var(--gold-tint); border-color: var(--gold); color: var(--gold-deep); }
 .verdict-btn.on.v-encore { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.22); }
 
 .cooked-line {
@@ -634,8 +632,6 @@ a { color: var(--green); }
 
 .verdict-tag { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
 
-.verdict-tag.v-bof { background: var(--paper-deep); color: var(--muted); }
-.verdict-tag.v-bien { background: var(--gold-tint); color: var(--gold-deep); }
 .verdict-tag.v-encore { background: var(--green-tint); color: var(--green-deep); }
 
 .cook-count { font-size: 11.5px; color: var(--muted); }

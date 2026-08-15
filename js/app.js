@@ -76,7 +76,12 @@ function discoveredHtml(r) {
    → « Hôtel Pla. Vic., Amsterdam ». */
 function abbrevDiscovered(text) {
   const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
-  const abbrevWord = w => (w.length <= 3 ? w : w.slice(0, 3) + ".");
+  const abbrevWord = w => {
+    // Contraction (d'Aligre, l'Écailler…) : n'abrège que la partie après l'apostrophe.
+    const m = w.match(/^([a-zàâäéèêëïîôöùûüç]['’])(.+)$/i);
+    if (m) return m[1] + (m[2].length <= 3 ? m[2] : m[2].slice(0, 3) + ".");
+    return w.length <= 3 ? w : w.slice(0, 3) + ".";
+  };
   const abbrevPlace = phrase => {
     const [first, ...rest] = phrase.split(/\s+/);
     const kept = rest.length > 2 ? rest.slice(rest.length - 2) : rest;
@@ -94,9 +99,7 @@ function abbrevDiscovered(text) {
 /* ---------- Verdicts & recettes déjà cuisinées ---------- */
 
 const VERDICTS = [
-  { id: "bof", label: "Bof" },
-  { id: "bien", label: "Bien" },
-  { id: "encore", label: "Encore !", tag: "♥ Encore !" }
+  { id: "encore", label: "♥ Coup de cœur", tag: "♥ Coup de cœur" }
 ];
 
 const FAV_FILTER = "coup-de-coeur";
@@ -682,7 +685,7 @@ function renderRecipe(r) {
     ${r.note ? `<p class="recipe-note">« ${r.note} »<span class="n-heart">${ILLO.D.heart}</span><span class="n-flourish">${ILLO.D.flourish}</span></p>` : ""}
 
     <section class="section verdict">
-      <h2>Alors, verdict ?</h2>
+      <h2>Un coup de cœur ?</h2>
       <div class="verdict-row" id="verdict-row"></div>
       <p class="cooked-line" id="cooked-line"></p>
     </section>
@@ -791,10 +794,10 @@ function renderRecipe(r) {
     const v = b.dataset.verdict;
     if (state.notes[r.id] === v) {
       delete state.notes[r.id];
-      toast("Verdict effacé");
+      toast("Coup de cœur retiré");
     } else {
       state.notes[r.id] = v;
-      toast(v === "encore" ? "Un coup de cœur de plus ♥" : `Notée « ${VERDICTS.find(x => x.id === v).label} »`);
+      toast("Un coup de cœur de plus ♥");
     }
     save(); drawVerdict();
   });
@@ -974,7 +977,7 @@ function renderCook(r, step) {
         markCooked(r.id);
         forgetCooking(r.id);
         location.hash = `#/recette/${r.id}`;
-        toast(first ? "Bon appétit ! Alors, verdict ?" : "Bon appétit !");
+        toast(first ? "Bon appétit ! Un coup de cœur ?" : "Bon appétit !");
       }
       else { cookIdx++; draw(); }
     });
