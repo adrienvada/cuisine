@@ -605,6 +605,10 @@ function drawGrid() {
   if (state.filter === FAV_FILTER) {
     list.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
   }
+  /* La pastille de catégorie n'apprend rien quand le filtre l'annonce déjà en
+     haut de l'écran : elle ne sert que dans « Toutes » et dans une recherche.
+     (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
+  const montreCategorie = state.filter === "Toutes" || state.filter === FAV_FILTER;
   const grid = document.getElementById("grid");
   if (!list.length) {
     grid.innerHTML = `<p class="empty" style="grid-column:1/-1">Aucune recette ne correspond…<br>La prochaine fournée arrive bientôt !</p>`;
@@ -616,6 +620,7 @@ function drawGrid() {
     return `
     <a class="card fade-in" href="#/recette/${r.id}">
       <div class="visual" style="background:${r.color}22">${visualOf(r)}
+        ${montreCategorie ? `<span class="card-cat">${r.category}</span>` : ""}
         <button class="card-share" data-share="${r.id}" aria-label="Partager ${r.title}">${ICON.share}</button>
       </div>
       <div class="body">

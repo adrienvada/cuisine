@@ -281,6 +281,35 @@ a { color: var(--green); }
 
 .card .visual svg { width: 76%; height: 86%; }
 
+/* Catégorie du plat, en vis-à-vis du bouton partager. Même matière que lui —
+   elle a fait ses preuves sur toutes les photos — mais plus basse, pour qu'elle
+   se lise comme secondaire. Posée sur l'image, elle n'ajoute rien à la hauteur
+   de la vignette. */
+.card-cat {
+  position: absolute;
+  top: 7px; left: 7px;
+  max-width: calc(100% - 52px);          /* jamais sous le bouton partager */
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(44, 51, 38, 0.18);
+  color: var(--green-deep);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Le mode sombre éclaircit --green-deep pour du texte clair sur fond sombre ;
+   ici le fond reste crème, il faut donc garder l'encre foncée. */
+html[data-theme="dark"] .card-cat { color: #31492B; }
+
 /* Partager depuis la vignette, sans ouvrir la recette */
 .card-share {
   position: absolute;
