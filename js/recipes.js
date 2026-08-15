@@ -15,6 +15,15 @@
      s'ajoute — "prep", "repos" ou "cuisson" — pour que les temps affichés
      deviennent des fourchettes.
 
+   Quantités écrites au fil du texte (note d'ingrédient, étape, astuce) : les
+   entourer d'accolades pour qu'elles suivent le curseur de portions, sinon
+   elles contredisent la colonne des quantités dès qu'on le bouge.
+   `{3 cl}`, `{1-2 c. à s.}` pour une fourchette, `{2}` sans unité.
+   Une quantité qui ne dépend pas des portions reste nue : une largeur en
+   centimètres, un « 2 cl par verre », le poids d'un bocal du commerce.
+   Les notes de `shop` ne sont jamais mises à l'échelle — elles se fondent
+   entre recettes dans la liste de courses — donc pas de quantité dedans.
+
    `discovered` (facultatif) : où la recette a été découverte. La phrase
    commence par sa préposition, elle complète « Découverte … » —
    « à l'hôtel … », « au Murmure du Son », « chez Mamie »… */
@@ -37,12 +46,12 @@ const RECIPES = [
     ingredients: [
       { name: "Farine T55 ou T65", qty: 500, unit: "g", rayon: "Épicerie", cid: "farine",
         shop: { label: "Farine de blé T55 ou T65", note: "de préférence riche en gluten / italienne" } },
-      { name: "Levure boulangère déshydratée", qty: 7, unit: "g", note: "1 sachet", rayon: "Épicerie", cid: "levure",
-        shop: { label: "Levure boulangère déshydratée", qty: 1, unit: "sachet", note: "ou 20 g de levure fraîche" } },
+      { name: "Levure boulangère déshydratée", qty: 7, unit: "g", note: "{1 sachet}", rayon: "Épicerie", cid: "levure",
+        shop: { label: "Levure boulangère déshydratée", qty: 1, unit: "sachet", note: "ou de la levure fraîche, 20 g par sachet" } },
       { name: "Eau tiède", qty: 380, unit: "ml", course: false },
       { name: "Sel fin", qty: 10, unit: "g", rayon: "Assaisonnements", cid: "sel-fin",
         shop: { label: "Sel fin de cuisine", qtyText: "" } },
-      { name: "Huile d'olive vierge extra", qty: 10, unit: "cl", note: "3 cl pour la pâte + 7 cl pour le moule et la surface", rayon: "Épicerie", cid: "huile-olive",
+      { name: "Huile d'olive vierge extra", qty: 10, unit: "cl", note: "{3 cl} pour la pâte + {7 cl} pour le moule et la surface", rayon: "Épicerie", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null, note: "de très bonne qualité, quantité généreuse" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", rayon: "Assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
@@ -52,7 +61,7 @@ const RECIPES = [
     steps: [
       {
         t: "La pâte (sans pétrissage difficile)",
-        txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez 2 c. à s. d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).",
+        txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez {2 c. à s.} d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).",
         timer: 120,
         tip: { t: "L'astuce du chef", txt: "Pour une pâte ultra-alvéolée sans effort, réalisez des « rabats » : toutes les 30 min environ, attrapez un bord de la pâte avec les mains mouillées, étirez-le vers le haut et repliez-le vers le centre. Faites cela aux 4 points cardinaux. Cela structure le réseau de gluten !" }
       },
@@ -69,7 +78,7 @@ const RECIPES = [
       },
       {
         t: "La création des trous",
-        txt: "Arrosez la focaccia avec le reste d'huile d'olive mélangé à 1 c. à s. d'eau. Enfoncez franchement vos doigts verticaux jusqu'au fond du moule pour créer les fameux cratères caractéristiques.",
+        txt: "Arrosez la focaccia avec le reste d'huile d'olive mélangé à {1 c. à s.} d'eau. Enfoncez franchement vos doigts verticaux jusqu'au fond du moule pour créer les fameux cratères caractéristiques.",
         tip: { t: "Geste technique", txt: "Utilisez la pulpe de vos trois doigts du milieu (index, majeur, annulaire) bien écartés. N'ayez pas peur de toucher le fond du moule ! C'est ce geste qui emprisonne les bulles d'air sur les côtés sans déchirer la pâte." }
       },
       {
@@ -116,7 +125,7 @@ const RECIPES = [
         shop: { label: "Pesto de basilic de qualité", qty: 1, unit: "pot", note: "ou pignons, parmesan et basilic s'il est fait maison" } },
       { name: "Pignons de pin ou parmesan râpé", qty: 20, unit: "g", note: "pour parsemer", optional: true, rayon: "Épicerie", cid: "pignons" },
       { name: "Jaune d'œuf", qty: 1, unit: "", note: "pour la dorure", rayon: "Produits frais", cid: "oeufs",
-        shop: { label: "Œufs frais", note: "1 jaune pour la dorure des torsades" } }
+        shop: { label: "Œufs frais", note: "pour la dorure des torsades" } }
     ],
     steps: [
       {
@@ -247,7 +256,7 @@ const RECIPES = [
       },
       {
         t: "L'émulsion",
-        txt: "Mixez. Versez un filet d'huile d'olive puis, si besoin, 1 à 2 c. à s. d'eau glacée jusqu'à obtenir une texture lisse et aérienne. Ajoutez enfin la menthe et donnez trois ou quatre impulsions seulement. Goûtez et ajustez en sel.",
+        txt: "Mixez. Versez un filet d'huile d'olive puis, si besoin, {1-2 c. à s.} d'eau glacée jusqu'à obtenir une texture lisse et aérienne. Ajoutez enfin la menthe et donnez trois ou quatre impulsions seulement. Goûtez et ajustez en sel.",
         tip: { t: "Astuce onctuosité", txt: "L'eau très froide crée avec le sésame du tahini une émulsion qui rend le houmous incroyablement crémeux. Et la menthe arrive en dernier : mixée longuement, elle noircit et tourne au goût d'herbe mâchée." }
       },
       {
@@ -288,7 +297,7 @@ const RECIPES = [
       { name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Épicerie", cid: "noix" },
       { name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "graines-courge",
         shop: { label: "Graines de courge", qty: 1, unit: "sachet" } },
-      { name: "Œufs frais", qty: 4, unit: "", note: "2 à 4 selon les appétits", rayon: "Produits frais", cid: "oeufs",
+      { name: "Œufs frais", qty: 4, unit: "", note: "{2-4} selon les appétits", rayon: "Produits frais", cid: "oeufs",
         shop: { label: "Œufs frais" } },
       { name: "Persil plat", qty: 0.5, unit: "bouquet", rayon: "Fruits, légumes & herbes", cid: "persil",
         shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
@@ -321,7 +330,7 @@ const RECIPES = [
               shop: { label: "Huile d'olive vierge extra", qty: null } }
           ],
           step: { t: "Sauce crémeuse tahini-citron",
-            txt: "Délayez le tahini avec le jus de citron et 2 à 3 c. à s. d'eau froide jusqu'à obtenir une crème nappante, puis ajoutez l'huile d'olive, du sel et du poivre.",
+            txt: "Délayez le tahini avec le jus de citron et {2-3 c. à s.} d'eau froide jusqu'à obtenir une crème nappante, puis ajoutez l'huile d'olive, du sel et du poivre.",
             tip: { t: "Astuce du chef", txt: "Le tahini épaissit d'abord au contact du citron avant de se détendre : ajoutez l'eau cuillère par cuillère, la texture soyeuse arrive d'un coup." } } },
         { id: "miel-moutarde", label: "Miel & moutarde", emoji: "🍯",
           ingredients: [
@@ -403,7 +412,7 @@ const RECIPES = [
       { name: "Ail", qty: 1, unit: "gousse", rayon: "Fruits, légumes & herbes", cid: "ail",
         shop: { label: "Ail", qty: 2, unit: "gousses" } },
       { name: "Bouillon de légumes", qty: 50, unit: "cl", rayon: "Épicerie", cid: "bouillon",
-        shop: { label: "Bouillon de légumes", qty: 1, unit: "", note: "cubes ou brique, 50 cl" } },
+        shop: { label: "Bouillon de légumes", qty: 1, unit: "", note: "cubes ou brique" } },
       { name: "Crème fraîche ou crème de coco", qty: 2, unit: "c. à s.", rayon: "Produits frais", cid: "creme-fraiche" },
       { name: "Beurre", qty: null, qtyText: "un peu", rayon: "Produits frais", cid: "beurre",
         shop: { label: "Beurre doux" } },
@@ -415,7 +424,7 @@ const RECIPES = [
     steps: [
       {
         t: "Cuisson du butternut",
-        txt: "Épluchez et coupez le butternut en cubes. Dans une cocotte, faites fondre l'oignon haché dans le beurre, ajoutez les cubes de courge et laissez-les colorer quelques minutes. Versez le bouillon en en réservant 10 cl pour le mixage, puis laissez mijoter 20 minutes.",
+        txt: "Épluchez et coupez le butternut en cubes. Dans une cocotte, faites fondre l'oignon haché dans le beurre, ajoutez les cubes de courge et laissez-les colorer quelques minutes. Versez le bouillon en en réservant {10 cl} pour le mixage, puis laissez mijoter 20 minutes.",
         timer: 20,
         tip: { t: "Astuce du chef", txt: "Attendez que le beurre soit mousseux et légèrement noisette avant d'ajouter la courge : c'est cette coloration au départ qui donne au velouté son goût caramélisé." }
       },
@@ -515,7 +524,7 @@ const RECIPES = [
       },
       {
         t: "La sauce au yaourt bulgare et agrumes",
-        txt: "Zestez le citron et la demi-orange, puis pressez-les. Fouettez le yaourt bulgare avec les zestes, 2 c. à s. de jus de citron, 1 c. à s. de jus d'orange, l'huile d'olive, du sel et du poivre. Réservez au frais.",
+        txt: "Zestez le citron et la demi-orange, puis pressez-les. Fouettez le yaourt bulgare avec les zestes, {2 c. à s.} de jus de citron, {1 c. à s.} de jus d'orange, l'huile d'olive, du sel et du poivre. Réservez au frais.",
         tip: { t: "Astuce du chef", txt: "Zestez toujours avant de presser — l'inverse est impossible. Et gardez la sauce bien épaisse : elle doit s'étaler d'un coup de cuillère dans l'assiette sans couler. Trop de jus et elle file." }
       },
       {
@@ -644,7 +653,7 @@ const RECIPES = [
         shop: { label: "Farine de blé T55 ou T65" } },
       { name: "Bicarbonate de soude", qty: 0.5, unit: "c. à c.", rayon: "Épicerie", cid: "bicarbonate",
         shop: { label: "Bicarbonate de soude", qty: 1, unit: "sachet" } },
-      { name: "Sel fin", qty: 3, unit: "g", note: "1/2 c. à c. — indispensable", rayon: "Assaisonnements", cid: "sel-fin",
+      { name: "Sel fin", qty: 3, unit: "g", note: "{0,5 c. à c.} — indispensable", rayon: "Assaisonnements", cid: "sel-fin",
         shop: { label: "Sel fin de cuisine", qtyText: "" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", note: "sur le dessus", optional: true, rayon: "Assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
@@ -664,7 +673,7 @@ const RECIPES = [
       {
         t: "Ajout des poudres",
         txt: "Tamisez la farine, le bicarbonate de soude et le sel fin au-dessus du mélange, puis incorporez à la spatule sans trop travailler la pâte.",
-        tip: { t: "Astuce du chef", txt: "Ne sautez pas le sel : avec du beurre doux et 120 g de sucre, une pâte à cookie sans sel reste plate en bouche. C'est lui qui fait ressortir le caramel de la cassonade et le chocolat." }
+        tip: { t: "Astuce du chef", txt: "Ne sautez pas le sel : avec du beurre doux et {120 g} de sucre, une pâte à cookie sans sel reste plate en bouche. C'est lui qui fait ressortir le caramel de la cassonade et le chocolat." }
       },
       {
         t: "Incrustation des pépites",
@@ -708,7 +717,7 @@ const RECIPES = [
         shop: { label: "Concombre bio", qty: 1, unit: "" } },
       { name: "Citrons verts", qty: 2, unit: "", rayon: "Fruits, légumes & herbes", cid: "citron-vert",
         shop: { label: "Citrons verts" } },
-      { name: "Sirop de sucre de canne", qty: 2, unit: "c. à s.", note: "2 à 3, ou sucre complet", rayon: "Épicerie", cid: "sirop-canne",
+      { name: "Sirop de sucre de canne", qty: 2, unit: "c. à s.", note: "{2-3}, ou sucre complet", rayon: "Épicerie", cid: "sirop-canne",
         shop: { label: "Sirop de sucre de canne", qty: 1, unit: "bouteille" } },
       { name: "Eau très fraîche ou gazeuse", qty: 50, unit: "cl", rayon: "Épicerie", cid: "eau-gazeuse",
         shop: { label: "Eau gazeuse", qty: 1, unit: "bouteille", note: "pour la version pétillante" } },
@@ -979,7 +988,7 @@ const RECIPES = [
       { name: "Feta", qty: 100, unit: "g", rayon: "Produits frais", cid: "feta" },
       { name: "Pomme verte (Granny Smith)", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "pomme",
         shop: { label: "Pommes croquantes (Granny Smith ou Gala)" } },
-      { name: "Tomates fermes", qty: 2, unit: "", note: "ou 150 g de tomates cerises", rayon: "Fruits, légumes & herbes", cid: "tomates" },
+      { name: "Tomates fermes", qty: 2, unit: "", note: "ou {150 g} de tomates cerises", rayon: "Fruits, légumes & herbes", cid: "tomates" },
       { name: "Citron jaune", qty: 0.5, unit: "", note: "pour citronner la pomme", rayon: "Fruits, légumes & herbes", cid: "citron",
         shop: { label: "Citron jaune non traité" } },
       { name: "Oignon", qty: 0.5, unit: "", note: "aromate, cuisson des lentilles", rayon: "Fruits, légumes & herbes", cid: "oignon",

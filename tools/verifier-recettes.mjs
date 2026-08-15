@@ -13,6 +13,11 @@
       les suppléments.
    3. Ingrédients. Rayon connu (sinon l'article disparaît de la liste de courses)
       et `cid` présent (sinon les quantités ne fusionnent pas entre recettes).
+   4. Quantités citées dans un texte. Elles doivent être entre accolades pour
+      suivre le curseur de portions — {3 cl} — sinon elles restent figées et
+      contredisent la colonne de gauche dès qu'on change le nombre de parts.
+      Et quand la note détaille un ingrédient poste par poste (« {3 cl} pour la
+      pâte + {7 cl} pour le moule »), la somme doit faire le compte.
 
    Usage :  node tools/verifier-recettes.mjs        (code de sortie 1 si erreur) */
 
@@ -27,6 +32,23 @@ const RAYONS = new Function(`${src}; return RAYONS;`)();
 
 const DUREE = /(\d+(?:\s*à\s*\d+)?)\s*(minutes?|min\b|heures?|h\b)/i;
 const POSTES = ["prep", "repos", "cuisson"];
+/* Une quantité mise à l'échelle : {3 cl}, {1-2 c. à s.}, {2}. */
+const MARQUEE = /\{(\d+(?:[.,]\d+)?)(?:\s*[–-]\s*(\d+(?:[.,]\d+)?))?\s*([^}]*)\}/g;
+/* La même, laissée nue — ce que l'on cherche à débusquer. On scanne le texte
+   privé de ses accolades, donc pas besoin d'exclure celles-ci ici. Les unités
+   de longueur sont absentes de la liste : une bande de 1,5 cm de large reste
+   large de 1,5 cm qu'on soit deux ou douze. */
+const NUE = /\b(\d+(?:[.,]\d+)?)\s*(g|kg|ml|cl|l|c\. à s\.|c\. à c\.|sachets?|bocaux?|bocal|pots?|bottes?|bouquets?|gousses?)\b/g;
+/* « 2 cl par verre » se règle tout seul : c'est une quantité par portion. */
+const PAR_PORTION = /\bpar\s+(verre|personne|part|portion|convive|pièce|sachet)/i;
+/* Ce qu'on achète tout fait : le poids annoncé décrit l'emballage. */
+const CONTENANTS = ["bocal", "boîte", "brique", "pot", "petit pot", "sachet", "rouleau", "botte", "bouquet"];
+const nombre = n => parseFloat(String(n).replace(",", "."));
+
+function quantitesNues(txt) {
+  if (!txt || PAR_PORTION.test(txt)) return [];
+  return [...txt.replace(MARQUEE, "…").matchAll(NUE)].map(m => m[0]);
+}
 const erreurs = [];
 const ko = m => erreurs.push(m);
 
@@ -69,6 +91,41 @@ for (const r of RECIPES) {
     if (i.course === false) continue;
     if (!RAYONS.includes(i.rayon)) ko(`${ref} → « ${i.name} » : rayon inconnu (${i.rayon})`);
     if (!i.cid) ko(`${ref} → « ${i.name} » : cid manquant, les quantités ne fusionneront pas`);
+  }
+
+  /* 4. Quantités citées dans les textes */
+  const textes = [
+    ...lots.flatMap(([ref, ings]) => (ings || []).filter(i => i.note).map(i => [`${ref} → « ${i.name} » (note)`, i.note])),
+    ...minutables.flatMap(([ref, s]) => [[ref, s.txt], ...(s.tip ? [[`${ref} astuce`, s.tip.txt]] : [])])
+  ];
+  for (const [ref, txt] of textes) {
+    const nues = quantitesNues(txt);
+    if (nues.length) ko(`${ref} cite « ${nues.join(" », « ")} » sans accolades : la quantité ne suivra pas les portions`);
+  }
+
+  /* La note qui détaille un ingrédient poste par poste doit tomber juste :
+     c'est exactement le décalage qu'on a vu sur l'huile de la focaccia. */
+  for (const [ref, ings] of lots) for (const i of ings || []) {
+    if (!i.note || i.qty == null) continue;
+    const parts = [...i.note.matchAll(MARQUEE)]
+      .filter(m => !m[2] && m[3].trim() === (i.unit || "").trim())
+      .map(m => nombre(m[1]));
+    if (parts.length < 2) continue;
+    const somme = parts.reduce((a, b) => a + b, 0);
+    if (Math.abs(somme - i.qty) > 0.01) {
+      ko(`${ref} → « ${i.name} » : le détail de la note fait ${somme} ${i.unit} alors que la quantité est de ${i.qty} ${i.unit}`);
+    }
+  }
+
+  /* Les notes de courses se fondent entre recettes sans être mises à l'échelle :
+     une quantité y serait fausse dès qu'on change les portions — sauf quand on
+     achète un contenant, où « environ 400 g » décrit le bocal, pas la recette. */
+  for (const [ref, ings] of lots) for (const i of ings || []) {
+    const note = (i.shop || {}).note;
+    if (CONTENANTS.includes(((i.shop || {}).unit || "").trim())) continue;
+    if (note && quantitesNues(note).length) {
+      ko(`${ref} → « ${i.name} » : la note de courses cite « ${quantitesNues(note).join(" », « ")} », qui ne suivra pas les portions`);
+    }
   }
 }
 
