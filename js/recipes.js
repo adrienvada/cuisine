@@ -693,7 +693,9 @@ const RECIPES = [
     tags: ["sans alcool", "frais", "été"],
     emoji: "🥒",
     color: "#7CB8A4",
-    times: { prep: 10 },
+    // 10 min de préparation, mais les verres givrent 15 min en parallèle :
+    // c'est ce délai-là qui commande le service.
+    times: { prep: 15 },
     portions: { base: 4, label: "verres" },
     ingredients: [
       { name: "Concombre bio", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "concombre",

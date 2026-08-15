@@ -153,6 +153,21 @@ function totalTime(r) {
   return (r.times.prep || 0) + (r.times.repos || 0) + (r.times.cuisson || 0);
 }
 
+/* Temps qu'ajouteraient tous les suppléments minutés (torréfier des graines,
+   faire tremper un oignon…). */
+const addonTime = r => (r.addons || []).reduce((n, a) => n + ((a.step && a.step.timer) || 0), 0);
+
+function rangeTime(min, max) {
+  if (min === max) return fmtTime(min);
+  // Même unité de part et d'autre : on ne la répète pas — « 45 – 55 min ».
+  if (max < 60) return `${min} – ${max} min`;
+  return `${fmtTime(min)} – ${fmtTime(max)}`;
+}
+
+/* Le total affiché : la recette nue, et jusqu'où elle monte si l'on prend tous
+   les suppléments qui demandent du temps. */
+const totalTimeText = r => rangeTime(totalTime(r), totalTime(r) + addonTime(r));
+
 function fmtQty(q) {
   if (q == null) return "";
   const rounded = Math.round(q * 4) / 4;
@@ -576,7 +591,7 @@ function drawGrid() {
         </div>` : ""}
         <div class="card-foot">
           ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
-          <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
+          <div class="meta">${ICON.clock} ${totalTimeText(r)}${r.times.cuisson == null ? " · sans cuisson" : ""}</div>
         </div>
       </div>
     </a>`;
@@ -1034,7 +1049,7 @@ function renderMenu() {
           <a class="mc-visual" style="background:${r.color}22" href="#/recette/${r.id}" aria-label="${r.title}">${visualOf(r)}</a>
           <div class="mc-body">
             <a class="mc-title" href="#/recette/${r.id}"><h3>${r.title}</h3></a>
-            <div class="meta">${ICON.clock} ${fmtTime(totalTime(r))}
+            <div class="meta">${ICON.clock} ${totalTimeText(r)}
               ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
               ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
             </div>
