@@ -261,7 +261,7 @@ function effectiveSteps(r) {
   for (const a of selectedAddons(r)) {
     if (!a.step) continue;
     const s = steps[Math.min(a.step.i, steps.length - 1)];
-    (s.extras = s.extras || []).push({ emoji: a.emoji, label: a.label, txt: a.step.txt });
+    (s.extras = s.extras || []).push({ id: a.id, emoji: a.emoji, label: a.label, txt: a.step.txt, timer: a.step.timer });
   }
   return steps;
 }
@@ -274,10 +274,14 @@ function versionSummary(r) {
   return parts.join(" · ");
 }
 
-/* Le geste d'un supplément, affiché dans l'étape concernée. */
-const extrasHtml = s => (s.extras || []).map(x => `<div class="addon-note">
+/* Le geste d'un supplément, affiché dans l'étape concernée.
+   En mode cuisine (`cuisine`), un supplément minuté reçoit sa propre zone de
+   compte à rebours ; la fiche recette, elle, ne propose jamais de minuteur. */
+const extrasHtml = (s, cuisine) => (s.extras || []).map(x => `<div class="addon-note">
   <span class="a-emoji">${x.emoji || "✚"}</span>
-  <div class="a-body"><b>${x.label}</b>${x.txt}</div>
+  <div class="a-body"><b>${x.label}</b>${x.txt}
+    ${cuisine && x.timer ? `<div class="addon-timer" data-slot="${x.id}"></div>` : ""}
+  </div>
 </div>`).join("");
 
 /* Chips de sélection, partagées entre la page recette et la sheet d'ajout. */
@@ -759,11 +763,19 @@ function renderRecipe(r) {
 
 let tickInt = null, refreshZone = null;
 
-function startTimer(r, stepIdx, s) {
+/* Une étape peut faire tourner plusieurs minuteurs : celui de l'étape elle-même
+   (slot null) et celui de chaque supplément minuté (slot = son identifiant).
+   Les minuteurs enregistrés avant cette notion n'ont pas de `slot` : lus comme
+   null, ils restent ceux de leur étape. */
+const findTimer = (rid, step, slot = null) =>
+  state.timers.find(t => t.rid === rid && t.step === step && (t.slot || null) === slot);
+
+function startTimer(r, stepIdx, { timer, label, emoji }, slot = null) {
   state.timers.push({
     id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
-    rid: r.id, step: stepIdx, label: s.t, emoji: r.emoji,
-    end: Date.now() + s.timer * 60000, total: s.timer, fired: false
+    rid: r.id, step: stepIdx, slot,
+    label, emoji: emoji || r.emoji,
+    end: Date.now() + timer * 60000, total: timer, fired: false
   });
   save(); drawTray(); ensureTick();
 }
@@ -789,7 +801,7 @@ function tick() {
         const pill = el.closest(".timer-pill");
         if (pill) pill.classList.add("done");
         const btn = el.nextElementSibling;
-        if (btn && btn.id === "timer-stop") btn.textContent = "OK";
+        if (btn && btn.hasAttribute("data-stop")) btn.textContent = "OK";
       }
     });
     if (left === 0 && !t.fired) {
@@ -890,7 +902,7 @@ function renderCook(r, step) {
             <h2>${s.t}</h2>
             <span class="cook-flourish">${ILLO.D.flourish}</span>
             <p class="txt">${s.txt}</p>
-            ${extrasHtml(s)}
+            ${extrasHtml(s, true)}
             ${s.tip ? tipHtml(s.tip) : ""}
             <div class="cook-timer" id="timer-zone"></div>
           </div>
@@ -919,29 +931,61 @@ function renderCook(r, step) {
       }
       else { cookIdx++; draw(); }
     });
-    drawTimerZone(s);
-    refreshZone = () => drawTimerZone(steps[cookIdx]);
+    drawZones(s);
+    // Les zones sont refaites à chaque dessin : on délègue depuis le corps de
+    // l'étape, lui aussi recréé, plutôt que d'empiler les écouteurs.
+    document.querySelector(".cook-body").addEventListener("click", e => {
+      const go = e.target.closest("[data-go]");
+      if (go) {
+        const x = (s.extras || []).find(y => y.id === go.dataset.go);
+        if (x) { startTimer(r, cookIdx, x, x.id); drawZones(s); }
+        return;
+      }
+      const stop = e.target.closest("[data-stop]");
+      if (stop) cancelTimer(stop.dataset.stop);
+    });
+    refreshZone = () => drawZones(steps[cookIdx]);
   };
+
+  const drawZones = s => { drawTimerZone(s); drawAddonZones(s); };
 
   const drawTimerZone = s => {
     const zone = document.getElementById("timer-zone");
     if (!zone) return;
-    const t = state.timers.find(x => x.rid === r.id && x.step === cookIdx);
+    const t = findTimer(r.id, cookIdx);
     if (t) {
       const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
       const done = left === 0;
       zone.innerHTML = `
         <span class="clock ${done ? "flash" : ""}" data-clock="${t.id}">${fmtClock(left)}</span>
-        <button id="timer-stop">${done ? "OK" : "Annuler"}</button>`;
-      document.getElementById("timer-stop").addEventListener("click", () => cancelTimer(t.id));
+        <button id="timer-stop" data-stop="${t.id}">${done ? "OK" : "Annuler"}</button>`;
     } else if (s.timer) {
       zone.innerHTML = `<button id="timer-start">${ICON.timer} Minuteur ${fmtTime(s.timer)}</button>`;
       document.getElementById("timer-start").addEventListener("click", () => {
-        startTimer(r, cookIdx, s);
+        startTimer(r, cookIdx, { timer: s.timer, label: s.t });
         drawTimerZone(s);
       });
     } else {
       zone.innerHTML = "";
+    }
+  };
+
+  /* Chaque supplément minuté mène son propre compte à rebours, en parallèle de
+     celui de l'étape : on torréfie des graines pendant que la soupe mijote. */
+  const drawAddonZones = s => {
+    for (const zone of document.querySelectorAll(".addon-timer")) {
+      const x = (s.extras || []).find(y => y.id === zone.dataset.slot);
+      if (!x) continue;
+      const t = findTimer(r.id, cookIdx, x.id);
+      if (t) {
+        const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
+        const done = left === 0;
+        zone.innerHTML = `
+          <span class="clock ${done ? "flash" : ""}" data-clock="${t.id}">${fmtClock(left)}</span>
+          <button data-stop="${t.id}">${done ? "OK" : "Annuler"}</button>`;
+      } else {
+        zone.innerHTML = `<button data-go="${x.id}">${ICON.timer} Minuteur ${fmtTime(x.timer)}</button>`;
+      }
     }
   };
 

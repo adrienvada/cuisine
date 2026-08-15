@@ -1119,6 +1119,52 @@ body.cooking .timer-pill:not(.done) {
   margin-bottom: 2px;
 }
 
+/* Le mode cuisine impose une encre crème sur son fond sombre ; la note d'un
+   supplément, elle, garde sa carte claire et réclame donc une encre foncée.
+   On y fige les couleurs du mode clair, comme le reste du mode cuisine. */
+body.cooking .addon-note {
+  --card: #FFFDF7;
+  --gold-tint: #F4EAD5;
+  --gold-deep: #8A6420;
+  color: #2C3326;
+}
+
+/* Minuteur propre à un supplément, en mode cuisine : plus discret que celui de
+   l'étape, pour qu'on distingue au premier coup d'œil lequel mène la danse. */
+.addon-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.addon-timer:empty { display: none; }
+
+.addon-timer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-tint);
+  border: 1px solid var(--gold);
+  color: var(--gold-deep);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.addon-timer button svg { width: 14px; height: 14px; }
+
+.addon-timer .clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  letter-spacing: 0.02em;
+}
+
+.addon-timer .clock.flash { animation: flash 0.8s infinite; }
+
 /* Badge « supplément » dans la liste de courses */
 .sup-tag {
   font-size: 11.5px;
