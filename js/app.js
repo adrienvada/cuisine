@@ -583,20 +583,23 @@ function renderHome() {
     <div class="chips" id="chips">
       ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${c}">${chipLabel(c)}</button>`).join("")}
     </div>
-    <div class="grid" id="grid"></div>
+    <div class="grid fade-in" id="grid">
+      ${RECIPES.map(cardHtml).join("")}
+      <p class="empty grid-empty" style="grid-column:1/-1" hidden>Aucune recette ne correspond…<br>La prochaine fournée arrive bientôt !</p>
+    </div>
   `;
   document.getElementById("search").addEventListener("input", e => {
-    state.query = e.target.value; save(); drawGrid();
+    state.query = e.target.value; save(); applyFilter(true);
   });
   document.getElementById("chips").addEventListener("click", e => {
     const b = e.target.closest(".chip");
     if (!b) return;
     state.filter = b.dataset.cat; save();
     document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
-    drawGrid();
+    applyFilter(true);
   });
   document.getElementById("grid").addEventListener("click", onShareClick);
-  drawGrid();
+  applyFilter(false);
 }
 
 function inFilter(r) {
@@ -605,28 +608,16 @@ function inFilter(r) {
   return r.category === state.filter;
 }
 
-function drawGrid() {
-  const list = RECIPES.filter(r => inFilter(r) && matches(r, state.query));
-  // Dans les coups de cœur, les plus cuisinées passent devant.
-  if (state.filter === FAV_FILTER) {
-    list.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
-  }
-  /* La pastille de catégorie n'apprend rien quand le filtre l'annonce déjà en
-     haut de l'écran : elle ne sert que dans « Toutes » et dans une recherche.
-     (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
-  const montreCategorie = state.filter === "Toutes" || state.filter === FAV_FILTER;
-  const grid = document.getElementById("grid");
-  if (!list.length) {
-    grid.innerHTML = `<p class="empty" style="grid-column:1/-1">Aucune recette ne correspond…<br>La prochaine fournée arrive bientôt !</p>`;
-    return;
-  }
-  grid.innerHTML = list.map(r => {
-    const v = VERDICTS.find(x => x.id === verdictOf(r));
-    const c = cookedOf(r);
-    return `
-    <a class="card fade-in" href="#/recette/${r.id}">
+/* Une carte par recette, créée une seule fois par visite de l'accueil.
+   Filtrer ne reconstruit plus rien : les cartes restent dans le DOM et
+   `applyFilter` ne fait que les montrer, les cacher et les déplacer. */
+function cardHtml(r) {
+  const v = VERDICTS.find(x => x.id === verdictOf(r));
+  const c = cookedOf(r);
+  return `
+    <a class="card" data-id="${r.id}" href="#/recette/${r.id}">
       <div class="visual" style="background:${r.color}22">${visualOf(r)}
-        ${montreCategorie ? `<span class="card-cat">${r.category}</span>` : ""}
+        <span class="card-cat">${r.category}</span>
         <button class="card-share" data-share="${r.id}" aria-label="Partager ${r.title}">${ICON.share}</button>
       </div>
       <div class="body">
@@ -641,7 +632,108 @@ function drawGrid() {
         </div>
       </div>
     </a>`;
-  }).join("");
+}
+
+const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)");
+
+/* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée. */
+function finishLeave(el) {
+  clearTimeout(el._lv);
+  if (!el.classList.contains("card-leave")) return;
+  el.classList.remove("card-leave");
+  el.style.position = el.style.left = el.style.top = el.style.width = el.style.margin = "";
+  el.classList.add("gone");
+}
+
+/* Filtre la grille façon FLIP : les cartes écartées s'estompent sur place,
+   les survivantes glissent vers leur nouvelle position, les entrantes
+   apparaissent en fondu. Aucune reconstruction du DOM. */
+function applyFilter(animate) {
+  const grid = document.getElementById("grid");
+  if (!grid) return;
+  const list = RECIPES.filter(r => inFilter(r) && matches(r, state.query));
+  // Dans les coups de cœur, les plus cuisinées passent devant.
+  if (state.filter === FAV_FILTER) {
+    list.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
+  }
+  /* La pastille de catégorie n'apprend rien quand le filtre l'annonce déjà en
+     haut de l'écran : elle ne sert que dans « Toutes » et dans une recherche.
+     (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
+  grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER));
+  grid.querySelector(".grid-empty").hidden = list.length > 0;
+
+  const cardOf = new Map([...grid.querySelectorAll(".card")].map(el => [el.dataset.id, el]));
+  const wanted = list.map(r => cardOf.get(r.id));
+  const wantedSet = new Set(wanted);
+  const cards = [...cardOf.values()];
+
+  if (!animate || REDUCE_MOTION.matches) {
+    for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
+    for (const el of wanted) grid.appendChild(el);
+    grid.appendChild(grid.querySelector(".grid-empty"));
+    return;
+  }
+
+  /* FIRST — positions actuelles des cartes visibles */
+  const visible = cards.filter(el => !el.classList.contains("gone") && !el.classList.contains("card-leave"));
+  const gridBox = grid.getBoundingClientRect();
+  const first = new Map(visible.map(el => [el, el.getBoundingClientRect()]));
+
+  const leavers = visible.filter(el => !wantedSet.has(el));
+  const enterers = wanted.filter(el => !first.has(el));
+  const stayers = wanted.filter(el => first.has(el));
+
+  /* Sortantes : figées en absolu à leur place, elles s'estompent sans gêner
+     le reflow, puis retournent au repos (display:none). */
+  for (const el of leavers) {
+    const r0 = first.get(el);
+    el.style.position = "absolute";
+    el.style.margin = "0";
+    el.style.width = r0.width + "px";
+    el.style.left = r0.left - gridBox.left + "px";
+    el.style.top = r0.top - gridBox.top + "px";
+    el.classList.add("card-leave");
+    el._lv = setTimeout(() => finishLeave(el), 240);
+  }
+
+  /* Entrantes : réaffichées tout de suite mais transparentes */
+  for (const el of enterers) {
+    finishLeave(el);
+    el.classList.remove("gone");
+    el.classList.add("card-enter", "no-anim");
+  }
+
+  /* Ordre cible (le tri des coups de cœur déplace aussi les survivantes) */
+  for (const el of wanted) grid.appendChild(el);
+  grid.appendChild(grid.querySelector(".grid-empty"));
+
+  /* LAST + INVERT — chaque survivante repart de son ancienne position… */
+  const movers = [];
+  for (const el of stayers) {
+    const r0 = first.get(el), r1 = el.getBoundingClientRect();
+    const dx = r0.left - r1.left, dy = r0.top - r1.top;
+    if (!dx && !dy) continue;
+    el.classList.add("no-anim");
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+    movers.push(el);
+  }
+
+  /* PLAY — …et glisse vers la nouvelle au prochain rendu */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    for (const el of movers) {
+      el.classList.remove("no-anim");
+      el.classList.add("card-move");
+      el.style.transform = "";
+      clearTimeout(el._mv);
+      el._mv = setTimeout(() => el.classList.remove("card-move"), 340);
+    }
+    for (const el of enterers) {
+      el.classList.remove("no-anim", "card-enter");
+      el.classList.add("card-move");
+      clearTimeout(el._mv);
+      el._mv = setTimeout(() => el.classList.remove("card-move"), 340);
+    }
+  }));
 }
 
 /* ---------- Page recette ---------- */
