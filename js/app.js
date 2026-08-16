@@ -1635,17 +1635,31 @@ function renderCourses() {
   const ids = state.menu.filter(byId);
   const items = buildCourseList();
   const extras = state.extras;
+  const empty = !ids.length && !extras.length;
 
-  if (!ids.length && !extras.length) {
+  if (empty) {
     app.innerHTML = `
+      <div id="courses-root">
       <header class="page-head courses-head fade-in">
         <div class="head-branch">${ILLO.D.olive}</div>
         <h1>Liste de courses</h1>
       </header>
       <div class="empty-illo cheers">${ILLO.D.cheers}</div>
-      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.</p>
-      <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
+      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
+      <div style="text-align:center;margin-bottom:14px"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
+      <form class="add-extra" id="extra-form">
+        <input id="extra-input" type="text" placeholder="Ajouter un article (éponges, glaçons…)" autocomplete="off">
+        <button type="submit" aria-label="Ajouter">+</button>
+      </form>
+      </div>
     `;
+    document.getElementById("extra-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const v = document.getElementById("extra-input").value.trim();
+      if (!v) return;
+      state.extras.push({ id: Date.now().toString(36), name: v });
+      save(); updateBadge(); renderCourses();
+    });
     return;
   }
 
