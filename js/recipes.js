@@ -1348,6 +1348,7 @@ const RECIPES = [
 
   {
     id: "tagliatelles-carotte-carbonara",
+    image: "img/tagliatelles-carotte-carbonara.jpg",
     title: "Tagliatelles de carotte façon carbonara",
     subtitle: "Crémeuse et gourmande : la carbonara sans les pâtes",
     category: "Plats",
