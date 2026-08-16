@@ -1077,6 +1077,53 @@ const RECIPES = [
         tip: { t: "Astuce du chef", txt: "Incorporez la pomme verte au tout dernier moment pour qu'elle conserve tout son croquant et sa fraîcheur au contraste des lentilles." }
       }
     ]
+  },
+
+  {
+    id: "mayonnaise-maison",
+    title: "Mayonnaise maison",
+    subtitle: "Onctueuse et infaillible, prête en 5 minutes",
+    category: "Sauces",
+    tags: ["sans cuisson", "rapide", "de base"],
+    emoji: "🥄",
+    color: "#F0D077",
+    times: { prep: 10 },
+    portions: { base: 4, label: "personnes" },
+    note: "Se conserve 2 jours au frais dans un bocal fermé (œuf cru) — sortez-la 10 min avant de servir, elle fige un peu au froid.",
+    ingredients: [
+      { name: "Jaune d'œuf", qty: 1, unit: "", note: "à température ambiante", rayon: "Produits frais", cid: "oeufs",
+        shop: { label: "Œufs frais", note: "1 jaune, à sortir du frigo à l'avance" } },
+      { name: "Moutarde de Dijon", qty: 1, unit: "c. à c.", rayon: "Épicerie", cid: "moutarde",
+        shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+      { name: "Huile neutre", qty: 20, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Épicerie", cid: "huile-neutre",
+        shop: { label: "Huile neutre (tournesol ou pépins de raisin)" } },
+      { name: "Vinaigre blanc", qty: 1, unit: "c. à c.", note: "ou quelques gouttes de jus de citron", rayon: "Épicerie", cid: "vinaigre-blanc",
+        shop: { label: "Vinaigre blanc" } },
+      { name: "Sel fin et poivre du moulin", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+        shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    steps: [
+      {
+        t: "Tout à température ambiante",
+        txt: "Sortez le jaune d'œuf et la moutarde du réfrigérateur au moins 15 min avant de commencer. Dans un bol, fouettez le jaune avec la moutarde, le vinaigre, du sel et du poivre jusqu'à obtenir un mélange homogène et légèrement mousseux.",
+        tip: { t: "Astuce du chef", txt: "C'est la cause n° 1 d'une mayonnaise qui tranche : un jaune sorti froid du frigo n'émulsionne pas bien avec l'huile. Un simple passage de 15 min à température ambiante suffit." }
+      },
+      {
+        t: "Le départ de l'émulsion",
+        txt: "Sans cesser de fouetter, versez l'huile goutte à goutte, presque en filet imperceptible au tout début. Le mélange doit épaissir et blanchir avant que vous n'accédiez au reste de l'huile.",
+        tip: { t: "Geste technique", txt: "Ce tout premier filet est le moment le plus fragile de l'émulsion : allez-y beaucoup plus doucement que ce qui semble nécessaire. Une fois que la mayonnaise a bien pris en masse, vous pourrez accélérer sans risque." }
+      },
+      {
+        t: "Monter la mayonnaise",
+        txt: "Une fois l'émulsion bien engagée, versez le reste de l'huile en filet plus large, toujours en fouettant énergiquement, jusqu'à obtenir une texture ferme et brillante qui tient au fouet.",
+        tip: { t: "Astuce du chef", txt: "Si elle tranche malgré tout (mélange qui reste liquide ou granuleux), ne jetez rien : dans un bol propre, fouettez un nouveau jaune d'œuf ou une cuillère à café de moutarde, puis versez la mayonnaise ratée en filet dessus comme si c'était de l'huile. L'émulsion repart aussitôt." }
+      },
+      {
+        t: "Assaisonnement final",
+        txt: "Goûtez et rectifiez en sel, poivre ou vinaigre selon votre goût. Réservez au frais dans un bocal hermétique jusqu'au service.",
+        tip: { t: "L'astuce du chef", txt: "Une moutarde plus forte ou un trait de vinaigre supplémentaire aident aussi à stabiliser l'émulsion — la moutarde n'est pas là que pour le goût, elle joue un vrai rôle d'émulsifiant." }
+      }
+    ]
   }
 ];
 
