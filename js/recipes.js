@@ -1081,6 +1081,7 @@ const RECIPES = [
 
   {
     id: "mayonnaise-maison",
+    image: "img/mayonnaise-maison.jpg",
     title: "Mayonnaise maison",
     subtitle: "Onctueuse et infaillible, prête en 5 minutes",
     category: "Sauces",
