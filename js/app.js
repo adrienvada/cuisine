@@ -108,6 +108,10 @@ const VERDICTS = [
 
 const FAV_FILTER = "coup-de-coeur";
 
+/* Ordre des catégories dans les filtres : celui d'un repas, boissons en dernier. */
+const CATEGORY_ORDER = ["Apéro", "Entrées", "Soupes", "Salades", "Sauces", "Desserts", "Boissons"];
+const byCategoryOrder = (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b);
+
 const verdictOf = r => state.notes[r.id] || null;
 
 const isFav = r => state.notes[r.id] === "encore";
@@ -829,7 +833,7 @@ function matches(r, q) {
 function renderHome() {
   const anyFav = RECIPES.some(isFav);
   if (state.filter === FAV_FILTER && !anyFav) { state.filter = "Toutes"; save(); }
-  const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...new Set(RECIPES.map(r => r.category))];
+  const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(RECIPES.map(r => r.category))].sort(byCategoryOrder)];
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   app.innerHTML = `
     <header class="masthead fade-in">
