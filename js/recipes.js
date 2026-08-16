@@ -1176,6 +1176,7 @@ const RECIPES = [
     id: "pesto-basilic-maison",
     title: "Pesto au basilic maison",
     subtitle: "Vert vif et parfumé, en 10 minutes sans se presser",
+    discovered: "à Aligre, à Paris",
     category: "Sauces",
     tags: ["rapide", "de base"],
     emoji: "🌿",
