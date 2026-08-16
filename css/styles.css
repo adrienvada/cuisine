@@ -298,7 +298,7 @@ a { color: var(--green); }
   overflow: hidden;
 }
 
-.card .visual img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.35); }
+.card .visual img { width: 100%; height: 100%; object-fit: cover; transform: scale(2.3); }
 
 .card .visual svg { width: 76%; height: 86%; }
 
@@ -841,7 +841,7 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
   text-decoration: none;
 }
 
-.mc-visual img { width: 100%; height: 100%; object-fit: cover; }
+.mc-visual img { width: 100%; height: 100%; object-fit: cover; transform: scale(2.3); }
 .mc-visual svg { width: 82%; height: 88%; }
 
 .mc-body { flex: 1; min-width: 0; }
