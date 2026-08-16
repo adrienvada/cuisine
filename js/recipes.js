@@ -74,12 +74,12 @@ const RECIPES = [
         t: "L'étirement et la seconde levée",
         txt: "Étirez la pâte doucement du bout des doigts pour qu'elle épouse la forme du moule, puis laissez-la lever à nouveau 30 min. Lancez le préchauffage du four à 220 °C (th. 7-8) maintenant : il sera à température pile quand la pâte sera prête.",
         timer: 30,
-        tip: { t: "Geste technique", txt: "Si la pâte résiste et revient sur elle-même, ne forcez pas : laissez-la se détendre cinq minutes de plus et reprenez. Une pâte étirée de force se déchire et perd ses bulles." }
+        tip: { k: "savoir", t: "Geste technique", txt: "Si la pâte résiste et revient sur elle-même, ne forcez pas : laissez-la se détendre cinq minutes de plus et reprenez. Une pâte étirée de force se déchire et perd ses bulles." }
       },
       {
         t: "La création des trous",
         txt: "Arrosez la focaccia avec le reste d'huile d'olive mélangé à {1 c. à s.} d'eau. Enfoncez franchement vos doigts verticaux jusqu'au fond du moule pour créer les fameux cratères caractéristiques.",
-        tip: { t: "Geste technique", txt: "Utilisez la pulpe de vos trois doigts du milieu (index, majeur, annulaire) bien écartés. N'ayez pas peur de toucher le fond du moule ! C'est ce geste qui emprisonne les bulles d'air sur les côtés sans déchirer la pâte." }
+        tip: { k: "savoir", t: "Geste technique", txt: "Utilisez la pulpe de vos trois doigts du milieu (index, majeur, annulaire) bien écartés. N'ayez pas peur de toucher le fond du moule ! C'est ce geste qui emprisonne les bulles d'air sur les côtés sans déchirer la pâte." }
       },
       {
         t: "Finitions et cuisson",
@@ -141,7 +141,7 @@ const RECIPES = [
       {
         t: "Le façonnage",
         txt: "À l'aide d'un couteau bien aiguisé ou d'une roulette à pizza, découpez des bandes d'environ 1,5 cm de largeur. Prenez chaque bande par les extrémités et tournez-les en sens inverse pour former une jolie torsade hélicoïdale.",
-        tip: { t: "Comment couper net", txt: "Ne faites pas glisser la lame d'avant en arrière (cela écrase le feuilletage). Pressez fermement la lame de haut en bas d'un coup sec, ou utilisez une roulette à pizza bien aiguisée." }
+        tip: { k: "savoir", t: "Comment couper net", txt: "Ne faites pas glisser la lame d'avant en arrière (cela écrase le feuilletage). Pressez fermement la lame de haut en bas d'un coup sec, ou utilisez une roulette à pizza bien aiguisée." }
       },
       {
         t: "Cuisson",
@@ -252,7 +252,8 @@ const RECIPES = [
       },
       {
         t: "Le mixage",
-        txt: "Dans le bol du mixeur, mettez les petits pois, les pois chiches, le tahini, le jus de citron, l'ail et le cumin. Gardez la menthe de côté."
+        txt: "Dans le bol du mixeur, mettez les petits pois, les pois chiches, le tahini, le jus de citron, l'ail et le cumin. Gardez la menthe de côté.",
+        fond: "epices-gras"
       },
       {
         t: "L'émulsion",
@@ -384,7 +385,7 @@ const RECIPES = [
         timer: 6,
         tip: { t: "Astuce du chef", txt: "Plongez immédiatement les œufs dans un grand bol d'eau glacée dès la fin du chrono pour stopper la cuisson et faciliter l'écalage." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage et assaisonnement",
         txt: "Dans les assiettes, dressez le kale massé, la pomme, le persil, les graines torréfiées et les noix. Nappez de vinaigrette, déposez l'œuf mollet délicatement écalé au centre et ouvrez-le au dernier moment.",
@@ -462,7 +463,7 @@ const RECIPES = [
         step: { i: 4, txt: "Taillez le pain en petits dés et faites-les dorer dans un peu de beurre pour des croûtons croustillants." } },
       { id: "chataignes", label: "Châtaignes poêlées", emoji: "🌰",
         ingredients: [{ name: "Châtaignes cuites", qty: 100, unit: "g", note: "sous vide ou en bocal", rayon: "Épicerie", cid: "chataignes" }],
-        step: { i: 2, txt: "Faites dorer les châtaignes grossièrement émiettées avec les shiitakés." } }
+        step: { i: 2, txt: "Faites dorer les châtaignes grossièrement émiettées avec les shiitakés.", fond: "maillard" } }
     ]
   },
 
@@ -509,7 +510,7 @@ const RECIPES = [
       {
         t: "Préparation du gravlax",
         txt: "Mélangez le gros sel, le sucre et les baies roses — quelques zestes de citron ou d'orange y sont les bienvenus. Dans un plat, déposez un lit de ce mélange, posez le saumon côté peau vers le bas, puis recouvrez entièrement la chair avec le reste du mélange.",
-        tip: { t: "À savoir avant de commencer", txt: "La salaison ne détruit pas les parasites (anisakis) : elle sale et raffermit, rien de plus. Pour du saumon consommé cru, prenez un poisson déjà surgelé, ou congelez-le vous-même 24 h à −20 °C — 48 à 72 h dans un congélateur domestique — puis décongelez-le au réfrigérateur avant de le mettre au sel." }
+        tip: { k: "savoir", t: "À savoir avant de commencer", txt: "La salaison ne détruit pas les parasites (anisakis) : elle sale et raffermit, rien de plus. Pour du saumon consommé cru, prenez un poisson déjà surgelé, ou congelez-le vous-même 24 h à −20 °C — 48 à 72 h dans un congélateur domestique — puis décongelez-le au réfrigérateur avant de le mettre au sel." }
       },
       {
         t: "Temps de marinade",
@@ -864,7 +865,7 @@ const RECIPES = [
         t: "Préparation des tomates",
         txt: "Coupez les tomates cerises en deux."
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage",
         txt: "Égouttez l'oignon. Mélangez les pois chiches, l'oignon et les olives avec la vinaigrette, et laissez reposer 15 minutes. Ajoutez la feta émiettée juste avant de servir.",
@@ -962,7 +963,7 @@ const RECIPES = [
         txt: "Lavez et essorez délicatement les feuilles de salade feuille de chêne.",
         tip: { t: "Astuce du chef", txt: "Essorez parfaitement la salade : l'excès d'eau empêche la vinaigrette d'adhérer aux feuilles." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage tiède",
         txt: "Coupez les pommes de terre encore tièdes en rondelles, mélangez-les avec les haricots et les petits pois, puis nappez généreusement de vinaigrette. Ajoutez les feuilles de chêne au tout dernier moment et mélangez délicatement.",
@@ -1069,7 +1070,7 @@ const RECIPES = [
         txt: "Taillez la pomme verte en petits dés réguliers et citronnez-les aussitôt. Coupez les tomates en quartiers, ou en deux pour les tomates cerises.",
         tip: { t: "Astuce du chef", txt: "Épépinez les tomates avant de les couper afin d'éviter qu'elles ne détrempent la salade. Et citronnez la pomme dès la découpe : coupée en petits dés, elle brunit en quelques minutes." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Mélange et finition",
         txt: "Associez les lentilles tièdes ou refroidies, la pomme, les tomates et la feta émiettée, puis incorporez la vinaigrette.",

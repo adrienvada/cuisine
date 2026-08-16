@@ -19,6 +19,16 @@
       Et quand la note détaille un ingrédient poste par poste (« {3 cl} pour la
       pâte + {7 cl} pour le moule »), la somme doit faire le compte.
 
+   5. Fondamentaux. Une étape qui cite un mécanisme inexistant n'affiche rien du
+      tout — la pastille disparaît en silence. Le catalogue lui-même doit être
+      complet, et son identifiant part dans les liens partagés.
+
+   Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
+   d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
+   orphelin est un problème — le carnet sert aussi de boîte de réception aux
+   savoirs qui n'ont pas encore trouvé leur recette. Il n'attrape que ce qui
+   fait afficher quelque chose de faux.
+
    Usage :  node tools/verifier-recettes.mjs        (code de sortie 1 si erreur) */
 
 import { readFileSync } from "node:fs";
@@ -29,6 +39,10 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
 const RECIPES = new Function(`${src}; return RECIPES;`)();
 const RAYONS = new Function(`${src}; return RAYONS;`)();
+const fsrc = readFileSync(join(ROOT, "js", "fondamentaux.js"), "utf8");
+const FONDAMENTAUX = new Function(`${fsrc}; return FONDAMENTAUX;`)();
+const FAMILLES = new Function(`${fsrc}; return FAMILLES;`)();
+const FONDAMENTAL_RENAMES = new Function(`${fsrc}; return FONDAMENTAL_RENAMES;`)();
 
 const DUREE = /(\d+(?:\s*à\s*\d+)?)\s*(minutes?|min\b|heures?|h\b)/i;
 const POSTES = ["prep", "repos", "cuisson"];
@@ -129,8 +143,69 @@ for (const r of RECIPES) {
   }
 }
 
+/* ---------- 5. Fondamentaux ---------- */
+
+const CERTITUDES = ["etabli", "partiel", "empirique"];
+const REQUIS = ["id", "t", "emoji", "famille", "accroche", "pourquoi", "certitude"];
+const vus = new Set();
+
+for (const f of FONDAMENTAUX) {
+  const ref = `fondamental ${f.id || "(sans id)"}`;
+  for (const k of REQUIS) if (!f[k] || !String(f[k]).trim()) ko(`${ref} : champ « ${k} » manquant`);
+  if (f.id && vus.has(f.id)) ko(`${ref} : identifiant en double`);
+  vus.add(f.id);
+  if (f.id && !/^[a-z0-9-]+$/.test(f.id)) ko(`${ref} : l'identifiant part dans les liens partagés, il doit rester en minuscules sans accent (a-z, 0-9, tiret)`);
+  if (f.certitude && !CERTITUDES.includes(f.certitude)) ko(`${ref} : certitude « ${f.certitude} » inconnue (${CERTITUDES.join(", ")})`);
+  if (f.famille && !FAMILLES.includes(f.famille)) ko(`${ref} : famille « ${f.famille} » absente de FAMILLES`);
+  /* Les accolades sont réservées aux quantités mises à l'échelle : le titre d'un
+     fondamental passe par `scaleText` via sa pastille, il serait réécrit. */
+  const tous = [f.t, f.accroche, f.pourquoi, f.piege || "", ...(f.reperes || []),
+    ...(f.cas || []).flatMap(c => [c.q, c.r])].join(" ");
+  if (/[{}]/.test(tous)) ko(`${ref} : accolade dans un texte — elle serait prise pour une quantité à mettre à l'échelle`);
+  for (const c of f.cas || []) if (!c.q || !c.r) ko(`${ref} : un cas est incomplet (il faut « q » et « r »)`);
+}
+
+for (const [ancien, actuel] of Object.entries(FONDAMENTAL_RENAMES)) {
+  if (!FONDAMENTAUX.some(f => f.id === actuel)) ko(`FONDAMENTAL_RENAMES : « ${ancien} » renvoie vers « ${actuel} », qui n'existe pas`);
+}
+
+/* Chaque `fond` posé dans une recette doit tomber sur un fondamental réel :
+   sinon la pastille disparaît sans un mot. */
+const idsFond = o => (!o || !o.fond) ? [] : (Array.isArray(o.fond) ? o.fond : [o.fond]);
+const connu = id => FONDAMENTAUX.some(f => f.id === (FONDAMENTAL_RENAMES[id] || id));
+const tipsKo = [];
+
+for (const r of RECIPES) {
+  const porteurs = [
+    ...r.steps.map((s, i) => [`${r.id}[${i}]`, s]),
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.step])),
+    ...(r.addons || []).map(a => [`${r.id} / +${a.id}`, a.step])
+  ];
+  for (const [ref, s] of porteurs) {
+    for (const id of idsFond(s)) if (!connu(id)) ko(`${ref} cite le fondamental « ${id} », qui n'existe pas`);
+    if (s && s.tip && s.tip.k && !["chef", "savoir"].includes(s.tip.k)) {
+      tipsKo.push(`${ref} : astuce de type « ${s.tip.k} » (attendu : chef ou savoir)`);
+    }
+  }
+}
+tipsKo.forEach(ko);
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
 }
+
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
+console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
+
+/* Pour information seulement — jamais une erreur. Un fondamental sans recette
+   est une astuce croisée dans la vie qui attend la sienne, et c'est prévu. */
+const orphelins = FONDAMENTAUX.filter(f => !RECIPES.some(r => [
+  ...r.steps, ...(r.choices || []).flatMap(c => c.options.map(o => o.step)), ...(r.addons || []).map(a => a.step)
+].some(s => idsFond(s).some(id => (FONDAMENTAL_RENAMES[id] || id) === f.id))));
+const sansFond = RECIPES.filter(r => ![
+  ...r.steps, ...(r.choices || []).flatMap(c => c.options.map(o => o.step)), ...(r.addons || []).map(a => a.step)
+].some(s => idsFond(s).length));
+
+if (orphelins.length) console.log(`  · ${orphelins.length} pas encore rattaché(s) : ${orphelins.map(f => f.id).join(", ")}`);
+if (sansFond.length) console.log(`  · ${sansFond.length} recette(s) sans aucun fondamental : ${sansFond.map(r => r.id).join(", ")}`);

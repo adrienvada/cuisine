@@ -9,6 +9,7 @@ const CORE = [
   "css/styles.css",
   "js/app.js",
   "js/recipes.js",
+  "js/fondamentaux.js",
   "js/illos.js",
   "manifest.webmanifest",
   "icons/icon.svg",
