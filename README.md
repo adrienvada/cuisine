@@ -96,6 +96,15 @@ Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dan
 
 **Une vraie photo du plat prime sur une image générée** : recadrer en 4:3 sur l'assiette, redimensionner en 800 px de large et enregistrer en JPEG qualité 80 (~70 Ko), sous `img/<id-recette>.jpg`.
 
+**Le cadrage se décide sur la bande centrale.** Les deux endroits où la photo s'affiche sont bien plus larges que hauts, et tous deux montrent — mesuré — à peu près la **même bande centrale de 64 % de la hauteur** :
+
+| | Boîte | Ce qui reste visible d'une image 4:3 |
+|---|---|---|
+| Vignette de la grille | 168 × 110 px | 74 % de la largeur, **64,5 % de la hauteur** (le `cover` recadre, puis `transform: scale(1.35)` rapproche) |
+| Héro de la fiche | 352 × 170 px | toute la largeur, **64,4 % de la hauteur** |
+
+Autrement dit : **le plat doit tenir entre 18 % et 82 % de la hauteur de l'image**, et entre 13 % et 87 % de sa largeur. Tout ce qui sort de cette bande — un rebord de fenêtre en haut, le bord de la table en bas — ne sera jamais vu ailleurs que sur la page d'aperçu de partage. Recadrer en centrant sur le plat, et non sur la composition, vaut mieux que de garder un joli décor invisible.
+
 À défaut, **générer la photo** avec Gemini (« nano banana ») — méthode gratuite via l'interface web, sans clé API (l'API `generativelanguage.googleapis.com` facture les images même avec un abonnement Google AI, contrairement au chat web) :
 
 1. Ouvrir [gemini.google.com/app](https://gemini.google.com/app) dans Chrome (connecté au compte d'Adrien), nouvelle discussion.
