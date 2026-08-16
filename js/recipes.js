@@ -1402,7 +1402,10 @@ const RECIPES = [
       { id: "persil", label: "Persil plat", emoji: "🌿",
         ingredients: [{ name: "Persil plat", qty: null, qtyText: "quelques brins", rayon: "Fruits, légumes & herbes", cid: "persil",
           shop: { label: "Persil plat", qty: 1, unit: "bouquet" } }],
-        step: { i: 3, txt: "Parsemez de persil plat ciselé au moment de servir, pour la fraîcheur et la couleur." } }
+        step: { i: 3, txt: "Parsemez de persil plat ciselé au moment de servir, pour la fraîcheur et la couleur." } },
+      { id: "ail", label: "Ail", emoji: "🧄",
+        ingredients: [{ name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits, légumes & herbes", cid: "ail" }],
+        step: { i: 1, txt: "Ajoutez l'ail finement émincé avec le poivre, une trentaine de secondes avant la fin : juste de quoi parfumer le gras sans qu'il ait le temps de brûler et de devenir amer." } }
     ]
   }
 ];
