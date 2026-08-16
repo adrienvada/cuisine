@@ -455,22 +455,67 @@ function openFondSheet(id) {
       ${fondBodyHtml(f)}
       <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
     </div>`;
-  const fermer = () => { backdrop.remove(); document.removeEventListener("keydown", surEchap); };
-  const surEchap = e => { if (e.key === "Escape") fermer(); };
+  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
+  /* Un lien vers une recette ne navigue pas tout de suite : on dépile d'abord
+     l'entrée de la feuille, sinon les deux gestes se croisent et l'un annule
+     l'autre. La navigation se fait donc une fois la feuille retirée. */
+  let ensuite = null;
   backdrop.addEventListener("click", e => {
-    if (e.target === backdrop || e.target.closest("#f-close")) return fermer();
+    if (e.target === backdrop || e.target.closest("#f-close")) return fermerFeuille();
     if (e.target.closest("#f-share")) return shareFond(f.id);
-    // Un lien vers une recette ferme la feuille : sinon elle survivrait au rendu.
-    if (e.target.closest("a")) fermer();
+    const lien = e.target.closest("a[href]");
+    if (lien) {
+      e.preventDefault();
+      const cible = lien.getAttribute("href");
+      ensuite = () => { location.hash = cible; };
+      fermerFeuille();
+    }
   });
   document.addEventListener("keydown", surEchap);
-  document.body.appendChild(backdrop);
+  ouvrirFeuille(backdrop, () => {
+    document.removeEventListener("keydown", surEchap);
+    if (ensuite) { const aller = ensuite; ensuite = null; aller(); }
+  });
 }
 
+/* ---------- Feuilles ---------- */
+
+/* Une feuille est un état, et sur téléphone le geste de retour est la façon de
+   refermer un état. Chaque feuille empile donc une entrée d'historique — à la
+   même adresse, donc sans réveiller le routeur : le mode cuisine y garde son
+   étape, son réveil d'écran et sa position de lecture.
+
+   La feuille se reconnaît à sa présence dans la page, jamais à un marqueur
+   posé dans l'état d'historique : le mode cuisine réécrit l'adresse à chaque
+   redessin, et effacerait ce marqueur dès qu'on toucherait une bulle de
+   minuteur — elles passent au-dessus des feuilles. */
+const feuilleOuverte = () => document.querySelector(".sheet-backdrop");
+
+function ouvrirFeuille(backdrop, auRetrait) {
+  backdrop._auRetrait = auRetrait || null;
+  document.body.appendChild(backdrop);
+  history.pushState(history.state, "", location.hash);
+}
+
+/* Toute fermeture passe par le retour — croix, fond, Échap, bouton : un seul
+   chemin, donc jamais d'entrée orpheline dans la pile. */
+function fermerFeuille() { if (feuilleOuverte()) history.back(); }
+
+window.addEventListener("popstate", () => {
+  const f = feuilleOuverte();
+  if (!f) return;
+  f.remove();
+  if (f._auRetrait) f._auRetrait();
+});
+
 /* Les feuilles vivent sur <body>, hors de #app : un changement de vue ne les
-   emporte pas. On les referme donc à la main à chaque rendu. */
+   emporte pas. On les referme donc à la main à chaque rendu — sans quoi celle
+   de l'ajout au menu survivait à la navigation et bloquait la vue suivante. */
 function closeSheets() {
-  document.querySelectorAll(".sheet-backdrop.fond-sheet").forEach(el => el.remove());
+  document.querySelectorAll(".sheet-backdrop").forEach(el => {
+    el.remove();
+    if (el._auRetrait) el._auRetrait();
+  });
 }
 
 /* Résumé lisible de la version : « Citron & menthe · + tomates cerises, avocat » */
@@ -542,14 +587,17 @@ function openAddSheet(r, done) {
     valider.innerHTML = `${ICON.cart} ${n ? `Ajouter avec ${n} supplément${n > 1 ? "s" : ""}` : "Ajouter tel quel"}`;
   };
 
-  const close = added => { backdrop.remove(); done(added); };
+  /* Le résultat est retenu, puis rendu au moment où la feuille est réellement
+     retirée — que ce soit par le bouton, par le fond, ou par le geste de retour. */
+  let resultat = false;
+  const close = added => { resultat = added; fermerFeuille(); };
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop) return close(false);
     if (e.target.closest("#sheet-add")) return close(true);
     if (onPickClick(e, r)) { picks.innerHTML = pickChipsHtml(r); rafraichir(); }
   });
   rafraichir();
-  document.body.appendChild(backdrop);
+  ouvrirFeuille(backdrop, () => done(resultat));
 }
 
 /* Nombre d'articles qu'il reste à prendre — le badge de l'onglet Courses. */
@@ -701,17 +749,36 @@ function onShareClick(e) {
 
 window.addEventListener("hashchange", route);
 
+/* D'où l'on vient. Sert aux flèches de retour : une flèche « ← Recettes » ne
+   doit pas mentir. Elle revient vraiment en arrière quand c'est de là qu'on
+   vient ; sinon elle remplace l'adresse courante — ce qui évite d'empiler un
+   doublon et, sur un lien partagé ouvert directement, de faire sortir du site
+   alors qu'il n'y a rien derrière. */
+let hashCourant = null, hashPrecedent = null, remplacement = false;
+
+/* Remplacer, c'est effacer l'adresse courante sans toucher à celle d'avant :
+   `hashPrecedent` ne doit donc pas bouger. */
+const allerEnRemplacant = hash => { remplacement = true; location.replace(hash); };
+
+function retourVers(hash) {
+  if (hashPrecedent === hash) history.back();
+  else allerEnRemplacant(hash);
+}
+
 function route() {
   stopCookMode();
   closeSheets();
+  if (remplacement) remplacement = false;
+  else hashPrecedent = hashCourant;
+  hashCourant = location.hash || "#/";
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   // Un lien partagé avant un renommage doit continuer de tomber juste.
   if (parts[0] === "recette" && RECIPE_RENAMES[parts[1]]) {
     parts[1] = RECIPE_RENAMES[parts[1]];
-    return location.replace("#/" + parts.join("/"));
+    return allerEnRemplacant("#/" + parts.join("/"));
   }
   if (parts[0] === "fondamental" && FONDAMENTAL_RENAMES[parts[1]]) {
-    return location.replace(`#/fondamental/${FONDAMENTAL_RENAMES[parts[1]]}`);
+    return allerEnRemplacant(`#/fondamental/${FONDAMENTAL_RENAMES[parts[1]]}`);
   }
   document.querySelectorAll(".tabbar a").forEach(a => a.classList.remove("active"));
   if (parts[0] === "fondamentaux") {
@@ -734,7 +801,7 @@ function route() {
       const step = autoResumeStep(r);
       // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
       // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
-      if (step != null) return location.replace(`#/recette/${r.id}/cuisine/${step}`);
+      if (step != null) return allerEnRemplacant(`#/recette/${r.id}/cuisine/${step}`);
       renderRecipe(r);
     }
   } else {
@@ -939,7 +1006,7 @@ function renderRecipe(r) {
   const t = r.times;
   app.innerHTML = `
     <div class="topbar fade-in">
-      <a class="btn-icon" href="#/">${ICON.back} Recettes</a>
+      <a class="btn-icon" href="#/" data-retour="#/">${ICON.back} Recettes</a>
       <button class="btn-icon" id="share-recipe">${ICON.share} Partager</button>
     </div>
     <div class="hero"><div class="visual" style="background:${r.color}33">
@@ -1237,7 +1304,8 @@ function renderCook(r, step) {
       setCooking(r.id, cookIdx);
       // L'adresse suit l'étape sans encombrer l'historique : un rechargement,
       // ou une PWA fermée par iOS, retrouve ainsi la bonne étape.
-      history.replaceState(null, "", `#/recette/${r.id}/cuisine/${cookIdx}`);
+      history.replaceState(history.state, "", `#/recette/${r.id}/cuisine/${cookIdx}`);
+      hashCourant = location.hash;
     }
     app.innerHTML = `
       <div class="cook">
@@ -1268,7 +1336,9 @@ function renderCook(r, step) {
     `;
     document.getElementById("cook-close").addEventListener("click", () => {
       noAutoResume.add(r.id);
-      history.back();
+      // Arrivé ici par un lien partagé, il n'y a rien derrière : revenir ferait
+      // sortir du site. On va alors explicitement à la fiche.
+      retourVers(`#/recette/${r.id}`);
     });
     document.getElementById("cook-share").addEventListener("click", () => shareRecipe(r.id));
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
@@ -1507,7 +1577,7 @@ function renderFondamentaux() {
 function renderFondamental(f) {
   app.innerHTML = `
     <div class="topbar fade-in">
-      <a class="btn-icon" href="#/fondamentaux">${ICON.back} Savoirs</a>
+      <a class="btn-icon" href="#/fondamentaux" data-retour="#/fondamentaux">${ICON.back} Savoirs</a>
       <button class="btn-icon" id="f-share-page">${ICON.share} Partager</button>
     </div>
     <header class="f-head fade-in">
@@ -1719,6 +1789,8 @@ document.getElementById("timer-tray").addEventListener("click", e => {
    Deux gestes distincts : toucher l'astuce déplie la ligne, toucher la ligne
    ouvre la fiche. Le premier ne fait jamais le second. */
 document.body.addEventListener("click", e => {
+  const fleche = e.target.closest("[data-retour]");
+  if (fleche) { e.preventDefault(); return retourVers(fleche.dataset.retour); }
   const lien = e.target.closest("[data-fond]");
   if (lien) { e.preventDefault(); return openFondSheet(lien.dataset.fond); }
   // Un bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
