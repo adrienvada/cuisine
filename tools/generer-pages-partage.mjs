@@ -79,6 +79,8 @@ function page(r) {
 <meta name="twitter:title" content="${esc(r.emoji + " " + r.title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(image)}">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <script>location.replace(${JSON.stringify(app)});</script>
@@ -139,6 +141,8 @@ function pageFond(f) {
 <meta name="twitter:title" content="${esc(f.emoji + " " + f.t)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(image)}">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" href="../icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <script>location.replace(${JSON.stringify(app)});</script>
