@@ -1259,6 +1259,7 @@ const RECIPES = [
 
   {
     id: "quiche-lorraine",
+    image: "img/quiche-lorraine.jpg",
     title: "Quiche lorraine",
     subtitle: "Croustillante et fondante, généreuse en lardons et en gruyère",
     category: "Plats",
