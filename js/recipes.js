@@ -1103,6 +1103,33 @@ const RECIPES = [
       { name: "Sel fin et poivre du moulin", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
+    choices: [{
+      id: "variante", label: "La touche finale",
+      options: [
+        { id: "nature", label: "Nature", emoji: "🥄", ingredients: [],
+          step: { t: "Nature", txt: "Elle est prête telle quelle : couvrez et réservez au frais jusqu'au service." } },
+        { id: "aioli", label: "Aïoli", emoji: "🧄",
+          ingredients: [
+            { name: "Ail", qty: 1, unit: "gousse", note: "épluchée, dégermée", rayon: "Fruits, légumes & herbes", cid: "ail",
+              shop: { label: "Ail", qty: 2, unit: "gousses" } }
+          ],
+          step: { t: "Aïoli", txt: "Pressez l'ail directement dans la mayonnaise déjà montée, puis mélangez à la spatule jusqu'à ce qu'il soit bien réparti.",
+            tip: { t: "Astuce du chef", txt: "Laissez reposer une heure au frais avant de servir : l'ail perd un peu de son mordant et se marie mieux à l'huile." } } },
+        { id: "tartare", label: "Tartare", emoji: "🥒",
+          ingredients: [
+            { name: "Cornichons", qty: 4, unit: "", note: "hachés menu", rayon: "Épicerie", cid: "cornichons",
+              shop: { label: "Cornichons", qty: 1, unit: "bocal" } },
+            { name: "Câpres", qty: 1, unit: "c. à s.", note: "égouttées", rayon: "Épicerie", cid: "capres",
+              shop: { label: "Câpres", qty: 1, unit: "bocal" } },
+            { name: "Échalote", qty: 0.5, unit: "", note: "hachée finement", rayon: "Fruits, légumes & herbes", cid: "echalote" },
+            { name: "Persil plat", qty: null, qtyText: "quelques brins", note: "ciselé", rayon: "Fruits, légumes & herbes", cid: "persil",
+              shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
+            { name: "Estragon", qty: null, qtyText: "quelques brins", note: "ciselé", rayon: "Fruits, légumes & herbes", cid: "estragon",
+              shop: { label: "Estragon", qty: 1, unit: "bouquet" } }
+          ],
+          step: { t: "Tartare", txt: "Hachez finement les cornichons, les câpres et l'échalote, ciselez le persil et l'estragon, puis incorporez le tout à la mayonnaise." } }
+      ]
+    }],
     steps: [
       {
         t: "La base",
@@ -1124,9 +1151,24 @@ const RECIPES = [
       },
       {
         t: "Assaisonnement final",
-        txt: "Goûtez et rectifiez en sel, poivre ou vinaigre selon votre goût. Réservez au frais dans un bocal hermétique jusqu'au service.",
+        txt: "Goûtez et rectifiez en sel, poivre ou vinaigre selon votre goût.",
         tip: { t: "L'astuce du chef", txt: "Une moutarde plus forte ou un trait de vinaigre supplémentaire aident aussi à stabiliser l'émulsion — la moutarde n'est pas là que pour le goût, elle joue un vrai rôle d'émulsifiant." }
-      }
+      },
+      { choice: "variante" }
+    ],
+    addons: [
+      { id: "herbes", label: "Herbes fraîches", emoji: "🌿",
+        ingredients: [{ name: "Herbes fraîches ciselées", qty: null, qtyText: "quelques brins", note: "persil, ciboulette ou cerfeuil", rayon: "Fruits, légumes & herbes", cid: "herbes-fraiches",
+          shop: { label: "Herbes fraîches (persil, ciboulette…)", qty: 1, unit: "bouquet" } }],
+        step: { i: 4, txt: "Ajoutez les herbes fraîches ciselées à la mayonnaise et mélangez." } },
+      { id: "citron", label: "Citron", emoji: "🍋",
+        ingredients: [{ name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits, légumes & herbes", cid: "citron",
+          shop: { label: "Citron jaune non traité" } }],
+        step: { i: 4, txt: "Zestez le citron directement au-dessus de la mayonnaise et mélangez." } },
+      { id: "paprika", label: "Paprika fumé", emoji: "🌶️",
+        ingredients: [{ name: "Paprika fumé", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "paprika-fume",
+          shop: { label: "Paprika fumé", qty: 1, unit: "pot" } }],
+        step: { i: 4, txt: "Saupoudrez de paprika fumé et mélangez pour une note fumée." } }
     ]
   }
 ];
