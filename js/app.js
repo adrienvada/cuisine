@@ -399,14 +399,11 @@ const astuceHtml = s => `${s.tip ? tipHtml(s.tip) : ""}${fondChipsHtml(s)}`;
 function fondBodyHtml(f) {
   const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
   const recettes = recettesDuFond(f.id);
+  /* L'ordre n'est pas cosmétique : on ouvre cette feuille une casserole sur le
+     feu. Ce qu'on fait vient donc avant pourquoi ça marche — la science reste
+     entière, une longueur de pouce plus bas. */
   return `
     <p class="f-accroche">${f.accroche}</p>
-    <div class="f-bloc">
-      <h4>Pourquoi ça marche</h4>
-      <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
-      ${f.pourquoi.split("\n\n").map(p => `<p>${p}</p>`).join("")}
-      ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
-    </div>
     ${f.cas && f.cas.length ? `<div class="f-bloc">
       <h4>Selon les cas</h4>
       <dl class="f-cas">${f.cas.map(x => `<dt>${x.q}</dt><dd>${x.r}</dd>`).join("")}</dl>
@@ -415,6 +412,12 @@ function fondBodyHtml(f) {
       <h4>À retenir</h4>
       <ul class="f-rep">${f.reperes.map(x => `<li>${x}</li>`).join("")}</ul>
     </div>` : ""}
+    <div class="f-bloc">
+      <h4>Pourquoi ça marche</h4>
+      <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
+      ${f.pourquoi.split("\n\n").map(p => `<p>${p}</p>`).join("")}
+      ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
+    </div>
     ${f.piege ? `<div class="f-piege"><b>L'erreur classique</b>${f.piege}</div>` : ""}
     ${recettes.length ? `<div class="f-bloc">
       <h4>Dans le carnet</h4>
