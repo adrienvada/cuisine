@@ -1345,6 +1345,69 @@ const RECIPES = [
         ingredients: [{ name: "Oignon jaune", qty: 1, unit: "", note: "émincé", rayon: "Fruits, légumes & herbes", cid: "oignon" }],
         step: { i: 2, txt: "Ajoutez l'oignon émincé aux lardons dans la poêle et laissez-le suer et blondir avec eux." } }
     ]
+  },
+
+  {
+    id: "tagliatelles-carotte-carbonara",
+    title: "Tagliatelles de carotte façon carbonara",
+    subtitle: "Crémeuse et gourmande : la carbonara sans les pâtes",
+    category: "Plats",
+    tags: ["rapide", "légumes", "sans four"],
+    emoji: "🥕",
+    color: "#E07B39",
+    times: { prep: 20, cuisson: 15 },
+    portions: { base: 4, label: "personnes" },
+    note: "Meilleures dégustées aussitôt : les rubans de carotte détrempent en attendant. Se réchauffe à la poêle à feu doux ; évitez le micro-ondes, qui fait trancher la crème.",
+    ingredients: [
+      { name: "Carottes", qty: 800, unit: "g", note: "grosses, épluchées", rayon: "Fruits, légumes & herbes", cid: "carotte" },
+      { name: "Lardons fumés", qty: 150, unit: "g", rayon: "Produits frais", cid: "lardons",
+        shop: { label: "Lardons fumés", note: "poitrine fumée, déjà taillée" } },
+      { name: "Crème liquide entière", qty: 20, unit: "cl", rayon: "Produits frais", cid: "creme-liquide" },
+      { name: "Parmesan râpé", qty: 70, unit: "g", rayon: "Produits frais", cid: "parmesan" },
+      { name: "Poivre noir en grains", qty: 1, unit: "c. à c.", note: "concassé grossièrement", rayon: "Assaisonnements", cid: "poivre-grains",
+        shop: { label: "Poivre noir en grains" } },
+      { name: "Sel fin", qty: null, rayon: "Assaisonnements", cid: "sel-fin" }
+    ],
+    steps: [
+      {
+        t: "Les rubans de carotte",
+        txt: "Épluchez les carottes, puis continuez à les peler en longs rubans à l'économe, en tournant au fur et à mesure. Arrêtez-vous en approchant du cœur, plus fibreux.",
+        tip: { t: "Astuce du chef", txt: "Choisissez de grosses carottes bien droites : plus leur diamètre est large, plus les rubans sont longs et faciles à obtenir d'un geste continu." }
+      },
+      {
+        t: "Les lardons et le poivre",
+        txt: "Faites dorer les lardons à sec dans une grande poêle, à feu moyen, pendant 5 minutes. Une minute avant la fin, ajoutez le poivre concassé et laissez-le crépiter dans le gras.",
+        fond: ["maillard", "epices-gras"], timer: 5,
+        tip: { t: "Astuce du chef", txt: "Concassez le poivre au dernier moment, au mortier ou sous le fond d'une casserole : fraîchement écrasé, il donne bien plus qu'un poivre pré-moulu." }
+      },
+      {
+        t: "Les rubans à la poêle",
+        txt: "Ajoutez les rubans de carotte dans la même poêle, salez, et faites-les revenir 2 minutes en remuant. Versez un fond d'eau, couvrez et laissez cuire encore 4 minutes : les rubans doivent devenir souples tout en gardant du mordant.",
+        fond: "eau-coloration", timer: 6,
+        tip: { t: "Astuce du chef", txt: "Contrairement aux lardons qu'on veut secs et dorés, on cherche ici l'inverse : l'eau qui reste au fond cuit les rubans à la vapeur sans les faire frire, et leur garde leur couleur vive." }
+      },
+      {
+        t: "La liaison crémeuse",
+        txt: "Versez la crème dans la poêle et laissez frémir une minute pour qu'elle se marie au gras des lardons. Retirez du feu, incorporez le parmesan râpé en remuant jusqu'à ce qu'il fonde, puis mélangez pour enrober tous les rubans. Rectifiez l'assaisonnement.",
+        tip: { t: "Astuce du chef", txt: "Ne laissez pas bouillir à gros bouillons une fois le parmesan ajouté : un simple frémissement suffit à napper les rubans, et la crème ne graine pas." }
+      }
+    ],
+    addons: [
+      { id: "oeuf", label: "Œuf en plus", emoji: "🥚",
+        ingredients: [{ name: "Jaunes d'œufs", qty: 2, unit: "", rayon: "Produits frais", cid: "oeufs",
+          shop: { label: "Œufs frais" } }],
+        step: { i: 3, txt: "Hors du feu, fouettez les jaunes d'œufs avec un peu de crème tiède du plat pour les tempérer, puis reversez-les dans la poêle hors du feu en remuant : ils épaississent la sauce sans cuire en grains.", fond: "coagulation-oeuf" } },
+      { id: "champignons", label: "Champignons", emoji: "🍄",
+        ingredients: [{ name: "Champignons de Paris", qty: 200, unit: "g", note: "émincés", rayon: "Fruits, légumes & herbes", cid: "champignons" }],
+        step: { i: 1, txt: "Ajoutez les champignons émincés dans la poêle avec les lardons et laissez-les dorer avant d'ajouter le poivre." } },
+      { id: "persil", label: "Persil plat", emoji: "🌿",
+        ingredients: [{ name: "Persil plat", qty: null, qtyText: "quelques brins", rayon: "Fruits, légumes & herbes", cid: "persil",
+          shop: { label: "Persil plat", qty: 1, unit: "bouquet" } }],
+        step: { i: 3, txt: "Parsemez de persil plat ciselé au moment de servir, pour la fraîcheur et la couleur." } },
+      { id: "ail", label: "Ail", emoji: "🧄",
+        ingredients: [{ name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits, légumes & herbes", cid: "ail" }],
+        step: { i: 1, txt: "Ajoutez l'ail finement émincé avec le poivre, une trentaine de secondes avant la fin : juste de quoi parfumer le gras sans qu'il ait le temps de brûler et de devenir amer." } }
+    ]
   }
 ];
 
