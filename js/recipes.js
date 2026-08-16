@@ -1104,18 +1104,20 @@ const RECIPES = [
     ],
     steps: [
       {
-        t: "Tout à température ambiante",
-        txt: "Sortez le jaune d'œuf et la moutarde du réfrigérateur au moins 15 min avant de commencer. Dans un bol, fouettez le jaune avec la moutarde, le vinaigre, du sel et du poivre jusqu'à obtenir un mélange homogène et légèrement mousseux.",
-        tip: { t: "Astuce du chef", txt: "C'est la cause n° 1 d'une mayonnaise qui tranche : un jaune sorti froid du frigo n'émulsionne pas bien avec l'huile. Un simple passage de 15 min à température ambiante suffit." }
+        t: "La base",
+        txt: "Sortez le jaune d'œuf et la moutarde du réfrigérateur un moment à l'avance si vous y pensez. Dans un bol, fouettez le jaune avec la moutarde, le vinaigre, du sel et du poivre jusqu'à obtenir un mélange homogène et légèrement mousseux.",
+        tip: { t: "Astuce du chef", txt: "Prenez un bol étroit à fond rond plutôt qu'une assiette creuse : le fouet y retrouve la sauce à chaque tour au lieu de la pousser sur les bords, et l'huile s'y disperse bien plus vite." }
       },
       {
         t: "Le départ de l'émulsion",
         txt: "Sans cesser de fouetter, versez l'huile goutte à goutte, presque en filet imperceptible au tout début. Le mélange doit épaissir et blanchir avant que vous n'accédiez au reste de l'huile.",
+        fond: "emulsion",
         tip: { t: "Geste technique", txt: "Ce tout premier filet est le moment le plus fragile de l'émulsion : allez-y beaucoup plus doucement que ce qui semble nécessaire. Une fois que la mayonnaise a bien pris en masse, vous pourrez accélérer sans risque." }
       },
       {
         t: "Monter la mayonnaise",
         txt: "Une fois l'émulsion bien engagée, versez le reste de l'huile en filet plus large, toujours en fouettant énergiquement, jusqu'à obtenir une texture ferme et brillante qui tient au fouet.",
+        fond: "emulsion",
         tip: { t: "Astuce du chef", txt: "Si elle tranche malgré tout (mélange qui reste liquide ou granuleux), ne jetez rien : dans un bol propre, fouettez un nouveau jaune d'œuf ou une cuillère à café de moutarde, puis versez la mayonnaise ratée en filet dessus comme si c'était de l'huile. L'émulsion repart aussitôt." }
       },
       {

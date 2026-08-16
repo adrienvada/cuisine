@@ -291,6 +291,8 @@ const FONDAMENTAUX = [
         r: "C'est une pâte grasse chargée de particules de sésame. Les premières gouttes d'eau les font s'agglomérer et tout se bloque ; passé un certain volume, l'eau devient la phase continue et la crème arrive d'un coup. Continuez au-delà du moment qui paraît perdu." },
       { q: "L'eau très froide dans un houmous",
         r: "Le froid raidit le gras du sésame et épaissit le milieu : les gouttelettes bougent moins et fusionnent moins, pendant que le mixeur les fait très fines. Le geste marche, mais on l'explique par plausibilité plus que par mesure." },
+      { q: "Faut-il vraiment des ingrédients à température ambiante",
+        r: "C'est la règle traditionnelle, et elle est surestimée. Ce qui décide, c'est le débit de l'huile par rapport à ce que l'émulsifiant peut couvrir : une mayonnaise se monte très bien avec un jaune sortant du réfrigérateur, et l'essai est facile à refaire chez soi. La température agit par la viscosité, dans les deux sens — un milieu froid est plus épais, donc les gouttelettes fusionnent moins vite, mais l'huile s'y disperse aussi plus difficilement. Sortir le jaune à l'avance ne coûte rien et aide un peu ; ce n'est pas ce qui sauve une sauce." },
       { q: "Une émulsion qui a tranché",
         r: "L'huile est venue trop vite, ou il faisait trop chaud : les gouttelettes ont dépassé ce que l'émulsifiant pouvait couvrir. Fouetter plus fort n'y fait rien. Repartez d'une base neuve, un jaune ou une cuillerée de moutarde, et versez le mélange tranché dedans en filet." }
     ],
