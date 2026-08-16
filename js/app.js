@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {} },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "" },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -61,7 +61,11 @@ const ICON = {
   /* Repos : deux Z — le temps où la recette travaille sans nous. */
   zzz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5h5l-5 6h5"/><path d="M12 4h8l-8 9h8"/></svg>',
   chef: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><path d="M6 17h12"/></svg>',
-  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.99-5.1 9.9-7.34 11.86a1 1 0 0 1-1.32 0C9.1 19.9 4 14.99 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.99-5.1 9.9-7.34 11.86a1 1 0 0 1-1.32 0C9.1 19.9 4 14.99 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+  /* Fiole : ce qui s'explique et se transmet d'une recette à l'autre. */
+  fiole: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2h5"/><path d="M10.5 2v6.2L5.3 18.4A2 2 0 0 0 7.1 21h9.8a2 2 0 0 0 1.8-2.6L13.5 8.2V2"/><path d="M7.7 14h8.6"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'
 };
 
 /* Pastille « Découverte à… » — facultative, cf. l'en-tête de recipes.js */
@@ -141,10 +145,14 @@ function visualOf(r, eager) {
 }
 
 /* Encadré d'astuce, façon livre de cuisine (toque ou plume selon le titre) */
+/* Deux registres : l'astuce du chef (toque verte) et le repère à savoir (plume
+   dorée). Le champ `k` le dit explicitement — auparavant on le devinait du titre
+   à l'expression régulière, si bien que renommer une astuce changeait son
+   apparence en silence. */
 function tipHtml(tip) {
-  const astuce = /astuce|onctuosité/i.test(tip.t);
-  return `<div class="tip ${astuce ? "" : "beige"}">
-    <span class="tip-ico">${astuce ? ILLO.D.toque : ILLO.D.plume}</span>
+  const savoir = tip.k === "savoir";
+  return `<div class="tip ${savoir ? "beige" : ""}">
+    <span class="tip-ico">${savoir ? ILLO.D.plume : ILLO.D.toque}</span>
     <div class="tip-body"><b>${tip.t}</b>${tip.txt}</div>
   </div>`;
 }
@@ -326,14 +334,134 @@ function effectiveSteps(r) {
   const steps = r.steps.map(s => {
     if (!s.choice) return { ...s };
     const c = choiceList(r).find(x => x.id === s.choice);
-    return c ? { ...optionOf(r, c).step } : { ...s };
+    if (!c) return { ...s };
+    /* L'emplacement de choix peut porter ses propres fondamentaux — l'émulsion
+       vaut pour les trois vinaigrettes. On les réunit à ceux de l'option plutôt
+       que de les perdre en écrasant l'étape. */
+    const opt = optionOf(r, c).step;
+    return { ...opt, fond: [...fondIds(s), ...fondIds(opt)] };
   });
   for (const a of selectedAddons(r)) {
     if (!a.step) continue;
     const s = steps[Math.min(a.step.i, steps.length - 1)];
-    (s.extras = s.extras || []).push({ id: a.id, emoji: a.emoji, label: a.label, txt: a.step.txt, timer: a.step.timer });
+    (s.extras = s.extras || []).push({ id: a.id, emoji: a.emoji, label: a.label, txt: a.step.txt, timer: a.step.timer, fond: a.step.fond });
   }
   return steps;
+}
+
+/* ---------- Fondamentaux ---------- */
+
+/* `fond` s'écrit au singulier ou au pluriel : "emulsion" ou ["emulsion", "maillard"]. */
+const fondIds = o => (!o || !o.fond) ? [] : (Array.isArray(o.fond) ? o.fond : [o.fond]);
+
+const fondById = id => FONDAMENTAUX.find(f => f.id === (FONDAMENTAL_RENAMES[id] || id)) || null;
+
+/* Les fondamentaux d'une étape, dédoublonnés : une étape peut hériter du même
+   mécanisme par son emplacement de choix et par son option. */
+const fondsDe = o => [...new Set(fondIds(o).map(id => (fondById(id) || {}).id).filter(Boolean))].map(fondById);
+
+/* Liste inverse — calculée, jamais écrite, exactement comme la liste de courses
+   se calcule depuis le menu. Un fondamental ne tient donc aucun registre. */
+function recettesDuFond(id) {
+  const vise = f => (FONDAMENTAL_RENAMES[f] || f) === id;
+  return RECIPES.filter(r =>
+    r.steps.some(s => fondIds(s).some(vise)) ||
+    (r.choices || []).some(c => c.options.some(o => fondIds(o.step).some(vise))) ||
+    (r.addons || []).some(a => fondIds(a.step).some(vise)));
+}
+
+/* Ce que le carnet sait vraiment. Affiché tel quel : une explication inventée
+   coûte plus cher qu'un aveu d'ignorance. */
+const CERTITUDES = {
+  etabli: { l: "Mécanisme établi", d: "Compris et documenté." },
+  partiel: { l: "Partiellement expliqué", d: "On en connaît une partie, le reste est discuté." },
+  empirique: { l: "Empirique", d: "Le geste marche, le mécanisme n'est pas élucidé." }
+};
+
+/* Pastilles posées sous l'astuce. Un bouton étroit, jamais l'encadré entier :
+   en cuisine, la plus grande cible de l'écran ne doit pas être celle qui ouvre
+   une lecture qu'on n'a pas demandée. */
+const fondChipsHtml = o => {
+  const list = fondsDe(o);
+  if (!list.length) return "";
+  return `<div class="fond-row">${list.map(f =>
+    `<button type="button" class="fond-chip" data-fond="${f.id}" aria-label="Comprendre : ${f.t}">
+      <span class="fc-emoji">${f.emoji}</span><span class="fc-t">${f.t}</span>${ICON.chev}
+    </button>`).join("")}</div>`;
+};
+
+/* Astuce + pastilles : l'astuce reste ce qu'elle est, le mécanisme s'ajoute
+   dessous. Une étape peut n'avoir que l'un des deux. */
+const astuceHtml = s => `${s.tip ? tipHtml(s.tip) : ""}${fondChipsHtml(s)}`;
+
+/* Corps d'un fondamental — le même dans la feuille et dans la page partagée :
+   deux contenants, une seule vérité. */
+function fondBodyHtml(f) {
+  const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
+  const recettes = recettesDuFond(f.id);
+  /* L'ordre n'est pas cosmétique : on ouvre cette feuille une casserole sur le
+     feu. Ce qu'on fait vient donc avant pourquoi ça marche — la science reste
+     entière, une longueur de pouce plus bas. */
+  return `
+    <p class="f-accroche">${f.accroche}</p>
+    ${f.cas && f.cas.length ? `<div class="f-bloc">
+      <h4>Selon les cas</h4>
+      <dl class="f-cas">${f.cas.map(x => `<dt>${x.q}</dt><dd>${x.r}</dd>`).join("")}</dl>
+    </div>` : ""}
+    ${f.reperes && f.reperes.length ? `<div class="f-bloc">
+      <h4>À retenir</h4>
+      <ul class="f-rep">${f.reperes.map(x => `<li>${x}</li>`).join("")}</ul>
+    </div>` : ""}
+    <div class="f-bloc">
+      <h4>Pourquoi ça marche</h4>
+      <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
+      ${f.pourquoi.split("\n\n").map(p => `<p>${p}</p>`).join("")}
+      ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
+    </div>
+    ${f.piege ? `<div class="f-piege"><b>L'erreur classique</b>${f.piege}</div>` : ""}
+    ${recettes.length ? `<div class="f-bloc">
+      <h4>Dans le carnet</h4>
+      <div class="f-recettes">${recettes.map(r =>
+        `<a class="f-rec" href="#/recette/${r.id}"><span>${r.emoji}</span>${r.title}</a>`).join("")}</div>
+    </div>` : `<p class="f-orphelin">Pas encore rattaché à une recette du carnet.</p>`}
+    ${f.source ? `<p class="f-source">${f.source}</p>` : ""}`;
+}
+
+/* Ouverture par-dessus l'endroit où l'on se trouve : aucune adresse ne change,
+   donc `route()` n'est pas rappelée — le mode cuisine garde son étape, son
+   réveil d'écran et sa position de lecture. Même parti pris que la feuille
+   d'ajout au menu, et pour les mêmes raisons. */
+function openFondSheet(id) {
+  const f = fondById(id);
+  if (!f) return;
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop fond-sheet";
+  backdrop.innerHTML = `
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${f.t}">
+      <div class="sheet-grip"></div>
+      <div class="f-top">
+        <h3><span class="f-emoji">${f.emoji}</span>${f.t}</h3>
+        <button type="button" class="f-share" id="f-share" aria-label="Partager ce fondamental">${ICON.share}</button>
+      </div>
+      ${fondBodyHtml(f)}
+      <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
+    </div>`;
+  const fermer = () => { backdrop.remove(); document.removeEventListener("keydown", surEchap); };
+  const surEchap = e => { if (e.key === "Escape") fermer(); };
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop || e.target.closest("#f-close")) return fermer();
+    if (e.target.closest("#f-share")) return shareFond(f.id);
+    // Un lien vers une recette ferme la feuille : sinon elle survivrait au rendu.
+    if (e.target.closest("a")) fermer();
+  });
+  document.addEventListener("keydown", surEchap);
+  document.body.appendChild(backdrop);
+}
+
+/* Les feuilles vivent sur <body>, hors de #app : un changement de vue ne les
+   emporte pas. On les referme donc à la main à chaque rendu. */
+function closeSheets() {
+  document.querySelectorAll(".sheet-backdrop.fond-sheet").forEach(el => el.remove());
 }
 
 /* Résumé lisible de la version : « Citron & menthe · + tomates cerises, avocat » */
@@ -350,6 +478,7 @@ function versionSummary(r) {
 const extrasHtml = (s, cuisine) => (s.extras || []).map(x => `<div class="addon-note">
   <span class="a-emoji">${x.emoji || "✚"}</span>
   <div class="a-body"><b>${x.label}</b>${x.txt}
+    ${fondChipsHtml(x)}
     ${cuisine && x.timer ? `<div class="addon-timer" data-slot="${x.id}"></div>` : ""}
   </div>
 </div>`).join("");
@@ -528,6 +657,25 @@ function shareMenu() {
   shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
 }
 
+/* Un fondamental se partage comme une recette : par sa page d'aperçu de `f/`,
+   qui porte ses balises Open Graph puis renvoie dans l'application. */
+function fondUrl(f) { return siteUrl() + "f/" + f.id + ".html"; }
+
+function fondShareText(f) {
+  const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
+  const lines = [`${f.emoji} ${f.t}`, f.accroche, "", "Pourquoi ça marche :", f.pourquoi.split("\n\n")[0]];
+  if (f.certitude !== "etabli") lines.push(`(${c.l} — ${c.d})`);
+  if (f.reperes && f.reperes.length) lines.push("", "À retenir :", ...f.reperes.map(x => `• ${x}`));
+  lines.push("", "Le détail et les cas particuliers :");
+  return lines.join("\n");
+}
+
+function shareFond(id) {
+  const f = fondById(id);
+  if (!f) return;
+  shareOrCopy({ title: f.t, text: fondShareText(f), url: fondUrl(f) }, "Fondamental copié !");
+}
+
 /* Posé sur une vignette ou une carte du menu, le bouton ne doit pas ouvrir la recette. */
 function onShareClick(e) {
   const b = e.target.closest("[data-share]");
@@ -543,14 +691,24 @@ window.addEventListener("hashchange", route);
 
 function route() {
   stopCookMode();
+  closeSheets();
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   // Un lien partagé avant un renommage doit continuer de tomber juste.
   if (parts[0] === "recette" && RECIPE_RENAMES[parts[1]]) {
     parts[1] = RECIPE_RENAMES[parts[1]];
     return location.replace("#/" + parts.join("/"));
   }
+  if (parts[0] === "fondamental" && FONDAMENTAL_RENAMES[parts[1]]) {
+    return location.replace(`#/fondamental/${FONDAMENTAL_RENAMES[parts[1]]}`);
+  }
   document.querySelectorAll(".tabbar a").forEach(a => a.classList.remove("active"));
-  if (parts[0] === "courses") {
+  if (parts[0] === "fondamentaux") {
+    document.querySelector('[data-tab="fond"]').classList.add("active");
+    renderFondamentaux();
+  } else if (parts[0] === "fondamental" && fondById(parts[1])) {
+    document.querySelector('[data-tab="fond"]').classList.add("active");
+    renderFondamental(fondById(parts[1]));
+  } else if (parts[0] === "courses") {
     document.querySelector('[data-tab="courses"]').classList.add("active");
     renderCourses();
   } else if (parts[0] === "menu") {
@@ -579,9 +737,13 @@ function route() {
 
 function matches(r, q) {
   if (!q) return true;
+  /* Les fondamentaux entrent dans le foin : chercher « émulsion » doit ramener
+     les recettes où l'on en fait une, pas seulement celles qui écrivent le mot. */
+  const fonds = [...r.steps, ...(r.choices || []).flatMap(c => c.options.map(o => o.step)),
+    ...(r.addons || []).map(a => a.step)].flatMap(s => fondsDe(s).map(f => f.t));
   const hay = [r.title, r.subtitle, r.category, ...(r.tags || []), ...r.ingredients.map(i => i.name),
     ...addonList(r).map(a => a.label),
-    ...choiceList(r).flatMap(c => c.options.map(o => o.label))].join(" ").toLowerCase();
+    ...choiceList(r).flatMap(c => c.options.map(o => o.label)), ...fonds].join(" ").toLowerCase();
   return q.toLowerCase().split(/\s+/).every(w => hay.includes(w));
 }
 
@@ -847,7 +1009,7 @@ function renderRecipe(r) {
           <h3>${s.t}</h3>
           <p>${scaleText(s.txt, f)}</p>
           ${scaleText(extrasHtml(s), f)}
-          ${s.tip ? scaleText(tipHtml(s.tip), f) : ""}
+          ${scaleText(astuceHtml(s), f)}
         </div>
       </li>`).join("");
   };
@@ -1082,7 +1244,7 @@ function renderCook(r, step) {
             <span class="cook-flourish">${ILLO.D.flourish}</span>
             <p class="txt">${scaleText(s.txt, f)}</p>
             ${scaleText(extrasHtml(s, true), f)}
-            ${s.tip ? scaleText(tipHtml(s.tip), f) : ""}
+            ${scaleText(astuceHtml(s), f)}
             <div class="cook-timer" id="timer-zone"></div>
           </div>
         </div>
@@ -1268,6 +1430,81 @@ function renderMenu() {
     state.menu = [];
     save(); updateBadge(); renderMenu();
   });
+}
+
+/* ---------- Onglet « Savoirs » ---------- */
+
+const fondMatches = (f, q) => {
+  if (!q) return true;
+  const foin = [f.t, f.accroche, f.pourquoi, f.famille, f.piege,
+    ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ").toLowerCase();
+  return q.toLowerCase().split(/\s+/).every(w => foin.includes(w));
+};
+
+function renderFondamentaux() {
+  const q = state.fondQuery || "";
+  const trouves = FONDAMENTAUX.filter(f => fondMatches(f, q));
+  const familles = FAMILLES.filter(fam => trouves.some(f => f.famille === fam));
+  /* Une famille inconnue ne disparaît pas en silence : elle passe en fin de liste. */
+  const autres = [...new Set(trouves.map(f => f.famille))].filter(fam => !FAMILLES.includes(fam));
+
+  app.innerHTML = `
+    <header class="masthead fade-in">
+      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Ce qui sert</p>${ILLO.D.sprigR}</div>
+      <h1>Savoirs</h1>
+      <p class="byline"><span>les mécanismes du <span class="u">carnet</span></span></p>
+    </header>
+    <p class="f-intro">Les gestes qui reviennent d'une recette à l'autre, et ce qui se passe vraiment quand on les fait.</p>
+    <div class="searchbar">
+      ${ICON.search}
+      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q.replace(/"/g, "&quot;")}" autocomplete="off">
+    </div>
+    ${trouves.length ? [...familles, ...autres].map(fam => `
+      <section class="f-fam">
+        <h2>${fam}</h2>
+        <div class="f-liste">
+          ${trouves.filter(f => f.famille === fam).map(f => {
+            const n = recettesDuFond(f.id).length;
+            return `<a class="f-item" href="#/fondamental/${f.id}">
+              <span class="f-item-emoji">${f.emoji}</span>
+              <span class="f-item-txt">
+                <b>${f.t}</b>
+                <small>${f.accroche}</small>
+                <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Pas encore rattaché"}</span>
+              </span>
+              ${ICON.chev}
+            </a>`;
+          }).join("")}
+        </div>
+      </section>`).join("") : `<p class="empty">Aucun savoir ne correspond à « ${q} ».</p>`}
+    <p class="f-compte">${FONDAMENTAUX.length} fondamental${FONDAMENTAUX.length > 1 ? "aux" : ""} dans le carnet.</p>
+  `;
+
+  const champ = document.getElementById("f-search");
+  champ.addEventListener("input", () => {
+    state.fondQuery = champ.value;
+    // On ne redessine que la liste : refaire la vue entière perdrait le clavier.
+    const pos = champ.selectionStart;
+    renderFondamentaux();
+    const neuf = document.getElementById("f-search");
+    neuf.focus();
+    neuf.setSelectionRange(pos, pos);
+  });
+}
+
+function renderFondamental(f) {
+  app.innerHTML = `
+    <div class="r-nav">
+      <a class="back" href="#/fondamentaux">${ICON.back} Savoirs</a>
+      <button class="icon-btn" id="f-share-page" aria-label="Partager ce fondamental">${ICON.share}</button>
+    </div>
+    <header class="f-head fade-in">
+      <p class="f-fam-tag">${f.famille}</p>
+      <h1><span class="f-emoji">${f.emoji}</span>${f.t}</h1>
+    </header>
+    <div class="f-page">${fondBodyHtml(f)}</div>
+  `;
+  document.getElementById("f-share-page").addEventListener("click", () => shareFond(f.id));
 }
 
 /* ---------- Liste de courses ---------- */
@@ -1463,6 +1700,13 @@ document.getElementById("timer-tray").addEventListener("click", e => {
   // Même adresse (on a avancé d'étape sans changer le hash) : pas d'événement, on redessine.
   if (location.hash === target) route();
   else location.hash = target;
+});
+
+/* Une pastille de fondamental peut être n'importe où — fiche, mode cuisine,
+   note de supplément. Un seul écouteur délégué plutôt qu'un par rendu. */
+document.body.addEventListener("click", e => {
+  const chip = e.target.closest("[data-fond]");
+  if (chip) { e.preventDefault(); openFondSheet(chip.dataset.fond); }
 });
 
 if ("serviceWorker" in navigator) {

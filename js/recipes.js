@@ -61,29 +61,29 @@ const RECIPES = [
     steps: [
       {
         t: "La pâte (sans pétrissage difficile)",
-        txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez {2 c. à s.} d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).",
+        txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez {2 c. à s.} d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).", fond: ["gluten","sel-patisserie"],
         timer: 120,
-        tip: { t: "L'astuce du chef", txt: "Pour une pâte ultra-alvéolée sans effort, réalisez des « rabats » : toutes les 30 min environ, attrapez un bord de la pâte avec les mains mouillées, étirez-le vers le haut et repliez-le vers le centre. Faites cela aux 4 points cardinaux. Cela structure le réseau de gluten !" }
+        tip: { t: "L'astuce du chef", txt: "Toutes les 30 minutes pendant la levée, les mains mouillées, attrapez un bord de la pâte, étirez-le vers le haut et repliez-le au centre. Faites le tour aux quatre points cardinaux." }
       },
       {
         t: "Le transfert",
-        txt: "Huilez généreusement un moule rectangulaire à bords hauts ou une plaque. Dégazez délicatement la pâte et déposez-la au centre. Laissez-la se détendre 20 min : elle est trop rétractile pour être étirée tout de suite.",
+        txt: "Huilez généreusement un moule rectangulaire à bords hauts ou une plaque. Dégazez délicatement la pâte et déposez-la au centre. Laissez-la se détendre 20 min : elle est trop rétractile pour être étirée tout de suite.", fond: "gluten",
         timer: 20
       },
       {
         t: "L'étirement et la seconde levée",
-        txt: "Étirez la pâte doucement du bout des doigts pour qu'elle épouse la forme du moule, puis laissez-la lever à nouveau 30 min. Lancez le préchauffage du four à 220 °C (th. 7-8) maintenant : il sera à température pile quand la pâte sera prête.",
+        txt: "Étirez la pâte doucement du bout des doigts pour qu'elle épouse la forme du moule, puis laissez-la lever à nouveau 30 min. Lancez le préchauffage du four à 220 °C (th. 7-8) maintenant : il sera à température pile quand la pâte sera prête.", fond: "gluten",
         timer: 30,
-        tip: { t: "Geste technique", txt: "Si la pâte résiste et revient sur elle-même, ne forcez pas : laissez-la se détendre cinq minutes de plus et reprenez. Une pâte étirée de force se déchire et perd ses bulles." }
+        tip: { k: "savoir", t: "Geste technique", txt: "Si la pâte revient sur elle-même, ne forcez pas : couvrez-la et attendez cinq minutes de plus. Elle gagnera les angles du moule en deux ou trois reprises." }
       },
       {
         t: "La création des trous",
         txt: "Arrosez la focaccia avec le reste d'huile d'olive mélangé à {1 c. à s.} d'eau. Enfoncez franchement vos doigts verticaux jusqu'au fond du moule pour créer les fameux cratères caractéristiques.",
-        tip: { t: "Geste technique", txt: "Utilisez la pulpe de vos trois doigts du milieu (index, majeur, annulaire) bien écartés. N'ayez pas peur de toucher le fond du moule ! C'est ce geste qui emprisonne les bulles d'air sur les côtés sans déchirer la pâte." }
+        tip: { k: "savoir", t: "Geste technique", txt: "Utilisez la pulpe de vos trois doigts du milieu (index, majeur, annulaire) bien écartés. N'ayez pas peur de toucher le fond du moule ! C'est ce geste qui emprisonne les bulles d'air sur les côtés sans déchirer la pâte." }
       },
       {
         t: "Finitions et cuisson",
-        txt: "Parsemez de brins de romarin frais enfoncés légèrement dans les trous et de fleur de sel. Enfournez pour 20 à 25 min jusqu'à ce que la croûte soit intensément dorée et croustillante. Laissez tiédir sur une grille avant de découper.",
+        txt: "Parsemez de brins de romarin frais enfoncés légèrement dans les trous et de fleur de sel. Enfournez pour 20 à 25 min jusqu'à ce que la croûte soit intensément dorée et croustillante. Laissez tiédir sur une grille avant de découper.", fond: ["maillard","amidon","assaisonnement-couches"],
         timer: 20
       }
     ],
@@ -101,7 +101,7 @@ const RECIPES = [
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
         ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits, légumes & herbes", cid: "oignon-rouge",
           shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
-        step: { i: 4, txt: "Répartissez l'oignon rouge émincé en très fines lamelles sur la surface, avec un filet d'huile pour qu'il confise." } }
+        step: { i: 4, txt: "Répartissez l'oignon rouge émincé en très fines lamelles sur la surface, avec un filet d'huile pour qu'il confise.", fond: "mordant-oignon" } }
     ]
   },
 
@@ -134,18 +134,18 @@ const RECIPES = [
       },
       {
         t: "Le pliage",
-        txt: "Rabattez la moitié de pâte nature sur la moitié garnie. Appuyez légèrement avec la paume de la main pour sceller les deux épaisseurs et chasser l'air, puis placez la pâte 10 minutes au congélateur.",
+        txt: "Rabattez la moitié de pâte nature sur la moitié garnie. Appuyez légèrement avec la paume de la main pour sceller les deux épaisseurs et chasser l'air, puis placez la pâte 10 minutes au congélateur.", fond: "froid-raffermit",
         timer: 10,
-        tip: { t: "L'astuce du chef", txt: "Ce passage au froid fait durcir le beurre : la découpe sera nette et le pesto ne s'échappera pas de partout. Une pâte molle, elle, s'écrase sous la lame." }
+        tip: { t: "L'astuce du chef", txt: "Découpez dès la sortie du congélateur, sans laisser la pâte revenir : le pesto raffermi reste pris entre les deux épaisseurs au lieu de fuir sous la lame." }
       },
       {
         t: "Le façonnage",
-        txt: "À l'aide d'un couteau bien aiguisé ou d'une roulette à pizza, découpez des bandes d'environ 1,5 cm de largeur. Prenez chaque bande par les extrémités et tournez-les en sens inverse pour former une jolie torsade hélicoïdale.",
-        tip: { t: "Comment couper net", txt: "Ne faites pas glisser la lame d'avant en arrière (cela écrase le feuilletage). Pressez fermement la lame de haut en bas d'un coup sec, ou utilisez une roulette à pizza bien aiguisée." }
+        txt: "À l'aide d'un couteau bien aiguisé ou d'une roulette à pizza, découpez des bandes d'environ 1,5 cm de largeur. Prenez chaque bande par les extrémités et tournez-les en sens inverse pour former une jolie torsade hélicoïdale.", fond: "froid-raffermit",
+        tip: { k: "savoir", t: "Comment couper net", txt: "Ne faites pas glisser la lame d'avant en arrière (cela écrase le feuilletage). Pressez fermement la lame de haut en bas d'un coup sec, ou utilisez une roulette à pizza bien aiguisée." }
       },
       {
         t: "Cuisson",
-        txt: "Déposez les torsades sur une plaque recouverte de papier cuisson. Badigeonnez de jaune d'œuf dilué d'une goutte d'eau. Enfournez à 200 °C pendant 12 à 15 min. Elles doivent être bien gonflées et dorées.",
+        txt: "Déposez les torsades sur une plaque recouverte de papier cuisson. Badigeonnez de jaune d'œuf dilué d'une goutte d'eau. Enfournez à 200 °C pendant 12 à 15 min. Elles doivent être bien gonflées et dorées.", fond: "maillard",
         timer: 13
       }
     ],
@@ -191,13 +191,13 @@ const RECIPES = [
       },
       {
         t: "La découpe des herbes",
-        txt: "Ciselez finement la ciboulette et le basilic.",
-        tip: { t: "L'astuce du chef", txt: "Pour le basilic, roulez les feuilles serrées comme un cigare et émincez de fines lanières avec un couteau très tranchant. Ne hachez jamais d'avant en arrière : cela l'oxyde et lui donne un goût d'herbe tondue." }
+        txt: "Ciselez finement la ciboulette et le basilic.", fond: "herbes-coupees",
+        tip: { t: "L'astuce du chef", txt: "Pour le basilic, roulez les feuilles serrées comme un cigare et tranchez de fines lanières d'un seul passage, avec un couteau très tranchant. Ciselez-le juste avant de l'incorporer." }
       },
       {
         t: "L'assemblage",
-        txt: "Incorporez les herbes, ajoutez les zestes de citron et un trait de jus, salez légèrement et poivrez généreusement. Réservez au frais. Servez avec la focaccia ou des radis croquants.",
-        tip: { t: "Astuce du chef", txt: "Les zestes parfument, le jus réveille : sans cette pointe d'acidité, un dip de chèvre reste plat en bouche. Ajoutez-le goutte à goutte, la crème ne doit pas se liquéfier." }
+        txt: "Incorporez les herbes, ajoutez les zestes de citron et un trait de jus, salez légèrement et poivrez généreusement. Réservez au frais. Servez avec la focaccia ou des radis croquants.", fond: ["huiles-essentielles","acidite-finale"],
+        tip: { t: "Astuce du chef", txt: "Zestez directement au-dessus du bol, puis ajoutez le jus goutte à goutte en goûtant. Quelques gouttes suffisent : au-delà, la crème se liquéfie et ne tient plus sur un radis." }
       }
     ],
     addons: [
@@ -246,18 +246,19 @@ const RECIPES = [
     steps: [
       {
         t: "La cuisson flash",
-        txt: "Plongez les petits pois 3 min dans l'eau bouillante salée. Égouttez et plongez-les immédiatement dans de l'eau glacée avec des glaçons.",
+        txt: "Plongez les petits pois 3 min dans l'eau bouillante salée. Égouttez et plongez-les immédiatement dans de l'eau glacée avec des glaçons.", fond: "chlorophylle",
         timer: 3,
-        tip: { t: "L'astuce du chef", txt: "Ce choc thermique fixe la chlorophylle et garde une couleur vert vif éclatante." }
+        tip: { t: "L'astuce du chef", txt: "Gardez le bol de glaçons prêt avant de plonger les petits pois : passé 3 minutes, le vert s'en va. Égouttez-les ensuite à fond, l'eau du bain délaverait le houmous." }
       },
       {
         t: "Le mixage",
-        txt: "Dans le bol du mixeur, mettez les petits pois, les pois chiches, le tahini, le jus de citron, l'ail et le cumin. Gardez la menthe de côté."
+        txt: "Dans le bol du mixeur, mettez les petits pois, les pois chiches, le tahini, le jus de citron, l'ail et le cumin. Gardez la menthe de côté.",
+        fond: ["epices-gras", "mordant-oignon"]
       },
       {
         t: "L'émulsion",
-        txt: "Mixez. Versez un filet d'huile d'olive puis, si besoin, {1-2 c. à s.} d'eau glacée jusqu'à obtenir une texture lisse et aérienne. Ajoutez enfin la menthe et donnez trois ou quatre impulsions seulement. Goûtez et ajustez en sel.",
-        tip: { t: "Astuce onctuosité", txt: "L'eau très froide crée avec le sésame du tahini une émulsion qui rend le houmous incroyablement crémeux. Et la menthe arrive en dernier : mixée longuement, elle noircit et tourne au goût d'herbe mâchée." }
+        txt: "Mixez. Versez un filet d'huile d'olive puis, si besoin, {1-2 c. à s.} d'eau glacée jusqu'à obtenir une texture lisse et aérienne. Ajoutez enfin la menthe et donnez trois ou quatre impulsions seulement. Goûtez et ajustez en sel.", fond: ["herbes-coupees","emulsion","assaisonnement-couches"],
+        tip: { t: "Astuce onctuosité", txt: "Versez l'eau glacée cuillère par cuillère : le houmous pâlit et gonfle d'un coup, c'est le signe qu'il a pris. La menthe passe en dernier, trois impulsions, pas plus." }
       },
       {
         t: "Dressage",
@@ -271,7 +272,7 @@ const RECIPES = [
       { id: "sesame", label: "Sésame torréfié", emoji: "✨",
         ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "sesame",
           shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
-        step: { i: 3, timer: 2, adds: "cuisson", txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous." } },
+        step: { i: 3, timer: 2, adds: "cuisson", txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous.", fond: "torrefaction" } },
       { id: "pita", label: "Pains pita", emoji: "🫓",
         ingredients: [{ name: "Pains pita", qty: 4, unit: "", rayon: "Épicerie", cid: "pita",
           shop: { label: "Pains pita", qty: 1, unit: "paquet" } }],
@@ -351,7 +352,7 @@ const RECIPES = [
       { id: "avocat", label: "Avocat", emoji: "🥑",
         ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits, légumes & herbes", cid: "avocat",
           shop: { label: "Avocats mûrs" } }],
-        step: { i: 5, txt: "Coupez l'avocat en lamelles au dernier moment et citronnez-les légèrement pour qu'elles restent vertes." } },
+        step: { i: 5, txt: "Coupez l'avocat en lamelles au dernier moment et citronnez-les légèrement pour qu'elles restent vertes.", fond: "oxydation-enzymatique" } },
       { id: "parmesan", label: "Copeaux de parmesan", emoji: "🧀",
         ingredients: [{ name: "Parmesan en bloc", qty: 40, unit: "g", rayon: "Produits frais", cid: "parmesan" }],
         step: { i: 5, txt: "Prélevez des copeaux de parmesan à l'économe et répartissez-les sur la salade." } },
@@ -363,20 +364,20 @@ const RECIPES = [
     steps: [
       {
         t: "Préparer et masser le kale",
-        txt: "Lavez le kale, retirez les tiges centrales rigides et hachez finement les feuilles. Placez-les dans un saladier avec une pincée de sel et un filet d'huile d'olive, puis massez fermement les feuilles à la main pendant 3 minutes.",
+        txt: "Lavez le kale, retirez les tiges centrales rigides et hachez finement les feuilles. Placez-les dans un saladier avec une pincée de sel et un filet d'huile d'olive, puis massez fermement les feuilles à la main pendant 3 minutes.", fond: "osmose-sel",
         timer: 3,
-        tip: { t: "Astuce du chef", txt: "Le massage casse la fibre coriace du kale brut, le rendant infiniment plus tendre et agréable en bouche tout en atténuant son amertume. Les feuilles doivent visiblement foncer et réduire de volume." }
+        tip: { t: "Astuce du chef", txt: "Massez comme on pétrit une pâte, poignée après poignée. En trois minutes les feuilles foncent et le volume tombe de moitié : c'est le repère, arrêtez-vous là." }
       },
       {
         t: "Torréfier les graines et noix",
-        txt: "Faites chauffer une poêle à sec à feu moyen. Faites-y torréfier les graines de courge et les cerneaux de noix pendant 3 à 4 minutes en remuant régulièrement jusqu'à ce qu'ils soient légèrement dorés.",
+        txt: "Faites chauffer une poêle à sec à feu moyen. Faites-y torréfier les graines de courge et les cerneaux de noix pendant 3 à 4 minutes en remuant régulièrement jusqu'à ce qu'ils soient légèrement dorés.", fond: "torrefaction",
         timer: 4,
-        tip: { t: "Astuce du chef", txt: "Laissez refroidir les fruits secs sur un papier absorbant plutôt que dans la poêle chaude pour stopper la cuisson et préserver tout leur croustillant." }
+        tip: { t: "Astuce du chef", txt: "Dès la première odeur de noisette, versez tout sur du papier, en une seule couche : les graines de courge sont prêtes avant les cerneaux, ne les attendez pas." }
       },
       {
         t: "Découpe de la pomme",
-        txt: "Lavez la pomme et taillez-la en fins bâtonnets (julienne) ou en tranches très fines. Hachez le persil plat.",
-        tip: { t: "Astuce du chef", txt: "Plongez immédiatement les morceaux de pomme dans un bol d'eau froide citronnée pour éviter qu'ils ne s'oxydent et noircissent." }
+        txt: "Lavez la pomme et taillez-la en fins bâtonnets (julienne) ou en tranches très fines. Hachez le persil plat.", fond: "oxydation-enzymatique",
+        tip: { t: "Astuce du chef", txt: "Une julienne offre beaucoup de surface et tourne en quelques minutes : le bol d'eau froide attend à côté de la planche, le jus d'un citron entier pour un litre." }
       },
       {
         t: "Cuire les œufs mollets",
@@ -384,10 +385,10 @@ const RECIPES = [
         timer: 6,
         tip: { t: "Astuce du chef", txt: "Plongez immédiatement les œufs dans un grand bol d'eau glacée dès la fin du chrono pour stopper la cuisson et faciliter l'écalage." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage et assaisonnement",
-        txt: "Dans les assiettes, dressez le kale massé, la pomme, le persil, les graines torréfiées et les noix. Nappez de vinaigrette, déposez l'œuf mollet délicatement écalé au centre et ouvrez-le au dernier moment.",
+        txt: "Dans les assiettes, dressez le kale massé, la pomme, le persil, les graines torréfiées et les noix. Nappez de vinaigrette, déposez l'œuf mollet délicatement écalé au centre et ouvrez-le au dernier moment.", fond: "contraste-textures",
         tip: { t: "Astuce du chef", txt: "Écalez l'œuf mollet directement sous un filet d'eau tiède pour que la coquille glisse toute seule sans abîmer le blanc." }
       }
     ]
@@ -424,30 +425,30 @@ const RECIPES = [
     steps: [
       {
         t: "Cuisson du butternut",
-        txt: "Épluchez et coupez le butternut en cubes. Dans une cocotte, faites fondre l'oignon haché dans le beurre, ajoutez les cubes de courge et laissez-les colorer quelques minutes. Versez le bouillon en en réservant {10 cl} pour le mixage, puis laissez mijoter 20 minutes.",
+        txt: "Épluchez et coupez le butternut en cubes. Dans une cocotte, faites fondre l'oignon haché dans le beurre, ajoutez les cubes de courge et laissez-les colorer quelques minutes. Versez le bouillon en en réservant {10 cl} pour le mixage, puis laissez mijoter 20 minutes.", fond: "maillard",
         timer: 20,
-        tip: { t: "Astuce du chef", txt: "Attendez que le beurre soit mousseux et légèrement noisette avant d'ajouter la courge : c'est cette coloration au départ qui donne au velouté son goût caramélisé." }
+        tip: { t: "Astuce du chef", txt: "Attendez que le beurre mousse et sente la noisette avant de verser la courge. Étalez les cubes à plat, sans les chevaucher : ils doivent prendre couleur avant le bouillon." }
       },
       {
         t: "Mixage du velouté",
-        txt: "Mixez le butternut cuit avec la crème, une pincée de noix de muscade, du sel et du poivre. Détendez avec le bouillon réservé, versé petit à petit, jusqu'à la densité qui vous plaît. Gardez au chaud pendant que vous préparez la garniture.",
+        txt: "Mixez le butternut cuit avec la crème, une pincée de noix de muscade, du sel et du poivre. Détendez avec le bouillon réservé, versé petit à petit, jusqu'à la densité qui vous plaît. Gardez au chaud pendant que vous préparez la garniture.", fond: "epices-gras",
         tip: { t: "Astuce du chef", txt: "Un velouté réussi nappe le dos d'une cuillère sans être pâteux. Mieux vaut le détendre par petites touches : on peut toujours en rajouter, jamais en retirer." }
       },
       {
         t: "Poêlée de shiitakés",
-        txt: "Nettoyez les shiitakés avec un linge humide (ne les immergez pas) et coupez-les en lamelles. Faites-les poêler à feu vif avec une gousse d'ail écrasée et un filet d'huile d'olive pendant 5 à 7 minutes.",
+        txt: "Nettoyez les shiitakés avec un linge humide (ne les immergez pas) et coupez-les en lamelles. Faites-les poêler à feu vif avec une gousse d'ail écrasée et un filet d'huile d'olive pendant 5 à 7 minutes.", fond: ["eau-coloration","osmose-sel","assaisonnement-couches"],
         timer: 6,
-        tip: { t: "Astuce du chef", txt: "Assaisonnez les champignons en sel uniquement en fin de cuisson pour éviter qu'ils ne rendent leur eau et restent bien dorés." }
+        tip: { t: "Astuce du chef", txt: "Donnez de la place aux shiitakés : plutôt deux fournées qu'une poêle pleine. Laissez-les dorer sans les remuer, et ne salez qu'à la fin, une fois la couleur prise." }
       },
       {
         t: "Dorure des artichauts",
-        txt: "Égouttez les cœurs d'artichauts, épongez-les bien, coupez-les en deux ou en quatre, puis poêlez-les à feu vif dans un peu d'huile 2 à 3 minutes, jusqu'à belle coloration dorée.",
+        txt: "Égouttez les cœurs d'artichauts, épongez-les bien, coupez-les en deux ou en quatre, puis poêlez-les à feu vif dans un peu d'huile 2 à 3 minutes, jusqu'à belle coloration dorée.", fond: "eau-coloration",
         timer: 3,
-        tip: { t: "Astuce du chef", txt: "L'épongeage n'est pas facultatif : des artichauts encore humides cuisent à la vapeur dans la poêle au lieu de griller, et ressortent mous et ternes." }
+        tip: { t: "Astuce du chef", txt: "Épongez jusqu'à ce que le papier ressorte sec : la marinade du bocal s'accroche partout. Puis face coupée contre le fond, deux minutes sans y toucher." }
       },
       {
         t: "Dressage",
-        txt: "Versez le velouté chaud dans des assiettes creuses, puis disposez harmonieusement les shiitakés et les artichauts dorés par-dessus.",
+        txt: "Versez le velouté chaud dans des assiettes creuses, puis disposez harmonieusement les shiitakés et les artichauts dorés par-dessus.", fond: "contraste-textures",
         tip: { t: "Astuce du chef", txt: "Terminez par un filet de l'huile de marinade des artichauts sur le dessus pour ajouter une touche aromatique instantanée." }
       }
     ],
@@ -455,14 +456,14 @@ const RECIPES = [
       { id: "graines-courge", label: "Graines de courge torréfiées", emoji: "🎃",
         ingredients: [{ name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "graines-courge",
           shop: { label: "Graines de courge", qty: 1, unit: "sachet" } }],
-        step: { i: 4, timer: 3, adds: "cuisson", txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté." } },
+        step: { i: 4, timer: 3, adds: "cuisson", txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté.", fond: "torrefaction" } },
       { id: "croutons", label: "Croûtons dorés", emoji: "🍞",
         ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranches", rayon: "Épicerie", cid: "pain",
           shop: { label: "Pain de campagne" } }],
         step: { i: 4, txt: "Taillez le pain en petits dés et faites-les dorer dans un peu de beurre pour des croûtons croustillants." } },
       { id: "chataignes", label: "Châtaignes poêlées", emoji: "🌰",
         ingredients: [{ name: "Châtaignes cuites", qty: 100, unit: "g", note: "sous vide ou en bocal", rayon: "Épicerie", cid: "chataignes" }],
-        step: { i: 2, txt: "Faites dorer les châtaignes grossièrement émiettées avec les shiitakés." } }
+        step: { i: 2, txt: "Faites dorer les châtaignes grossièrement émiettées avec les shiitakés.", fond: "maillard" } }
     ]
   },
 
@@ -508,34 +509,34 @@ const RECIPES = [
     steps: [
       {
         t: "Préparation du gravlax",
-        txt: "Mélangez le gros sel, le sucre et les baies roses — quelques zestes de citron ou d'orange y sont les bienvenus. Dans un plat, déposez un lit de ce mélange, posez le saumon côté peau vers le bas, puis recouvrez entièrement la chair avec le reste du mélange.",
-        tip: { t: "À savoir avant de commencer", txt: "La salaison ne détruit pas les parasites (anisakis) : elle sale et raffermit, rien de plus. Pour du saumon consommé cru, prenez un poisson déjà surgelé, ou congelez-le vous-même 24 h à −20 °C — 48 à 72 h dans un congélateur domestique — puis décongelez-le au réfrigérateur avant de le mettre au sel." }
+        txt: "Mélangez le gros sel, le sucre et les baies roses — quelques zestes de citron ou d'orange y sont les bienvenus. Dans un plat, déposez un lit de ce mélange, posez le saumon côté peau vers le bas, puis recouvrez entièrement la chair avec le reste du mélange.", fond: ["huiles-essentielles","osmose-sel","salaison","poisson-cru"],
+        tip: { k: "savoir", t: "À savoir avant de commencer", txt: "Prenez du saumon déjà surgelé, ou congelez-le vous-même sept jours au congélateur domestique, puis décongelez-le au réfrigérateur avant de le mettre au sel. Le sel, lui, ne fera rien aux parasites." }
       },
       {
         t: "Temps de marinade",
-        txt: "Filmez le plat au contact et placez au réfrigérateur pendant 12 à 24 heures.",
+        txt: "Filmez le plat au contact et placez au réfrigérateur pendant 12 à 24 heures.", fond: ["osmose-sel","salaison"],
         timer: 720,
         tip: { t: "Astuce du chef", txt: "Posez une petite planche sur le poisson surmontée d'un poids (ex. une boîte de conserve) pour bien tasser la chair et expulser l'humidité." }
       },
       {
         t: "Rinçage et séchage",
-        txt: "Retirez le saumon de sa marinade, rincez-le abondamment sous l'eau froide pour enlever tout le sel, puis épongez-le parfaitement avec du papier absorbant.",
+        txt: "Retirez le saumon de sa marinade, rincez-le abondamment sous l'eau froide pour enlever tout le sel, puis épongez-le parfaitement avec du papier absorbant.", fond: "salaison",
         tip: { t: "Astuce du chef", txt: "Ne faites pas l'impasse sur le séchage : une chair bien sèche permet une découpe nette et évite une texture spongieuse." }
       },
       {
         t: "La sauce au yaourt bulgare et agrumes",
-        txt: "Zestez le citron et la demi-orange, puis pressez-les. Fouettez le yaourt bulgare avec les zestes, {2 c. à s.} de jus de citron, {1 c. à s.} de jus d'orange, l'huile d'olive, du sel et du poivre. Réservez au frais.",
-        tip: { t: "Astuce du chef", txt: "Zestez toujours avant de presser — l'inverse est impossible. Et gardez la sauce bien épaisse : elle doit s'étaler d'un coup de cuillère dans l'assiette sans couler. Trop de jus et elle file." }
+        txt: "Zestez le citron et la demi-orange, puis pressez-les. Fouettez le yaourt bulgare avec les zestes, {2 c. à s.} de jus de citron, {1 c. à s.} de jus d'orange, l'huile d'olive, du sel et du poivre. Réservez au frais.", fond: ["huiles-essentielles","emulsion","acidite-finale"],
+        tip: { t: "Astuce du chef", txt: "Gardez la sauce bien épaisse : elle doit s'étaler d'un coup de cuillère dans l'assiette sans couler. Ajoutez les jus en dernier, par petites touches — trop et elle file." }
       },
       {
         t: "Raffermir et trancher",
-        txt: "Placez le filet 15 minutes au congélateur pour raffermir la chair, puis tranchez-le en fines lamelles dans le sens opposé aux fibres, en inclinant bien la lame.",
+        txt: "Placez le filet 15 minutes au congélateur pour raffermir la chair, puis tranchez-le en fines lamelles dans le sens opposé aux fibres, en inclinant bien la lame.", fond: "froid-raffermit",
         timer: 15,
         tip: { t: "Astuce du chef", txt: "Un couteau long et fin, une seule passe par tranche, sans scier : c'est ce qui donne ces lamelles presque translucides. Une chair molle, elle, s'écrase sous la lame quelle que soit votre technique." }
       },
       {
         t: "Pain grillé et dressage",
-        txt: "Passez les pains suédois 1 à 2 minutes sur un gril ou une poêle très chaude, juste pour les marquer. Étalez une large virgule de sauce dans chaque assiette, posez le pain à côté et drapez les lamelles de saumon dessus. Ajoutez les quartiers de tomate ancienne et quelques tomates cerises, parsemez de fines herbes ciselées et terminez par quelques gouttes d'huile d'olive.",
+        txt: "Passez les pains suédois 1 à 2 minutes sur un gril ou une poêle très chaude, juste pour les marquer. Étalez une large virgule de sauce dans chaque assiette, posez le pain à côté et drapez les lamelles de saumon dessus. Ajoutez les quartiers de tomate ancienne et quelques tomates cerises, parsemez de fines herbes ciselées et terminez par quelques gouttes d'huile d'olive.", fond: ["herbes-coupees","contraste-textures"],
         timer: 2,
         tip: { t: "Astuce du chef", txt: "Dressez au tout dernier moment : le pain grillé ramollit vite sous le saumon froid, et c'est ce contraste tiède-croustillant contre froid-fondant qui fait tout le plat." }
       }
@@ -590,30 +591,30 @@ const RECIPES = [
     steps: [
       {
         t: "Sauce fraîche",
-        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais 1 heure — vous préparerez le reste pendant ce temps.",
+        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais 1 heure — vous préparerez le reste pendant ce temps.", fond: ["infusion-froid","acidite-finale"],
         timer: 60,
-        tip: { t: "Astuce du chef", txt: "Cette heure n'est pas du confort : c'est le temps qu'il faut à la menthe pour infuser le yaourt. Sauce préparée à la dernière minute, on ne sent que le yaourt." }
+        tip: { t: "Astuce du chef", txt: "Commencez par cette sauce : elle infusera pendant que vous façonnez les boules et montez la pâte. Ciselez la menthe très fin, remuez une fois à mi-parcours, et goûtez avant de dresser." }
       },
       {
         t: "Façonnage du fromage",
-        txt: "Écrasez le fromage de brebis avec la menthe hachée à la fourchette, puis façonnez de petites boules ou quenelles, les mains mouillées ou légèrement huilées pour que ça n'accroche pas. Placez-les 30 minutes au réfrigérateur.",
+        txt: "Écrasez le fromage de brebis avec la menthe hachée à la fourchette, puis façonnez de petites boules ou quenelles, les mains mouillées ou légèrement huilées pour que ça n'accroche pas. Placez-les 30 minutes au réfrigérateur.", fond: "froid-raffermit",
         timer: 30,
-        tip: { t: "Astuce du chef", txt: "Ce passage au froid est ce qui tient les beignets : un fromage frais à température ambiante fond dans l'huile chaude et perce la pâte. Dix minutes au congélateur font l'affaire si vous êtes pressé. Un brocciu, très fragile, demande d'être bien égoutté au préalable." }
+        tip: { t: "Astuce du chef", txt: "Un brocciu ou une brousse, très humides, s'égouttent longuement avant d'être façonnés : sans quoi la boule s'affaisse et rend son eau dans la pâte. Pressé, dix minutes au congélateur suffisent." }
       },
       {
         t: "Pâte à beignet express",
-        txt: "Fouettez la farine, la levure, l'œuf et incorporez l'eau gazeuse glacée progressivement jusqu'à consistance d'une pâte à crêpe épaisse.",
-        tip: { t: "Astuce du chef", txt: "L'eau gazeuse très froide provoque un choc thermique avec l'huile chaude, garantissant une croûte ultra-croustillante et peu grasse." }
+        txt: "Fouettez la farine, la levure, l'œuf et incorporez l'eau gazeuse glacée progressivement jusqu'à consistance d'une pâte à crêpe épaisse.", fond: ["gluten","friture"],
+        tip: { t: "Astuce du chef", txt: "Versez l'eau glacée en filet et arrêtez-vous dès que la pâte nappe la cuillère, à peine plus épaisse qu'une pâte à crêpe. Froide et peu travaillée, elle frit friable au lieu d'élastique." }
       },
       {
         t: "Friture",
-        txt: "Faites chauffer l'huile de friture à 170-180 °C. Trempez les boules de fromage bien froides dans la pâte, puis plongez-les dans l'huile environ 2 minutes, juste le temps qu'elles soient bien dorées.",
+        txt: "Faites chauffer l'huile de friture à 170-180 °C. Trempez les boules de fromage bien froides dans la pâte, puis plongez-les dans l'huile environ 2 minutes, juste le temps qu'elles soient bien dorées.", fond: ["eau-coloration","friture"],
         timer: 2,
-        tip: { t: "Astuce du chef", txt: "Ne cuisez pas trop de beignets à la fois pour éviter de faire chuter brutalement la température de l'huile." }
+        tip: { t: "Astuce du chef", txt: "Quatre ou cinq beignets par fournée, pas plus, et laissez l'huile revenir à 170 °C entre deux : c'est là que se joue la différence entre une croûte dorée et une pâte grasse." }
       },
       {
         t: "Égouttage et service",
-        txt: "Sortez les beignets avec une écumoire et déposez-les immédiatement sur du papier absorbant. Servez bien chaud avec la sauce fraîche.",
+        txt: "Sortez les beignets avec une écumoire et déposez-les immédiatement sur du papier absorbant. Servez bien chaud avec la sauce fraîche.", fond: "friture",
         tip: { t: "Astuce du chef", txt: "Saupoudrez une pincée de fleur de sel et un zeste de citron juste au moment où les beignets sortent de la friture." }
       }
     ],
@@ -672,19 +673,19 @@ const RECIPES = [
       },
       {
         t: "Ajout des poudres",
-        txt: "Tamisez la farine, le bicarbonate de soude et le sel fin au-dessus du mélange, puis incorporez à la spatule sans trop travailler la pâte.",
-        tip: { t: "Astuce du chef", txt: "Ne sautez pas le sel : avec du beurre doux et {120 g} de sucre, une pâte à cookie sans sel reste plate en bouche. C'est lui qui fait ressortir le caramel de la cassonade et le chocolat." }
+        txt: "Tamisez la farine, le bicarbonate de soude et le sel fin au-dessus du mélange, puis incorporez à la spatule sans trop travailler la pâte.", fond: ["gluten","sel-patisserie"],
+        tip: { t: "Astuce du chef", txt: "Ne sautez pas le sel : avec du beurre doux et {120 g} de sucre, une pâte à cookie sans sel reste plate en bouche. Tamisez-le avec la farine, à cet instant précis — après, c'est trop tard." }
       },
       {
         t: "Incrustation des pépites",
-        txt: "Ajoutez les pépites de chocolat et mélangez délicatement pour les répartir. Gardez-en une poignée de côté pour le dessus.",
-        tip: { t: "Astuce du chef", txt: "Moins vous travaillez la farine, moins le gluten se développe : mélangez juste ce qu'il faut pour répartir le chocolat, la pâte n'en sera que plus tendre." }
+        txt: "Ajoutez les pépites de chocolat et mélangez délicatement pour les répartir. Gardez-en une poignée de côté pour le dessus.", fond: "gluten",
+        tip: { t: "Astuce du chef", txt: "Quelques tours de spatule, juste de quoi disperser les pépites, puis arrêtez-vous. Chaque tour de trop raidit la pâte, et le cookie sort caoutchouteux au lieu de tendre." }
       },
       {
         t: "Cuisson mi-cuite et service",
-        txt: "Étalez la pâte dans un plat à four ou une poêle en fonte sur 2 à 3 cm d'épaisseur. Parsemez les pépites réservées et quelques pincées de fleur de sel. Enfournez à 180 °C pendant seulement 10 à 12 minutes : le centre doit rester presque cru et fondant.",
+        txt: "Étalez la pâte dans un plat à four ou une poêle en fonte sur 2 à 3 cm d'épaisseur. Parsemez les pépites réservées et quelques pincées de fleur de sel. Enfournez à 180 °C pendant seulement 10 à 12 minutes : le centre doit rester presque cru et fondant.", fond: ["amidon","contraste-textures","sel-patisserie","maillard"],
         timer: 11,
-        tip: { t: "Astuce du chef", txt: "Servez chaud à la cuillère à glace directement dans le plat, idéalement surmonté d'une boule de glace vanille pour un contraste chaud-froid irrésistible." }
+        tip: { t: "Astuce du chef", txt: "Servez chaud, à la cuillère à glace, directement dans le plat : le centre doit encore couler. La boule de glace vanille se pose à la seconde, une fois les portions servies." }
       }
     ],
     addons: [
@@ -734,13 +735,13 @@ const RECIPES = [
       },
       {
         t: "Pressage des agrumes",
-        txt: "Pressez le jus des citrons verts et prélevez quelques zestes.",
+        txt: "Pressez le jus des citrons verts et prélevez quelques zestes.", fond: "huiles-essentielles",
         tip: { t: "Astuce du chef", txt: "Roulez fermement les citrons verts sur votre plan de travail avec la paume de la main avant de les couper pour en extraire un maximum de jus." }
       },
       {
         t: "Macération et infusion",
-        txt: "Froissez les feuilles de menthe entre vos mains et jetez-les dans un grand pichet. Ajoutez les tranches de concombre, le jus de citron vert et le sirop de sucre, puis pilez légèrement l'ensemble.",
-        tip: { t: "Astuce du chef", txt: "Froissez la menthe, ne la pilez pas : les huiles essentielles se libèrent à la simple pression des doigts, alors que des feuilles déchirées par le pilon donnent de l'amertume." }
+        txt: "Froissez les feuilles de menthe entre vos mains et jetez-les dans un grand pichet. Ajoutez les tranches de concombre, le jus de citron vert et le sirop de sucre, puis pilez légèrement l'ensemble.", fond: ["herbes-coupees","infusion-froid"],
+        tip: { t: "Astuce du chef", txt: "Froissez la menthe entre les paumes avant de la jeter dans le pichet, puis pilez du bout du pilon : c'est le concombre qu'on écrase, pas les feuilles, qui tourneraient amères." }
       },
       {
         t: "Allongement au liquide",
@@ -814,8 +815,8 @@ const RECIPES = [
               shop: { label: "Sel fin, poivre noir du moulin" } }
           ],
           step: { t: "Vinaigrette citron & menthe",
-            txt: "Fouettez le jus de citron avec le sel, incorporez l'huile d'olive en filet, puis ajoutez la menthe finement ciselée et un tour de moulin à poivre.",
-            tip: { t: "Astuce du chef", txt: "Ajoutez aussi quelques zestes de citron : ce sont eux qui portent les huiles essentielles, bien plus parfumées que le jus." } } },
+            txt: "Fouettez le jus de citron avec le sel, incorporez l'huile d'olive en filet, puis ajoutez la menthe finement ciselée et un tour de moulin à poivre.", fond: "huiles-essentielles",
+            tip: { t: "Astuce du chef", txt: "Zestez le citron au-dessus du bol avant de le presser : le parfum tombe droit dans l'huile, et la râpe n'accroche pas un fruit devenu mou." } } },
         { id: "yaourt-citron", label: "Crémeuse au yaourt", emoji: "🥣",
           ingredients: [
             { name: "Yaourt grec", qty: 100, unit: "g", note: "vinaigrette", rayon: "Produits frais", cid: "yaourt-grec" },
@@ -851,9 +852,9 @@ const RECIPES = [
       },
       {
         t: "Découpe de l'oignon",
-        txt: "Épluchez l'oignon rouge, émincez-le en très fines lamelles et faites-les tremper 10 minutes dans un bol d'eau glacée.",
+        txt: "Épluchez l'oignon rouge, émincez-le en très fines lamelles et faites-les tremper 10 minutes dans un bol d'eau glacée.", fond: ["infusion-froid","mordant-oignon"],
         timer: 10,
-        tip: { t: "Astuce du chef", txt: "L'eau glacée ôte à l'oignon son mordant tout en préservant son croustillant. Égouttez-le soigneusement avant de l'ajouter, sous peine de diluer la vinaigrette." }
+        tip: { t: "Astuce du chef", txt: "Émincez au plus fin, et pressez les lamelles dans un torchon avant de les mêler aux pois chiches : un oignon mal essoré délave la vinaigrette de toute la salade." }
       },
       {
         t: "Préparation des olives et de la feta",
@@ -864,12 +865,12 @@ const RECIPES = [
         t: "Préparation des tomates",
         txt: "Coupez les tomates cerises en deux."
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage",
-        txt: "Égouttez l'oignon. Mélangez les pois chiches, l'oignon et les olives avec la vinaigrette, et laissez reposer 15 minutes. Ajoutez la feta émiettée juste avant de servir.",
+        txt: "Égouttez l'oignon. Mélangez les pois chiches, l'oignon et les olives avec la vinaigrette, et laissez reposer 15 minutes. Ajoutez la feta émiettée juste avant de servir.", fond: ["assaisonnement-couches","pectine-acidite"],
         timer: 15,
-        tip: { t: "Astuce du chef", txt: "Ce quart d'heure est pour les pois chiches, qui n'ont aucun goût propre et vivent de ce qu'ils absorbent. La feta, elle, arrive en dernier : trop tôt dans la vinaigrette, elle se délite en bouillie salée." }
+        tip: { t: "Astuce du chef", txt: "Ce quart d'heure est pour les pois chiches, qui vivent de ce qu'ils absorbent. La feta n'entre qu'en dernier : mise trop tôt dans la vinaigrette, elle se délite en bouillie salée." }
       }
     ]
   },
@@ -922,7 +923,7 @@ const RECIPES = [
           ],
           step: { t: "Vinaigrette douce miel-cidre",
             txt: "Délayez le miel et la moutarde dans le vinaigre de cidre avec le sel et le poivre, puis émulsionnez avec l'huile d'olive.",
-            tip: { t: "Astuce du chef", txt: "Cette version douce met en valeur les légumes verts tièdes : nappez-les quand ils sont encore chauds pour qu'ils s'en imprègnent." } } }
+            tip: { t: "Astuce du chef", txt: "Cette version douce va aux légumes verts, mais réservez-la aux pommes de terre tièdes : sur des haricots encore chauds, l'acidité ferait virer le vert en quelques minutes." } } }
       ]
     }],
     addons: [
@@ -941,32 +942,32 @@ const RECIPES = [
     steps: [
       {
         t: "Cuisson des pommes de terre",
-        txt: "Lavez les pommes de terre et faites-les cuire avec leur peau dans une casserole d'eau froide salée pendant 15 à 20 minutes à partir de l'ébullition.",
+        txt: "Lavez les pommes de terre et faites-les cuire avec leur peau dans une casserole d'eau froide salée pendant 15 à 20 minutes à partir de l'ébullition.", fond: "amidon",
         timer: 18,
-        tip: { t: "Astuce du chef", txt: "Démarrez toujours la cuisson des tubercules à l'eau froide pour garantir une cuisson homogène du cœur jusqu'à la peau." }
+        tip: { t: "Astuce du chef", txt: "Laissez-les entières et en peau : elles se tiendront mieux en rondelles ensuite. Piquez la pointe d'un couteau au cœur, elle doit entrer sans résistance et ressortir seule." }
       },
       {
         t: "Cuisson des haricots verts",
-        txt: "Équeutez les haricots verts et plongez-les dans une grande casserole d'eau bouillante bien salée. Comptez 3 minutes.",
+        txt: "Équeutez les haricots verts et plongez-les dans une grande casserole d'eau bouillante bien salée. Comptez 3 minutes.", fond: ["assaisonnement-couches","chlorophylle"],
         timer: 3,
-        tip: { t: "Astuce du chef", txt: "Beaucoup d'eau et beaucoup de sel : un petit volume refroidit dès qu'on y jette les légumes, et ils blanchissent au lieu de cuire vif." }
+        tip: { t: "Astuce du chef", txt: "Comptez au moins 3 litres à gros bouillons, salés à 10 g par litre, et jetez les haricots d'un seul coup : c'est la seule occasion de les saler à cœur." }
       },
       {
         t: "Ajout des petits pois",
-        txt: "Ajoutez les petits pois aux haricots et poursuivez la cuisson 3 minutes seulement. Égouttez le tout et plongez-le aussitôt dans un saladier d'eau glacée.",
+        txt: "Ajoutez les petits pois aux haricots et poursuivez la cuisson 3 minutes seulement. Égouttez le tout et plongez-le aussitôt dans un saladier d'eau glacée.", fond: "chlorophylle",
         timer: 3,
-        tip: { t: "Astuce du chef", txt: "Les petits pois cuisent deux fois plus vite que les haricots : partis ensemble, ils seraient farineux quand les haricots sont juste prêts. Et le bain glacé fixe la chlorophylle — c'est lui qui garde ce vert éclatant." }
+        tip: { t: "Astuce du chef", txt: "Les petits pois cuisent deux fois plus vite : partis avec les haricots, ils seraient farineux. Le bain glacé, lui, ne fixe rien — il arrête la cuisson, et sans lui le vert tourne dans le saladier." }
       },
       {
         t: "Lavage de la salade",
         txt: "Lavez et essorez délicatement les feuilles de salade feuille de chêne.",
         tip: { t: "Astuce du chef", txt: "Essorez parfaitement la salade : l'excès d'eau empêche la vinaigrette d'adhérer aux feuilles." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage tiède",
-        txt: "Coupez les pommes de terre encore tièdes en rondelles, mélangez-les avec les haricots et les petits pois, puis nappez généreusement de vinaigrette. Ajoutez les feuilles de chêne au tout dernier moment et mélangez délicatement.",
-        tip: { t: "Astuce du chef", txt: "Les pommes de terre tièdes boivent la vinaigrette bien mieux qu'une fois froides. La salade, elle, retombe au contact du tiède : elle n'entre dans le saladier qu'au moment de passer à table." }
+        txt: "Coupez les pommes de terre encore tièdes en rondelles, mélangez-les avec les haricots et les petits pois, puis nappez généreusement de vinaigrette. Ajoutez les feuilles de chêne au tout dernier moment et mélangez délicatement.", fond: ["amidon","chlorophylle","pectine-acidite"],
+        tip: { t: "Astuce du chef", txt: "Nappez les rondelles pendant qu'elles fument encore : tièdes, elles boivent la vinaigrette. La feuille de chêne, elle, retombe au contact du tiède — elle n'arrive qu'à table." }
       }
     ]
   },
@@ -1013,9 +1014,9 @@ const RECIPES = [
             { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "vinaigre-cidre" }
           ],
           step: { t: "Vinaigrette persil-échalote",
-            txt: "Hachez finement l'échalote et ciselez le persil plat. Mélangez-les dans un bol avec le vinaigre de cidre, du sel et du poivre, laissez macérer 5 minutes, puis incorporez l'huile d'olive.",
+            txt: "Hachez finement l'échalote et ciselez le persil plat. Mélangez-les dans un bol avec le vinaigre de cidre, du sel et du poivre, laissez macérer 5 minutes, puis incorporez l'huile d'olive.", fond: "mordant-oignon",
             timer: 5,
-            tip: { t: "Astuce du chef", txt: "Ces cinq minutes dans le vinaigre suffisent à ôter à l'échalote son mordant cru, sans rien lui retirer de son parfum." } } },
+            tip: { t: "Astuce du chef", txt: "Cinq minutes, montre en main : passé le quart d'heure, le vinaigre assouplit l'échalote et lui ôte son croquant. Versez l'huile dès le temps écoulé." } } },
         { id: "moutardee", label: "Moutardée", emoji: "🥄",
           ingredients: [
             { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Épicerie", cid: "moutarde",
@@ -1060,19 +1061,19 @@ const RECIPES = [
     steps: [
       {
         t: "Cuisson des lentilles",
-        txt: "Rincez les lentilles et faites-les cuire dans 3 fois leur volume d'eau froide non salée, avec la feuille de laurier et le demi-oignon piqué du clou de girofle, pendant 20 à 25 minutes. Retirez les aromates, puis salez.",
+        txt: "Rincez les lentilles et faites-les cuire dans 3 fois leur volume d'eau froide non salée, avec la feuille de laurier et le demi-oignon piqué du clou de girofle, pendant 20 à 25 minutes. Retirez les aromates, puis salez.", fond: ["osmose-sel","pectine-acidite"],
         timer: 22,
-        tip: { t: "Astuce du chef", txt: "Ne salez jamais l'eau de cuisson des lentilles dès le départ, car le sel durcit la peau de la légumineuse. Salez uniquement en fin de cuisson — mais aromatisez dès le début : une lentille cuite à l'eau nue reste fade quoi qu'on mette dessus ensuite." }
+        tip: { t: "Astuce du chef", txt: "Le sel n'y durcit pas la peau, il l'assouplit ; on le garde pour la fin parce qu'en salade on veut des lentilles qui tiennent, et tièdes elles l'absorbent encore. Laurier et clou dès l'eau froide." }
       },
       {
         t: "Découpe des légumes et fruits",
-        txt: "Taillez la pomme verte en petits dés réguliers et citronnez-les aussitôt. Coupez les tomates en quartiers, ou en deux pour les tomates cerises.",
+        txt: "Taillez la pomme verte en petits dés réguliers et citronnez-les aussitôt. Coupez les tomates en quartiers, ou en deux pour les tomates cerises.", fond: "oxydation-enzymatique",
         tip: { t: "Astuce du chef", txt: "Épépinez les tomates avant de les couper afin d'éviter qu'elles ne détrempent la salade. Et citronnez la pomme dès la découpe : coupée en petits dés, elle brunit en quelques minutes." }
       },
-      { choice: "vinaigrette" },
+      { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Mélange et finition",
-        txt: "Associez les lentilles tièdes ou refroidies, la pomme, les tomates et la feta émiettée, puis incorporez la vinaigrette.",
+        txt: "Associez les lentilles tièdes ou refroidies, la pomme, les tomates et la feta émiettée, puis incorporez la vinaigrette.", fond: ["contraste-textures","acidite-finale"],
         tip: { t: "Astuce du chef", txt: "Incorporez la pomme verte au tout dernier moment pour qu'elle conserve tout son croquant et sa fraîcheur au contraste des lentilles." }
       }
     ]
