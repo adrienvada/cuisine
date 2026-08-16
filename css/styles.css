@@ -1030,6 +1030,45 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 
 .course-list .cnote { display: block; font-size: 12.5px; color: var(--muted); }
 
+/* ---------- Ce qui manque au repas ----------
+   Un mot glissé en bas de page, jamais un encadré : la suggestion doit peser
+   moins que ce qu'elle signale. Le pointillé dit « pas encore là » sans avoir
+   à l'écrire. */
+
+.menu-hint {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 18px 2px 0;
+  color: var(--muted);
+}
+
+.menu-hint .mh-txt { font-family: var(--script); font-size: 18px; }
+
+.mh-chip {
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--green-deep);
+  border-radius: 999px;
+  padding: 4px 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mh-chip:active { background: var(--green-tint); border-style: solid; }
+
+/* Au fil de la ligne, jamais poussé à droite : collé au bord, il retombait
+   seul sur une deuxième ligne et la suggestion pesait le double. */
+.mh-x {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  padding: 5px 6px;
+}
+
 .add-extra {
   display: flex;
   gap: 8px;

@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "" },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "", hintMenuOff: false, hintCoursesOff: false },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -288,11 +288,88 @@ const menuRecipes = () => state.menu.map(byId).filter(Boolean)
 function toggleMenu(id) {
   if (inMenu(id)) state.menu = state.menu.filter(x => x !== id);
   else state.menu.push(id);
+  if (!state.menu.length) resetHints();
   save(); updateBadge();
   return inMenu(id);
 }
 
 function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
+
+/* ---------- La forme d'un repas ----------
+   Le menu dessine parfois un repas de lui-même : quelque chose à l'apéro, puis
+   à table, puis un dessert. Dans ce cas — et seulement dans ce cas — le carnet
+   se permet de souffler ce qui manque. Un apéro, une salade seule, n'importe
+   quelle sélection volontairement partielle : il se tait, et rien ne distingue
+   la page de ce qu'elle serait sans ce mécanisme.
+
+   Boissons et sauces accompagnent le repas sans en former un moment : trois
+   toasts et un cocktail restent un apéro, une salade et sa vinaigrette restent
+   une salade. Les compter réveillerait le mécanisme là où on ne lui demande
+   rien — c'est exactement ce qu'il ne doit jamais faire. */
+
+const MOMENT_TABLE = ["Entrées", "Soupes", "Salades"];
+
+function menuMoments() {
+  const cats = new Set(state.menu.map(byId).filter(Boolean).map(r => r.category));
+  return {
+    apero: cats.has("Apéro"),
+    table: MOMENT_TABLE.some(c => cats.has(c)),
+    dessert: cats.has("Desserts"),
+    boisson: cats.has("Boissons")
+  };
+}
+
+/* Deux moments qui se mangent : le menu a pris la forme d'un repas tout seul. */
+function menuLooksLikeMeal() {
+  const m = menuMoments();
+  return [m.apero, m.table, m.dessert].filter(Boolean).length >= 2;
+}
+
+/* Ce qu'on propose de compléter — jamais l'apéro : un repas sans apéro est
+   complet, un repas sans rien à table ne l'est pas. On signale un trou, pas
+   une absence de luxe. */
+const MOMENTS_A_COMBLER = [
+  { id: "table", label: "de quoi se mettre à table", cats: MOMENT_TABLE },
+  { id: "dessert", label: "un dessert", cats: ["Desserts"] },
+  { id: "boisson", label: "une boisson", cats: ["Boissons"] }
+];
+
+/* Où envoyer : la première catégorie du moment qui a effectivement des recettes.
+   Sans quoi on proposerait un rayon vide. */
+const catDuMoment = x => x.cats.find(c => RECIPES.some(r => r.category === c));
+
+function momentsManquants() {
+  if (state.hintMenuOff || !menuLooksLikeMeal()) return [];
+  const m = menuMoments();
+  return MOMENTS_A_COMBLER.filter(x => !m[x.id] && catDuMoment(x));
+}
+
+/* Ce qu'un repas suppose sans qu'aucune recette ne le porte. Le doute profite
+   au silence : mieux vaut ne rien dire à tort que proposer du pain à qui a
+   prévu une focaccia — d'où des familles de mots larges.
+
+   Le pain y est seul, et c'est voulu. Le fromage a été essayé : il se
+   déclenchait à tous les repas, donc plus jamais à propos. Un repas sans
+   fromage est complet, comme un repas sans apéro ; un repas sans pain se
+   remarque. On ne signale que le trou. */
+const BASIQUES = [
+  { id: "pain", chip: "Du pain", article: "Pain",
+    re: /pain|baguette|focaccia|brioche|tartine|toast|pita|grissin|craquant|blini|crouton/i }
+];
+
+function basiquesManquants() {
+  if (state.hintCoursesOff || !menuLooksLikeMeal()) return [];
+  const foin = [
+    ...menuRecipes().flatMap(r => [r.title, r.category, ...(r.tags || [])]),
+    ...buildCourseList().map(i => i.label),
+    ...state.extras.map(x => x.name)
+  ].join(" ");
+  return BASIQUES.filter(b => !b.re.test(foin));
+}
+
+/* Un menu vidé, c'est un repas qui n'a plus rien à voir avec le précédent :
+   les refus qu'on avait opposés aux suggestions n'ont plus lieu d'être. */
+function resetHints() { state.hintMenuOff = false; state.hintCoursesOff = false; }
 
 /* ---------- Composer sa version : choix (vinaigrette…) et suppléments ----------
    La version choisie vit dans state.choices / state.addons ; ingrédients et
@@ -1445,6 +1522,10 @@ function renderMenu() {
   }
 
   const todo = courseTodo();
+  /* Un seul manque à la fois, le premier dans l'ordre du repas. Énumérer tout
+     ce qui manque ferait une liste de tâches plus lourde que le menu qu'elle
+     commente — et transformerait une suggestion en devoir à remplir. */
+  const manque = momentsManquants().slice(0, 1);
   app.innerHTML = `
     <div id="menu-root">
     <header class="page-head courses-head fade-in">
@@ -1481,6 +1562,12 @@ function renderMenu() {
         </article>`;
       }).join("")}
     </div>
+    ${manque.length ? `
+    <p class="menu-hint">
+      <span class="mh-txt">Il manque peut-être</span>
+      ${manque.map(x => `<button class="mh-chip" data-moment="${catDuMoment(x)}">${x.label}</button>`).join("")}
+      <button class="mh-x" data-hint-off aria-label="Ne plus proposer">✕</button>
+    </p>` : ""}
     <div class="course-actions">
       <button class="btn secondary" id="share-menu">${ICON.share} Partager le repas</button>
       <a class="btn primary" href="#/courses">${ICON.cart} Liste de courses</a>
@@ -1493,6 +1580,9 @@ function renderMenu() {
     onShareClick(e);
     const rm = e.target.closest("[data-remove]");
     if (rm) { toggleMenu(rm.dataset.remove); renderMenu(); return; }
+    const mom = e.target.closest("[data-moment]");
+    if (mom) { state.filter = mom.dataset.moment; save(); location.hash = "#/"; return; }
+    if (e.target.closest("[data-hint-off]")) { state.hintMenuOff = true; save(); renderMenu(); return; }
     const step = e.target.closest("[data-minus], [data-plus]");
     if (step) {
       const id = step.dataset.minus || step.dataset.plus;
@@ -1514,6 +1604,7 @@ function renderMenu() {
   document.getElementById("clear-menu").addEventListener("click", () => {
     if (!confirm("Retirer toutes les recettes du menu ?\nLes articles ajoutés à la main resteront dans la liste de courses.")) return;
     state.menu = [];
+    resetHints();
     save(); updateBadge(); renderMenu();
   });
 }
@@ -1667,6 +1758,7 @@ function renderCourses() {
     return;
   }
 
+  const basiques = basiquesManquants();
   const grouped = RAYONS.map(rayon => ({
     rayon,
     items: [
@@ -1704,6 +1796,12 @@ function renderCourses() {
             </label></li>`).join("")}
         </ul>
       </section>`).join("")}
+    ${basiques.length ? `
+    <p class="menu-hint">
+      <span class="mh-txt">Pour la table, pense peut-être à</span>
+      ${basiques.map(b => `<button class="mh-chip" data-basique="${b.article}">${b.chip}</button>`).join("")}
+      <button class="mh-x" data-hint-off aria-label="Ne plus proposer">✕</button>
+    </p>` : ""}
     <form class="add-extra" id="extra-form">
       <input id="extra-input" type="text" placeholder="Ajouter un article (éponges, glaçons…)" autocomplete="off">
       <button type="submit" aria-label="Ajouter">+</button>
@@ -1732,6 +1830,7 @@ function renderCourses() {
   document.getElementById("clear").addEventListener("click", () => {
     if (!confirm("Vider la liste de courses ?\nLe menu sera vidé lui aussi.")) return;
     state.menu = []; state.checked = {}; state.extras = [];
+    resetHints();
     save(); updateBadge(); renderCourses();
   });
 
@@ -1744,6 +1843,13 @@ function renderCourses() {
   }
 
   function onCourseClick(e) {
+    const bas = e.target.closest("[data-basique]");
+    if (bas) {
+      state.extras.push({ id: Date.now().toString(36), name: bas.dataset.basique });
+      save(); updateBadge(); renderCourses();
+      return;
+    }
+    if (e.target.closest("[data-hint-off]")) { state.hintCoursesOff = true; save(); renderCourses(); return; }
     const rm = e.target.closest("[data-remove]");
     if (rm) {
       toggleMenu(rm.dataset.remove);
