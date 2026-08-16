@@ -1089,10 +1089,10 @@ const RECIPES = [
     color: "#F0D077",
     times: { prep: 10 },
     portions: { base: 4, label: "personnes" },
-    note: "Se conserve 2 jours au frais dans un bocal fermé (œuf cru) — sortez-la 10 min avant de servir, elle fige un peu au froid.",
+    note: "Se conserve 24 h au réfrigérateur dans un bocal fermé, entre 0 et 4 °C : c'est la limite retenue pour une préparation à l'œuf cru, et elle ne se prolonge pas au jugé. Sortez-la le temps du service seulement, elle fige un peu au froid.",
     ingredients: [
-      { name: "Jaune d'œuf", qty: 1, unit: "", note: "à température ambiante", rayon: "Produits frais", cid: "oeufs",
-        shop: { label: "Œufs frais", note: "1 jaune, à sortir du frigo à l'avance" } },
+      { name: "Jaune d'œuf", qty: 1, unit: "", note: "très frais, moins de 9 jours", rayon: "Produits frais", cid: "oeufs",
+        shop: { label: "Œufs frais", note: "extra-frais, pour une préparation crue" } },
       { name: "Moutarde de Dijon", qty: 1, unit: "c. à c.", rayon: "Épicerie", cid: "moutarde",
         shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
       { name: "Huile neutre", qty: 20, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Épicerie", cid: "huile-neutre",
@@ -1105,7 +1105,8 @@ const RECIPES = [
     steps: [
       {
         t: "La base",
-        txt: "Sortez le jaune d'œuf et la moutarde du réfrigérateur un moment à l'avance si vous y pensez. Dans un bol, fouettez le jaune avec la moutarde, le vinaigre, du sel et du poivre jusqu'à obtenir un mélange homogène et légèrement mousseux.",
+        txt: "Cassez l'œuf sur une surface plate et séparez le jaune. Dans un bol, fouettez-le avec la moutarde, le vinaigre, du sel et du poivre jusqu'à obtenir un mélange homogène et légèrement mousseux.",
+        fond: "oeuf-cru",
         tip: { t: "Astuce du chef", txt: "Prenez un bol étroit à fond rond plutôt qu'une assiette creuse : le fouet y retrouve la sauce à chaque tour au lieu de la pousser sur les bords, et l'huile s'y disperse bien plus vite." }
       },
       {
