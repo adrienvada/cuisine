@@ -1107,7 +1107,7 @@ const RECIPES = [
       id: "variante", label: "La touche finale",
       options: [
         { id: "nature", label: "Nature", emoji: "🥄", ingredients: [],
-          step: { t: "Nature", txt: "Elle est prête telle quelle : couvrez et réservez au frais jusqu'au service." } },
+          step: { t: "Nature", txt: "Rien à ajouter : elle est prête telle quelle." } },
         { id: "aioli", label: "Aïoli", emoji: "🧄",
           ingredients: [
             { name: "Ail", qty: 1, unit: "gousse", note: "épluchée, dégermée", rayon: "Fruits, légumes & herbes", cid: "ail",
@@ -1149,12 +1149,12 @@ const RECIPES = [
         fond: "emulsion",
         tip: { t: "Astuce du chef", txt: "Si elle tranche malgré tout (mélange qui reste liquide ou granuleux), ne jetez rien : dans un bol propre, fouettez un nouveau jaune d'œuf ou une cuillère à café de moutarde, puis versez la mayonnaise ratée en filet dessus comme si c'était de l'huile. L'émulsion repart aussitôt." }
       },
+      { choice: "variante" },
       {
         t: "Assaisonnement final",
-        txt: "Goûtez et rectifiez en sel, poivre ou vinaigre selon votre goût.",
+        txt: "Goûtez et rectifiez en sel, poivre ou vinaigre selon votre goût. Réservez au frais dans un bocal hermétique jusqu'au service.",
         tip: { t: "L'astuce du chef", txt: "Une moutarde plus forte ou un trait de vinaigre supplémentaire aident aussi à stabiliser l'émulsion — la moutarde n'est pas là que pour le goût, elle joue un vrai rôle d'émulsifiant." }
-      },
-      { choice: "variante" }
+      }
     ],
     addons: [
       { id: "herbes", label: "Herbes fraîches", emoji: "🌿",
@@ -1169,6 +1169,89 @@ const RECIPES = [
         ingredients: [{ name: "Paprika fumé", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "paprika-fume",
           shop: { label: "Paprika fumé", qty: 1, unit: "pot" } }],
         step: { i: 4, txt: "Saupoudrez de paprika fumé et mélangez pour une note fumée." } }
+    ]
+  },
+
+  {
+    id: "pesto-basilic-maison",
+    title: "Pesto au basilic maison",
+    subtitle: "Vert vif et parfumé, en 10 minutes sans se presser",
+    category: "Sauces",
+    tags: ["rapide", "de base"],
+    emoji: "🌿",
+    color: "#5E7A3C",
+    times: { prep: 8, cuisson: 3 },
+    portions: { base: 4, label: "personnes" },
+    note: "Se garde environ une semaine au réfrigérateur dans un bocal fermé, sous un filet d'huile d'olive qui isole le pesto de l'air. Se congèle très bien en bac à glaçons — sans le parmesan, à ajouter après décongélation.",
+    ingredients: [
+      { name: "Basilic frais", qty: 1, unit: "botte", note: "effeuillé", rayon: "Fruits, légumes & herbes", cid: "basilic",
+        shop: { label: "Basilic frais", qty: 1, unit: "botte" } },
+      { name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits, légumes & herbes", cid: "ail",
+        shop: { label: "Ail", qty: 2, unit: "gousses" } },
+      { name: "Parmesan râpé", qty: 50, unit: "g", rayon: "Produits frais", cid: "parmesan" },
+      { name: "Huile d'olive extra-vierge", qty: 12, unit: "cl", rayon: "Épicerie", cid: "huile-olive",
+        shop: { label: "Huile d'olive vierge extra", qty: null } },
+      { name: "Gros sel", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "gros-sel" }
+    ],
+    choices: [{
+      id: "variante", label: "Le style",
+      options: [
+        { id: "genovese", label: "Classique (Genovese)", emoji: "🌲",
+          ingredients: [
+            { name: "Pignons de pin", qty: 30, unit: "g", rayon: "Épicerie", cid: "pignons",
+              shop: { label: "Pignons de pin", qty: 1, unit: "sachet" } }
+          ],
+          step: { t: "Classique (Genovese)",
+            txt: "Faites légèrement dorer les pignons à sec dans une poêle, à feu moyen, en remuant sans arrêt, pendant 2 à 3 minutes, jusqu'à ce qu'ils embaument. Une fois tièdes, incorporez-les au pilage avec le parmesan et l'huile d'olive, à la spatule plutôt qu'au mixeur pour garder du grain.",
+            fond: "torrefaction", timer: 3,
+            tip: { t: "Astuce du chef", txt: "Réservez une petite poignée de pignons crus pour parsemer le pesto fini : le contraste entre les torréfiés fondus dans la pâte et les crus qui craquent encore change toute la texture en bouche." } } },
+        { id: "rosso", label: "Rosso", emoji: "🍅",
+          ingredients: [
+            { name: "Tomates séchées à l'huile", qty: 40, unit: "g", note: "égouttées", rayon: "Épicerie", cid: "tomates-sechees",
+              shop: { label: "Tomates séchées à l'huile", qty: 1, unit: "pot" } },
+            { name: "Amandes", qty: 20, unit: "g", rayon: "Épicerie", cid: "amandes",
+              shop: { label: "Amandes (émondées ou non)", qty: 1, unit: "sachet" } }
+          ],
+          step: { t: "Rosso",
+            txt: "Faites légèrement dorer les amandes à sec dans une poêle, à feu moyen, en remuant sans arrêt, pendant 2 à 3 minutes. Une fois tièdes, incorporez-les au pilage avec les tomates séchées, le parmesan et l'huile d'olive : le résultat est plus doux et plus fruité, avec moins de mordant que la version aux pignons.",
+            fond: "torrefaction", timer: 3,
+            tip: { t: "Astuce du chef", txt: "Égouttez bien les tomates séchées et épongez-les avant de les piler : leur huile de conservation, parfois amère en grande quantité, prendrait le pas sur celle que vous ajoutez." } } },
+        { id: "pistache", label: "Pistache", emoji: "💚",
+          ingredients: [
+            { name: "Pistaches décortiquées non salées", qty: 30, unit: "g", rayon: "Épicerie", cid: "pistaches",
+              shop: { label: "Pistaches décortiquées non salées", qty: 1, unit: "sachet" } }
+          ],
+          step: { t: "Pistache",
+            txt: "Incorporez les pistaches, crues plutôt que torréfiées, au pilage avec le parmesan et l'huile d'olive : crues, elles gardent leur couleur vert vif et donnent une pâte plus douce que la version aux pignons.",
+            tip: { t: "Astuce du chef", txt: "Mixez les pistaches à part quelques secondes avant de les ajouter : entières, elles restent en éclats qui ne se marient jamais tout à fait au pilage de basilic." } } }
+      ]
+    }],
+    steps: [
+      {
+        t: "Le pilage",
+        txt: "Effeuillez le basilic et pilez-le au mortier — ou mixez-le par courtes impulsions — avec l'ail et le gros sel, jusqu'à obtenir une pâte grossière.",
+        fond: "herbes-coupees",
+        tip: { t: "Astuce du chef", txt: "Un mixeur qui tourne en continu chauffe sa lame et fait noircir le basilic bien plus vite qu'un couteau ou qu'un mortier : préférez des impulsions courtes de quelques secondes, quitte à racler les bords entre chacune." }
+      },
+      { choice: "variante" },
+      {
+        t: "Assaisonnement et conservation",
+        txt: "Goûtez et rectifiez en sel. Transférez le pesto dans un bocal, lissez la surface et recouvrez d'un filet d'huile d'olive avant de fermer : ce film isole la préparation de l'air.",
+        fond: "herbes-coupees"
+      }
+    ],
+    addons: [
+      { id: "piment", label: "Piment", emoji: "🌶️",
+        ingredients: [{ name: "Piment", qty: null, qtyText: "1 petit piment frais, ou une pincée séché", note: "épépiné et haché si frais", rayon: "Fruits, légumes & herbes", cid: "piment" }],
+        step: { i: 0, txt: "Ajoutez le piment haché au pilage, avec le basilic et l'ail." } },
+      { id: "roquette", label: "Roquette", emoji: "🌱",
+        ingredients: [{ name: "Roquette", qty: null, qtyText: "une poignée", rayon: "Fruits, légumes & herbes", cid: "roquette",
+          shop: { label: "Roquette", qty: 1, unit: "sachet" } }],
+        step: { i: 0, txt: "Ajoutez la roquette au basilic avant de piler : elle apporte une note poivrée." } },
+      { id: "citron", label: "Citron", emoji: "🍋",
+        ingredients: [{ name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits, légumes & herbes", cid: "citron",
+          shop: { label: "Citron jaune non traité" } }],
+        step: { i: 2, txt: "Zestez le citron directement au-dessus du pesto fini et mélangez.", fond: "huiles-essentielles" } }
     ]
   }
 ];
