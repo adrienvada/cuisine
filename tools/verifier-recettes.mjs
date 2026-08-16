@@ -53,8 +53,10 @@ const MARQUEE = /\{(\d+(?:[.,]\d+)?)(?:\s*[–-]\s*(\d+(?:[.,]\d+)?))?\s*([^}]*)
    de longueur sont absentes de la liste : une bande de 1,5 cm de large reste
    large de 1,5 cm qu'on soit deux ou douze. */
 const NUE = /\b(\d+(?:[.,]\d+)?)\s*(g|kg|ml|cl|l|c\. à s\.|c\. à c\.|sachets?|bocaux?|bocal|pots?|bottes?|bouquets?|gousses?)\b/g;
-/* « 2 cl par verre » se règle tout seul : c'est une quantité par portion. */
-const PAR_PORTION = /\bpar\s+(verre|personne|part|portion|convive|pièce|sachet)/i;
+/* « 2 cl par verre » se règle tout seul : c'est une quantité par portion. Et
+   « salés à 10 g par litre » est une concentration — la mettre à l'échelle des
+   convives la rendrait fausse. Dans les deux cas, la quantité reste nue. */
+const PAR_PORTION = /\bpar\s+(verre|personne|part|portion|convive|pièce|sachet|litre|kilo|kg\b|l\b)/i;
 /* Ce qu'on achète tout fait : le poids annoncé décrit l'emballage. */
 const CONTENANTS = ["bocal", "boîte", "brique", "pot", "petit pot", "sachet", "rouleau", "botte", "bouquet"];
 const nombre = n => parseFloat(String(n).replace(",", "."));
