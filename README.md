@@ -96,14 +96,15 @@ Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dan
 
 **Une vraie photo du plat prime sur une image générée** : recadrer en 4:3 sur l'assiette, redimensionner en 800 px de large et enregistrer en JPEG qualité 80 (~70 Ko), sous `img/<id-recette>.jpg`.
 
-**Le cadrage se décide sur la bande centrale.** Les deux endroits où la photo s'affiche sont bien plus larges que hauts, et tous deux montrent — mesuré — à peu près la **même bande centrale de 64 % de la hauteur** :
+**Le cadrage se décide sur la bande centrale — et les vignettes sont volontairement très serrées** : on doit y voir l'aliment de près, pas forcément le bol ou l'assiette qui le porte.
 
 | | Boîte | Ce qui reste visible d'une image 4:3 |
 |---|---|---|
-| Vignette de la grille | 168 × 110 px | 74 % de la largeur, **64,5 % de la hauteur** (le `cover` recadre, puis `transform: scale(1.35)` rapproche) |
-| Héro de la fiche | 352 × 170 px | toute la largeur, **64,4 % de la hauteur** |
+| Vignette de la grille | 168 × 110 px | 33 % de la largeur, **29 % de la hauteur** (le `cover` recadre, puis `transform: scale(3)` rapproche) |
+| Carte « Au menu » | 88 × 88 px | **25 % de la largeur**, 33 % de la hauteur (même mécanisme, `scale(3)`) |
+| Héro de la fiche | 352 × 170 px | toute la largeur, 64 % de la hauteur (pas de zoom ici : contexte plus généreux) |
 
-Autrement dit : **le plat doit tenir entre 18 % et 82 % de la hauteur de l'image**, et entre 13 % et 87 % de sa largeur. Tout ce qui sort de cette bande — un rebord de fenêtre en haut, le bord de la table en bas — ne sera jamais vu ailleurs que sur la page d'aperçu de partage. Recadrer en centrant sur le plat, et non sur la composition, vaut mieux que de garder un joli décor invisible.
+Autrement dit, pour que le plat remplisse les deux vignettes plutôt que de laisser voir de la table ou du bord d'assiette : **le sujet doit occuper entre 38 % et 62 % de la largeur de l'image, et entre 35 % et 65 % de sa hauteur**, centré. C'est bien plus serré que ce qu'il faut pour l'héro (qui tolère 18–82 % de hauteur) : caler le cadrage sur les vignettes couvre les deux cas. Recadrer en centrant sur le plat — voire sur un détail du plat — et non sur la composition, vaut mieux que de garder un joli décor invisible.
 
 À défaut, **générer la photo** avec Gemini (« nano banana ») — méthode gratuite via l'interface web, sans clé API (l'API `generativelanguage.googleapis.com` facture les images même avec un abonnement Google AI, contrairement au chat web) :
 
