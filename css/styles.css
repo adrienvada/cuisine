@@ -1316,47 +1316,71 @@ body.cooking .addon-note {
    Fondamentaux — pastilles, feuille de lecture, onglet Savoirs
    ============================================================ */
 
-/* Pastille posée sous l'astuce. Étroite et bordée, jamais l'encadré entier :
-   en cuisine, la plus grande cible de l'écran ne doit pas ouvrir une lecture
-   qu'on n'a pas demandée. 44 px de haut pour rester atteignable au pouce. */
-.fond-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+/* Les savoirs se découvrent en touchant l'astuce : ils ne s'imposent pas.
+   L'appel est une ligne, pas une pastille — même famille, même encre et même
+   graisse que le titre de l'astuce, aucun fond, aucune bordure. */
+.a-savoirs { cursor: pointer; }
 
-.fond-chip {
+.savoirs { margin-top: 8px; }
+.savoirs-seuls { margin-top: 10px; }
+
+.s-cue {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 8px 12px 8px 10px;
-  border: 1px solid var(--gold);
-  border-radius: 999px;
-  background: var(--gold-tint);
-  color: var(--gold-deep);
+  gap: 5px;
   font-family: var(--sans);
-  font-size: 13px;
+  font-style: normal;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 1.2;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--green);
+  opacity: 0.72;
 }
 
-.fond-chip:active { background: var(--gold); color: var(--card); transform: scale(0.97); }
-.fond-chip .fc-emoji { font-size: 15px; }
-.fond-chip svg { width: 14px; height: 14px; flex: none; opacity: 0.75; }
+/* Le chevron pointe vers le bas au repos, vers le haut une fois déplié. */
+.s-cue svg { width: 12px; height: 12px; transform: rotate(90deg); transition: transform 0.22s ease; }
+.a-savoirs.ouvert .s-cue svg { transform: rotate(-90deg); }
+.a-savoirs.ouvert .s-cue { opacity: 0.5; }
 
-/* Le mode cuisine fige ses couleurs : sans cela la pastille dorée sur fond vert
-   profond passe en tons sombres et devient illisible. */
-.cook .fond-chip {
-  background: rgba(193, 145, 63, 0.18);
-  border-color: #D9B676;
-  color: #F0DCB2;
+.s-liste { display: none; }
+
+.a-savoirs.ouvert .s-liste {
+  display: block;
+  margin-top: 6px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(66, 96, 58, 0.16);
+  animation: fade 0.22s ease;
 }
-.cook .fond-chip:active { background: #C1913F; color: #2C3326; }
 
-/* Dans une note de supplément, la pastille reste en retrait du bouton de
-   minuteur : deux cibles voisines de même couleur se confondent. */
-.addon-note .fond-row { margin-top: 6px; }
-.addon-note .fond-chip { font-size: 12.5px; padding: 8px 10px; }
+.s-lien {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.s-lien:active { opacity: 0.55; }
+.s-emoji { font-size: 16px; flex: none; }
+.s-lien svg { width: 14px; height: 14px; flex: none; margin-left: auto; opacity: 0.55; }
+
+/* Variante « à savoir » : la ligne suit le doré de son encadré. */
+.tip.beige .s-cue, .tip.beige .s-lien { color: var(--gold-deep); }
+.tip.beige .s-liste { border-top-color: rgba(193, 145, 63, 0.28); }
+
+/* Dans une note de supplément, la ligne reste en retrait du bouton de minuteur. */
+.addon-note .s-lien { font-size: 13.5px; }
+
+/* Le mode cuisine fige ses couleurs : la ligne suit le doré de l'astuce. */
+.cook .s-cue, .cook .s-lien { color: var(--gold); }
+.cook .s-liste { border-top-color: rgba(193, 145, 63, 0.32); }
 
 /* ---- Corps d'un fondamental : le même dans la feuille et dans la page ---- */
 
@@ -1547,4 +1571,3 @@ body.cooking .addon-note {
 
 html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 html[data-theme="dark"] .f-cert-empirique { background: #3A2A20; color: #E6B48D; }
-html[data-theme="dark"] .fond-chip { background: rgba(193, 145, 63, 0.16); }
