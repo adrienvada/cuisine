@@ -325,18 +325,31 @@ function menuLooksLikeMeal() {
   return [m.apero, m.table, m.dessert].filter(Boolean).length >= 2;
 }
 
-/* Ce qu'on propose de compléter — jamais l'apéro : un repas sans apéro est
-   complet, un repas sans rien à table ne l'est pas. On signale un trou, pas
-   une absence de luxe. */
-const MOMENTS_A_COMBLER = [
-  { id: "table", label: "de quoi se mettre à table", cats: MOMENT_TABLE },
-  { id: "dessert", label: "un dessert", cats: ["Desserts"] },
-  { id: "boisson", label: "une boisson", cats: ["Boissons"] }
+/* Les moments d'un repas, dans l'ordre. `nom` présente la structure à remplir
+   sur un menu vide ; `label` sert quand on signale un manque en cours de route. */
+const MOMENTS = [
+  { id: "apero", nom: "Apéro", label: "un apéro", cats: ["Apéro"] },
+  { id: "table", nom: "À table", label: "de quoi se mettre à table", cats: MOMENT_TABLE },
+  { id: "dessert", nom: "Dessert", label: "un dessert", cats: ["Desserts"] },
+  { id: "boisson", nom: "Boisson", label: "une boisson", cats: ["Boissons"] }
 ];
 
-/* Où envoyer : la première catégorie du moment qui a effectivement des recettes.
-   Sans quoi on proposerait un rayon vide. */
-const catDuMoment = x => x.cats.find(c => RECIPES.some(r => r.category === c));
+/* Ce qu'on propose de compléter — jamais l'apéro : un repas sans apéro est
+   complet, un repas sans rien à table ne l'est pas. On signale un trou, pas
+   une absence de luxe. (Sur un menu vide, en revanche, l'apéro a sa place :
+   on n'y signale aucun manque, on ouvre une porte.) */
+const MOMENTS_A_COMBLER = MOMENTS.filter(x => x.id !== "apero");
+
+const nbRecettes = cats => RECIPES.filter(r => cats.includes(r.category)).length;
+
+/* Où envoyer : la catégorie la mieux fournie du moment. Prendre la première
+   venue enverrait « à table » sur l'unique entrée du carnet plutôt que sur ses
+   quatre salades. */
+function catDuMoment(x) {
+  return x.cats
+    .filter(c => RECIPES.some(r => r.category === c))
+    .sort((a, b) => nbRecettes([b]) - nbRecettes([a]))[0];
+}
 
 function momentsManquants() {
   if (state.hintMenuOff || !menuLooksLikeMeal()) return [];
@@ -1508,16 +1521,43 @@ function fmtClock(sec) {
 function renderMenu() {
   const list = menuRecipes();
 
+  /* Menu vide : la page blanche est le seul endroit où proposer la structure
+     entière soit juste. Rien n'a encore été choisi, donc rien ne peut être
+     contredit — on ouvre des portes, on ne signale aucun manque. Dès qu'une
+     recette entre, ce squelette disparaît et le carnet retrouve sa réserve. */
   if (!list.length) {
+    const moments = MOMENTS.filter(m => catDuMoment(m));
     app.innerHTML = `
+      <div id="menu-root">
       <header class="page-head courses-head fade-in">
         <div class="head-branch">${ILLO.D.olive}</div>
         <h1>Au menu</h1>
       </header>
       <div class="empty-illo cheers">${ILLO.D.cheers}</div>
-      <p class="empty">Aucune recette au menu.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : tu la retrouveras ici d'un geste, et ses ingrédients rejoindront la liste de courses.</p>
-      <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir les recettes</a></div>
+      <p class="empty">Rien encore au menu.<br>Un repas se compose souvent comme ça — touche un moment pour aller y choisir.</p>
+      <div class="squelette">
+        ${moments.map(m => {
+          const cat = catDuMoment(m);
+          /* Le compte est celui de la page où l'on atterrit, pas celui du
+             moment entier : annoncer six plats pour n'en montrer que quatre
+             ferait chercher les deux autres. Les catégories voisines du
+             moment restent à un doigt, dans les filtres de l'accueil. */
+          const n = nbRecettes([cat]);
+          return `<button class="sq-row" data-moment="${cat}">
+            <span class="sq-nom">${m.nom}</span>
+            <span class="sq-n">${n} recette${n > 1 ? "s" : ""}</span>
+            ${ICON.chev}
+          </button>`;
+        }).join("")}
+      </div>
+      <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>
+      <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir toutes les recettes</a></div>
+      </div>
     `;
+    document.getElementById("menu-root").addEventListener("click", e => {
+      const mom = e.target.closest("[data-moment]");
+      if (mom) { state.filter = mom.dataset.moment; save(); location.hash = "#/"; }
+    });
     return;
   }
 
