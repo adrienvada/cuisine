@@ -109,7 +109,7 @@ const VERDICTS = [
 const FAV_FILTER = "coup-de-coeur";
 
 /* Ordre des catégories dans les filtres : celui d'un repas, boissons en dernier. */
-const CATEGORY_ORDER = ["Apéro", "Entrées", "Soupes", "Salades", "Sauces", "Desserts", "Boissons"];
+const CATEGORY_ORDER = ["Apéro", "Entrées", "Soupes", "Salades", "Plats", "Sauces", "Desserts", "Boissons"];
 const byCategoryOrder = (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b);
 
 const verdictOf = r => state.notes[r.id] || null;

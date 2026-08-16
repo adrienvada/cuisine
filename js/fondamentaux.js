@@ -364,6 +364,35 @@ const FONDAMENTAUX = [
     source: "Harold McGee, On Food and Cooking, chapitre sur les glucides et l'amidon."
   },
   {
+    id: "coagulation-oeuf",
+    t: "La coagulation de l'œuf",
+    emoji: "🍮",
+    famille: "Textures & liaisons",
+    accroche: "Un œuf battu passe du liquide au solide sur une plage de température précise : trop court, il coule ; trop loin au-delà, il ne prend plus, il rend son eau.",
+    pourquoi: "L'œuf est une solution de protéines repliées sur elles-mêmes. La chaleur les dénature : chacune se déplie, expose des zones qui s'accrochaient à l'eau, et ces zones se lient entre protéines voisines. Le résultat est un réseau qui emprisonne l'eau au lieu de la laisser libre — c'est la coagulation, et c'est elle qui solidifie un blanc, un jaune, ou tout appareil qui en contient.\n\nCe réseau ne se forme pas d'un coup à une température fixe : chaque protéine a son propre seuil, et le blanc, qui en contient plusieurs familles, prend donc progressivement entre 60 et 80 °C — trouble et laiteux dès 63 °C, ferme vers 70 °C. Le jaune, plus riche en lipoprotéines, prend un peu plus haut, vers 65-70 °C, et reste crémeux plus longtemps. Diluer l'œuf change tout : moins de protéines par volume signifie moins de rencontres entre elles, donc un réseau qui a besoin de plus de chaleur pour se former. Un appareil à quiche ou un flan, coupé de crème ou de lait, ne prend ainsi qu'entre 80 et 85 °C — bien après l'œuf seul.\n\nAu-delà, le réseau continue de se resserrer : les liaisons se multiplient, la maille se rétracte, et elle expulse l'eau qu'elle retenait. C'est la surcuisson — grain, petits trous, flaque laiteuse en surface — et elle est irréversible : aucune cuisson ne redonne au réseau sa maille d'origine.",
+    certitude: "etabli",
+    cas: [
+      { q: "Pourquoi un appareil à quiche prend-il à une température plus haute qu'un œuf seul ?",
+        r: "Parce que la crème ou le lait dilue les protéines de l'œuf. Moins concentrées, elles se rencontrent moins souvent et ont besoin de plus de chaleur pour former un réseau continu : environ 80-85 °C pour un appareil, contre 63-70 °C pour un blanc ou un jaune seuls." },
+      { q: "Comment savoir qu'une quiche ou un flan est cuit sans thermomètre ?",
+        r: "Au tremblement. Secouez doucement le plat : le centre doit encore osciller comme une gelée souple, pas comme un liquide. La chaleur accumulée dans le moule et sur les bords poursuit la cuisson plusieurs minutes après la sortie du four — c'est cette cuisson résiduelle qui termine le centre pendant le repos." },
+      { q: "Pourquoi une quiche trop cuite devient-elle grainée et rend-elle de l'eau ?",
+        r: "Le réseau de protéines, poussé au-delà de son point de prise, continue de se contracter et presse l'eau qu'il retenait hors de sa maille. Cette eau ressort en petites flaques ou en trous, et la texture passe de soyeuse à granuleuse. Rien ne rattrape une surcuisson : ni repos ni réfrigération ne redétendent le réseau." },
+      { q: "Le bain-marie, pour quoi faire ?",
+        r: "Il plafonne la chaleur reçue par le moule à la température de l'eau qui l'entoure, donc à 100 °C au plus, et amortit les à-coups du four. Précieux pour un flan ou une crème caramel démoulés, dont toute la surface doit rester lisse ; moins nécessaire pour une quiche, protégée par sa croûte et son mélange plus riche en gras, qui pardonne une marge de cuisson plus large." },
+      { q: "Blanc et jaune battus séparément cuisent-ils pareil ?",
+        r: "Non. Le blanc prend dès 63 °C et devient franchement ferme vers 70 °C ; le jaune ne fige vraiment que vers 65-70 °C mais reste crémeux plus longtemps après. C'est cet écart qui permet un jaune coulant dans un blanc pris — l'œuf mollet n'est que ce principe chronométré." }
+    ],
+    reperes: [
+      "Blanc d'œuf : trouble dès 63 °C, ferme vers 70 °C.",
+      "Jaune d'œuf : prend vers 65-70 °C, reste crémeux au-delà.",
+      "Appareil dilué (crème, lait) : quiche, flan, crème prise — prend entre 80 et 85 °C.",
+      "Au four, sortez dès que le centre tremble encore : la cuisson résiduelle fait le reste en 5 à 10 minutes de repos."
+    ],
+    piege: "Attendre que le centre ne bouge plus du tout au four. Le réseau a alors largement dépassé son point de prise : la quiche finit grainée et rend son eau en refroidissant, sans qu'aucun repos ne la rattrape.",
+    source: "Harold McGee, « On Food and Cooking », chapitre sur les œufs et la coagulation des protéines."
+  },
+  {
     id: "contraste-textures",
     t: "Le contraste de textures",
     emoji: "🥄",

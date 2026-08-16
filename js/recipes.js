@@ -1255,6 +1255,95 @@ const RECIPES = [
           shop: { label: "Citron jaune non traité" } }],
         step: { i: 2, txt: "Zestez le citron directement au-dessus du pesto fini et mélangez.", fond: "huiles-essentielles" } }
     ]
+  },
+
+  {
+    id: "quiche-lorraine",
+    title: "Quiche lorraine",
+    subtitle: "Croustillante et fondante, généreuse en lardons et en gruyère",
+    category: "Plats",
+    tags: ["four", "réconfortant", "complet"],
+    emoji: "🥧",
+    color: "#D9A24C",
+    times: { prep: 15, cuisson: 57 },
+    portions: { base: 6, label: "personnes" },
+    note: "Se garde 2 à 3 jours au réfrigérateur, filmée. Se réchauffe très bien au four (10 min à 180 °C) ; se congèle aussi, déjà cuite, en parts individuelles.",
+    ingredients: [
+      { name: "Lardons fumés", qty: 200, unit: "g", rayon: "Produits frais", cid: "lardons",
+        shop: { label: "Lardons fumés", note: "poitrine fumée, déjà taillée" } },
+      { name: "Gruyère râpé", qty: 100, unit: "g", rayon: "Produits frais", cid: "gruyere" },
+      { name: "Œufs", qty: 4, unit: "", rayon: "Produits frais", cid: "oeufs",
+        shop: { label: "Œufs frais" } },
+      { name: "Crème liquide entière", qty: 30, unit: "cl", rayon: "Produits frais", cid: "creme-liquide" },
+      { name: "Muscade", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "muscade",
+        shop: { label: "Noix de muscade" } },
+      { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+        shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "pate", label: "La pâte",
+      options: [
+        { id: "industrielle", label: "Pâte du commerce", emoji: "🛒",
+          ingredients: [
+            { name: "Pâte brisée pur beurre", qty: 1, unit: "rouleau", rayon: "Produits frais", cid: "pate-brisee",
+              shop: { label: "Pâte brisée pur beurre", note: "rayon frais, prête à dérouler" } }
+          ],
+          step: { t: "Pâte du commerce",
+            txt: "Déroulez la pâte et foncez-en le moule à tarte (26-28 cm), en laissant un léger surplus sur les bords : il se rétractera un peu à la cuisson.",
+            tip: { t: "Astuce du chef", txt: "Choisissez une pâte « pur beurre » plutôt qu'une pâte à base de matière grasse végétale : elle dore mieux et a nettement plus de goût." } } },
+        { id: "maison", label: "Maison", emoji: "🌾",
+          ingredients: [
+            { name: "Farine T55", qty: 250, unit: "g", rayon: "Épicerie", cid: "farine" },
+            { name: "Beurre bien froid", qty: 125, unit: "g", note: "en dés", rayon: "Produits frais", cid: "beurre",
+              shop: { label: "Beurre doux" } },
+            { name: "Sel fin", qty: 4, unit: "g", rayon: "Assaisonnements", cid: "sel-fin" },
+            { name: "Eau très froide", qty: 6, unit: "cl", course: false }
+          ],
+          step: { t: "Pâte maison",
+            txt: "Du bout des doigts, sablez la farine, le sel et le beurre bien froid en dés jusqu'à une texture de sable grossier. Ajoutez l'eau très froide petit à petit et rassemblez la pâte sans pétrir. Formez un disque, filmez et réservez 30 min au frais, puis étalez-la et foncez-en le moule à tarte (26-28 cm).",
+            fond: ["gluten", "froid-raffermit"], timer: 30,
+            tip: { t: "Astuce du chef", txt: "Travaillez la pâte le moins possible, avec le bout des doigts plutôt que la paume : elle doit juste se tenir, jamais devenir lisse et élastique." } } }
+      ]
+    }],
+    steps: [
+      { choice: "pate" },
+      {
+        t: "Cuisson à blanc",
+        txt: "Piquez généreusement le fond à la fourchette, garnissez de papier cuisson et de légumes secs pour le lester, et enfournez à 180 °C pendant 15 minutes. Retirez le papier et le lest, puis prolongez 5 minutes à découvert pour sécher le fond.",
+        timer: 20,
+        tip: { t: "Astuce du chef", txt: "Piquez vraiment partout, bords compris : la moindre poche d'air non percée se soulève à la cuisson et déforme le fond." }
+      },
+      {
+        t: "Les lardons",
+        txt: "Pendant la précuisson, faites dorer les lardons à sec dans une poêle, à feu moyen, sans matière grasse ajoutée, pendant 5 minutes.",
+        fond: ["maillard", "eau-coloration"], timer: 5,
+        tip: { t: "Astuce du chef", txt: "S'ils sortent d'un sachet sous vide, épongez-les avant de les saisir : ils rendent moins d'eau et dorent au lieu de bouillir." }
+      },
+      {
+        t: "L'appareil",
+        txt: "Fouettez les œufs avec la crème liquide, la muscade râpée, le sel et le poivre, juste assez pour homogénéiser.",
+        fond: "epices-gras",
+        tip: { t: "Astuce du chef", txt: "N'insistez pas au fouet : trop d'air incorporé remonte en petites bulles à la cuisson et grêle la surface au lieu de la laisser lisse." }
+      },
+      {
+        t: "Montage et cuisson",
+        txt: "Répartissez les lardons et le gruyère râpé sur le fond précuit, versez l'appareil par-dessus et enfournez à 180 °C pendant 30 à 35 minutes, jusqu'à ce que la quiche soit dorée et que le centre tremble encore légèrement.",
+        fond: ["maillard", "coagulation-oeuf"], timer: 32,
+        tip: { t: "Astuce du chef", txt: "Sortez-la dès que le centre tremble encore comme une gelée souple : elle continue de cuire hors du four, et c'est ce dernier degré qui sépare un appareil soyeux d'un appareil grainé." }
+      }
+    ],
+    addons: [
+      { id: "comte", label: "Comté râpé", emoji: "🧀",
+        ingredients: [{ name: "Comté râpé", qty: 50, unit: "g", rayon: "Produits frais", cid: "comte" }],
+        step: { i: 4, txt: "Remplacez tout ou partie du gruyère par du comté râpé, plus corsé." } },
+      { id: "reblochon", label: "Reblochon", emoji: "🏔️",
+        ingredients: [{ name: "Reblochon", qty: 100, unit: "g", note: "en tranches", rayon: "Produits frais", cid: "reblochon",
+          shop: { label: "Reblochon fermier ou laitier" } }],
+        step: { i: 4, txt: "Posez quelques tranches de reblochon sur l'appareil juste avant d'enfourner : il fond en surface pour un résultat plus corsé et plus gourmand." } },
+      { id: "oignon", label: "Oignon", emoji: "🧅",
+        ingredients: [{ name: "Oignon jaune", qty: 1, unit: "", note: "émincé", rayon: "Fruits, légumes & herbes", cid: "oignon" }],
+        step: { i: 2, txt: "Ajoutez l'oignon émincé aux lardons dans la poêle et laissez-le suer et blondir avec eux." } }
+    ]
   }
 ];
 
