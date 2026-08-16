@@ -1494,9 +1494,9 @@ function renderFondamentaux() {
 
 function renderFondamental(f) {
   app.innerHTML = `
-    <div class="r-nav">
-      <a class="back" href="#/fondamentaux">${ICON.back} Savoirs</a>
-      <button class="icon-btn" id="f-share-page" aria-label="Partager ce fondamental">${ICON.share}</button>
+    <div class="topbar fade-in">
+      <a class="btn-icon" href="#/fondamentaux">${ICON.back} Savoirs</a>
+      <button class="btn-icon" id="f-share-page">${ICON.share} Partager</button>
     </div>
     <header class="f-head fade-in">
       <p class="f-fam-tag">${f.famille}</p>
