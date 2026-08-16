@@ -307,7 +307,7 @@ function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
    une salade. Les compter réveillerait le mécanisme là où on ne lui demande
    rien — c'est exactement ce qu'il ne doit jamais faire. */
 
-const MOMENT_TABLE = ["Entrées", "Soupes", "Salades"];
+const MOMENT_TABLE = ["Plats", "Entrées", "Soupes", "Salades"];
 
 function menuMoments() {
   const cats = new Set(state.menu.map(byId).filter(Boolean).map(r => r.category));
