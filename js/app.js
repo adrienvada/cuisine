@@ -149,11 +149,11 @@ function visualOf(r, eager) {
    dorée). Le champ `k` le dit explicitement — auparavant on le devinait du titre
    à l'expression régulière, si bien que renommer une astuce changeait son
    apparence en silence. */
-function tipHtml(tip) {
+function tipHtml(tip, savoirs = "") {
   const savoir = tip.k === "savoir";
-  return `<div class="tip ${savoir ? "beige" : ""}">
+  return `<div class="tip ${savoir ? "beige" : ""}${savoirs ? " a-savoirs" : ""}">
     <span class="tip-ico">${savoir ? ILLO.D.plume : ILLO.D.toque}</span>
-    <div class="tip-body"><b>${tip.t}</b>${tip.txt}</div>
+    <div class="tip-body"><b>${tip.t}</b>${tip.txt}${savoirs}</div>
   </div>`;
 }
 
@@ -378,21 +378,30 @@ const CERTITUDES = {
   empirique: { l: "Empirique", d: "Le geste marche, le mécanisme n'est pas élucidé." }
 };
 
-/* Pastilles posées sous l'astuce. Un bouton étroit, jamais l'encadré entier :
-   en cuisine, la plus grande cible de l'écran ne doit pas être celle qui ouvre
-   une lecture qu'on n'a pas demandée. */
-const fondChipsHtml = o => {
+/* Le savoir se découvre en touchant l'astuce, il ne s'impose pas. Une pastille
+   permanente sous chaque astuce prenait autant de place que l'astuce elle-même
+   et alourdissait la lecture d'une étape. L'appel est donc une simple ligne,
+   dans l'encre du titre de l'astuce, et l'appui ne fait que RÉVÉLER le lien —
+   il n'ouvre rien. Un doigt posé par mégarde en cuisinant ne coûte donc pas
+   une lecture qu'on n'a pas demandée, seulement une ligne à replier. */
+const savoirsHtml = o => {
   const list = fondsDe(o);
   if (!list.length) return "";
-  return `<div class="fond-row">${list.map(f =>
-    `<button type="button" class="fond-chip" data-fond="${f.id}" aria-label="Comprendre : ${f.t}">
-      <span class="fc-emoji">${f.emoji}</span><span class="fc-t">${f.t}</span>${ICON.chev}
-    </button>`).join("")}</div>`;
+  return `<div class="savoirs">
+    <span class="s-cue">Pourquoi ça marche${ICON.chev}</span>
+    <div class="s-liste">${list.map(f =>
+      `<a class="s-lien" role="button" tabindex="0" data-fond="${f.id}"><span class="s-emoji">${f.emoji}</span>${f.t}${ICON.chev}</a>`).join("")}</div>
+  </div>`;
 };
 
-/* Astuce + pastilles : l'astuce reste ce qu'elle est, le mécanisme s'ajoute
-   dessous. Une étape peut n'avoir que l'un des deux. */
-const astuceHtml = s => `${s.tip ? tipHtml(s.tip) : ""}${fondChipsHtml(s)}`;
+/* L'astuce reste ce qu'elle est ; l'appel au savoir se glisse à sa suite, dans
+   le même encadré. Une étape qui met un mécanisme en jeu sans avoir d'astuce —
+   il y en a treize — porte la ligne seule. */
+const astuceHtml = s => {
+  const sav = savoirsHtml(s);
+  if (s.tip) return tipHtml(s.tip, sav);
+  return sav ? `<div class="savoirs-seuls a-savoirs">${sav}</div>` : "";
+};
 
 /* Corps d'un fondamental — le même dans la feuille et dans la page partagée :
    deux contenants, une seule vérité. */
@@ -475,13 +484,16 @@ function versionSummary(r) {
 /* Le geste d'un supplément, affiché dans l'étape concernée.
    En mode cuisine (`cuisine`), un supplément minuté reçoit sa propre zone de
    compte à rebours ; la fiche recette, elle, ne propose jamais de minuteur. */
-const extrasHtml = (s, cuisine) => (s.extras || []).map(x => `<div class="addon-note">
-  <span class="a-emoji">${x.emoji || "✚"}</span>
-  <div class="a-body"><b>${x.label}</b>${x.txt}
-    ${fondChipsHtml(x)}
-    ${cuisine && x.timer ? `<div class="addon-timer" data-slot="${x.id}"></div>` : ""}
-  </div>
-</div>`).join("");
+const extrasHtml = (s, cuisine) => (s.extras || []).map(x => {
+  const sav = savoirsHtml(x);
+  return `<div class="addon-note${sav ? " a-savoirs" : ""}">
+    <span class="a-emoji">${x.emoji || "✚"}</span>
+    <div class="a-body"><b>${x.label}</b>${x.txt}
+      ${sav}
+      ${cuisine && x.timer ? `<div class="addon-timer" data-slot="${x.id}"></div>` : ""}
+    </div>
+  </div>`;
+}).join("");
 
 /* Chips de sélection, partagées entre la page recette et la sheet d'ajout. */
 const pickChipsHtml = r => `
@@ -1702,11 +1714,17 @@ document.getElementById("timer-tray").addEventListener("click", e => {
   else location.hash = target;
 });
 
-/* Une pastille de fondamental peut être n'importe où — fiche, mode cuisine,
-   note de supplément. Un seul écouteur délégué plutôt qu'un par rendu. */
+/* Un appel au savoir peut être n'importe où — fiche, mode cuisine, note de
+   supplément. Un seul écouteur délégué plutôt qu'un par rendu.
+   Deux gestes distincts : toucher l'astuce déplie la ligne, toucher la ligne
+   ouvre la fiche. Le premier ne fait jamais le second. */
 document.body.addEventListener("click", e => {
-  const chip = e.target.closest("[data-fond]");
-  if (chip) { e.preventDefault(); openFondSheet(chip.dataset.fond); }
+  const lien = e.target.closest("[data-fond]");
+  if (lien) { e.preventDefault(); return openFondSheet(lien.dataset.fond); }
+  // Un bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
+  if (e.target.closest("button")) return;
+  const porteur = e.target.closest(".a-savoirs");
+  if (porteur) porteur.classList.toggle("ouvert");
 });
 
 if ("serviceWorker" in navigator) {
