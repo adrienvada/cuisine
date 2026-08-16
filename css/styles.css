@@ -1030,6 +1030,41 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 
 .course-list .cnote { display: block; font-size: 12.5px; color: var(--muted); }
 
+/* ---------- La structure d'un repas, sur un menu vide ----------
+   Même pointillé que les suggestions : ce sont des places à prendre, pas des
+   cases à cocher. */
+
+.squelette { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 14px; }
+
+.sq-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px dashed var(--line);
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--ink);
+}
+
+.sq-row:active { background: var(--green-tint); border-style: solid; }
+
+.sq-nom { flex: 1; font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); }
+
+.sq-n { font-size: 12.5px; color: var(--muted); }
+
+.sq-row > svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+
+.sq-libre {
+  margin: 0 0 18px;
+  text-align: center;
+  font-family: var(--script);
+  font-size: 18px;
+  color: var(--muted);
+}
+
 /* ---------- Ce qui manque au repas ----------
    Un mot glissé en bas de page, jamais un encadré : la suggestion doit peser
    moins que ce qu'elle signale. Le pointillé dit « pas encore là » sans avoir
