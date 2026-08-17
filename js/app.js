@@ -832,6 +832,31 @@ function onShareClick(e) {
   shareRecipe(b.dataset.share);
 }
 
+/* Icône de partage : un battement avant l'action, sur tous les boutons de
+   partage du carnet (vignette, page recette, mode cuisine, menu, savoirs,
+   liste de courses). Purement décoratif — l'action suit son cours normal. */
+document.addEventListener("pointerdown", e => {
+  if (REDUCE_MOTION.matches) return;
+  const b = e.target.closest('[data-share], #share-recipe, #cook-share, #share-menu, #f-share, #f-share-page, #share');
+  if (!b) return;
+  const icon = b.querySelector("svg");
+  if (!icon) return;
+  icon.classList.remove("share-pulse");
+  void icon.offsetWidth;
+  icon.classList.add("share-pulse");
+});
+
+/* Loupe qui tourne pendant la frappe, dans n'importe quelle barre de recherche. */
+document.addEventListener("input", e => {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement) || input.type !== "search") return;
+  const bar = input.closest(".searchbar");
+  if (!bar || REDUCE_MOTION.matches) return;
+  bar.classList.add("typing");
+  clearTimeout(bar._typingTimer);
+  bar._typingTimer = setTimeout(() => bar.classList.remove("typing"), 500);
+});
+
 /* ---------- Routage ---------- */
 
 window.addEventListener("hashchange", route);
@@ -944,6 +969,11 @@ function renderHome() {
     if (!b) return;
     state.filter = b.dataset.cat; save();
     document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+    if (!REDUCE_MOTION.matches) {
+      b.classList.remove("pop");
+      void b.offsetWidth;
+      b.classList.add("pop");
+    }
     applyFilter(true);
   });
   document.getElementById("grid").addEventListener("click", onShareClick);
@@ -984,6 +1014,29 @@ function cardHtml(r) {
 }
 
 const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)");
+
+/* Coup de cœur activé : le cœur du bouton bat, et 2-3 petits cœurs
+   s'échappent vers le haut en s'estompant, façon double-tap Instagram. */
+function burstHeart(btn) {
+  if (REDUCE_MOTION.matches) return;
+  const heart = btn.querySelector(".vb-heart");
+  if (heart) {
+    heart.classList.remove("pop");
+    void heart.offsetWidth;
+    heart.classList.add("pop");
+  }
+  const n = 2 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("span");
+    p.className = "heart-particle";
+    p.textContent = "♥";
+    p.style.left = (38 + Math.random() * 24) + "%";
+    p.style.setProperty("--dx", (Math.random() * 44 - 22) + "px");
+    p.style.animationDelay = (i * 70) + "ms";
+    btn.appendChild(p);
+    p.addEventListener("animationend", () => p.remove());
+  }
+}
 
 /* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée. */
 function finishLeave(el) {
@@ -1239,7 +1292,7 @@ function renderRecipe(r) {
   const drawVerdict = () => {
     const cur = verdictOf(r);
     document.getElementById("verdict-row").innerHTML = VERDICTS.map(v => `
-      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}">${v.label}</button>
+      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}"><span class="vb-heart">♥</span> ${v.label.replace(/^♥\s*/, "")}</button>
     `).join("");
     document.getElementById("cooked-line").textContent = cookedText(r.id);
   };
@@ -1248,7 +1301,8 @@ function renderRecipe(r) {
     const b = e.target.closest("[data-verdict]");
     if (!b) return;
     const v = b.dataset.verdict;
-    if (state.notes[r.id] === v) {
+    const activating = state.notes[r.id] !== v;
+    if (!activating) {
       delete state.notes[r.id];
       toast("Coup de cœur retiré");
     } else {
@@ -1256,6 +1310,10 @@ function renderRecipe(r) {
       toast("Un coup de cœur de plus ♥");
     }
     save(); drawVerdict();
+    if (activating) {
+      const btn = document.querySelector(`#verdict-row [data-verdict="${v}"]`);
+      if (btn) burstHeart(btn);
+    }
   });
 
   drawVersion();

@@ -214,7 +214,11 @@ a { color: var(--green); }
   margin: 18px 0 12px;
 }
 
-.searchbar svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.searchbar svg { width: 18px; height: 18px; color: var(--muted); flex: none; transform-box: fill-box; transform-origin: center; }
+
+/* Loupe qui tourne pendant la frappe. */
+.searchbar.typing svg { animation: spin-loupe 0.6s linear infinite; }
+@keyframes spin-loupe { to { transform: rotate(360deg); } }
 
 .searchbar input {
   flex: 1;
@@ -232,6 +236,7 @@ a { color: var(--green); }
 .chips::-webkit-scrollbar { display: none; }
 
 .chip {
+  position: relative;
   flex: none;
   border: 1px solid var(--line);
   background: var(--card);
@@ -243,6 +248,32 @@ a { color: var(--green); }
 }
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
+
+/* Sélection d'une chip : petit rebond exagéré, et une feuille qui saute
+   par-dessus avant de retomber en fondu. */
+.chip.pop { animation: chip-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes chip-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16); }
+  65% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+
+.chip.pop::after {
+  content: "🌿";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  font-size: 14px;
+  line-height: 1;
+  pointer-events: none;
+  animation: leaf-jump 0.55s ease forwards;
+}
+@keyframes leaf-jump {
+  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.6) rotate(-12deg); }
+  35% { opacity: 1; transform: translate(-50%, -16px) scale(1.05) rotate(10deg); }
+  100% { opacity: 0; transform: translate(-50%, -26px) scale(0.9) rotate(0deg); }
+}
 
 .grid {
   display: grid;
@@ -350,6 +381,15 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 .card .visual .card-share svg { width: 15px; height: 15px; }
 
 .card-share:active { transform: scale(0.9); background: var(--green-tint); }
+
+/* Icône de partage : un battement avant l'action, où qu'elle apparaisse. */
+.share-pulse { animation: share-pulse 0.4s ease; transform-box: fill-box; transform-origin: center; }
+@keyframes share-pulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  55% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
 
 .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; flex: 1; }
 
@@ -656,6 +696,8 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 .verdict-row { display: flex; gap: 8px; margin-top: 12px; }
 
 .verdict-btn {
+  position: relative;
+  overflow: visible;
   flex: 1;
   border: 1px solid var(--line);
   background: var(--card);
@@ -670,6 +712,31 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 .verdict-btn:active { transform: scale(0.96); }
 
 .verdict-btn.on.v-encore { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.22); }
+
+/* Le cœur du bouton bat à l'activation, façon double-tap. */
+.vb-heart { display: inline-block; transform-box: fill-box; transform-origin: center; }
+.vb-heart.pop { animation: heart-pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.5); }
+  55% { transform: scale(0.85); }
+  75% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Petits cœurs qui s'échappent du bouton et se dissipent vers le haut. */
+.heart-particle {
+  position: absolute;
+  bottom: 55%;
+  color: var(--terra);
+  font-size: 14px;
+  pointer-events: none;
+  animation: heart-float 0.9s ease-out forwards;
+}
+@keyframes heart-float {
+  0% { opacity: 1; transform: translate(0, 0) scale(0.8); }
+  100% { opacity: 0; transform: translate(var(--dx, 0), -46px) scale(1.1); }
+}
 
 .cooked-line {
   margin: 12px 0 0;
@@ -1653,3 +1720,12 @@ body.cooking .addon-note {
 
 html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 html[data-theme="dark"] .f-cert-empirique { background: #3A2A20; color: #E6B48D; }
+
+/* Les déclencheurs JS respectent déjà prefers-reduced-motion (REDUCE_MOTION) ;
+   filet de sécurité côté CSS pur pour ces animations décoratives. */
+@media (prefers-reduced-motion: reduce) {
+  .share-pulse, .searchbar.typing svg, .chip.pop, .chip.pop::after,
+  .vb-heart.pop, .heart-particle {
+    animation: none !important;
+  }
+}
