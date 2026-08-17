@@ -1030,9 +1030,17 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 
 .course-list .cnote { display: block; font-size: 12.5px; color: var(--muted); }
 
-/* ---------- La structure d'un repas, sur un menu vide ----------
-   Même pointillé que les suggestions : ce sont des places à prendre, pas des
-   cases à cocher. */
+/* ---------- La structure d'un repas ----------
+   Toujours présente sur « Au menu », vide ou pas : mêmes quatre moments,
+   cliquables comme un raccourci vers l'accueil filtré. Le pointillé dit
+   « place à prendre », jamais « case à cocher ». */
+
+.sq-label {
+  margin: 20px 2px 8px;
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
 
 .squelette { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 14px; }
 
@@ -1065,7 +1073,7 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
   color: var(--muted);
 }
 
-/* ---------- Ce qui manque au repas ----------
+/* ---------- Ce qui manque au repas (liste de courses : le pain) ----------
    Un mot glissé en bas de page, jamais un encadré : la suggestion doit peser
    moins que ce qu'elle signale. Le pointillé dit « pas encore là » sans avoir
    à l'écrire. */
