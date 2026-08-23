@@ -603,7 +603,7 @@ const RECIPES = [
       },
       {
         t: "Pâte à beignet express",
-        txt: "Fouettez la farine, la levure, l'œuf et incorporez l'eau gazeuse glacée progressivement jusqu'à consistance d'une pâte à crêpe épaisse.", fond: ["gluten","friture"],
+        txt: "Fouettez la farine, la levure, l'œuf et incorporez l'eau gazeuse glacée progressivement jusqu'à consistance d'une pâte à crêpe épaisse.", fond: ["gluten","friture","levure-chimique"],
         tip: { t: "Astuce du chef", txt: "Versez l'eau glacée en filet et arrêtez-vous dès que la pâte nappe la cuillère, à peine plus épaisse qu'une pâte à crêpe. Froide et peu travaillée, elle frit friable au lieu d'élastique." }
       },
       {
@@ -1408,6 +1408,80 @@ const RECIPES = [
       { id: "ail", label: "Ail", emoji: "🧄",
         ingredients: [{ name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits, légumes & herbes", cid: "ail" }],
         step: { i: 1, txt: "Ajoutez l'ail finement émincé avec le poivre, une trentaine de secondes avant la fin : juste de quoi parfumer le gras sans qu'il ait le temps de brûler et de devenir amer." } }
+    ]
+  },
+
+  {
+    id: "cake-sale",
+    title: "Cake salé",
+    subtitle: "Moelleux et parfumé, à composer selon la garniture",
+    category: "Apéro",
+    tags: ["four", "de base", "convivial"],
+    emoji: "🍰",
+    color: "#C8935A",
+    times: { prep: 15, cuisson: 50 },
+    portions: { base: 6, label: "personnes" },
+    note: "Se garde 3 à 4 jours à température ambiante, filmé — souvent meilleur le lendemain, une fois les saveurs installées. Se congèle très bien, entier ou en tranches, jusqu'à 2 mois.",
+    ingredients: [
+      { name: "Farine", qty: 150, unit: "g", rayon: "Épicerie", cid: "farine" },
+      { name: "Levure chimique", qty: 1, unit: "sachet", rayon: "Épicerie", cid: "levure-chimique",
+        shop: { label: "Levure chimique", qty: 1, unit: "sachet" } },
+      { name: "Œufs", qty: 3, unit: "", rayon: "Produits frais", cid: "oeufs",
+        shop: { label: "Œufs frais" } },
+      { name: "Lait", qty: 10, unit: "cl", rayon: "Produits frais", cid: "lait" },
+      { name: "Huile neutre", qty: 8, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Épicerie", cid: "huile-neutre" },
+      { name: "Sel et poivre", qty: null, rayon: "Assaisonnements", cid: "sel-poivre" }
+    ],
+    choices: [{
+      id: "garniture", label: "La garniture",
+      options: [
+        { id: "lardons-comte", label: "Lardons & comté", emoji: "🥓",
+          ingredients: [
+            { name: "Lardons fumés", qty: 150, unit: "g", rayon: "Produits frais", cid: "lardons",
+              shop: { label: "Lardons fumés", note: "poitrine fumée, déjà taillée" } },
+            { name: "Comté râpé", qty: 100, unit: "g", rayon: "Produits frais", cid: "comte" }
+          ],
+          step: { t: "Lardons & comté",
+            txt: "Faites dorer les lardons à sec dans une poêle, à feu moyen, pendant 5 minutes, puis laissez-les tiédir avant de les incorporer à la pâte avec le comté râpé.",
+            fond: ["maillard", "eau-coloration"], timer: 5,
+            tip: { t: "Astuce du chef", txt: "S'ils sortent d'un sachet sous vide, épongez les lardons avant de les saisir : ils dorent au lieu de rendre leur eau." } } },
+        { id: "olives-feta", label: "Olives & feta", emoji: "🫒",
+          ingredients: [
+            { name: "Olives noires", qty: 100, unit: "g", note: "dénoyautées, grossièrement hachées", rayon: "Épicerie", cid: "olives" },
+            { name: "Feta", qty: 150, unit: "g", note: "coupée en petits dés", rayon: "Produits frais", cid: "feta" }
+          ],
+          step: { t: "Olives & feta",
+            txt: "Hachez grossièrement les olives et coupez la feta en petits dés, puis incorporez le tout à la pâte.",
+            tip: { t: "Astuce du chef", txt: "Égouttez bien les olives et la feta avant de les couper : leur liquide de conservation détremperait la pâte." } } },
+        { id: "saumon-aneth", label: "Saumon fumé & aneth", emoji: "🐟",
+          ingredients: [
+            { name: "Saumon fumé", qty: 150, unit: "g", note: "coupé en lanières", rayon: "Produits frais", cid: "saumon-fume",
+              shop: { label: "Saumon fumé" } },
+            { name: "Aneth frais", qty: 0.5, unit: "bouquet", rayon: "Fruits, légumes & herbes", cid: "aneth",
+              shop: { label: "Aneth frais", qty: 1, unit: "bouquet" } },
+            { name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits, légumes & herbes", cid: "citron",
+              shop: { label: "Citron jaune non traité" } }
+          ],
+          step: { t: "Saumon fumé & aneth",
+            txt: "Coupez le saumon fumé en lanières et ciselez l'aneth, puis incorporez le tout à la pâte avec le zeste de citron.",
+            fond: "huiles-essentielles",
+            tip: { t: "Astuce du chef", txt: "Zestez le citron directement au-dessus du bol : le parfum tombe droit dans la pâte plutôt que de s'évaporer sur la planche." } } }
+      ]
+    }],
+    steps: [
+      {
+        t: "La pâte",
+        txt: "Fouettez les œufs avec le sel et le poivre jusqu'à ce que le mélange mousse légèrement. Incorporez la farine tamisée avec la levure chimique, puis versez le lait et l'huile en alternant, en mélangeant juste assez pour obtenir une pâte lisse.",
+        fond: "gluten",
+        tip: { t: "Astuce du chef", txt: "Réservez une cuillère à soupe de farine à part : quelle que soit la garniture choisie, l'y enrober juste avant de l'incorporer l'empêche de tomber au fond du moule à la cuisson." }
+      },
+      { choice: "garniture" },
+      {
+        t: "Cuisson",
+        txt: "Versez la pâte dans un moule à cake beurré et fariné, et enfournez aussitôt à 180 °C pendant 45 minutes, jusqu'à ce que le dessus soit bien doré et qu'une lame ressorte sèche.",
+        fond: ["maillard", "levure-chimique"], timer: 45,
+        tip: { t: "Astuce du chef", txt: "Ne laissez pas la pâte attendre une fois montée : la levure chimique commence déjà à travailler au contact du liquide, et chaque minute perdue avant le four, c'est un peu moins de gonflant à la cuisson." }
+      }
     ]
   }
 ];

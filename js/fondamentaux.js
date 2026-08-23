@@ -393,6 +393,35 @@ const FONDAMENTAUX = [
     source: "Harold McGee, « On Food and Cooking », chapitre sur les œufs et la coagulation des protéines."
   },
   {
+    id: "levure-chimique",
+    t: "La levure chimique",
+    emoji: "🎈",
+    famille: "Textures & liaisons",
+    accroche: "Une poudre blanche qui libère du gaz carbonique au contact de l'eau et de la chaleur : c'est elle qui fait lever un cake ou une pâte à beignet sans une seule minute de pétrissage.",
+    pourquoi: "La levure chimique associe dans une même poudre un bicarbonate (la base) et un ou plusieurs sels acides — le plus souvent du phosphate acide de calcium ou du pyrophosphate acide de sodium — séparés à sec par de la fécule de maïs, qui absorbe aussi l'humidité ambiante pour empêcher toute réaction avant l'ouverture du sachet.\n\nAu contact d'un liquide, l'acide et la base se dissolvent et réagissent en libérant du gaz carbonique. La plupart des levures vendues en France sont dites « à double action » : une petite part de l'acide réagit dès l'hydratation, à température ambiante — d'où les premières bulles dans une pâte qu'on laisse reposer — mais l'essentiel du gaz n'est libéré qu'à la chaleur du four, à partir d'environ 40 à 50 °C selon la formulation. C'est cette seconde vague, la plus généreuse, qui donne l'essentiel du gonflant.\n\nÀ la différence de la levure boulangère, organisme vivant qui fermente lentement et parfume la pâte, la levure chimique est une réaction chimique instantanée, sans saveur propre ni activité biologique : elle ne demande aucun temps de pousse, seulement un four chaud.",
+    certitude: "etabli",
+    cas: [
+      { q: "Faut-il enfourner tout de suite une fois la pâte prête ?",
+        r: "Oui, dans l'idéal. Dès l'hydratation, une partie du gaz s'échappe déjà à température ambiante : plus la pâte attend avant le four, plus elle en a perdu, et moins elle lève. C'est l'inverse d'une pâte à la levure boulangère, qui veut au contraire du repos." },
+      { q: "Pourquoi ne pas trop travailler une pâte à la levure chimique ?",
+        r: "Deux raisons se cumulent. Le fouettage prolongé chasse une partie du gaz déjà formé. Et comme pour toute pâte peu pétrie, trop mélanger développe aussi le réseau de gluten de la farine, qui durcit la mie au lieu de la laisser moelleuse." },
+      { q: "Levure chimique et bicarbonate de soude, est-ce la même chose ?",
+        r: "Non. Le bicarbonate seul est une base pure, sans acide intégré : il a besoin d'un ingrédient acide dans la recette — yaourt, miel, cacao, jus de citron — pour réagir complètement, sinon il laisse un goût métallique et fait moins lever. La levure chimique embarque déjà son propre acide et fonctionne dans n'importe quelle pâte, acide ou non." },
+      { q: "Pourquoi une levure chimique perd-elle son pouvoir avec le temps ?",
+        r: "L'humidité de l'air finit par déclencher une petite réaction à chaque ouverture du sachet, qui consomme peu à peu l'acide et la base disponibles. Un sachet entamé depuis plusieurs mois lève nettement moins. Pour vérifier : une pincée dans un peu d'eau chaude doit mousser aussitôt et franchement." },
+      { q: "Quelle quantité utiliser ?",
+        r: "Un repère large : environ 5 à 7 % du poids de farine, soit un sachet de 11 g pour 150 à 250 g de farine. Au-delà, le goût chimique et légèrement amer de la levure perce derrière celui de la pâte." }
+    ],
+    reperes: [
+      "Un sachet de levure chimique pèse 11 g en France, pour environ 150 à 250 g de farine selon la recette.",
+      "La réaction démarre dès l'hydratation, mais s'accélère franchement entre 40 et 50 °C au four.",
+      "Une levure ouverte depuis plus de 6 mois a perdu une bonne part de son pouvoir : testez une pincée dans l'eau chaude avant de vous y fier.",
+      "Bicarbonate seul : il lui faut un acide dans la recette (yaourt, citron, cacao) pour lever sans goût de savon."
+    ],
+    piege: "Laisser reposer une pâte à la levure chimique en pensant bien faire, comme pour une pâte levée à la levure boulangère. C'est l'inverse : le gaz déjà formé s'échappe pendant l'attente, et le cake ou les beignets lèvent moins une fois au four.",
+    source: "Harold McGee, « On Food and Cooking », chapitre sur les agents levants chimiques."
+  },
+  {
     id: "contraste-textures",
     t: "Le contraste de textures",
     emoji: "🥄",
