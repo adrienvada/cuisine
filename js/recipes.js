@@ -1517,7 +1517,8 @@ const RECIPES = [
       {
         t: "L'appareil",
         txt: "Ajoutez le sucre et mélangez. Ajoutez la farine et mélangez énergiquement pour éviter les grumeaux. Dans un bol à part, battez les œufs en omelette, puis incorporez-les à l'appareil chocolaté en mélangeant bien.",
-        tip: { t: "Geste technique", txt: "Mélangez sans excès une fois les œufs ajoutés : trop fouetter incorpore de l'air et développe le peu de gluten de la farine, au détriment du fondant recherché — l'objectif ici est une pâte dense, pas aérienne." }
+        fond: "gluten",
+        tip: { t: "Geste technique", txt: "Mélangez sans excès une fois les œufs ajoutés : le peu de farine qu'exige un mi-cuit pardonne moins qu'un cake — un tour de trop et la texture recherchée, dense et fondante, tourne au spongieux." }
       },
       {
         t: "Cuisson à double température",
@@ -1528,6 +1529,7 @@ const RECIPES = [
       {
         t: "Le démoulage",
         txt: "Laissez refroidir 10 minutes avant de démouler — c'est impératif : ce repos permet au cœur fondant de juste assez se raffermir pour tenir à la découpe sans être une pâte crue.",
+        timer: 10,
         tip: { t: "Astuce du chef", txt: "Chaque four est différent : la première fois, notez le résultat obtenu. Pour un cœur encore plus coulant, réduisez la cuisson de 2 à 3 min la prochaine fois ; pour un gâteau plus tenu, prolongez-la de 5 min." }
       }
     ]
