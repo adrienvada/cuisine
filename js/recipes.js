@@ -1483,6 +1483,17 @@ const RECIPES = [
         fond: ["maillard", "levure-chimique"], timer: 45,
         tip: { t: "Astuce du chef", txt: "Ne laissez pas la pâte attendre une fois montée : la levure chimique commence déjà à travailler au contact du liquide, et chaque minute perdue avant le four, c'est un peu moins de gonflant à la cuisson." }
       }
+    ],
+    addons: [
+      { id: "herbes-provence", label: "Herbes de Provence", emoji: "🌿",
+        ingredients: [{ name: "Herbes de Provence", qty: 1, unit: "c. à c.", rayon: "Épicerie", cid: "herbes-provence" }],
+        step: { i: 0, txt: "Incorporez les herbes de Provence à la pâte en même temps que la farine." } },
+      { id: "piment-espelette", label: "Piment d'Espelette", emoji: "🌶️",
+        ingredients: [{ name: "Piment d'Espelette", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "piment-espelette" }],
+        step: { i: 0, txt: "Ajoutez une pincée de piment d'Espelette à la pâte, pour une chaleur discrète qui relève sans jamais piquer." } },
+      { id: "graines-sesame", label: "Graines de sésame", emoji: "🌾",
+        ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "graines-sesame" }],
+        step: { i: 2, txt: "Parsemez le dessus de la pâte de graines de sésame juste avant d'enfourner : elles torréfient et craquent légèrement à la cuisson.", fond: "torrefaction" } }
     ]
   },
 
@@ -1509,6 +1520,25 @@ const RECIPES = [
       { name: "Œufs", qty: 4, unit: "", rayon: "Produits frais", cid: "oeufs",
         shop: { label: "Œufs frais" } }
     ],
+    choices: [{
+      id: "parfum", label: "Le parfum",
+      options: [
+        { id: "nature", label: "Nature", emoji: "🍫", ingredients: [],
+          step: { t: "Nature", txt: "Rien à ajouter : le chocolat seul fait le travail." } },
+        { id: "orange", label: "Zeste d'orange", emoji: "🍊",
+          ingredients: [
+            { name: "Orange non traitée", qty: 1, unit: "", note: "le zeste", rayon: "Fruits, légumes & herbes", cid: "orange",
+              shop: { label: "Orange non traitée" } }
+          ],
+          step: { t: "Zeste d'orange", txt: "Zestez l'orange directement au-dessus de l'appareil chocolaté et mélangez : le parfum se marie naturellement avec le chocolat noir.",
+            fond: "huiles-essentielles" } },
+        { id: "cafe", label: "Café", emoji: "☕",
+          ingredients: [
+            { name: "Café soluble", qty: 1, unit: "c. à c.", note: "ou un expresso serré", rayon: "Épicerie", cid: "cafe-soluble" }
+          ],
+          step: { t: "Café", txt: "Diluez le café soluble dans une cuillère à café d'eau chaude et incorporez-le à l'appareil chocolaté : il intensifie le goût du chocolat sans se faire remarquer en tant que tel." } }
+      ]
+    }],
     steps: [
       {
         t: "Le chocolat fondu",
@@ -1521,6 +1551,7 @@ const RECIPES = [
         fond: "gluten",
         tip: { t: "Geste technique", txt: "Mélangez sans excès une fois les œufs ajoutés : le peu de farine qu'exige un mi-cuit pardonne moins qu'un cake — un tour de trop et la texture recherchée, dense et fondante, tourne au spongieux." }
       },
+      { choice: "parfum" },
       {
         t: "Cuisson à double température",
         txt: "Versez la pâte dans un moule à manqué de 24-25 cm de diamètre, beurré et fariné (idéalement en silicone). Baissez le four à 150 °C et enfournez pendant 30 min.",
@@ -1533,6 +1564,17 @@ const RECIPES = [
         timer: 10,
         tip: { t: "Astuce du chef", txt: "Chaque four est différent : la première fois, notez le résultat obtenu. Pour un cœur encore plus coulant, réduisez la cuisson de 2 à 3 min la prochaine fois ; pour un gâteau plus tenu, prolongez-la de 5 min." }
       }
+    ],
+    addons: [
+      { id: "noisettes", label: "Noisettes concassées", emoji: "🌰",
+        ingredients: [{ name: "Noisettes concassées", qty: 60, unit: "g", note: "torréfiées si possible", rayon: "Épicerie", cid: "noisettes" }],
+        step: { i: 1, txt: "Incorporez les noisettes concassées à l'appareil chocolaté en même temps que les œufs.", fond: "torrefaction" } },
+      { id: "chocolat-blanc", label: "Pépites de chocolat blanc", emoji: "🤍",
+        ingredients: [{ name: "Pépites de chocolat blanc", qty: 80, unit: "g", rayon: "Épicerie", cid: "pepites-chocolat-blanc" }],
+        step: { i: 1, txt: "Incorporez les pépites de chocolat blanc à l'appareil juste avant de verser dans le moule, pour des poches fondantes et sucrées à la découpe." } },
+      { id: "fleur-de-sel", label: "Fleur de sel", emoji: "🧂",
+        ingredients: [{ name: "Fleur de sel", qty: null, qtyText: "quelques pincées", rayon: "Assaisonnements", cid: "fleur-de-sel" }],
+        step: { i: 3, txt: "Parsemez le dessus de la pâte de quelques pincées de fleur de sel juste avant d'enfourner : le contraste sucré-salé réveille le chocolat." } }
     ]
   }
 ];
