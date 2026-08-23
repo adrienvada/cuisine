@@ -5,7 +5,7 @@
 const STORE_KEY = "carnet-cuisine-v1";
 
 const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "", hintMenuOff: false, hintCoursesOff: false },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "", hintCoursesOff: false },
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
@@ -334,28 +334,21 @@ const MOMENTS = [
   { id: "boisson", nom: "Boisson", label: "une boisson", cats: ["Boissons"] }
 ];
 
-/* Ce qu'on propose de compléter — jamais l'apéro : un repas sans apéro est
-   complet, un repas sans rien à table ne l'est pas. On signale un trou, pas
-   une absence de luxe. (Sur un menu vide, en revanche, l'apéro a sa place :
-   on n'y signale aucun manque, on ouvre une porte.) */
-const MOMENTS_A_COMBLER = MOMENTS.filter(x => x.id !== "apero");
-
 const nbRecettes = cats => RECIPES.filter(r => cats.includes(r.category)).length;
 
-/* Où envoyer : la catégorie la mieux fournie du moment. Prendre la première
-   venue enverrait « à table » sur l'unique entrée du carnet plutôt que sur ses
-   quatre salades. */
+/* Où envoyer un moment qui n'a qu'une seule catégorie ; pour « à table », qui
+   en a plusieurs (Plats, Entrées, Soupes, Salades), c'est son propre id qui
+   sert de filtre — cf. inFilter — pour englober les quatre à la fois plutôt
+   que d'envoyer systématiquement sur la mieux fournie. */
 function catDuMoment(x) {
   return x.cats
     .filter(c => RECIPES.some(r => r.category === c))
     .sort((a, b) => nbRecettes([b]) - nbRecettes([a]))[0];
 }
 
-function momentsManquants() {
-  if (state.hintMenuOff || !menuLooksLikeMeal()) return [];
-  const m = menuMoments();
-  return MOMENTS_A_COMBLER.filter(x => !m[x.id] && catDuMoment(x));
-}
+/* La cible d'un clic sur une ligne de moment : l'id (filtre multi-catégories)
+   s'il y en a plusieurs, sinon directement la catégorie. */
+const cibleDuMoment = x => (x.cats.length > 1 ? x.id : catDuMoment(x));
 
 /* Ce qu'un repas suppose sans qu'aucune recette ne le porte. Le doute profite
    au silence : mieux vaut ne rien dire à tort que proposer du pain à qui a
@@ -382,7 +375,7 @@ function basiquesManquants() {
 
 /* Un menu vidé, c'est un repas qui n'a plus rien à voir avec le précédent :
    les refus qu'on avait opposés aux suggestions n'ont plus lieu d'être. */
-function resetHints() { state.hintMenuOff = false; state.hintCoursesOff = false; }
+function resetHints() { state.hintCoursesOff = false; }
 
 /* ---------- Composer sa version : choix (vinaigrette…) et suppléments ----------
    La version choisie vit dans state.choices / state.addons ; ingrédients et
@@ -839,6 +832,31 @@ function onShareClick(e) {
   shareRecipe(b.dataset.share);
 }
 
+/* Icône de partage : un battement avant l'action, sur tous les boutons de
+   partage du carnet (vignette, page recette, mode cuisine, menu, savoirs,
+   liste de courses). Purement décoratif — l'action suit son cours normal. */
+document.addEventListener("pointerdown", e => {
+  if (REDUCE_MOTION.matches) return;
+  const b = e.target.closest('[data-share], #share-recipe, #cook-share, #share-menu, #f-share, #f-share-page, #share');
+  if (!b) return;
+  const icon = b.querySelector("svg");
+  if (!icon) return;
+  icon.classList.remove("share-pulse");
+  void icon.offsetWidth;
+  icon.classList.add("share-pulse");
+});
+
+/* Loupe qui tourne pendant la frappe, dans n'importe quelle barre de recherche. */
+document.addEventListener("input", e => {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement) || input.type !== "search") return;
+  const bar = input.closest(".searchbar");
+  if (!bar || REDUCE_MOTION.matches) return;
+  bar.classList.add("typing");
+  clearTimeout(bar._typingTimer);
+  bar._typingTimer = setTimeout(() => bar.classList.remove("typing"), 500);
+});
+
 /* ---------- Routage ---------- */
 
 window.addEventListener("hashchange", route);
@@ -951,6 +969,11 @@ function renderHome() {
     if (!b) return;
     state.filter = b.dataset.cat; save();
     document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+    if (!REDUCE_MOTION.matches) {
+      b.classList.remove("pop");
+      void b.offsetWidth;
+      b.classList.add("pop");
+    }
     applyFilter(true);
   });
   document.getElementById("grid").addEventListener("click", onShareClick);
@@ -960,6 +983,7 @@ function renderHome() {
 function inFilter(r) {
   if (state.filter === "Toutes") return true;
   if (state.filter === FAV_FILTER) return isFav(r);
+  if (state.filter === "table") return MOMENT_TABLE.includes(r.category);
   return r.category === state.filter;
 }
 
@@ -991,6 +1015,29 @@ function cardHtml(r) {
 
 const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)");
 
+/* Coup de cœur activé : le cœur du bouton bat, et 2-3 petits cœurs
+   s'échappent vers le haut en s'estompant, façon double-tap Instagram. */
+function burstHeart(btn) {
+  if (REDUCE_MOTION.matches) return;
+  const heart = btn.querySelector(".vb-heart");
+  if (heart) {
+    heart.classList.remove("pop");
+    void heart.offsetWidth;
+    heart.classList.add("pop");
+  }
+  const n = 2 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("span");
+    p.className = "heart-particle";
+    p.textContent = "♥";
+    p.style.left = (38 + Math.random() * 24) + "%";
+    p.style.setProperty("--dx", (Math.random() * 44 - 22) + "px");
+    p.style.animationDelay = (i * 70) + "ms";
+    btn.appendChild(p);
+    p.addEventListener("animationend", () => p.remove());
+  }
+}
+
 /* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée. */
 function finishLeave(el) {
   clearTimeout(el._lv);
@@ -1014,7 +1061,7 @@ function applyFilter(animate) {
   /* La pastille de catégorie n'apprend rien quand le filtre l'annonce déjà en
      haut de l'écran : elle ne sert que dans « Toutes » et dans une recherche.
      (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
-  grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER));
+  grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER || state.filter === "table"));
   grid.querySelector(".grid-empty").hidden = list.length > 0;
 
   const cardOf = new Map([...grid.querySelectorAll(".card")].map(el => [el.dataset.id, el]));
@@ -1245,7 +1292,7 @@ function renderRecipe(r) {
   const drawVerdict = () => {
     const cur = verdictOf(r);
     document.getElementById("verdict-row").innerHTML = VERDICTS.map(v => `
-      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}">${v.label}</button>
+      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}"><span class="vb-heart">♥</span> ${v.label.replace(/^♥\s*/, "")}</button>
     `).join("");
     document.getElementById("cooked-line").textContent = cookedText(r.id);
   };
@@ -1254,7 +1301,8 @@ function renderRecipe(r) {
     const b = e.target.closest("[data-verdict]");
     if (!b) return;
     const v = b.dataset.verdict;
-    if (state.notes[r.id] === v) {
+    const activating = state.notes[r.id] !== v;
+    if (!activating) {
       delete state.notes[r.id];
       toast("Coup de cœur retiré");
     } else {
@@ -1262,6 +1310,10 @@ function renderRecipe(r) {
       toast("Un coup de cœur de plus ♥");
     }
     save(); drawVerdict();
+    if (activating) {
+      const btn = document.querySelector(`#verdict-row [data-verdict="${v}"]`);
+      if (btn) burstHeart(btn);
+    }
   });
 
   drawVersion();
@@ -1518,15 +1570,28 @@ function fmtClock(sec) {
 
 /* ---------- Au menu ---------- */
 
+/* La structure d'un repas, présente en permanence sur la page — vide ou pas.
+   Chaque ligne compte les recettes de la page où elle mène : annoncer un
+   total plus large que ce qu'on y montre ferait chercher le reste. */
+function squeletteHtml() {
+  const moments = MOMENTS.filter(m => catDuMoment(m));
+  return `<div class="squelette">
+    ${moments.map(m => {
+      const n = nbRecettes(m.cats);
+      return `<button class="sq-row" data-moment="${cibleDuMoment(m)}">
+        <span class="sq-nom">${m.nom}</span>
+        <span class="sq-n">${n} recette${n > 1 ? "s" : ""}</span>
+        ${ICON.chev}
+      </button>`;
+    }).join("")}
+  </div>
+  <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>`;
+}
+
 function renderMenu() {
   const list = menuRecipes();
 
-  /* Menu vide : la page blanche est le seul endroit où proposer la structure
-     entière soit juste. Rien n'a encore été choisi, donc rien ne peut être
-     contredit — on ouvre des portes, on ne signale aucun manque. Dès qu'une
-     recette entre, ce squelette disparaît et le carnet retrouve sa réserve. */
   if (!list.length) {
-    const moments = MOMENTS.filter(m => catDuMoment(m));
     app.innerHTML = `
       <div id="menu-root">
       <header class="page-head courses-head fade-in">
@@ -1535,22 +1600,7 @@ function renderMenu() {
       </header>
       <div class="empty-illo cheers">${ILLO.D.cheers}</div>
       <p class="empty">Rien encore au menu.<br>Un repas se compose souvent comme ça — touche un moment pour aller y choisir.</p>
-      <div class="squelette">
-        ${moments.map(m => {
-          const cat = catDuMoment(m);
-          /* Le compte est celui de la page où l'on atterrit, pas celui du
-             moment entier : annoncer six plats pour n'en montrer que quatre
-             ferait chercher les deux autres. Les catégories voisines du
-             moment restent à un doigt, dans les filtres de l'accueil. */
-          const n = nbRecettes([cat]);
-          return `<button class="sq-row" data-moment="${cat}">
-            <span class="sq-nom">${m.nom}</span>
-            <span class="sq-n">${n} recette${n > 1 ? "s" : ""}</span>
-            ${ICON.chev}
-          </button>`;
-        }).join("")}
-      </div>
-      <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>
+      ${squeletteHtml()}
       <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir toutes les recettes</a></div>
       </div>
     `;
@@ -1562,10 +1612,6 @@ function renderMenu() {
   }
 
   const todo = courseTodo();
-  /* Un seul manque à la fois, le premier dans l'ordre du repas. Énumérer tout
-     ce qui manque ferait une liste de tâches plus lourde que le menu qu'elle
-     commente — et transformerait une suggestion en devoir à remplir. */
-  const manque = momentsManquants().slice(0, 1);
   app.innerHTML = `
     <div id="menu-root">
     <header class="page-head courses-head fade-in">
@@ -1602,12 +1648,8 @@ function renderMenu() {
         </article>`;
       }).join("")}
     </div>
-    ${manque.length ? `
-    <p class="menu-hint">
-      <span class="mh-txt">Il manque peut-être</span>
-      ${manque.map(x => `<button class="mh-chip" data-moment="${catDuMoment(x)}">${x.label}</button>`).join("")}
-      <button class="mh-x" data-hint-off aria-label="Ne plus proposer">✕</button>
-    </p>` : ""}
+    <p class="sq-label">Compléter le repas</p>
+    ${squeletteHtml()}
     <div class="course-actions">
       <button class="btn secondary" id="share-menu">${ICON.share} Partager le repas</button>
       <a class="btn primary" href="#/courses">${ICON.cart} Liste de courses</a>
@@ -1622,7 +1664,6 @@ function renderMenu() {
     if (rm) { toggleMenu(rm.dataset.remove); renderMenu(); return; }
     const mom = e.target.closest("[data-moment]");
     if (mom) { state.filter = mom.dataset.moment; save(); location.hash = "#/"; return; }
-    if (e.target.closest("[data-hint-off]")) { state.hintMenuOff = true; save(); renderMenu(); return; }
     const step = e.target.closest("[data-minus], [data-plus]");
     if (step) {
       const id = step.dataset.minus || step.dataset.plus;
