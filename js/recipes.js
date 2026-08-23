@@ -1409,6 +1409,53 @@ const RECIPES = [
         ingredients: [{ name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits, légumes & herbes", cid: "ail" }],
         step: { i: 1, txt: "Ajoutez l'ail finement émincé avec le poivre, une trentaine de secondes avant la fin : juste de quoi parfumer le gras sans qu'il ait le temps de brûler et de devenir amer." } }
     ]
+  },
+
+  {
+    id: "mi-cuit-chocolat-suzy-palatin",
+    title: "Mi-cuit au chocolat de Suzy Palatin",
+    subtitle: "Fine croûte, cœur fondant et crémeux à souhait",
+    category: "Desserts",
+    tags: ["four", "chocolat", "fondant"],
+    emoji: "🍫",
+    color: "#7A4B32",
+    times: { prep: 15, cuisson: 30 },
+    portions: { base: 8, label: "personnes" },
+    note: "Se déguste tiède, avec une boule de glace vanille ou une crème anglaise — et encore meilleur le lendemain, à peine réchauffé.",
+    ingredients: [
+      { name: "Chocolat pâtissier noir 60-70 %", qty: 250, unit: "g", rayon: "Épicerie", cid: "chocolat-patissier",
+        shop: { label: "Chocolat pâtissier noir 60-70 %", note: "en tablette" } },
+      { name: "Beurre", qty: 250, unit: "g", note: "pommade", rayon: "Produits frais", cid: "beurre",
+        shop: { label: "Beurre doux" } },
+      { name: "Sucre", qty: 250, unit: "g", rayon: "Épicerie", cid: "sucre" },
+      { name: "Farine", qty: 70, unit: "g", rayon: "Épicerie", cid: "farine",
+        shop: { label: "Farine de blé T55 ou T65" } },
+      { name: "Œufs", qty: 4, unit: "", rayon: "Produits frais", cid: "oeufs",
+        shop: { label: "Œufs frais" } }
+    ],
+    steps: [
+      {
+        t: "Le chocolat fondu",
+        txt: "Préchauffez le four à 200 °C. Faites fondre le chocolat au bain-marie ou au micro-ondes par courtes salves de 30 secondes en mélangeant entre chaque. Ajoutez le beurre pommade coupé en morceaux et fouettez jusqu'à obtenir une texture bien lisse. Débarrassez dans un grand saladier.",
+        tip: { t: "Astuce du chef", txt: "Des salves courtes évitent de brûler le chocolat, qui devient granuleux et amer passé un certain seuil. Et un beurre bien pommade (mou, pas fondu) s'émulsionne dans le chocolat au lieu de le rendre huileux." }
+      },
+      {
+        t: "L'appareil",
+        txt: "Ajoutez le sucre et mélangez. Ajoutez la farine et mélangez énergiquement pour éviter les grumeaux. Dans un bol à part, battez les œufs en omelette, puis incorporez-les à l'appareil chocolaté en mélangeant bien.",
+        tip: { t: "Geste technique", txt: "Mélangez sans excès une fois les œufs ajoutés : trop fouetter incorpore de l'air et développe le peu de gluten de la farine, au détriment du fondant recherché — l'objectif ici est une pâte dense, pas aérienne." }
+      },
+      {
+        t: "Cuisson à double température",
+        txt: "Versez la pâte dans un moule à manqué de 24-25 cm de diamètre, beurré et fariné (idéalement en silicone). Baissez le four à 150 °C et enfournez pendant 30 min.",
+        timer: 30,
+        tip: { t: "Astuce du chef", txt: "Ce four préchauffé fort puis baissé au moment d'enfourner est la signature de la recette : le choc thermique saisit une fine croûte en surface pendant que l'intérieur cuit doucement et reste fondant, presque crémeux." }
+      },
+      {
+        t: "Le démoulage",
+        txt: "Laissez refroidir 10 minutes avant de démouler — c'est impératif : ce repos permet au cœur fondant de juste assez se raffermir pour tenir à la découpe sans être une pâte crue.",
+        tip: { t: "Astuce du chef", txt: "Chaque four est différent : la première fois, notez le résultat obtenu. Pour un cœur encore plus coulant, réduisez la cuisson de 2 à 3 min la prochaine fois ; pour un gâteau plus tenu, prolongez-la de 5 min." }
+      }
+    ]
   }
 ];
 
