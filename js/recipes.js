@@ -1413,6 +1413,7 @@ const RECIPES = [
 
   {
     id: "cake-sale",
+    image: "img/cake-sale.jpg",
     title: "Cake salé",
     subtitle: "Moelleux et parfumé, à composer selon la garniture",
     category: "Apéro",
