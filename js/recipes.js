@@ -1488,6 +1488,7 @@ const RECIPES = [
 
   {
     id: "mi-cuit-chocolat-suzy-palatin",
+    image: "img/mi-cuit-chocolat-suzy-palatin.jpg",
     title: "Mi-cuit au chocolat de Suzy Palatin",
     subtitle: "Fine croûte, cœur fondant et crémeux à souhait",
     category: "Desserts",
