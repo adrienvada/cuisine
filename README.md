@@ -9,6 +9,7 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 - **Recettes** — grille de cartes avec recherche instantanée (par nom, ingrédient, tag) et filtres par catégorie.
 - **Portions ajustables** — les quantités se recalculent automatiquement.
 - **Au menu** — les recettes retenues pour le prochain repas, réunies dans leur onglet : photo, portions réglables, accès direct à la recette et au mode cuisine. C'est le menu qui alimente la liste de courses, pas l'inverse.
+- **Plusieurs versions d'une même recette** — deux cakes au même repas, l'un aux olives et à la feta, l'autre aux lardons et au comté : chacun est une entrée distincte du menu, avec sa garniture, ses suppléments, ses portions, sa séance de cuisine et ses minuteurs. Les courses additionnent les deux et mutualisent ce qu'ils partagent (la farine une seule fois, les garnitures séparément).
 - **Mode cuisine** — étapes plein écran, gros texte lisible les mains dans la farine, l'écran reste allumé. Les minuteurs (sonnerie + vibration) continuent de tourner où qu'on aille dans le carnet : leurs bulles restent affichées en bas et un appui ramène à l'étape concernée, la croix les arrête.
 - **Reprise** — l'étape en cours est retenue : en rouvrant la recette, le bouton propose « Reprendre — étape 3 / 5 » (ou « Repartir du début »). Si un minuteur de cette recette tourne, le mode cuisine se rouvre directement. Oubliée à la fin de la recette, ou d'elle-même au bout de 12 h.
 - **Liste de courses** — calculée à partir du menu : les ingrédients fusionnent par rayon (épicerie, frais, fruits & légumes…), quantités additionnées. Cochable au magasin, partageable par message, articles libres en plus.
@@ -163,6 +164,31 @@ manifest.webmanifest  Manifeste PWA
 node tools/verifier-recettes.mjs      # cohérence des données, code 1 si erreur
 node tools/generer-pages-partage.mjs  # aperçus de partage r/ et f/
 ```
+
+### Le menu est une liste d'entrées, pas d'identifiants
+
+Une même recette peut revenir deux fois au menu, composée différemment. `state.menu`
+contient donc des **entrées**, chacune portant sa propre composition :
+
+```js
+{ k: "m3", rid: "cake-sale", choices: { garniture: "olives-feta" },
+  addons: ["tomates-sechees"], portions: 8 }
+```
+
+- `k` — la clé de l'entrée. Elle sert d'adresse : `#/recette/cake-sale/m/m3` ouvre la
+  fiche *sur cette version*, et `…/m/m3/cuisine/2` sa séance de cuisine.
+- La fiche sans clé (`#/recette/cake-sale`) est un **brouillon** : ce qu'on compose
+  avant d'ajouter. Ajouter fige le brouillon dans une entrée neuve **et le remet à
+  zéro**, sans quoi la deuxième version hériterait en silence des suppléments de la
+  première.
+- On ajoute depuis la fiche, on retire depuis le menu — ou depuis l'entrée elle-même.
+  Le bouton d'ajout n'est plus une bascule, c'est ce qui permet deux versions.
+- `state.cooking` et les minuteurs sont rangés sous la clé de l'entrée quand il y en a
+  une, sous l'identifiant de la recette sinon : deux cakes au four ont deux comptes à
+  rebours et deux bulles.
+
+Les anciens menus (`["focaccia-romarin", …]`) sont convertis au chargement, en
+reprenant la composition rangée sous l'identifiant de la recette.
 
 Pour tester en local :
 

@@ -21,6 +21,26 @@ if (state.added) {
   save();
 }
 
+/* Une même recette peut revenir deux fois au menu, composée différemment : deux
+   cakes, l'un aux olives, l'autre aux lardons. Le menu n'est donc plus une liste
+   d'identifiants mais une liste d'ENTRÉES, chacune portant sa composition.
+   La fiche, elle, garde un brouillon — ce qu'on compose avant d'ajouter. */
+let compteurMenu = 0;
+const cleMenu = () => "m" + (++compteurMenu);
+
+(function migrerMenuEnEntrees() {
+  compteurMenu = state.menu.reduce(
+    (max, e) => Math.max(max, e && typeof e === "object" ? parseInt(String(e.k).slice(1), 10) || 0 : 0), 0);
+  if (!state.menu.some(e => typeof e === "string")) return;
+  state.menu = state.menu.map(e => typeof e === "object" ? e : ({
+    k: cleMenu(), rid: e,
+    choices: { ...(state.choices[e] || {}) },
+    addons: [...(state.addons[e] || [])],
+    portions: state.portions[e] ?? null
+  }));
+  save();
+})();
+
 /* Recettes renommées : tout ce qui était rangé sous l'ancien identifiant suit,
    sans quoi un renommage effacerait verdicts, compteurs et menu en cours. */
 (function migrerRenommages() {
@@ -35,8 +55,9 @@ if (state.added) {
     }
     for (const t of state.timers) if (t.rid === ancien) { t.rid = actuel; bouge = true; }
   }
-  const menu = [...new Set(state.menu.map(id => RECIPE_RENAMES[id] || id))];
-  if (menu.join("|") !== state.menu.join("|")) { state.menu = menu; bouge = true; }
+  for (const e of state.menu) {
+    if (RECIPE_RENAMES[e.rid]) { e.rid = RECIPE_RENAMES[e.rid]; bouge = true; }
+  }
   if (bouge) save();
 })();
 
@@ -278,22 +299,62 @@ function updateBadge() {
 
 /* ---------- Le menu (source des courses) ---------- */
 
-const inMenu = id => state.menu.includes(id);
+const entreeDe = k => state.menu.find(e => e.k === k) || null;
+const entreesDe = rid => state.menu.filter(e => e.rid === rid);
+const inMenu = rid => entreesDe(rid).length > 0;
 
 /* Rangées dans l'ordre où il faut s'y mettre : la plus longue d'abord, pour que
    tout arrive à table en même temps. À durée égale, l'ordre d'ajout tranche. */
-const menuRecipes = () => state.menu.map(byId).filter(Boolean)
-  .sort((a, b) => totalTime(b) - totalTime(a));
+const menuEntrees = () => state.menu
+  .map(e => ({ e, r: byId(e.rid) })).filter(x => x.r)
+  .sort((a, b) => totalTime(b.r) - totalTime(a.r));
 
-function toggleMenu(id) {
-  if (inMenu(id)) state.menu = state.menu.filter(x => x !== id);
-  else state.menu.push(id);
-  if (!state.menu.length) resetHints();
+/* Ajouter, c'est figer la composition du brouillon dans une entrée neuve : une
+   seconde version de la même recette ne vient donc pas écraser la première. */
+function ajouterAuMenu(rid) {
+  const e = {
+    k: cleMenu(), rid,
+    choices: { ...(state.choices[rid] || {}) },
+    addons: [...(state.addons[rid] || [])],
+    portions: state.portions[rid] ?? null
+  };
+  state.menu.push(e);
   save(); updateBadge();
-  return inMenu(id);
+  return e;
 }
 
-function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
+function retirerDuMenu(k) {
+  state.menu = state.menu.filter(e => e.k !== k);
+  if (!state.menu.length) resetHints();
+  save(); updateBadge();
+}
+
+/* Pour une recette sans version à composer, le bouton reste une bascule. */
+function toggleMenu(rid) {
+  if (inMenu(rid)) { state.menu = state.menu.filter(e => e.rid !== rid); if (!state.menu.length) resetHints(); save(); updateBadge(); return false; }
+  ajouterAuMenu(rid);
+  return true;
+}
+
+/* La composition courante : celle de l'entrée que l'on édite si l'on en édite
+   une, sinon le brouillon de la fiche, rangé sous l'identifiant de la recette. */
+let entreeCourante = null;
+
+function compo(rid) {
+  const e = entreeCourante ? entreeDe(entreeCourante) : null;
+  if (e && e.rid === rid) return e;
+  return {
+    rid,
+    get choices() { return state.choices[rid] || (state.choices[rid] = {}); },
+    set choices(v) { state.choices[rid] = v; },
+    get addons() { return state.addons[rid] || (state.addons[rid] = []); },
+    set addons(v) { state.addons[rid] = v; },
+    get portions() { return state.portions[rid] ?? null; },
+    set portions(v) { state.portions[rid] = v; }
+  };
+}
+
+function portionsOf(r, c) { return (c || compo(r.id)).portions ?? r.portions.base; }
 
 /* ---------- La forme d'un repas ----------
    Le menu dessine parfois un repas de lui-même : quelque chose à l'apéro, puis
@@ -310,7 +371,7 @@ function portionsOf(r) { return state.portions[r.id] || r.portions.base; }
 const MOMENT_TABLE = ["Plats", "Entrées", "Soupes", "Salades"];
 
 function menuMoments() {
-  const cats = new Set(state.menu.map(byId).filter(Boolean).map(r => r.category));
+  const cats = new Set(state.menu.map(e => byId(e.rid)).filter(Boolean).map(r => r.category));
   return {
     apero: cats.has("Apéro"),
     table: MOMENT_TABLE.some(c => cats.has(c)),
@@ -366,7 +427,7 @@ const BASIQUES = [
 function basiquesManquants() {
   if (state.hintCoursesOff || !menuLooksLikeMeal()) return [];
   const foin = [
-    ...menuRecipes().flatMap(r => [r.title, r.category, ...(r.tags || [])]),
+    ...menuEntrees().flatMap(({ r }) => [r.title, r.category, ...(r.tags || [])]),
     ...buildCourseList().map(i => i.label),
     ...state.extras.map(x => x.name)
   ].join(" ");
@@ -385,39 +446,44 @@ const choiceList = r => r.choices || [];
 const addonList = r => r.addons || [];
 const customizable = r => choiceList(r).length || addonList(r).length;
 
-function optionOf(r, choice) {
-  const sel = (state.choices[r.id] || {})[choice.id];
+/* `c` : la composition à lire. Omise, c'est la courante — mais la liste de
+   courses parcourt plusieurs entrées d'affilée et doit la passer explicitement. */
+function optionOf(r, choice, c) {
+  const sel = ((c || compo(r.id)).choices || {})[choice.id];
   return choice.options.find(o => o.id === sel) || choice.options[0];
 }
 
-function selectedAddons(r) {
-  const sel = state.addons[r.id] || [];
+function selectedAddons(r, c) {
+  const sel = (c || compo(r.id)).addons || [];
   return addonList(r).filter(a => sel.includes(a.id));
 }
 
 function setChoice(rid, cid, oid) {
-  (state.choices[rid] = state.choices[rid] || {})[cid] = oid;
+  const c = compo(rid);
+  c.choices = { ...(c.choices || {}), [cid]: oid };
   save();
 }
 
 function toggleAddon(rid, aid) {
-  const sel = state.addons[rid] = state.addons[rid] || [];
+  const c = compo(rid);
+  const sel = [...(c.addons || [])];
   const i = sel.indexOf(aid);
   if (i >= 0) sel.splice(i, 1); else sel.push(aid);
+  c.addons = sel;
   save();
 }
 
 /* Ingrédients réellement nécessaires : base + option choisie de chaque groupe + suppléments. */
-function effectiveIngredients(r) {
+function effectiveIngredients(r, conf) {
   const list = [...r.ingredients];
-  for (const c of choiceList(r)) list.push(...optionOf(r, c).ingredients);
-  for (const a of selectedAddons(r)) list.push(...a.ingredients.map(i => ({ ...i, addon: a.label })));
+  for (const c of choiceList(r)) list.push(...optionOf(r, c, conf).ingredients);
+  for (const a of selectedAddons(r, conf)) list.push(...a.ingredients.map(i => ({ ...i, addon: a.label })));
   return list;
 }
 
 /* Étapes réellement suivies : les emplacements `{choice}` prennent l'étape de
    l'option choisie, et chaque supplément vient enrichir la sienne (`extras`). */
-function effectiveSteps(r) {
+function effectiveSteps(r, conf) {
   const steps = r.steps.map(s => {
     if (!s.choice) return { ...s };
     const c = choiceList(r).find(x => x.id === s.choice);
@@ -425,10 +491,10 @@ function effectiveSteps(r) {
     /* L'emplacement de choix peut porter ses propres fondamentaux — l'émulsion
        vaut pour les trois vinaigrettes. On les réunit à ceux de l'option plutôt
        que de les perdre en écrasant l'étape. */
-    const opt = optionOf(r, c).step;
+    const opt = optionOf(r, c, conf).step;
     return { ...opt, fond: [...fondIds(s), ...fondIds(opt)] };
   });
-  for (const a of selectedAddons(r)) {
+  for (const a of selectedAddons(r, conf)) {
     if (!a.step) continue;
     const s = steps[Math.min(a.step.i, steps.length - 1)];
     (s.extras = s.extras || []).push({ id: a.id, emoji: a.emoji, label: a.label, txt: a.step.txt, timer: a.step.timer, fond: a.step.fond });
@@ -606,9 +672,9 @@ function closeSheets() {
 }
 
 /* Résumé lisible de la version : « Citron & menthe · + tomates cerises, avocat » */
-function versionSummary(r) {
-  const parts = choiceList(r).map(c => optionOf(r, c).label);
-  const adds = selectedAddons(r).map(a => a.label.toLowerCase());
+function versionSummary(r, conf) {
+  const parts = choiceList(r).map(c => optionOf(r, c, conf).label);
+  const adds = selectedAddons(r, conf).map(a => a.label.toLowerCase());
   if (adds.length) parts.push("+ " + adds.join(", "));
   return parts.join(" · ");
 }
@@ -701,10 +767,16 @@ function courseTodo() {
 
 const COOKING_TTL = 12 * 3600 * 1000;
 
-function cookingStep(r) {
-  const c = state.cooking[r.id];
+/* Deux cakes au menu, c'est deux séances de cuisine distinctes : ce qui est en
+   cours se range sous la clé de l'entrée, et sous l'identifiant de la recette
+   seulement quand on cuisine hors menu. */
+const cleCuisine = (r, k) => (k !== undefined ? k : entreeCourante) || r.id;
+
+function cookingStep(r, k) {
+  const cle = cleCuisine(r, k);
+  const c = state.cooking[cle];
   if (!c) return null;
-  if (Date.now() - c.at > COOKING_TTL) { forgetCooking(r.id); return null; }
+  if (Date.now() - c.at > COOKING_TTL) { forgetCooking(cle); return null; }
   return Math.min(c.step, r.steps.length - 1);
 }
 
@@ -716,12 +788,15 @@ function setCooking(id, step) {
 function forgetCooking(id) { delete state.cooking[id]; save(); }
 
 /* Adresse du mode cuisine : sur l'étape en cours s'il y en a une. */
-function cookHref(r) {
-  const step = cookingStep(r);
-  return `#/recette/${r.id}/cuisine${step ? "/" + step : ""}`;
+function cookHref(r, k) {
+  const step = cookingStep(r, k);
+  const base = k ? `#/recette/${r.id}/m/${k}` : `#/recette/${r.id}`;
+  return `${base}/cuisine${step ? "/" + step : ""}`;
 }
 
-const hasRunningTimer = id => state.timers.some(t => t.rid === id);
+/* Un minuteur appartient à une séance : celle d'une entrée de menu, ou celle de
+   la recette seule. Sans quoi le cake aux olives rappellerait celui aux lardons. */
+const hasRunningTimer = cle => state.timers.some(t => (t.mk || t.rid) === cle);
 
 /* Fermer avec la croix, c'est vouloir sortir : sans ce garde-fou, la reprise
    automatique renverrait aussitôt dans le mode cuisine qu'on vient de quitter.
@@ -731,7 +806,8 @@ const noAutoResume = new Set();
 /* Un minuteur qui tourne signe une vraie séance de cuisine : on y retourne
    directement. Sinon, la fiche s'ouvre normalement avec un bouton Reprendre. */
 function autoResumeStep(r) {
-  if (noAutoResume.has(r.id) || !hasRunningTimer(r.id)) return null;
+  const cle = cleCuisine(r);
+  if (noAutoResume.has(cle) || !hasRunningTimer(cle)) return null;
   return cookingStep(r);
 }
 
@@ -794,12 +870,12 @@ function shareRecipe(id) {
 }
 
 function shareMenu() {
-  const list = menuRecipes();
+  const list = menuEntrees();
   if (!list.length) return toast("Le menu est vide");
   const lines = ["🌿 Au menu du carnet de cuisine", ""];
-  for (const r of list) {
-    const vs = versionSummary(r);
-    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r), "");
+  for (const { e, r } of list) {
+    const vs = versionSummary(r, e);
+    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r, e)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r), "");
   }
   shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
 }
@@ -880,6 +956,7 @@ function retourVers(hash) {
 function route() {
   stopCookMode();
   closeSheets();
+  entreeCourante = null;
   if (remplacement) remplacement = false;
   else hashPrecedent = hashCourant;
   hashCourant = location.hash || "#/";
@@ -908,12 +985,23 @@ function route() {
   } else if (parts[0] === "recette" && byId(parts[1])) {
     document.querySelector('[data-tab="home"]').classList.add("active");
     const r = byId(parts[1]);
-    if (parts[2] === "cuisine") renderCook(r, parts[3]);
+    /* `#/recette/<id>/m/<clé>` : on édite l'entrée de menu plutôt que le
+       brouillon. Une entrée disparue — retirée du menu — retombe sur la fiche
+       nue au lieu d'afficher une composition fantôme. */
+    let reste = parts.slice(2);
+    if (reste[0] === "m") {
+      const e = entreeDe(reste[1]);
+      if (!e || e.rid !== r.id) return allerEnRemplacant(`#/recette/${r.id}`);
+      entreeCourante = e.k;
+      reste = reste.slice(2);
+    }
+    const prefixe = entreeCourante ? `#/recette/${r.id}/m/${entreeCourante}` : `#/recette/${r.id}`;
+    if (reste[0] === "cuisine") renderCook(r, reste[1]);
     else {
       const step = autoResumeStep(r);
       // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
       // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
-      if (step != null) return allerEnRemplacant(`#/recette/${r.id}/cuisine/${step}`);
+      if (step != null) return allerEnRemplacant(`${prefixe}/cuisine/${step}`);
       renderRecipe(r);
     }
   } else {
@@ -1141,7 +1229,6 @@ function applyFilter(animate) {
 /* ---------- Page recette ---------- */
 
 function renderRecipe(r) {
-  const inList = inMenu(r.id);
   // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
   const resume = cookingStep(r) || null;
   const t = r.times;
@@ -1196,14 +1283,13 @@ function renderRecipe(r) {
     </section>
 
     <div class="actions">
-      <button class="btn ${inList ? "added" : "secondary"}" id="add-list">
-        ${inList ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu"}
-      </button>
+      <button class="btn secondary" id="add-list"></button>
       <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r)}">${ICON.chef}
         ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : "Mode cuisine"}
       </a>
     </div>
     ${resume ? `<button class="link-restart" id="restart-cook">Repartir du début</button>` : ""}
+    <p class="menu-info" id="menu-info"></p>
   `;
 
   const drawIngredients = () => {
@@ -1259,33 +1345,65 @@ function renderRecipe(r) {
     if (p < 24) setPortions(p + 1);
   });
   const addBtn = document.getElementById("add-list");
+  const info = document.getElementById("menu-info");
+
+  /* Sur une entrée de menu, le bouton la retire. Sur la fiche nue, il AJOUTE —
+     toujours, jamais en bascule : c'est ce qui permet deux cakes au menu, l'un
+     aux olives, l'autre aux lardons. On retire depuis le menu ou depuis
+     l'entrée elle-même. */
   const drawAddBtn = () => {
-    addBtn.className = inMenu(r.id) ? "btn added" : "btn secondary";
-    addBtn.innerHTML = inMenu(r.id) ? ICON.check + " Au menu" : ICON.cart + " Ajouter au menu";
-  };
-  addBtn.addEventListener("click", () => {
-    if (inMenu(r.id)) {
-      toggleMenu(r.id); drawAddBtn();
-      toast("Retirée du menu");
-    } else if (customizable(r)) {
-      /* Façon fast-food : composer sa version, ou ajouter tel quel d'un tap. */
-      openAddSheet(r, added => {
-        drawVersion(); updateBadge();
-        if (!added) return;
-        toggleMenu(r.id); drawAddBtn();
-        const n = selectedAddons(r).length;
-        toast(n ? `Au menu avec ${n} supplément${n > 1 ? "s" : ""} — courses à jour` : "Au menu — ingrédients ajoutés aux courses");
-      });
+    const n = entreesDe(r.id).length;
+    if (entreeCourante) {
+      addBtn.className = "btn added";
+      addBtn.innerHTML = `${ICON.check} Au menu`;
+      info.innerHTML = `Vous composez la version qui est au menu. <button class="lien-nu" id="menu-retirer">La retirer</button>`;
     } else {
-      toggleMenu(r.id); drawAddBtn();
-      toast("Au menu — ingrédients ajoutés aux courses");
+      addBtn.className = n ? "btn added" : "btn secondary";
+      addBtn.innerHTML = n ? `${ICON.cart} Ajouter une autre version` : `${ICON.cart} Ajouter au menu`;
+      info.innerHTML = n
+        ? `${n} version${n > 1 ? "s" : ""} de cette recette déjà <a href="#/menu">au menu</a>.`
+        : "";
     }
+    const x = document.getElementById("menu-retirer");
+    if (x) x.addEventListener("click", () => {
+      retirerDuMenu(entreeCourante);
+      toast("Retirée du menu");
+      allerEnRemplacant(`#/recette/${r.id}`);
+    });
+  };
+
+  const ajouter = () => {
+    const n = selectedAddons(r).length;
+    ajouterAuMenu(r.id);
+    /* La composition vient d'être mise de côté dans l'entrée : le brouillon
+       repart à neuf, sinon « ajouter une autre version » hériterait en silence
+       des suppléments de la précédente — deux cakes qui n'en font qu'un. */
+    delete state.choices[r.id]; delete state.addons[r.id]; delete state.portions[r.id];
+    save();
+    drawVersion(); drawAddBtn();
+    const combien = entreesDe(r.id).length;
+    toast(combien > 1
+      ? `Deuxième version au menu — courses à jour`
+      : n ? `Au menu avec ${n} supplément${n > 1 ? "s" : ""} — courses à jour`
+          : "Au menu — ingrédients ajoutés aux courses");
+  };
+
+  drawAddBtn();
+
+  addBtn.addEventListener("click", () => {
+    if (entreeCourante) return;           // déjà au menu : on retire par le lien
+    if (!customizable(r)) return ajouter();
+    /* Façon fast-food : composer sa version, ou ajouter tel quel d'un tap. */
+    openAddSheet(r, added => {
+      drawVersion(); updateBadge();
+      if (added) ajouter();
+    });
   });
 
   document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
 
   if (resume) document.getElementById("restart-cook").addEventListener("click", () => {
-    forgetCooking(r.id);
+    forgetCooking(cleCuisine(r));
     location.hash = `#/recette/${r.id}/cuisine`;
   });
 
@@ -1330,14 +1448,16 @@ let tickInt = null, refreshZone = null;
 /* Une étape peut faire tourner plusieurs minuteurs : celui de l'étape elle-même
    (slot null) et celui de chaque supplément minuté (slot = son identifiant).
    Les minuteurs enregistrés avant cette notion n'ont pas de `slot` : lus comme
-   null, ils restent ceux de leur étape. */
-const findTimer = (rid, step, slot = null) =>
-  state.timers.find(t => t.rid === rid && t.step === step && (t.slot || null) === slot);
+   null, ils restent ceux de leur étape. La clé est celle de la séance — l'entrée
+   de menu s'il y en a une — sinon deux cakes au four partageraient leur compte
+   à rebours. */
+const findTimer = (cle, step, slot = null) =>
+  state.timers.find(t => (t.mk || t.rid) === cle && t.step === step && (t.slot || null) === slot);
 
 function startTimer(r, stepIdx, { timer, label, emoji }, slot = null) {
   state.timers.push({
     id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
-    rid: r.id, step: stepIdx, slot,
+    rid: r.id, mk: entreeCourante || null, step: stepIdx, slot,
     label, emoji: emoji || r.emoji,
     end: Date.now() + timer * 60000, total: timer, fired: false
   });
@@ -1437,7 +1557,9 @@ function renderCook(r, step) {
   const at = parseInt(step, 10);
   cookIdx = Number.isInteger(at) ? Math.min(Math.max(at, 0), steps.length - 1) : 0;
   // On y revient de soi-même : la reprise automatique redevient légitime.
-  noAutoResume.delete(r.id);
+  const cleSeance = cleCuisine(r);
+  const prefixeCook = entreeCourante ? `#/recette/${r.id}/m/${entreeCourante}` : `#/recette/${r.id}`;
+  noAutoResume.delete(cleSeance);
   // Le changement de page est asynchrone : sans ce verrou, un double-tap sur
   // « Terminer » compterait la recette deux fois.
   let finished = false;
@@ -1447,10 +1569,10 @@ function renderCook(r, step) {
     const s = steps[cookIdx];
     const last = cookIdx === steps.length - 1;
     if (!finished) {
-      setCooking(r.id, cookIdx);
+      setCooking(cleSeance, cookIdx);
       // L'adresse suit l'étape sans encombrer l'historique : un rechargement,
       // ou une PWA fermée par iOS, retrouve ainsi la bonne étape.
-      history.replaceState(history.state, "", `#/recette/${r.id}/cuisine/${cookIdx}`);
+      history.replaceState(history.state, "", `${prefixeCook}/cuisine/${cookIdx}`);
       hashCourant = location.hash;
     }
     app.innerHTML = `
@@ -1481,10 +1603,10 @@ function renderCook(r, step) {
       </div>
     `;
     document.getElementById("cook-close").addEventListener("click", () => {
-      noAutoResume.add(r.id);
+      noAutoResume.add(cleSeance);
       // Arrivé ici par un lien partagé, il n'y a rien derrière : revenir ferait
       // sortir du site. On va alors explicitement à la fiche.
-      retourVers(`#/recette/${r.id}`);
+      retourVers(prefixeCook);
     });
     document.getElementById("cook-share").addEventListener("click", () => shareRecipe(r.id));
     document.getElementById("prev").addEventListener("click", () => { if (cookIdx > 0) { cookIdx--; draw(); } });
@@ -1494,8 +1616,8 @@ function renderCook(r, step) {
         finished = true;
         const first = !verdictOf(r);
         markCooked(r.id);
-        forgetCooking(r.id);
-        location.hash = `#/recette/${r.id}`;
+        forgetCooking(cleSeance);
+        location.hash = prefixeCook;
         toast(first ? "Bon appétit ! Un coup de cœur ?" : "Bon appétit !");
       }
       else { cookIdx++; draw(); }
@@ -1521,7 +1643,7 @@ function renderCook(r, step) {
   const drawTimerZone = s => {
     const zone = document.getElementById("timer-zone");
     if (!zone) return;
-    const t = findTimer(r.id, cookIdx);
+    const t = findTimer(cleSeance, cookIdx);
     if (t) {
       const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
       const done = left === 0;
@@ -1545,7 +1667,7 @@ function renderCook(r, step) {
     for (const zone of document.querySelectorAll(".addon-timer")) {
       const x = (s.extras || []).find(y => y.id === zone.dataset.slot);
       if (!x) continue;
-      const t = findTimer(r.id, cookIdx, x.id);
+      const t = findTimer(cleSeance, cookIdx, x.id);
       if (t) {
         const left = Math.max(0, Math.round((t.end - Date.now()) / 1000));
         const done = left === 0;
@@ -1589,7 +1711,7 @@ function squeletteHtml() {
 }
 
 function renderMenu() {
-  const list = menuRecipes();
+  const list = menuEntrees();
 
   if (!list.length) {
     app.innerHTML = `
@@ -1621,30 +1743,31 @@ function renderMenu() {
       ${list.length > 1 ? `<p class="menu-order">Dans l'ordre où s'y mettre : la plus longue en premier.</p>` : ""}
     </header>
     <div class="menu-list">
-      ${list.map(r => {
+      ${list.map(({ e, r }) => {
         const c = cookedOf(r);
         const v = VERDICTS.find(x => x.id === verdictOf(r));
+        const lien = `#/recette/${r.id}/m/${e.k}`;
         return `
-        <article class="menu-card fade-in" data-open="${r.id}">
-          <a class="mc-visual" style="background:${r.color}22" href="#/recette/${r.id}" aria-label="${r.title}">${visualOf(r)}</a>
+        <article class="menu-card fade-in" data-open="${e.k}">
+          <a class="mc-visual" style="background:${r.color}22" href="${lien}" aria-label="${r.title}">${visualOf(r)}</a>
           <div class="mc-body">
-            <a class="mc-title" href="#/recette/${r.id}"><h3>${r.title}</h3></a>
+            <a class="mc-title" href="${lien}"><h3>${r.title}</h3></a>
             <div class="meta">${ICON.clock} ${totalTimeText(r)}
               ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
               ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
             </div>
-            ${versionSummary(r) ? `<p class="mc-version">${versionSummary(r)}</p>` : ""}
+            ${versionSummary(r, e) ? `<p class="mc-version">${versionSummary(r, e)}</p>` : ""}
             <span class="portions mc-portions">
-              <button data-minus="${r.id}" aria-label="Moins de portions">−</button>
-              <span class="val">${portionsOf(r)} ${r.portions.label}</span>
-              <button data-plus="${r.id}" aria-label="Plus de portions">+</button>
+              <button data-minus="${e.k}" aria-label="Moins de portions">−</button>
+              <span class="val">${portionsOf(r, e)} ${r.portions.label}</span>
+              <button data-plus="${e.k}" aria-label="Plus de portions">+</button>
             </span>
             <div class="mc-actions">
-              <a class="mc-btn" href="${cookHref(r)}">${ICON.chef} ${cookingStep(r) ? "Reprendre" : "Cuisiner"}</a>
+              <a class="mc-btn" href="${cookHref(r, e.k)}">${ICON.chef} ${cookingStep(r, e.k) ? "Reprendre" : "Cuisiner"}</a>
               <button class="mc-btn" data-share="${r.id}">${ICON.share} Partager</button>
             </div>
           </div>
-          <button class="mc-x" data-remove="${r.id}" aria-label="Retirer du menu">✕</button>
+          <button class="mc-x" data-remove="${e.k}" aria-label="Retirer du menu">✕</button>
         </article>`;
       }).join("")}
     </div>
@@ -1661,23 +1784,27 @@ function renderMenu() {
   document.getElementById("menu-root").addEventListener("click", e => {
     onShareClick(e);
     const rm = e.target.closest("[data-remove]");
-    if (rm) { toggleMenu(rm.dataset.remove); renderMenu(); return; }
+    if (rm) { retirerDuMenu(rm.dataset.remove); renderMenu(); return; }
     const mom = e.target.closest("[data-moment]");
     if (mom) { state.filter = mom.dataset.moment; save(); location.hash = "#/"; return; }
     const step = e.target.closest("[data-minus], [data-plus]");
     if (step) {
-      const id = step.dataset.minus || step.dataset.plus;
-      const r = byId(id);
-      const p = portionsOf(r) + (step.dataset.plus ? 1 : -1);
+      const ent = entreeDe(step.dataset.minus || step.dataset.plus);
+      const r = ent && byId(ent.rid);
+      if (!r) return;
+      const p = portionsOf(r, ent) + (step.dataset.plus ? 1 : -1);
       if (p < 1 || p > 24) return;
-      state.portions[id] = p;
+      ent.portions = p;
       save(); updateBadge(); renderMenu();
       return;
     }
     /* Toute la carte ouvre la recette : les mains dans la farine, on ne vise pas
        la vignette au millimètre. Les commandes qu'elle contient gardent la main. */
     const carte = e.target.closest("[data-open]");
-    if (carte && !e.target.closest("a, button")) location.hash = `#/recette/${carte.dataset.open}`;
+    if (carte && !e.target.closest("a, button")) {
+      const ent = entreeDe(carte.dataset.open);
+      if (ent) location.hash = `#/recette/${ent.rid}/m/${ent.k}`;
+    }
   });
 
   document.getElementById("share-menu").addEventListener("click", shareMenu);
@@ -1769,11 +1896,11 @@ function renderFondamental(f) {
 
 function buildCourseList() {
   const map = new Map();
-  for (const id of state.menu) {
-    const r = byId(id);
+  for (const e of state.menu) {
+    const r = byId(e.rid);
     if (!r) continue;
-    const f = (state.portions[id] || r.portions.base) / r.portions.base;
-    for (const ing of effectiveIngredients(r)) {
+    const f = (e.portions ?? r.portions.base) / r.portions.base;
+    for (const ing of effectiveIngredients(r, e)) {
       if (ing.course === false) continue;
       const shop = ing.shop || {};
       const key = ing.cid || ing.name.toLowerCase();
@@ -1808,7 +1935,7 @@ function courseQtyStr(it) {
 }
 
 function renderCourses() {
-  const ids = state.menu.filter(byId);
+  const ids = menuEntrees();
   const items = buildCourseList();
   const extras = state.extras;
   const empty = !ids.length && !extras.length;
@@ -1856,10 +1983,9 @@ function renderCourses() {
       <p>${ids.length ? `D'après les ${ids.length} recette${ids.length > 1 ? "s" : ""} du menu — quantités fusionnées par rayon` : "Articles ajoutés à la main"}</p>
     </header>
     <div class="menu-chips">
-      ${ids.map(id => {
-        const r = byId(id);
-        const p = state.portions[id] || r.portions.base;
-        return `<span class="menu-chip"><a href="#/recette/${id}" style="text-decoration:none;color:inherit">${r.emoji} ${r.title} · ${p} ${r.portions.label}</a><button class="x" data-remove="${id}" aria-label="Retirer du menu">✕</button></span>`;
+      ${ids.map(({ e, r }) => {
+        const vs = versionSummary(r, e);
+        return `<span class="menu-chip"><a href="#/recette/${r.id}/m/${e.k}" style="text-decoration:none;color:inherit">${r.emoji} ${r.title}${vs ? ` · ${vs}` : ""} · ${portionsOf(r, e)} ${r.portions.label}</a><button class="x" data-remove="${e.k}" aria-label="Retirer du menu">✕</button></span>`;
       }).join("")}
       ${ids.length ? `<a class="menu-chip menu-chip-link" href="#/menu">${ICON.chef} Au menu</a>` : ""}
     </div>
@@ -1933,7 +2059,7 @@ function renderCourses() {
     if (e.target.closest("[data-hint-off]")) { state.hintCoursesOff = true; save(); renderCourses(); return; }
     const rm = e.target.closest("[data-remove]");
     if (rm) {
-      toggleMenu(rm.dataset.remove);
+      retirerDuMenu(rm.dataset.remove);
       renderCourses();
       return;
     }
@@ -1949,9 +2075,9 @@ function renderCourses() {
 function shareList() {
   const items = buildCourseList();
   const lines = ["🛒 Liste de courses — Carnet de cuisine", ""];
-  const ids = state.menu.filter(byId);
+  const ids = menuEntrees();
   if (ids.length) {
-    lines.push("Menu : " + ids.map(id => byId(id).title).join(", "), "");
+    lines.push("Menu : " + ids.map(({ r }) => r.title).join(", "), "");
   }
   for (const rayon of RAYONS) {
     const group = [
@@ -1983,7 +2109,8 @@ document.getElementById("timer-tray").addEventListener("click", e => {
   const t = state.timers.find(x => x.id === pill.dataset.timer);
   if (!t) return;
   if (e.target.closest(".t-x")) { cancelTimer(t.id); return; }
-  const target = `#/recette/${t.rid}/cuisine/${t.step}`;
+  const base = t.mk && entreeDe(t.mk) ? `#/recette/${t.rid}/m/${t.mk}` : `#/recette/${t.rid}`;
+  const target = `${base}/cuisine/${t.step}`;
   // Même adresse (on a avancé d'étape sans changer le hash) : pas d'événement, on redessine.
   if (location.hash === target) route();
   else location.hash = target;

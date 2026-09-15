@@ -1491,6 +1491,10 @@ const RECIPES = [
       { id: "piment-espelette", label: "Piment d'Espelette", emoji: "🌶️",
         ingredients: [{ name: "Piment d'Espelette", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "piment-espelette" }],
         step: { i: 0, txt: "Ajoutez une pincée de piment d'Espelette à la pâte, pour une chaleur discrète qui relève sans jamais piquer." } },
+      { id: "tomates-sechees", label: "Tomates séchées", emoji: "🍅",
+        ingredients: [{ name: "Tomates séchées à l'huile", qty: 60, unit: "g", note: "égouttées", rayon: "Épicerie", cid: "tomates-sechees",
+          shop: { label: "Tomates séchées à l'huile", qty: 1, unit: "pot" } }],
+        step: { i: 0, txt: "Égouttez les tomates séchées, épongez-les et coupez-les en lanières, puis incorporez-les à la pâte avec la garniture. Gardez leur huile parfumée pour une autre recette." } },
       { id: "graines-sesame", label: "Graines de sésame", emoji: "🌾",
         ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Épicerie", cid: "graines-sesame" }],
         step: { i: 2, txt: "Parsemez le dessus de la pâte de graines de sésame juste avant d'enfourner : elles torréfient et craquent légèrement à la cuisson.", fond: "torrefaction" } }

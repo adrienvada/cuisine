@@ -1729,3 +1729,28 @@ html[data-theme="dark"] .f-cert-empirique { background: #3A2A20; color: #E6B48D;
     animation: none !important;
   }
 }
+
+/* Une recette peut être au menu en plusieurs versions : la fiche dit lesquelles
+   sont déjà retenues, et l'entrée que l'on est en train de composer se retire
+   d'ici plutôt que par une bascule du bouton d'ajout. */
+.menu-info {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.menu-info:empty { display: none; }
+.menu-info a { color: var(--green); font-weight: 600; }
+
+.lien-nu {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--terra);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
