@@ -79,6 +79,10 @@ body {
 
 .theme-toggle svg { width: 20px; height: 20px; }
 
+.sync-btn { right: 62px; }
+.sync-btn[hidden] { display: none; }
+.sync-btn.actif { color: var(--green, #42603A); }
+
 .theme-toggle .icon-moon { display: none; }
 
 html[data-theme="dark"] .theme-toggle .icon-sun { display: none; }

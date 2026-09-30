@@ -9,7 +9,10 @@ const state = Object.assign(
   JSON.parse(localStorage.getItem(STORE_KEY) || "{}")
 );
 
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  if (typeof carnetSync !== "undefined") carnetSync.changed();
+}
 
 /* Le menu est la source : la liste de courses en découle.
    Avant, les recettes vivaient dans `added` ({id: true}), accroché aux courses —
@@ -25,12 +28,11 @@ if (state.added) {
    cakes, l'un aux olives, l'autre aux lardons. Le menu n'est donc plus une liste
    d'identifiants mais une liste d'ENTRÉES, chacune portant sa composition.
    La fiche, elle, garde un brouillon — ce qu'on compose avant d'ajouter. */
-let compteurMenu = 0;
-const cleMenu = () => "m" + (++compteurMenu);
+/* Clé unique d'un appareil à l'autre : deux téléphones qui ajoutent chacun une
+   entrée ne doivent jamais produire la même adresse une fois synchronisés. */
+const cleMenu = () => "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 
 (function migrerMenuEnEntrees() {
-  compteurMenu = state.menu.reduce(
-    (max, e) => Math.max(max, e && typeof e === "object" ? parseInt(String(e.k).slice(1), 10) || 0 : 0), 0);
   if (!state.menu.some(e => typeof e === "string")) return;
   state.menu = state.menu.map(e => typeof e === "object" ? e : ({
     k: cleMenu(), rid: e,
