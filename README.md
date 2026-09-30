@@ -190,6 +190,24 @@ contient donc des **entrées**, chacune portant sa propre composition :
 Les anciens menus (`["focaccia-romarin", …]`) sont convertis au chargement, en
 reprenant la composition rangée sous l'identifiant de la recette.
 
+### Synchronisation entre appareils (Supabase)
+
+Le menu, les cases cochées et les articles libres (`menu`, `checked`, `extras`) se
+synchronisent entre les téléphones d'un même **foyer**. Le reste (thème, recherche,
+minuteurs, notes) reste local.
+
+- Un foyer = un **code secret** dans un lien (`?foyer=…`), sans compte ni e-mail. Il tient
+  lieu de mot de passe ; ne pas le publier.
+- Mise en place, une fois : coller [`supabase/carnet.sql`](supabase/carnet.sql) dans le
+  SQL Editor, puis renseigner l'URL et la clé `anon` dans
+  [`js/sync-config.js`](js/sync-config.js). Vide, la synchro est désactivée et le bouton caché.
+- Le bouton ⟳ (à gauche du mode sombre) crée le foyer et envoie le lien ; l'autre
+  personne l'ouvre et accepte. Son menu est alors remplacé par celui du foyer.
+- `localStorage` reste la source hors ligne ; les changements partent 0,8 s après
+  la modification, et l'appareil relit le serveur toutes les 10 s et au retour sur l'app.
+- En cas de modifications simultanées, la dernière écriture l'emporte.
+- Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
+
 Pour tester en local :
 
 ```bash
