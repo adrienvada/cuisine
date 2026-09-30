@@ -21,9 +21,13 @@ const carnetSync = (function () {
   };
 
   async function rpc(nom, corps) {
+    /* Ancienne clé « anon » = un JWT (eyJ…), à doubler en Bearer ; nouvelle clé
+       « publishable » (sb_publishable_…) : en-tête apikey seul. */
+    const headers = { apikey: cfg.anonKey, "Content-Type": "application/json" };
+    if (cfg.anonKey.startsWith("eyJ")) headers.Authorization = `Bearer ${cfg.anonKey}`;
     const res = await fetch(`${cfg.url}/rest/v1/rpc/${nom}`, {
       method: "POST",
-      headers: { apikey: cfg.anonKey, Authorization: `Bearer ${cfg.anonKey}`, "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(corps)
     });
     if (!res.ok) throw new Error(nom + " " + res.status);
