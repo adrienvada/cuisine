@@ -14,6 +14,13 @@ const carnetSync = (function () {
   let local = lire();               // { mdp, vu } — vu : dernière version serveur connue
   let sale = false;                 // modifications locales pas encore envoyées
   let envoiH = null, enCours = false;
+  let etat = local.mdp ? "attente" : "off";   // off | attente | ok | hors
+
+  /* Demande au navigateur de ne pas effacer le mot de passe mémorisé quand il fait
+     du ménage : on ne se connecte qu'une fois par appareil. */
+  const garder = () => { try { navigator.storage?.persist?.(); } catch {} };
+
+  function etatVers(e) { if (etat !== e) { etat = e; majBouton(); } }
 
   class MdpRefuse extends Error {}
 
@@ -42,7 +49,7 @@ const carnetSync = (function () {
   }
 
   function refuse() {
-    local = {}; ecrire(local); sale = false; majBouton();
+    local = {}; ecrire(local); sale = false; etatVers("off");
     toast("Mot de passe refusé : synchronisation arrêtée");
   }
 
@@ -51,12 +58,13 @@ const carnetSync = (function () {
     try {
       const lignes = await rpc("carnet_lire", { p_mdp: local.mdp });
       if (sale) return;                               // une modif locale est partie entre-temps
+      etatVers("ok");
       if (!lignes.length) { if (local.vu == null) pousser(); return; }   // base vide : on amorce
       const { data, updated_at } = lignes[0];
       if (updated_at === local.vu) return;
       local.vu = updated_at; ecrire(local);
       appliquer(data);
-    } catch (e) { if (e instanceof MdpRefuse) refuse(); }
+    } catch (e) { if (e instanceof MdpRefuse) refuse(); else etatVers("hors"); }
   }
 
   async function pousser() {
@@ -67,9 +75,10 @@ const carnetSync = (function () {
       sale = false;
       local.vu = await rpc("carnet_ecrire", { p_mdp: local.mdp, p_data: instantane() });
       ecrire(local);
+      etatVers("ok");
     } catch (e) {
       if (e instanceof MdpRefuse) refuse();
-      else { sale = true; envoiH = setTimeout(pousser, 15000); }   // hors ligne : on réessaie
+      else { sale = true; etatVers("hors"); envoiH = setTimeout(pousser, 15000); }   // hors ligne : on réessaie
     }
     enCours = false;
   }
@@ -88,7 +97,7 @@ const carnetSync = (function () {
     try {
       const lignes = await rpc("carnet_lire", { p_mdp: mdp });
       if (lignes.length && !confirm("Un carnet partagé existe déjà.\n\nOK : remplacer le menu et la liste de ce navigateur par ceux du carnet partagé.\nAnnuler : ne pas se connecter.")) return;
-      local = { mdp, vu: null }; ecrire(local);
+      local = { mdp, vu: null }; ecrire(local); garder(); etat = "ok";
       if (lignes.length) { local.vu = lignes[0].updated_at; ecrire(local); appliquer(lignes[0].data); }
       else { sale = true; await pousser(); }           // première connexion : ce carnet devient le carnet partagé
       toast("Synchronisation activée");
@@ -101,8 +110,9 @@ const carnetSync = (function () {
   function menu() {
     if (!dispo) return toast("Synchronisation non configurée");
     if (!local.mdp) return connecter();
-    if (confirm("Ce navigateur est synchronisé.\n\nOK : se déconnecter (le carnet reste sur cet appareil).\nAnnuler : fermer.")) {
-      local = {}; ecrire(local); sale = false; majBouton();
+    const txt = etat === "hors" ? "Connecté, mais le serveur est injoignable pour l'instant : les modifications partiront au retour du réseau." : "Connecté : ce navigateur est synchronisé.";
+    if (confirm(txt + "\n\nOK : se déconnecter (le carnet reste sur cet appareil).\nAnnuler : rester connecté.")) {
+      local = {}; ecrire(local); sale = false; etat = "off"; majBouton();
       toast("Déconnecté");
     }
   }
@@ -111,8 +121,10 @@ const carnetSync = (function () {
     const b = document.getElementById("sync-btn");
     if (!b) return;
     b.hidden = !dispo;
-    b.classList.toggle("actif", !!local.mdp);
-    b.setAttribute("aria-label", local.mdp ? "Synchronisation active" : "Se connecter au carnet partagé");
+    const texte = { off: "Se connecter", attente: "Connexion…", ok: "Connecté", hors: "Hors ligne" }[etat];
+    b.dataset.etat = etat;
+    b.querySelector(".sync-label").textContent = texte;
+    b.setAttribute("aria-label", etat === "off" ? "Se connecter au carnet partagé" : texte + " — carnet partagé");
   }
 
   document.getElementById("sync-btn")?.addEventListener("click", menu);
@@ -120,7 +132,7 @@ const carnetSync = (function () {
   window.addEventListener("online", () => { if (sale) pousser(); else tirer(); });
   setInterval(() => { if (!document.hidden) tirer(); }, 10000);
   majBouton();
-  if (dispo && local.mdp) (sale ? pousser : tirer)();
+  if (dispo && local.mdp) { garder(); (sale ? pousser : tirer)(); }
 
   return { changed };
 })();
