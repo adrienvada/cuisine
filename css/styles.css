@@ -79,9 +79,20 @@ body {
 
 .theme-toggle svg { width: 20px; height: 20px; }
 
-.sync-btn { right: 62px; }
+.sync-btn { right: auto; left: 14px; }
 .sync-btn[hidden] { display: none; }
-.sync-btn.actif { color: var(--green, #42603A); }
+.sync-btn svg { display: none; }
+.sync-btn[data-etat="off"] .ic-off,
+.sync-btn[data-etat="attente"] .ic-attente,
+.sync-btn[data-etat="ok"] .ic-ok,
+.sync-btn[data-etat="hors"] .ic-hors { display: block; }
+.sync-btn[data-etat="off"] { color: var(--muted); }
+.sync-btn[data-etat="ok"] { color: var(--green); border-color: var(--green); }
+.sync-btn[data-etat="hors"] { color: var(--gold-deep); border-color: var(--gold); }
+html[data-theme="dark"] .sync-btn[data-etat="hors"] { color: var(--gold); }
+.sync-btn[data-etat="attente"] .ic-attente { animation: sync-tourne 1.2s linear infinite; }
+@keyframes sync-tourne { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sync-btn[data-etat="attente"] .ic-attente { animation: none; } }
 
 .theme-toggle .icon-moon { display: none; }
 
