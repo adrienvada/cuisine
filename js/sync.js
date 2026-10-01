@@ -123,7 +123,7 @@ const carnetSync = (function () {
     b.hidden = !dispo;
     const texte = { off: "Se connecter", attente: "Connexion…", ok: "Connecté", hors: "Hors ligne" }[etat];
     b.dataset.etat = etat;
-    b.querySelector(".sync-label").textContent = texte;
+    b.title = texte;
     b.setAttribute("aria-label", etat === "off" ? "Se connecter au carnet partagé" : texte + " — carnet partagé");
   }
 

@@ -196,7 +196,7 @@ Le menu, les cases cochées et les articles libres (`menu`, `checked`, `extras`)
 stockés dans **une seule base partagée**. Le reste (thème, recherche, minuteurs, notes)
 reste local à chaque appareil.
 
-- **Un mot de passe**, saisi une fois par navigateur (bouton ⟳, à gauche du mode sombre).
+- **Un mot de passe**, saisi une fois par navigateur (icône nuage en haut à gauche : barré = pas connecté, coché vert = connecté, Wi-Fi barré doré = connecté mais hors réseau, flèches qui tournent = connexion en cours).
   Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans
   `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe,
   on ne lit ni n'écrit rien.
