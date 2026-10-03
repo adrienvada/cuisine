@@ -639,7 +639,7 @@ const RECIPES = [
     tags: ["chocolat", "four", "gourmand"],
     emoji: "🍪",
     color: "#C08A4F",
-    times: { prep: 15, cuisson: 12 },
+    times: { prep: 15, cuisson: 20 },
     portions: { base: 6, label: "personnes" },
     ingredients: [
       { name: "Beurre salé ramolli", qty: 100, unit: "g", note: "il apporte tout le sel de la pâte", rayon: "Produits frais", cid: "beurre-sale",
@@ -661,7 +661,7 @@ const RECIPES = [
     steps: [
       {
         t: "Crémer le beurre et les sucres",
-        txt: "Dans un cul-de-poule, battez le beurre salé ramolli avec la cassonade et le sucre blanc jusqu'à obtenir un mélange crémeux et homogène.",
+        txt: "Préchauffez le four à 170 °C. Dans un cul-de-poule, battez le beurre salé ramolli avec la cassonade et le sucre blanc jusqu'à obtenir un mélange crémeux et homogène.",
         tip: { t: "Astuce du chef", txt: "L'association de sucre blanc (pour le croustillant) et de cassonade (pour le moelleux et les notes de caramel) donne la texture idéale pour le côté « scoopable »." }
       },
       {
@@ -680,10 +680,10 @@ const RECIPES = [
         tip: { t: "Astuce du chef", txt: "Quelques tours de spatule, juste de quoi disperser les pépites, puis arrêtez-vous. Chaque tour de trop raidit la pâte, et le cookie sort caoutchouteux au lieu de tendre." }
       },
       {
-        t: "Cuisson mi-cuite et service",
-        txt: "Étalez la pâte dans un plat à four ou une poêle en fonte sur 2 à 3 cm d'épaisseur. Parsemez les pépites réservées et quelques pincées de fleur de sel. Enfournez à 180 °C pendant seulement 10 à 12 minutes : le centre doit rester presque cru et fondant.", fond: ["amidon","contraste-textures","sel-patisserie","maillard"],
-        timer: 11,
-        tip: { t: "Astuce du chef", txt: "Servez chaud, à la cuillère à glace, directement dans le plat : le centre doit encore couler. La boule de glace vanille se pose à la seconde, une fois les portions servies." }
+        t: "Boules dans le plat, cuisson et service",
+        txt: "Façonnez la pâte en boules et rangez-les serrées, côte à côte, dans un plat à four ou une poêle en fonte. Enfoncez les pépites réservées sur le dessus et parsemez de quelques pincées de fleur de sel. Enfournez à 170 °C pendant 20 minutes : les boules s'étalent et se soudent, le dessus dore, le centre reste fondant.", fond: ["amidon","contraste-textures","sel-patisserie","maillard"],
+        timer: 20,
+        tip: { t: "Astuce du chef", txt: "N'étalez surtout pas la pâte en une couche lisse : ce sont les boules qui font le cookie. En s'affaissant les unes contre les autres, chacune garde son dôme craquelé et ses bords dorés. Servez chaud, à la cuillère à glace, directement dans le plat ; la boule de glace vanille se pose à la seconde, une fois les portions servies." }
       }
     ],
     addons: [
