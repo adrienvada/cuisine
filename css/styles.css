@@ -132,6 +132,9 @@ a { color: var(--green); }
   z-index: 50;
 }
 
+/* Fond translucide codé en dur pour le flou : il faut donc sa variante sombre. */
+html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
+
 .tabbar a {
   flex: 1;
   max-width: 180px;

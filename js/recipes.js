@@ -642,8 +642,8 @@ const RECIPES = [
     times: { prep: 15, cuisson: 12 },
     portions: { base: 6, label: "personnes" },
     ingredients: [
-      { name: "Beurre doux ramolli", qty: 100, unit: "g", rayon: "Produits frais", cid: "beurre",
-        shop: { label: "Beurre doux" } },
+      { name: "Beurre salé ramolli", qty: 100, unit: "g", note: "il apporte tout le sel de la pâte", rayon: "Produits frais", cid: "beurre-sale",
+        shop: { label: "Beurre salé" } },
       { name: "Sucre cassonade", qty: 80, unit: "g", rayon: "Épicerie", cid: "cassonade" },
       { name: "Sucre blanc", qty: 40, unit: "g", rayon: "Épicerie", cid: "sucre" },
       { name: "Œuf", qty: 1, unit: "", rayon: "Produits frais", cid: "oeufs",
@@ -654,8 +654,6 @@ const RECIPES = [
         shop: { label: "Farine de blé T55 ou T65" } },
       { name: "Bicarbonate de soude", qty: 0.5, unit: "c. à c.", rayon: "Épicerie", cid: "bicarbonate",
         shop: { label: "Bicarbonate de soude", qty: 1, unit: "sachet" } },
-      { name: "Sel fin", qty: 3, unit: "g", note: "{0,5 c. à c.} — indispensable", rayon: "Assaisonnements", cid: "sel-fin",
-        shop: { label: "Sel fin de cuisine", qtyText: "" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", note: "sur le dessus", optional: true, rayon: "Assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
       { name: "Pépites de chocolat noir ou au lait", qty: 150, unit: "g", rayon: "Épicerie", cid: "pepites-chocolat" }
@@ -663,7 +661,7 @@ const RECIPES = [
     steps: [
       {
         t: "Crémer le beurre et les sucres",
-        txt: "Dans un cul-de-poule, battez le beurre ramolli avec la cassonade et le sucre blanc jusqu'à obtenir un mélange crémeux et homogène.",
+        txt: "Dans un cul-de-poule, battez le beurre salé ramolli avec la cassonade et le sucre blanc jusqu'à obtenir un mélange crémeux et homogène.",
         tip: { t: "Astuce du chef", txt: "L'association de sucre blanc (pour le croustillant) et de cassonade (pour le moelleux et les notes de caramel) donne la texture idéale pour le côté « scoopable »." }
       },
       {
@@ -673,8 +671,8 @@ const RECIPES = [
       },
       {
         t: "Ajout des poudres",
-        txt: "Tamisez la farine, le bicarbonate de soude et le sel fin au-dessus du mélange, puis incorporez à la spatule sans trop travailler la pâte.", fond: ["gluten","sel-patisserie"],
-        tip: { t: "Astuce du chef", txt: "Ne sautez pas le sel : avec du beurre doux et {120 g} de sucre, une pâte à cookie sans sel reste plate en bouche. Tamisez-le avec la farine, à cet instant précis — après, c'est trop tard." }
+        txt: "Tamisez la farine et le bicarbonate de soude au-dessus du mélange, puis incorporez à la spatule sans trop travailler la pâte.", fond: ["gluten","sel-patisserie"],
+        tip: { t: "Astuce du chef", txt: "Pas de sel fin à tamiser ici : les {100 g} de beurre salé en apportent déjà autour de {3 g}, fondus dans toute la pâte — la bonne dose pour {120 g} de sucre. Avec un demi-sel, ajoutez une pincée de sel fin aux poudres ; avec du beurre doux, une demi-cuillère à café." }
       },
       {
         t: "Incrustation des pépites",
