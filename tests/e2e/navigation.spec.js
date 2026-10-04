@@ -165,3 +165,13 @@ test("fondamentaux : sans le fichier, une fiche s'affiche et les Savoirs propose
   await page.locator("#fonds-reessayer").click();
   await expect(page.locator(".f-fam").first()).toBeVisible();
 });
+
+test("partage : un lien qui omet un réglage vaut le défaut, pas le brouillon précédent", async ({ context, page }) => {
+  await preremplir(context, { carnet: { menu: [], checked: {}, extras: [], portions: { "cake-sale": 10 }, choices: { "cake-sale": { garniture: "olives-feta" } }, addons: { "cake-sale": ["tomates-sechees"] } } });
+  await page.goto("/r/cake-sale.html?p=8");
+  await expect(page).toHaveURL(/#\/recette\/cake-sale$/);
+  const carnet = await lireCarnet(page);
+  expect(carnet.portions["cake-sale"]).toBe(8);
+  expect(carnet.choices["cake-sale"] || {}).toEqual({});
+  expect(carnet.addons["cake-sale"] || []).toEqual([]);
+});

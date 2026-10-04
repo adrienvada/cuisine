@@ -1,7 +1,7 @@
 /* L'onglet Savoirs : le catalogue des fondamentaux, leur page, leur feuille et l'astuce qui y renvoie. */
 
 import { state } from "../core/etat.js";
-import { CERTITUDES, fondById, fondsDe, recettesDuFond } from "../core/fonds.js";
+import { CERTITUDES, fondById, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { shareFond } from "../ui/partage.js";
@@ -129,7 +129,7 @@ export const fondMatches = (f, q) => {
 
 export function renderFondamentaux() {
   const q = state.fondQuery || "";
-  const trouves = FONDAMENTAUX.filter(f => fondMatches(f, q));
+  const trouves = fondsTous().filter(f => fondMatches(f, q));
   const familles = FAMILLES.filter(fam => trouves.some(f => f.famille === fam));
   /* Une famille inconnue ne disparaît pas en silence : elle passe en fin de liste. */
   const autres = [...new Set(trouves.map(f => f.famille))].filter(fam => !FAMILLES.includes(fam));
@@ -163,7 +163,7 @@ export function renderFondamentaux() {
           }).join("")}
         </div>
       </section>`).join("") : `<p class="empty">Aucun savoir ne correspond à « ${q} ».</p>`}
-    <p class="f-compte">${FONDAMENTAUX.length} fondamental${FONDAMENTAUX.length > 1 ? "aux" : ""} dans le carnet.</p>
+    <p class="f-compte">${fondsTous().length} fondamental${fondsTous().length > 1 ? "aux" : ""} dans le carnet.</p>
   `;
 
   const champ = document.getElementById("f-search");

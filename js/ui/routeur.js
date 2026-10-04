@@ -106,10 +106,15 @@ function marquerOnglet(nom) {
    pas modifier le repas en préparation. */
 function appliquerVersion(r, requete) {
   const v = versionDeRequete(r, requete);
+  if (!Object.keys(v).length) return;
+  /* Le lien ne dit que l'écart aux valeurs par défaut : ce qu'il omet vaut le
+     défaut. On repart donc d'un brouillon vierge, sans quoi un réglage resté
+     d'une visite précédente fausserait la version reçue. */
+  delete state.portions[r.id]; delete state.choices[r.id]; delete state.addons[r.id];
   if (v.portions != null) state.portions[r.id] = v.portions;
-  if (v.choices) state.choices[r.id] = { ...(state.choices[r.id] || {}), ...v.choices };
+  if (v.choices) state.choices[r.id] = v.choices;
   if (v.addons) state.addons[r.id] = v.addons;
-  if (Object.keys(v).length) save();
+  save();
 }
 
 /* Un numéro par appel : si l'adresse change pendant que les fondamentaux
@@ -135,7 +140,7 @@ function afficherFondsIndisponibles() {
     </div>
     <p class="empty">Les fondamentaux ne se sont pas chargés.<br>Vérifie ta connexion, puis réessaie.</p>
     <p class="empty"><button class="btn primary" id="fonds-reessayer">Réessayer</button></p>`;
-  document.getElementById("fonds-reessayer").addEventListener("click", () => route());
+  document.getElementById("fonds-reessayer").addEventListener("click", () => route({ garderDefilement: true }));
 }
 
 /* `garderDefilement` redessine la vue courante sans revenir en haut : une
