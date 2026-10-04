@@ -17,12 +17,12 @@ test("préchauffage : on remonte jusqu'à l'étape d'où il reste 15 min d'atten
     { txt: "Enfournez.", four: 200 }
   ];
   // Depuis l'étape 3 : 0 min ; depuis l'étape 2 : 30 min, c'est la bonne.
-  assert.deepEqual(planPrechauffage(etapes), { etape: 2, four: 4, temperature: 200 });
+  assert.deepEqual(planPrechauffage(etapes), { etape: 2, four: 4, temperature: 200, duree: 15 });
 });
 
 test("préchauffage : si les minuteurs d'avant sont trop courts, on prévient dès la première étape", () => {
   const etapes = [{ txt: "a" }, { txt: "b", timer: 10 }, { txt: "c", four: 180 }];
-  assert.deepEqual(planPrechauffage(etapes), { etape: 0, four: 2, temperature: 180 });
+  assert.deepEqual(planPrechauffage(etapes), { etape: 0, four: 2, temperature: 180, duree: 15 });
 });
 
 test("préchauffage : le minuteur de l'étape qui précède le four compte, celui du four non", () => {

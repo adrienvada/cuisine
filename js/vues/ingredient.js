@@ -8,7 +8,7 @@ import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 /* La quantité d'un ingrédient aux portions affichées (`f` = portions / base),
    telle que la liste et la feuille la montrent toutes les deux. */
 export function quantiteTexte(ing, f) {
-  const q = scaleQty(ing.qty, ing.unit, f);
+  const q = scaleQty(ing.qty, ing.unit, f, ing.entier);
   return q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "—");
 }
 
@@ -41,7 +41,7 @@ export function ouvrirIngredient(r, ing, { portions, regler }) {
         <h4>J'en ai moins</h4>
         <label class="ing-moins-champ">
           <span>Ce que tu as</span>
-          <input id="ing-possede" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="${fmtQty(scaleQty(ing.qty, ing.unit, f))}">
+          <input id="ing-possede" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="${fmtQty(scaleQty(ing.qty, ing.unit, f, ing.entier))}">
           ${unite ? raw(html`<span class="ing-unite">${unite}</span>`) : ""}
         </label>
         <p class="ing-resultat" id="ing-resultat" aria-live="polite"></p>

@@ -6,12 +6,28 @@
    commune, lues sur l'horloge du mur, sans fuseau — la table à 20 h est à 20 h
    partout, et le calendrier la recevra en Europe/Paris. */
 
-/* Un four se préchauffe en un quart d'heure environ. */
+/* Un four se préchauffe en un quart d'heure environ… */
 export const PRECHAUFFAGE = 15;
 
+/* … mais pas tous les fours à toutes les températures : il en faut moins pour
+   150 °C que pour 230 °C. Ce sont des ordres de grandeur de four ménager (à
+   chaleur tournante, un peu moins) ; le sien, on le connaît mieux que le carnet.
+   Sans température connue, le quart d'heure habituel. */
+export function dureePrechauffage(temp) {
+  if (!(temp > 0)) return PRECHAUFFAGE;
+  if (temp <= 160) return 10;
+  if (temp <= 200) return PRECHAUFFAGE;
+  return 20;
+}
+
 /* Entre un plat à 220 °C et un plat à 180 °C, le four a besoin de souffler :
-   il redescend moins vite qu'il ne monte, mais une porte ouverte l'aide. */
+   le thermostat ne descend pas d'un coup, et une porte ouverte l'aide à peine. */
 const MARGE_FOUR = 10;
+
+/* 170 °C et 180 °C, c'est le même four : on cuit ensemble à 175 °C, personne
+   ne rallume le préchauffage pour dix degrés. Au-delà, c'est un autre plat. */
+const ECART_NEGLIGEABLE = 10;
+const memeChaleur = (a, b) => Math.abs(a - b) <= ECART_NEGLIGEABLE;
 
 /* Un pas de cinq minutes : personne ne se met à ses fourneaux à 17 h 37. */
 const PAS = 5;
@@ -135,7 +151,7 @@ export function planifier({ table, maintenant = null, taches }) {
   const entree = l => l.debut + l.four.entree;
   const sortie = l => l.debut + l.four.sortie;
   const four = lignes.filter(l => l.four).sort((a, b) => b.four.temp - a.four.temp || a.i - b.i);
-  const autreTemp = (a, b) => a.four.temp !== b.four.temp;
+  const autreTemp = (a, b) => !memeChaleur(a.four.temp, b.four.temp);
 
   /* Les conflits se lisent sur la position de départ, avant toute correction. */
   const conflits = [];
@@ -221,8 +237,8 @@ function evenements(lignes, table) {
   for (const l of fournees) {
     const entree = l.debut + l.four.entree;
     if (sortieVue == null || entree - sortieVue > 2 * PRECHAUFFAGE) {
-      ev.push({ t: Math.max(sortieVue ?? -Infinity, entree - PRECHAUFFAGE), type: "prechauffage", temp: l.four.temp });
-    } else if (l.four.temp !== tempVue) {
+      ev.push({ t: Math.max(sortieVue ?? -Infinity, entree - dureePrechauffage(l.four.temp)), type: "prechauffage", temp: l.four.temp });
+    } else if (!memeChaleur(l.four.temp, tempVue)) {
       ev.push({ t: Math.max(sortieVue, entree - MARGE_FOUR), type: "regler", temp: l.four.temp });
     }
     sortieVue = Math.max(sortieVue ?? -Infinity, l.debut + l.four.sortie);
@@ -342,7 +358,7 @@ export function icsRepas(plan, { horodatage, convives = null } = {}) {
     });
   }
   for (const e of plan.evenements.filter(x => x.type === "prechauffage" || x.type === "regler")) {
-    evenement({ debut: e.t, fin: e.t + PRECHAUFFAGE, titre: texteEvenement(e), rappel: 0 });
+    evenement({ debut: e.t, fin: e.t + (e.type === "prechauffage" ? dureePrechauffage(e.temp) : PRECHAUFFAGE), titre: texteEvenement(e), rappel: 0 });
   }
   evenement({
     debut: plan.tableReelle, fin: plan.tableReelle + 90, titre: "À table !", rappel: 30,

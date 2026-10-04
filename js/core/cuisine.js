@@ -1,6 +1,7 @@
 /* Le calcul du mode cuisine : ingrédients d'une étape, préchauffage, taille du texte, balayage, durées — sans toucher au DOM. */
 
 import { fmtQty, fmtTime, fmtUnit, scaleQty } from "./format.js";
+import { dureePrechauffage } from "./planning.js";
 
 /* ---------- Taille du texte ----------
    Trois tailles, gardées dans state.reglages.tailleCuisine. Le lot réglages lit
@@ -19,7 +20,7 @@ export function indexTaille(valeur) {
 /* La quantité écrite comme sur la fiche : mise à l'échelle des portions, ou le
    texte libre (« quelques brins ») quand l'ingrédient n'a pas de quantité chiffrée. */
 export function libelleQuantite(ing, f) {
-  const q = scaleQty(ing.qty, ing.unit, f);
+  const q = scaleQty(ing.qty, ing.unit, f, ing.entier);
   return q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "");
 }
 
@@ -39,24 +40,24 @@ export function ingredientsDeLEtape(etape, idx, nbEtapes, ingredients, supplemen
 
 /* ---------- Préchauffage ---------- */
 
-export const DUREE_PRECHAUFFAGE = 15;
-
 /* À quelle étape lancer le four, pour qu'il soit chaud à l'étape qui l'utilise
    (`four`) ? On remonte depuis celle-ci en additionnant les minuteurs des étapes
-   qui la précèdent : la dernière étape d'où il reste 15 min d'attente est la
-   bonne. Si tout ce qui précède dure moins, on prévient dès la première étape.
+   qui la précèdent : la dernière étape d'où il reste le temps de préchauffage
+   (10 à 20 min selon la température, cf. dureePrechauffage) est la bonne. Si
+   tout ce qui précède dure moins, on prévient dès la première étape.
    Rien du tout quand une étape qui précède l'étape du four parle déjà de
    préchauffer : le texte fait alors le travail. */
 export function planPrechauffage(etapes) {
   const k = etapes.findIndex(s => s.four);
   if (k === -1) return null;
   if (etapes.slice(0, k).some(s => /préchauff/i.test(s.txt || ""))) return null;
+  const duree = dureePrechauffage(etapes[k].four);
   let attente = 0, debut = 0;
   for (let i = k - 1; i >= 0; i--) {
     attente += etapes[i].timer || 0;
-    if (attente >= DUREE_PRECHAUFFAGE) { debut = i; break; }
+    if (attente >= duree) { debut = i; break; }
   }
-  return { etape: debut, four: k, temperature: etapes[k].four };
+  return { etape: debut, four: k, temperature: etapes[k].four, duree };
 }
 
 /* ---------- Balayage ---------- */

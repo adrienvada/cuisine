@@ -53,12 +53,12 @@ test("les portions de l'entrée mettent les quantités à l'échelle", () => {
   assert.equal(ligne(buildCourseList(), "lardons").qty, 400);
 });
 
-test("hors poids et volumes, la quantité s'arrondit à l'entier supérieur ; les grammes, non", () => {
+test("hors poids et volumes, la quantité s'arrondit à l'entier supérieur ; les grammes, au gramme", () => {
   remettreAZero();
   state.menu = [entree("quiche-lorraine", { portions: 7 })];
   const liste = buildCourseList();
   assert.equal(ligne(liste, "oeufs").qty, 5);              // 4 × 7/6 = 4,67 œufs
-  assert.ok(Math.abs(ligne(liste, "lardons").qty - 200 * 7 / 6) < 1e-9);
+  assert.equal(ligne(liste, "lardons").qty, 233);          // 200 × 7/6 = 233,33 g : pas de « 233¼ g » sur une liste de courses
 });
 
 test("deux recettes qui partagent un ingrédient (même cid) : une ligne, quantités additionnées", () => {
@@ -205,14 +205,15 @@ test("le placard : les cid du fond de placard sont marqués, et ne comptent pas 
   remettreAZero();
   state.menu = [entree("focaccia-romarin")];
   const liste = buildCourseList();
-  assert.equal(ligne(liste, "farine").placard, true);
+  assert.equal(ligne(liste, "sel-fin").placard, true);
   assert.equal(ligne(liste, "huile-olive").placard, true);
+  assert.equal(ligne(liste, "farine-pain").placard, false);   // la farine du pain n'est pas celle du placard
   assert.equal(ligne(liste, "romarin").placard, false);
   const aAcheter = liste.filter(i => !i.placard).length;
   assert.equal(courseTodo(), aAcheter);
-  state.checked = { farine: true };
+  state.checked = { "sel-fin": true };
   assert.equal(courseTodo(), aAcheter);
-  state.checked = { farine: true, romarin: true };
+  state.checked = { "sel-fin": true, romarin: true };
   assert.equal(courseTodo(), aAcheter - 1);
 });
 

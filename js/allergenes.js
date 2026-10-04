@@ -47,6 +47,7 @@ const ALLERGENES_LISTE = [
 const ALLERGENES = {
   /* Gluten : céréales du commerce */
   farine: ["gluten"],
+  "farine-pain": ["gluten"],
   pain: ["gluten"],
   "pain-suedois": ["gluten"],   // seigle ; certaines marques ajoutent du sésame
   pita: ["gluten"],
@@ -91,7 +92,6 @@ const ALLERGENES = {
 
   /* Sésame */
   sesame: ["sesame"],
-  "graines-sesame": ["sesame"],
   tahini: ["sesame"],
 
   /* Moutarde */

@@ -24,6 +24,14 @@
    Les notes de `shop` ne sont jamais mises à l'échelle — elles se fondent
    entre recettes dans la liste de courses — donc pas de quantité dedans.
 
+   Un `cid` est UN produit à acheter, avec UN libellé de courses (`shop.label`,
+   sinon `name`) dans toutes les recettes : la liste n'en affiche qu'un. Ce qui est
+   propre à une recette va dans `shop.note` ou dans son `name`/`note`. Deux
+   produits différents (farine de pain / farine de gâteau, beurre doux / salé)
+   ont deux `cid`. `entier: true` marque ce qui se compte à la pièce sans se
+   couper (œufs, jaunes compris, cornichons…) : mis à l'échelle, il reste entier.
+   Un pot dont une fois suffit : `shop: { qty: null, qtyText: "1 pot" }`.
+
    Annoter les étapes (mode cuisine, four, moule) :
    - `ing` : sur chaque étape de `steps` (sauf l'emplacement `{ choice }`) et sur
      le `step` de chaque option de `choices`, la liste des ingrédients que
@@ -67,25 +75,24 @@ const RECIPES = [
     portions: { base: 8, label: "personnes" },
     note: "À déguster tiède… ou froide le lendemain, elle est encore meilleure !",
     ingredients: [
-      { name: "Farine T55 ou T65", qty: 500, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine",
-        shop: { label: "Farine de blé T55 ou T65", note: "de préférence riche en gluten / italienne" } },
+      { name: "Farine T55 ou T65", qty: 500, unit: "g", note: "de préférence riche en gluten, type farine italienne", rayon: "Pâtisserie & épicerie sucrée", cid: "farine-pain",
+        shop: { label: "Farine de blé T65", note: "ou T55 ; de préférence riche en gluten / italienne" } },
       { name: "Levure boulangère déshydratée", qty: 7, unit: "g", note: "{1 sachet}", rayon: "Pâtisserie & épicerie sucrée", cid: "levure",
         shop: { label: "Levure boulangère déshydratée", qty: 1, unit: "sachet", note: "ou de la levure fraîche, 20 g par sachet" } },
       { name: "Eau tiède", qty: 380, unit: "ml", course: false },
-      { name: "Sel fin", qty: 10, unit: "g", rayon: "Épices & assaisonnements", cid: "sel-fin",
-        shop: { label: "Sel fin de cuisine", qtyText: "" } },
+      { name: "Sel fin", qty: 10, unit: "g", rayon: "Épices & assaisonnements", cid: "sel-fin" },
       { name: "Huile d'olive vierge extra", qty: 10, unit: "cl", note: "{3 cl} pour la pâte + {7 cl} pour le moule et la surface", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null, note: "de très bonne qualité, quantité généreuse" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", rayon: "Épices & assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
       { name: "Romarin frais", qty: null, qtyText: "quelques brins", rayon: "Herbes fraîches", cid: "romarin",
-        shop: { label: "Romarin frais", qtyText: "quelques brins" } }
+        shop: { label: "Romarin frais" } }
     ],
     steps: [
       {
         t: "La pâte (sans pétrissage difficile)",
         txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez {2 c. à s.} d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).", fond: ["gluten","sel-patisserie"],
-        ing: ["levure", "Eau tiède", "farine", "sel-fin", "huile-olive"],
+        ing: ["levure", "Eau tiède", "farine-pain", "sel-fin", "huile-olive"],
         timer: 120,
         tip: { t: "L'astuce du chef", txt: "Toutes les 30 minutes pendant la levée, les mains mouillées, attrapez un bord de la pâte, étirez-le vers le haut et repliez-le au centre. Faites le tour aux quatre points cardinaux." }
       },
@@ -119,7 +126,7 @@ const RECIPES = [
     addons: [
       { id: "olives", label: "Olives noires", emoji: "🫒",
         ingredients: [{ name: "Olives noires", qty: 100, unit: "g", note: "dénoyautées", rayon: "Conserves & bocaux", cid: "olives",
-          shop: { label: "Olives noires (type Kalamata)" } }],
+          shop: { label: "Olives noires", note: "type Kalamata" } }],
         step: { i: 4, txt: "Enfoncez les olives dans les cratères en même temps que le romarin." } },
       { id: "feta", label: "Feta", emoji: "🧀",
         ingredients: [{ name: "Feta", qty: 100, unit: "g", rayon: "Fromages", cid: "feta" }],
@@ -128,8 +135,7 @@ const RECIPES = [
         ingredients: [{ name: "Tomates cerises", qty: 150, unit: "g", rayon: "Fruits & légumes", cid: "tomates-cerises" }],
         step: { i: 4, txt: "Coupez les tomates cerises en deux et enfoncez-les dans la pâte, face coupée vers le haut, avant d'enfourner." } },
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
-        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge",
-          shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
+        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" }],
         step: { i: 4, txt: "Répartissez l'oignon rouge émincé en très fines lamelles sur la surface, avec un filet d'huile pour qu'il confise.", fond: "mordant-oignon" } }
     ]
   },
@@ -153,8 +159,8 @@ const RECIPES = [
       { name: "Pesto de basilic de qualité", qty: 1, unit: "petit pot", rayon: "Conserves & bocaux", cid: "pesto",
         shop: { label: "Pesto de basilic de qualité", qty: 1, unit: "pot", note: "ou pignons, parmesan et basilic s'il est fait maison" } },
       { name: "Pignons de pin ou parmesan râpé", qty: 20, unit: "g", note: "pour parsemer", optional: true, rayon: "Fruits secs & graines", cid: "pignons",
-        shop: { label: "Pignons de pin", qty: 1, unit: "sachet", note: "ou du parmesan râpé" } },
-      { name: "Jaune d'œuf", qty: 1, unit: "", note: "pour la dorure", rayon: "Crèmerie & œufs", cid: "oeufs",
+        shop: { label: "Pignons de pin", qty: null, qtyText: "1 sachet", note: "ou du parmesan râpé" } },
+      { name: "Jaune d'œuf", qty: 1, unit: "", note: "pour la dorure", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais", note: "pour la dorure des torsades" } }
     ],
     steps: [
@@ -190,7 +196,7 @@ const RECIPES = [
         step: { i: 0, txt: "Disposez les tranches de chorizo sur le pesto avant de replier la pâte." } },
       { id: "sesame", label: "Graines de sésame", emoji: "✨",
         ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "sesame",
-          shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
+          shop: { label: "Graines de sésame", qty: null, qtyText: "1 sachet" } }],
         step: { i: 3, txt: "Parsemez les torsades de graines de sésame juste après la dorure au jaune d'œuf." } }
     ]
   },
@@ -210,12 +216,11 @@ const RECIPES = [
     ingredients: [
       { name: "Chèvre frais", qty: 300, unit: "g", note: "type Petit Billy, Chavroux ou de producteur", rayon: "Fromages", cid: "chevre-frais" },
       { name: "Crème liquide entière", qty: 5, unit: "cl", rayon: "Crèmerie & œufs", cid: "creme-liquide" },
-      { name: "Ciboulette fraîche", qty: 0.5, unit: "botte", rayon: "Herbes fraîches", cid: "ciboulette",
-        shop: { label: "Ciboulette fraîche", qty: 1, unit: "botte" } },
-      { name: "Basilic frais", qty: 0.5, unit: "botte", rayon: "Herbes fraîches", cid: "basilic",
-        shop: { label: "Basilic frais", qty: 1, unit: "bouquet" } },
+      { name: "Ciboulette fraîche", qty: 0.5, unit: "bouquet", rayon: "Herbes fraîches", cid: "ciboulette",
+        shop: { qty: null, qtyText: "1 bouquet" } },
+      { name: "Basilic frais", qty: 0.5, unit: "bouquet", rayon: "Herbes fraîches", cid: "basilic" },
       { name: "Citron jaune non traité", qty: 0.5, unit: "", note: "les zestes et un trait de jus", rayon: "Fruits & légumes", cid: "citron",
-        shop: { label: "Citron jaune non traité" } },
+        shop: { label: "Citron jaune", note: "non traité, pour le zeste" } },
       { name: "Sel fin et poivre du moulin", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
@@ -244,7 +249,7 @@ const RECIPES = [
         step: { i: 2, txt: "Parsemez le dip de noix grossièrement concassées au moment de servir." } },
       { id: "miel", label: "Filet de miel", emoji: "🍯",
         ingredients: [{ name: "Miel", qty: null, qtyText: "1 filet", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
-          shop: { label: "Miel", qty: 1, unit: "pot" } }],
+          shop: { label: "Miel", qty: null, qtyText: "1 pot" } }],
         step: { i: 2, txt: "Terminez par un filet de miel : le sucré-salé fait merveille avec le chèvre." } },
       { id: "radis", label: "Radis à tremper", emoji: "🌱",
         ingredients: [{ name: "Radis", qty: 1, unit: "botte", rayon: "Fruits & légumes", cid: "radis" }],
@@ -265,17 +270,18 @@ const RECIPES = [
     times: { prep: 15, cuisson: 3 },
     portions: { base: 6, label: "personnes" },
     ingredients: [
-      { name: "Petits pois frais écossés", qty: 300, unit: "g", note: "ou surgelés de bonne qualité", rayon: "Fruits & légumes", cid: "petits-pois" },
+      { name: "Petits pois frais écossés", qty: 300, unit: "g", note: "ou surgelés de bonne qualité", rayon: "Fruits & légumes", cid: "petits-pois",
+        shop: { label: "Petits pois frais ou surgelés", note: "frais, en cosses : prévoir plus du double du poids écossé" } },
       { name: "Pois chiches cuits égouttés", qty: 200, unit: "g", rayon: "Conserves & bocaux", cid: "pois-chiches",
-        shop: { label: "Pois chiches au naturel", qty: 1, unit: "bocal", note: "environ 400 g" } },
+        shop: { label: "Pois chiches au naturel", qty: 1, unit: "boîte", note: "boîte de 400 g : environ 240 g égouttés" } },
       { name: "Tahini (crème de sésame)", qty: 2, unit: "c. à s.", rayon: "Huiles, vinaigres & condiments", cid: "tahini",
-        shop: { label: "Tahini (crème de sésame)", qty: 1, unit: "pot" } },
+        shop: { label: "Tahini (crème de sésame)", qty: null, qtyText: "1 pot" } },
       { name: "Citron jaune", qty: 1, unit: "", note: "le jus", rayon: "Fruits & légumes", cid: "citron",
-        shop: { label: "Citron jaune non traité" } },
-      { name: "Ail", qty: 1, unit: "petite gousse", note: "dégermée", rayon: "Fruits & légumes", cid: "ail",
-        shop: { label: "Ail", qty: 2, unit: "gousse" } },
+        shop: { label: "Citron jaune" } },
+      { name: "Ail", qty: 1, unit: "gousse", note: "petite, dégermée", rayon: "Fruits & légumes", cid: "ail",
+        shop: { label: "Ail", note: "se vend en tête, une seule suffit" } },
       { name: "Menthe fraîche", qty: null, qtyText: "10 à 12 feuilles", rayon: "Herbes fraîches", cid: "menthe",
-        shop: { label: "Menthe fraîche", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
       { name: "Huile d'olive", qty: null, qtyText: "un filet", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null } },
       { name: "Sel et une pincée de cumin", qty: null, rayon: "Épices & assaisonnements", cid: "cumin",
@@ -313,10 +319,10 @@ const RECIPES = [
         step: { i: 3, txt: "Émiettez la feta sur le houmous au moment du dressage." } },
       { id: "sesame", label: "Sésame torréfié", emoji: "✨",
         ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "sesame",
-          shop: { label: "Graines de sésame", qty: 1, unit: "sachet" } }],
+          shop: { label: "Graines de sésame", qty: null, qtyText: "1 sachet" } }],
         step: { i: 3, timer: 2, adds: "cuisson", txt: "Faites dorer les graines de sésame 2 min à la poêle à sec et parsemez-en le houmous.", fond: "torrefaction" } },
       { id: "pita", label: "Pains pita", emoji: "🫓",
-        ingredients: [{ name: "Pains pita", qty: 4, unit: "", rayon: "Boulangerie", cid: "pita",
+        ingredients: [{ name: "Pains pita", qty: 4, unit: "", rayon: "Boulangerie", cid: "pita", entier: true,
           shop: { label: "Pains pita", qty: 1, unit: "paquet" } }],
         step: { i: 3, txt: "Faites tiédir les pitas au grille-pain et coupez-les en quartiers, pour saucer généreusement." } }
     ]
@@ -339,11 +345,11 @@ const RECIPES = [
         shop: { label: "Pommes croquantes (Granny Smith ou Gala)" } },
       { name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Fruits secs & graines", cid: "noix" },
       { name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "graines-courge",
-        shop: { label: "Graines de courge", qty: 1, unit: "sachet" } },
-      { name: "Œufs frais", qty: 4, unit: "", note: "{2-4} selon les appétits", rayon: "Crèmerie & œufs", cid: "oeufs",
+        shop: { label: "Graines de courge", qty: null, qtyText: "1 sachet" } },
+      { name: "Œufs frais", qty: 4, unit: "", note: "{2-4 œuf} selon les appétits", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } },
       { name: "Persil plat", qty: 0.5, unit: "bouquet", rayon: "Herbes fraîches", cid: "persil",
-        shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
       { name: "Huile d'olive", qty: 1, unit: "c. à s.", note: "pour masser le kale", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null } },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
@@ -358,7 +364,7 @@ const RECIPES = [
               shop: { label: "Huile d'olive vierge extra", qty: null } },
             { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" },
             { name: "Moutarde", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } }
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } }
           ],
           step: { t: "Vinaigrette moutarde & cidre",
             txt: "Fouettez la moutarde avec le vinaigre de cidre, du sel et du poivre, puis montez en émulsion avec l'huile d'olive.",
@@ -367,9 +373,9 @@ const RECIPES = [
         { id: "tahini-citron", label: "Tahini & citron", emoji: "🥣",
           ingredients: [
             { name: "Tahini (crème de sésame)", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "tahini",
-              shop: { label: "Tahini (crème de sésame)", qty: 1, unit: "pot" } },
+              shop: { label: "Tahini (crème de sésame)", qty: null, qtyText: "1 pot" } },
             { name: "Citron jaune", qty: 0.5, unit: "", note: "le jus — vinaigrette", rayon: "Fruits & légumes", cid: "citron",
-              shop: { label: "Citron jaune non traité" } },
+              shop: { label: "Citron jaune" } },
             { name: "Huile d'olive", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } }
           ],
@@ -380,9 +386,9 @@ const RECIPES = [
         { id: "miel-moutarde", label: "Miel & moutarde", emoji: "🍯",
           ingredients: [
             { name: "Miel", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
-              shop: { label: "Miel", qty: 1, unit: "pot" } },
+              shop: { label: "Miel", qty: null, qtyText: "1 pot" } },
             { name: "Moutarde", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } },
             { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" },
             { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } }
@@ -403,7 +409,7 @@ const RECIPES = [
         step: { i: 5, txt: "Prélevez des copeaux de parmesan à l'économe et répartissez-les sur la salade." } },
       { id: "cranberries", label: "Cranberries séchées", emoji: "🍒",
         ingredients: [{ name: "Cranberries séchées", qty: 40, unit: "g", rayon: "Fruits secs & graines", cid: "cranberries",
-          shop: { label: "Cranberries séchées", qty: 1, unit: "sachet" } }],
+          shop: { label: "Cranberries séchées", qty: null, qtyText: "1 sachet" } }],
         step: { i: 5, txt: "Parsemez les cranberries avec les fruits secs torréfiés, pour une note sucrée qui répond au kale." } }
     ],
     steps: [
@@ -429,7 +435,7 @@ const RECIPES = [
       },
       {
         t: "Cuire les œufs mollets",
-        txt: "Portez une casserole d'eau à ébullition. Plongez-y délicatement les œufs et comptez exactement 6 minutes de cuisson.",
+        txt: "Portez une casserole d'eau à ébullition. Plongez-y délicatement les œufs et comptez exactement 6 minutes de cuisson.", fond: "oeuf-cru",
         ing: ["oeufs"],
         timer: 6,
         tip: { t: "Astuce du chef", txt: "Plongez immédiatement les œufs dans un grand bol d'eau glacée dès la fin du chrono pour stopper la cuisson et faciliter l'écalage." }
@@ -461,10 +467,11 @@ const RECIPES = [
       { name: "Cœurs d'artichauts marinés", qty: 1, unit: "bocal", rayon: "Conserves & bocaux", cid: "artichauts" },
       { name: "Oignon", qty: 1, unit: "", rayon: "Fruits & légumes", cid: "oignon" },
       { name: "Ail", qty: 1, unit: "gousse", rayon: "Fruits & légumes", cid: "ail",
-        shop: { label: "Ail", qty: 2, unit: "gousse" } },
+        shop: { label: "Ail", note: "se vend en tête, une seule suffit" } },
       { name: "Bouillon de légumes", qty: 50, unit: "cl", rayon: "Épicerie salée", cid: "bouillon",
-        shop: { label: "Bouillon de légumes", qty: 1, unit: "", note: "cubes ou brique" } },
-      { name: "Crème fraîche ou crème de coco", qty: 2, unit: "c. à s.", rayon: "Crèmerie & œufs", cid: "creme-fraiche" },
+        shop: { label: "Bouillon de légumes", qty: 1, unit: "brique", note: "ou des cubes" } },
+      { name: "Crème fraîche ou crème de coco", qty: 2, unit: "c. à s.", rayon: "Crèmerie & œufs", cid: "creme-fraiche",
+        shop: { label: "Crème fraîche épaisse", note: "ou crème de coco" } },
       { name: "Beurre", qty: null, qtyText: "un peu", rayon: "Crèmerie & œufs", cid: "beurre",
         shop: { label: "Beurre doux" } },
       { name: "Huile d'olive", qty: null, qtyText: "un filet", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
@@ -510,7 +517,7 @@ const RECIPES = [
     addons: [
       { id: "graines-courge", label: "Graines de courge torréfiées", emoji: "🎃",
         ingredients: [{ name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "graines-courge",
-          shop: { label: "Graines de courge", qty: 1, unit: "sachet" } }],
+          shop: { label: "Graines de courge", qty: null, qtyText: "1 sachet" } }],
         step: { i: 4, timer: 3, adds: "cuisson", txt: "Torréfiez les graines de courge 3 min à la poêle à sec et parsemez-en le velouté.", fond: "torrefaction" } },
       { id: "croutons", label: "Croûtons dorés", emoji: "🍞",
         ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranche", rayon: "Boulangerie", cid: "pain",
@@ -543,21 +550,23 @@ const RECIPES = [
       { name: "Yaourt bulgare", qty: 200, unit: "g", note: "sauce — ou yaourt grec bien épais", rayon: "Crèmerie & œufs", cid: "yaourt-bulgare",
         shop: { label: "Yaourt bulgare", qty: 1, unit: "pot", note: "ou yaourt grec bien épais" } },
       { name: "Citron jaune non traité", qty: 1, unit: "", note: "zeste et jus — sauce", rayon: "Fruits & légumes", cid: "citron",
-        shop: { label: "Citron jaune non traité" } },
+        shop: { label: "Citron jaune", note: "non traité, pour le zeste" } },
       { name: "Orange non traitée", qty: 0.5, unit: "", note: "zeste et jus — sauce", rayon: "Fruits & légumes", cid: "orange",
-        shop: { label: "Orange non traitée", qty: 1, unit: "" } },
+        shop: { label: "Orange non traitée" } },
       { name: "Huile d'olive vierge extra", qty: 1, unit: "c. à s.", note: "sauce, plus quelques gouttes au dressage", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null } },
-      { name: "Pain suédois", qty: 4, unit: "", note: "type polar bread, ou un pain plat fin", rayon: "Épicerie salée", cid: "pain-suedois",
+      { name: "Pain suédois", qty: 4, unit: "", note: "type polar bread, ou un pain plat fin", rayon: "Épicerie salée", cid: "pain-suedois", entier: true,
         shop: { label: "Pain suédois (polar bread)", qty: 1, unit: "paquet", note: "ou pain plat fin type naan" } },
-      { name: "Tomates anciennes", qty: 2, unit: "", note: "colorées et bien fermes", rayon: "Fruits & légumes", cid: "tomates" },
-      { name: "Tomates cerises multicolores", qty: 100, unit: "g", rayon: "Fruits & légumes", cid: "tomates-cerises" },
+      { name: "Tomates anciennes", qty: 2, unit: "", note: "colorées et bien fermes", rayon: "Fruits & légumes", cid: "tomates",
+        shop: { label: "Tomates fermes", note: "anciennes et colorées, pour le gravlax" } },
+      { name: "Tomates cerises multicolores", qty: 100, unit: "g", rayon: "Fruits & légumes", cid: "tomates-cerises",
+        shop: { label: "Tomates cerises", note: "multicolores de préférence" } },
       { name: "Cerfeuil frais", qty: 0.5, unit: "bouquet", note: "fines herbes", rayon: "Herbes fraîches", cid: "cerfeuil",
-        shop: { label: "Cerfeuil frais", qty: 1, unit: "bouquet" } },
-      { name: "Ciboulette fraîche", qty: 0.5, unit: "botte", note: "fines herbes", rayon: "Herbes fraîches", cid: "ciboulette",
-        shop: { label: "Ciboulette fraîche", qty: 1, unit: "botte" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
+      { name: "Ciboulette fraîche", qty: 0.5, unit: "bouquet", note: "fines herbes", rayon: "Herbes fraîches", cid: "ciboulette",
+        shop: { qty: null, qtyText: "1 bouquet" } },
       { name: "Aneth frais", qty: 0.5, unit: "bouquet", note: "fines herbes", optional: true, rayon: "Herbes fraîches", cid: "aneth",
-        shop: { label: "Aneth frais", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
@@ -604,8 +613,8 @@ const RECIPES = [
     ],
     addons: [
       { id: "capres", label: "Câpres", emoji: "🌿",
-        ingredients: [{ name: "Câpres", qty: 2, unit: "c. à s.", rayon: "Conserves & bocaux", cid: "capres",
-          shop: { label: "Câpres", qty: 1, unit: "bocal" } }],
+        ingredients: [{ name: "Câpres", qty: 2, unit: "c. à s.", rayon: "Huiles, vinaigres & condiments", cid: "capres",
+          shop: { label: "Câpres", qty: null, qtyText: "1 bocal" } }],
         step: { i: 5, txt: "Parsemez le saumon de câpres bien égouttées en même temps que les fines herbes." } },
       { id: "fleurs", label: "Fleurs comestibles", emoji: "🌸",
         ingredients: [{ name: "Fleurs comestibles", qty: null, qtyText: "une pincée", note: "bleuet, souci, pétales de rose", rayon: "Herbes fraîches", cid: "fleurs-comestibles",
@@ -632,20 +641,18 @@ const RECIPES = [
     ingredients: [
       { name: "Fromage de brebis frais", qty: 200, unit: "g", note: "type feta de brebis ou brocciu", rayon: "Fromages", cid: "brebis-frais" },
       { name: "Menthe fraîche", qty: 0.5, unit: "bouquet", rayon: "Herbes fraîches", cid: "menthe",
-        shop: { label: "Menthe fraîche", qty: 1, unit: "bouquet" } },
-      { name: "Farine", qty: 150, unit: "g", note: "pâte à beignet", rayon: "Pâtisserie & épicerie sucrée", cid: "farine",
-        shop: { label: "Farine de blé T55 ou T65" } },
-      { name: "Œuf", qty: 1, unit: "", note: "pâte à beignet", rayon: "Crèmerie & œufs", cid: "oeufs",
+        shop: { qty: null, qtyText: "1 bouquet" } },
+      { name: "Farine T55", qty: 150, unit: "g", note: "pâte à beignet", rayon: "Pâtisserie & épicerie sucrée", cid: "farine" },
+      { name: "Œuf", qty: 1, unit: "", note: "pâte à beignet", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } },
       { name: "Eau gazeuse très froide", qty: 15, unit: "cl", note: "pâte à beignet", rayon: "Boissons", cid: "eau-gazeuse",
-        shop: { label: "Eau gazeuse", qty: 1, unit: "bouteille" } },
-      { name: "Levure chimique", qty: 0.5, unit: "sachet", note: "pâte à beignet", rayon: "Pâtisserie & épicerie sucrée", cid: "levure-chimique",
-        shop: { label: "Levure chimique", qty: 1, unit: "sachet" } },
+        shop: { label: "Eau gazeuse", qty: null, qtyText: "1 bouteille" } },
+      { name: "Levure chimique", qty: 0.5, unit: "sachet", note: "pâte à beignet", rayon: "Pâtisserie & épicerie sucrée", cid: "levure-chimique" },
       { name: "Huile de friture", qty: null, qtyText: "1 bain", rayon: "Huiles, vinaigres & condiments", cid: "huile-friture",
         shop: { label: "Huile de friture", qty: 1, unit: "bouteille" } },
       { name: "Yaourt grec", qty: 150, unit: "g", note: "sauce menthe", rayon: "Crèmerie & œufs", cid: "yaourt-grec" },
       { name: "Jus de citron", qty: null, qtyText: "1 filet", note: "sauce menthe", rayon: "Fruits & légumes", cid: "citron",
-        shop: { label: "Citron jaune non traité", qty: 1, unit: "" } },
+        shop: { label: "Citron jaune", qty: 0.5, unit: "" } },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
@@ -687,11 +694,11 @@ const RECIPES = [
     addons: [
       { id: "miel", label: "Filet de miel", emoji: "🍯",
         ingredients: [{ name: "Miel", qty: null, qtyText: "1 filet", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
-          shop: { label: "Miel", qty: 1, unit: "pot" } }],
+          shop: { label: "Miel", qty: null, qtyText: "1 pot" } }],
         step: { i: 4, txt: "Nappez les beignets chauds d'un filet de miel juste avant de servir, façon sucré-salé." } },
       { id: "harissa", label: "Sauce relevée à la harissa", emoji: "🌶️",
         ingredients: [{ name: "Harissa", qty: 1, unit: "c. à c.", rayon: "Huiles, vinaigres & condiments", cid: "harissa",
-          shop: { label: "Harissa", qty: 1, unit: "tube" } }],
+          shop: { label: "Harissa", qty: null, qtyText: "1 tube" } }],
         step: { i: 0, txt: "Incorporez la harissa à la sauce yaourt pour une version qui pique gentiment." } }
     ]
   },
@@ -707,19 +714,19 @@ const RECIPES = [
     color: "#C08A4F",
     times: { prep: 15, cuisson: 20 },
     portions: { base: 6, label: "personnes" },
+    note: "Ne goûtez pas la pâte crue : l'œuf cru et la farine non cuite ne sont pas sans risque.",
     ingredients: [
       { name: "Beurre salé ramolli", qty: 100, unit: "g", note: "il apporte tout le sel de la pâte", rayon: "Crèmerie & œufs", cid: "beurre-sale",
         shop: { label: "Beurre salé" } },
       { name: "Sucre cassonade", qty: 80, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "cassonade" },
       { name: "Sucre blanc", qty: 40, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "sucre" },
-      { name: "Œuf", qty: 1, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs",
+      { name: "Œuf", qty: 1, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } },
       { name: "Extrait de vanille", qty: 1, unit: "c. à c.", rayon: "Pâtisserie & épicerie sucrée", cid: "vanille",
-        shop: { label: "Extrait de vanille", qty: 1, unit: "flacon" } },
-      { name: "Farine", qty: 160, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine",
-        shop: { label: "Farine de blé T55 ou T65" } },
+        shop: { label: "Extrait de vanille", qty: null, qtyText: "1 flacon" } },
+      { name: "Farine T55", qty: 160, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine" },
       { name: "Bicarbonate de soude", qty: 0.5, unit: "c. à c.", rayon: "Pâtisserie & épicerie sucrée", cid: "bicarbonate",
-        shop: { label: "Bicarbonate de soude", qty: 1, unit: "sachet" } },
+        shop: { label: "Bicarbonate de soude", qty: null, qtyText: "1 sachet" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", note: "sur le dessus", optional: true, rayon: "Épices & assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
       { name: "Pépites de chocolat noir ou au lait", qty: 75, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "pepites-chocolat" }
@@ -761,7 +768,7 @@ const RECIPES = [
     addons: [
       { id: "pecan", label: "Noix de pécan", emoji: "🌰",
         ingredients: [{ name: "Noix de pécan", qty: 80, unit: "g", rayon: "Fruits secs & graines", cid: "pecan",
-          shop: { label: "Noix de pécan", qty: 1, unit: "sachet" } }],
+          shop: { label: "Noix de pécan", qty: null, qtyText: "1 sachet" } }],
         step: { i: 3, txt: "Concassez grossièrement les noix de pécan et incorporez-les en même temps que les pépites." } },
       { id: "glace-vanille", label: "Glace vanille", emoji: "🍨",
         ingredients: [{ name: "Glace vanille", qty: 1, unit: "pot", rayon: "Surgelés", cid: "glace-vanille" }],
@@ -785,16 +792,16 @@ const RECIPES = [
     portions: { base: 4, label: "verres" },
     ingredients: [
       { name: "Concombre bio", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "concombre",
-        shop: { label: "Concombre bio", qty: 1, unit: "" } },
+        shop: { label: "Concombre", note: "bio si l'on garde la peau" } },
       { name: "Citrons verts", qty: 2, unit: "", rayon: "Fruits & légumes", cid: "citron-vert",
         shop: { label: "Citrons verts" } },
       { name: "Sirop de sucre de canne", qty: 2, unit: "c. à s.", note: "{2-3}, ou sucre complet", rayon: "Pâtisserie & épicerie sucrée", cid: "sirop-canne",
-        shop: { label: "Sirop de sucre de canne", qty: 1, unit: "bouteille" } },
+        shop: { label: "Sirop de sucre de canne", qty: null, qtyText: "1 bouteille" } },
       { name: "Eau très fraîche ou gazeuse", qty: 50, unit: "cl", rayon: "Boissons", cid: "eau-gazeuse",
-        shop: { label: "Eau gazeuse", qty: 1, unit: "bouteille", note: "pour la version pétillante" } },
+        shop: { label: "Eau gazeuse", qty: null, qtyText: "1 bouteille", note: "pour la version pétillante" } },
       { name: "Glaçons", qty: null, qtyText: "à volonté", course: false },
       { name: "Menthe fraîche", qty: null, qtyText: "quelques feuilles", rayon: "Herbes fraîches", cid: "menthe",
-        shop: { label: "Menthe fraîche", qty: 1, unit: "bouquet" } }
+        shop: { qty: null, qtyText: "1 bouquet" } }
     ],
     steps: [
       {
@@ -858,7 +865,7 @@ const RECIPES = [
     portions: { base: 4, label: "personnes" },
     ingredients: [
       { name: "Pois chiches cuits", qty: 400, unit: "g", note: "en bocal ou boîte", rayon: "Conserves & bocaux", cid: "pois-chiches",
-        shop: { label: "Pois chiches au naturel", qty: 1, unit: "bocal", note: "environ 400 g" } },
+        shop: { label: "Pois chiches au naturel", qty: 2, unit: "boîte", note: "boîte de 400 g : environ 240 g égouttés" } },
       { name: "Feta", qty: 150, unit: "g", rayon: "Fromages", cid: "feta" },
       { name: "Olives noires", qty: 80, unit: "g", note: "type Kalamata", rayon: "Conserves & bocaux", cid: "olives" },
       { name: "Oignon rouge", qty: 0.25, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" },
@@ -882,11 +889,11 @@ const RECIPES = [
         { id: "citron-menthe", label: "Citron & menthe", emoji: "🍋",
           ingredients: [
             { name: "Citron jaune", qty: 1, unit: "", note: "le jus — vinaigrette", rayon: "Fruits & légumes", cid: "citron",
-              shop: { label: "Citron jaune non traité" } },
+              shop: { label: "Citron jaune" } },
             { name: "Huile d'olive extra-vierge", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } },
             { name: "Menthe fraîche", qty: null, qtyText: "8 feuilles", note: "vinaigrette", rayon: "Herbes fraîches", cid: "menthe",
-              shop: { label: "Menthe fraîche", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
             { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
               shop: { label: "Sel fin, poivre noir du moulin" } }
           ],
@@ -898,9 +905,9 @@ const RECIPES = [
           ingredients: [
             { name: "Yaourt grec", qty: 100, unit: "g", note: "vinaigrette", rayon: "Crèmerie & œufs", cid: "yaourt-grec" },
             { name: "Citron jaune", qty: 0.5, unit: "", note: "le jus — vinaigrette", rayon: "Fruits & légumes", cid: "citron",
-              shop: { label: "Citron jaune non traité" } },
+              shop: { label: "Citron jaune" } },
             { name: "Ail", qty: 0.5, unit: "gousse", note: "vinaigrette", rayon: "Fruits & légumes", cid: "ail",
-              shop: { label: "Ail", qty: 2, unit: "gousse" } },
+              shop: { label: "Ail", note: "se vend en tête, une seule suffit" } },
             { name: "Huile d'olive extra-vierge", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } },
             { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
@@ -915,7 +922,7 @@ const RECIPES = [
     addons: [
       { id: "concombre", label: "Concombre", emoji: "🥒",
         ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "concombre",
-          shop: { label: "Concombre bio", qty: 1, unit: "" } }],
+          shop: { label: "Concombre", note: "bio si l'on garde la peau" } }],
         step: { i: 5, txt: "Taillez le concombre en demi-rondelles et incorporez-le à la salade." } },
       { id: "avocat", label: "Avocat", emoji: "🥑",
         ingredients: [{ name: "Avocat mûr", qty: 1, unit: "", rayon: "Fruits & légumes", cid: "avocat",
@@ -973,7 +980,8 @@ const RECIPES = [
     ingredients: [
       { name: "Salade feuille de chêne", qty: 1, unit: "", rayon: "Fruits & légumes", cid: "feuille-chene" },
       { name: "Haricots verts frais", qty: 200, unit: "g", rayon: "Fruits & légumes", cid: "haricots-verts" },
-      { name: "Petits pois frais ou surgelés", qty: 150, unit: "g", rayon: "Fruits & légumes", cid: "petits-pois" },
+      { name: "Petits pois frais ou surgelés", qty: 150, unit: "g", rayon: "Fruits & légumes", cid: "petits-pois",
+        shop: { label: "Petits pois frais ou surgelés", note: "frais, en cosses : prévoir plus du double du poids écossé" } },
       { name: "Petites pommes de terre nouvelles", qty: 300, unit: "g", note: "type Charlotte ou Grenaille", rayon: "Fruits & légumes", cid: "pommes-terre" },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
@@ -984,9 +992,9 @@ const RECIPES = [
         { id: "moutardee", label: "Moutardée à l'ancienne", emoji: "🥄",
           ingredients: [
             { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } },
             { name: "Moutarde à l'ancienne", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde-ancienne",
-              shop: { label: "Moutarde à l'ancienne", qty: 1, unit: "pot" } },
+              shop: { label: "Moutarde à l'ancienne", qty: null, qtyText: "1 pot" } },
             { name: "Vinaigre de vin", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-vin" },
             { name: "Huile neutre ou de tournesol", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre",
               shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } }
@@ -998,10 +1006,10 @@ const RECIPES = [
         { id: "miel-cidre", label: "Douceur miel & cidre", emoji: "🍯",
           ingredients: [
             { name: "Miel", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
-              shop: { label: "Miel", qty: 1, unit: "pot" } },
+              shop: { label: "Miel", qty: null, qtyText: "1 pot" } },
             { name: "Vinaigre de cidre", qty: 1.5, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" },
             { name: "Moutarde de Dijon", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } },
             { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } }
           ],
@@ -1013,8 +1021,7 @@ const RECIPES = [
     }],
     addons: [
       { id: "radis", label: "Radis croquants", emoji: "🌱",
-        ingredients: [{ name: "Radis", qty: 0.5, unit: "botte", rayon: "Fruits & légumes", cid: "radis",
-          shop: { label: "Radis", qty: 1, unit: "botte" } }],
+        ingredients: [{ name: "Radis", qty: 0.5, unit: "botte", rayon: "Fruits & légumes", cid: "radis" }],
         step: { i: 5, txt: "Émincez les radis en fines rondelles et ajoutez-les pour le croquant." } },
       { id: "tomates-cerises", label: "Tomates cerises", emoji: "🍅",
         ingredients: [{ name: "Tomates cerises", qty: 150, unit: "g", rayon: "Fruits & légumes", cid: "tomates-cerises" }],
@@ -1081,13 +1088,12 @@ const RECIPES = [
         shop: { label: "Pommes croquantes (Granny Smith ou Gala)" } },
       { name: "Tomates fermes", qty: 2, unit: "", note: "ou {150 g} de tomates cerises", rayon: "Fruits & légumes", cid: "tomates" },
       { name: "Citron jaune", qty: 0.5, unit: "", note: "pour citronner la pomme", rayon: "Fruits & légumes", cid: "citron",
-        shop: { label: "Citron jaune non traité" } },
-      { name: "Oignon", qty: 0.5, unit: "", note: "aromate, cuisson des lentilles", rayon: "Fruits & légumes", cid: "oignon",
-        shop: { label: "Oignon", qty: 1, unit: "" } },
-      { name: "Feuille de laurier", qty: 1, unit: "", note: "aromate, cuisson des lentilles", rayon: "Épices & assaisonnements", cid: "laurier",
-        shop: { label: "Laurier séché", qty: 1, unit: "sachet" } },
-      { name: "Clou de girofle", qty: 1, unit: "", note: "piqué dans l'oignon", optional: true, rayon: "Épices & assaisonnements", cid: "girofle",
-        shop: { label: "Clous de girofle", qty: 1, unit: "sachet" } },
+        shop: { label: "Citron jaune" } },
+      { name: "Oignon", qty: 0.5, unit: "", note: "aromate, cuisson des lentilles", rayon: "Fruits & légumes", cid: "oignon" },
+      { name: "Feuille de laurier", qty: 1, unit: "", note: "aromate, cuisson des lentilles", rayon: "Épices & assaisonnements", cid: "laurier", entier: true,
+        shop: { label: "Laurier séché", qty: null, qtyText: "1 sachet" } },
+      { name: "Clou de girofle", qty: 1, unit: "", note: "piqué dans l'oignon", optional: true, rayon: "Épices & assaisonnements", cid: "girofle", entier: true,
+        shop: { label: "Clous de girofle", qty: null, qtyText: "1 sachet" } },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
         shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
@@ -1098,7 +1104,7 @@ const RECIPES = [
           ingredients: [
             { name: "Échalote", qty: 1, unit: "", note: "vinaigrette", rayon: "Fruits & légumes", cid: "echalote" },
             { name: "Persil plat", qty: 0.5, unit: "bouquet", note: "vinaigrette", rayon: "Herbes fraîches", cid: "persil",
-              shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
             { name: "Huile d'olive", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
               shop: { label: "Huile d'olive vierge extra", qty: null } },
             { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" }
@@ -1111,7 +1117,7 @@ const RECIPES = [
         { id: "moutardee", label: "Moutardée", emoji: "🥄",
           ingredients: [
             { name: "Moutarde de Dijon", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } },
             { name: "Vinaigre de vin", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-vin" },
             { name: "Huile neutre ou de tournesol", qty: 3, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre",
               shop: { label: "Huile neutre (tournesol, pépins de raisin)", qty: null } }
@@ -1126,7 +1132,7 @@ const RECIPES = [
               shop: { label: "Huile de noix", qty: 1, unit: "bouteille" } },
             { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" },
             { name: "Moutarde", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-              shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } }
+              shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } }
           ],
           step: { t: "Vinaigrette à l'huile de noix",
             txt: "Mélangez la moutarde et le vinaigre de cidre avec le sel et le poivre, puis émulsionnez avec l'huile de noix.",
@@ -1137,11 +1143,10 @@ const RECIPES = [
     addons: [
       { id: "concombre", label: "Concombre", emoji: "🥒",
         ingredients: [{ name: "Concombre", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "concombre",
-          shop: { label: "Concombre bio", qty: 1, unit: "" } }],
+          shop: { label: "Concombre", note: "bio si l'on garde la peau" } }],
         step: { i: 1, txt: "Taillez le concombre en petits dés, comme la pomme, pour la fraîcheur." } },
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
-        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge",
-          shop: { label: "Oignon rouge", qty: 1, unit: "" } }],
+        ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" }],
         step: { i: 1, timer: 10, adds: "repos", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
       { id: "noix", label: "Noix concassées", emoji: "🌰",
         ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Fruits secs & graines", cid: "noix" }],
@@ -1188,12 +1193,12 @@ const RECIPES = [
     portions: { base: 4, label: "personnes" },
     note: "Se conserve 24 h au réfrigérateur dans un bocal fermé, entre 0 et 4 °C : c'est la limite retenue pour une préparation à l'œuf cru, et elle ne se prolonge pas au jugé. Sortez-la le temps du service seulement, elle fige un peu au froid.",
     ingredients: [
-      { name: "Jaune d'œuf", qty: 1, unit: "", note: "très frais, moins de 9 jours", rayon: "Crèmerie & œufs", cid: "oeufs",
+      { name: "Jaune d'œuf", qty: 1, unit: "", note: "très frais, moins de 9 jours", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais", note: "extra-frais, pour une préparation crue" } },
       { name: "Moutarde de Dijon", qty: 1, unit: "c. à c.", rayon: "Huiles, vinaigres & condiments", cid: "moutarde",
-        shop: { label: "Moutarde de Dijon", qty: 1, unit: "pot" } },
+        shop: { label: "Moutarde de Dijon", qty: null, qtyText: "1 pot" } },
       { name: "Huile neutre", qty: 20, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre",
-        shop: { label: "Huile neutre (tournesol ou pépins de raisin)" } },
+        shop: { label: "Huile neutre (tournesol, pépins de raisin)" } },
       { name: "Vinaigre blanc", qty: 1, unit: "c. à c.", note: "ou quelques gouttes de jus de citron", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-blanc",
         shop: { label: "Vinaigre blanc" } },
       { name: "Sel fin et poivre du moulin", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
@@ -1207,22 +1212,22 @@ const RECIPES = [
         { id: "aioli", label: "Aïoli", emoji: "🧄",
           ingredients: [
             { name: "Ail", qty: 1, unit: "gousse", note: "épluchée, dégermée", rayon: "Fruits & légumes", cid: "ail",
-              shop: { label: "Ail", qty: 2, unit: "gousse" } }
+              shop: { label: "Ail", note: "se vend en tête, une seule suffit" } }
           ],
           step: { t: "Aïoli", txt: "Pressez l'ail directement dans la mayonnaise déjà montée, puis mélangez à la spatule jusqu'à ce qu'il soit bien réparti.",
             ing: ["ail"],
             tip: { t: "Astuce du chef", txt: "Laissez reposer une heure au frais avant de servir : l'ail perd un peu de son mordant et se marie mieux à l'huile." } } },
         { id: "tartare", label: "Tartare", emoji: "🥒",
           ingredients: [
-            { name: "Cornichons", qty: 4, unit: "", note: "hachés menu", rayon: "Conserves & bocaux", cid: "cornichons",
-              shop: { label: "Cornichons", qty: 1, unit: "bocal" } },
-            { name: "Câpres", qty: 1, unit: "c. à s.", note: "égouttées", rayon: "Conserves & bocaux", cid: "capres",
-              shop: { label: "Câpres", qty: 1, unit: "bocal" } },
+            { name: "Cornichons", qty: 4, unit: "", note: "hachés menu", rayon: "Huiles, vinaigres & condiments", cid: "cornichons", entier: true,
+              shop: { label: "Cornichons", qty: null, qtyText: "1 bocal" } },
+            { name: "Câpres", qty: 1, unit: "c. à s.", note: "égouttées", rayon: "Huiles, vinaigres & condiments", cid: "capres",
+              shop: { label: "Câpres", qty: null, qtyText: "1 bocal" } },
             { name: "Échalote", qty: 0.5, unit: "", note: "hachée finement", rayon: "Fruits & légumes", cid: "echalote" },
             { name: "Persil plat", qty: null, qtyText: "quelques brins", note: "ciselé", rayon: "Herbes fraîches", cid: "persil",
-              shop: { label: "Persil plat", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
             { name: "Estragon", qty: null, qtyText: "quelques brins", note: "ciselé", rayon: "Herbes fraîches", cid: "estragon",
-              shop: { label: "Estragon", qty: 1, unit: "bouquet" } }
+        shop: { qty: null, qtyText: "1 bouquet" } }
           ],
           step: { t: "Tartare", txt: "Hachez finement les cornichons, les câpres et l'échalote, ciselez le persil et l'estragon, puis incorporez le tout à la mayonnaise.", ing: ["cornichons", "capres", "echalote", "persil", "estragon"] } }
       ]
@@ -1260,15 +1265,15 @@ const RECIPES = [
     addons: [
       { id: "herbes", label: "Herbes fraîches", emoji: "🌿",
         ingredients: [{ name: "Herbes fraîches ciselées", qty: null, qtyText: "quelques brins", note: "persil, ciboulette ou cerfeuil", rayon: "Herbes fraîches", cid: "herbes-fraiches",
-          shop: { label: "Herbes fraîches (persil, ciboulette…)", qty: 1, unit: "bouquet" } }],
+          shop: { label: "Herbes fraîches (persil, ciboulette…)", qty: null, qtyText: "1 bouquet" } }],
         step: { i: 4, txt: "Ajoutez les herbes fraîches ciselées à la mayonnaise et mélangez." } },
       { id: "citron", label: "Citron", emoji: "🍋",
         ingredients: [{ name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits & légumes", cid: "citron",
-          shop: { label: "Citron jaune non traité" } }],
+          shop: { label: "Citron jaune", note: "non traité, pour le zeste" } }],
         step: { i: 4, txt: "Zestez le citron directement au-dessus de la mayonnaise et mélangez." } },
       { id: "paprika", label: "Paprika fumé", emoji: "🌶️",
         ingredients: [{ name: "Paprika fumé", qty: null, qtyText: "1 pincée", rayon: "Épices & assaisonnements", cid: "paprika-fume",
-          shop: { label: "Paprika fumé", qty: 1, unit: "pot" } }],
+          shop: { label: "Paprika fumé", qty: null, qtyText: "1 pot" } }],
         step: { i: 4, txt: "Saupoudrez de paprika fumé et mélangez pour une note fumée." } }
     ]
   },
@@ -1287,11 +1292,11 @@ const RECIPES = [
     portions: { base: 4, label: "personnes" },
     note: "Se garde environ une semaine au réfrigérateur dans un bocal fermé, sous un filet d'huile d'olive qui isole le pesto de l'air. Se congèle très bien en bac à glaçons — sans le parmesan, à ajouter après décongélation.",
     ingredients: [
-      { name: "Basilic frais", qty: 1, unit: "botte", note: "effeuillé", rayon: "Herbes fraîches", cid: "basilic",
-        shop: { label: "Basilic frais", qty: 1, unit: "bouquet" } },
+      { name: "Basilic frais", qty: 1, unit: "bouquet", note: "effeuillé", rayon: "Herbes fraîches", cid: "basilic" },
       { name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits & légumes", cid: "ail",
-        shop: { label: "Ail", qty: 2, unit: "gousse" } },
-      { name: "Parmesan râpé", qty: 50, unit: "g", rayon: "Fromages", cid: "parmesan" },
+        shop: { label: "Ail", note: "se vend en tête, une seule suffit" } },
+      { name: "Parmesan râpé", qty: 50, unit: "g", rayon: "Fromages", cid: "parmesan",
+        shop: { label: "Parmesan en bloc", note: "à râper soi-même ; déjà râpé possible, sauf pour les copeaux" } },
       { name: "Huile d'olive extra-vierge", qty: 12, unit: "cl", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
         shop: { label: "Huile d'olive vierge extra", qty: null } },
       { name: "Gros sel", qty: null, qtyText: "1 pincée", rayon: "Épices & assaisonnements", cid: "gros-sel" }
@@ -1302,7 +1307,7 @@ const RECIPES = [
         { id: "genovese", label: "Classique (Genovese)", emoji: "🌲",
           ingredients: [
             { name: "Pignons de pin", qty: 30, unit: "g", rayon: "Fruits secs & graines", cid: "pignons",
-              shop: { label: "Pignons de pin", qty: 1, unit: "sachet" } }
+              shop: { label: "Pignons de pin", qty: null, qtyText: "1 sachet" } }
           ],
           step: { t: "Classique (Genovese)",
             txt: "Faites légèrement dorer les pignons à sec dans une poêle, à feu moyen, en remuant sans arrêt, pendant 2 à 3 minutes, jusqu'à ce qu'ils embaument. Une fois tièdes, incorporez-les au pilage avec le parmesan et l'huile d'olive, à la spatule plutôt qu'au mixeur pour garder du grain.",
@@ -1312,9 +1317,9 @@ const RECIPES = [
         { id: "rosso", label: "Rosso", emoji: "🍅",
           ingredients: [
             { name: "Tomates séchées à l'huile", qty: 40, unit: "g", note: "égouttées", rayon: "Conserves & bocaux", cid: "tomates-sechees",
-              shop: { label: "Tomates séchées à l'huile", qty: 1, unit: "pot" } },
+              shop: { label: "Tomates séchées à l'huile", qty: null, qtyText: "1 pot" } },
             { name: "Amandes", qty: 20, unit: "g", rayon: "Fruits secs & graines", cid: "amandes",
-              shop: { label: "Amandes (émondées ou non)", qty: 1, unit: "sachet" } }
+              shop: { label: "Amandes (émondées ou non)", qty: null, qtyText: "1 sachet" } }
           ],
           step: { t: "Rosso",
             txt: "Faites légèrement dorer les amandes à sec dans une poêle, à feu moyen, en remuant sans arrêt, pendant 2 à 3 minutes. Une fois tièdes, incorporez-les au pilage avec les tomates séchées, le parmesan et l'huile d'olive : le résultat est plus doux et plus fruité, avec moins de mordant que la version aux pignons.",
@@ -1324,7 +1329,7 @@ const RECIPES = [
         { id: "pistache", label: "Pistache", emoji: "💚",
           ingredients: [
             { name: "Pistaches décortiquées non salées", qty: 30, unit: "g", rayon: "Fruits secs & graines", cid: "pistaches",
-              shop: { label: "Pistaches décortiquées non salées", qty: 1, unit: "sachet" } }
+              shop: { label: "Pistaches décortiquées non salées", qty: null, qtyText: "1 sachet" } }
           ],
           step: { t: "Pistache",
             txt: "Incorporez les pistaches, crues plutôt que torréfiées, au pilage avec le parmesan et l'huile d'olive : crues, elles gardent leur couleur vert vif et donnent une pâte plus douce que la version aux pignons.",
@@ -1354,11 +1359,11 @@ const RECIPES = [
         step: { i: 0, txt: "Ajoutez le piment haché au pilage, avec le basilic et l'ail." } },
       { id: "roquette", label: "Roquette", emoji: "🌱",
         ingredients: [{ name: "Roquette", qty: null, qtyText: "une poignée", rayon: "Fruits & légumes", cid: "roquette",
-          shop: { label: "Roquette", qty: 1, unit: "sachet" } }],
+          shop: { label: "Roquette", qty: null, qtyText: "1 sachet" } }],
         step: { i: 0, txt: "Ajoutez la roquette au basilic avant de piler : elle apporte une note poivrée." } },
       { id: "citron", label: "Citron", emoji: "🍋",
         ingredients: [{ name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits & légumes", cid: "citron",
-          shop: { label: "Citron jaune non traité" } }],
+          shop: { label: "Citron jaune", note: "non traité, pour le zeste" } }],
         step: { i: 2, txt: "Zestez le citron directement au-dessus du pesto fini et mélangez.", fond: "huiles-essentielles" } }
     ]
   },
@@ -1380,7 +1385,7 @@ const RECIPES = [
       { name: "Lardons fumés", qty: 200, unit: "g", rayon: "Boucherie & charcuterie", cid: "lardons",
         shop: { label: "Lardons fumés", note: "poitrine fumée, déjà taillée" } },
       { name: "Gruyère râpé", qty: 100, unit: "g", rayon: "Fromages", cid: "gruyere" },
-      { name: "Œufs", qty: 4, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs",
+      { name: "Œufs", qty: 4, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } },
       { name: "Crème liquide entière", qty: 30, unit: "cl", rayon: "Crèmerie & œufs", cid: "creme-liquide" },
       { name: "Muscade", qty: null, qtyText: "1 pincée", rayon: "Épices & assaisonnements", cid: "muscade",
@@ -1457,7 +1462,8 @@ const RECIPES = [
           shop: { label: "Reblochon fermier ou laitier" } }],
         step: { i: 4, txt: "Posez quelques tranches de reblochon sur l'appareil juste avant d'enfourner : il fond en surface pour un résultat plus corsé et plus gourmand." } },
       { id: "oignon", label: "Oignon", emoji: "🧅",
-        ingredients: [{ name: "Oignon jaune", qty: 1, unit: "", note: "émincé", rayon: "Fruits & légumes", cid: "oignon" }],
+        ingredients: [{ name: "Oignon jaune", qty: 1, unit: "", note: "émincé", rayon: "Fruits & légumes", cid: "oignon",
+          shop: { label: "Oignon" } }],
         step: { i: 2, txt: "Ajoutez l'oignon émincé aux lardons dans la poêle et laissez-le suer et blondir avec eux." } }
     ]
   },
@@ -1479,7 +1485,8 @@ const RECIPES = [
       { name: "Lardons fumés", qty: 150, unit: "g", rayon: "Boucherie & charcuterie", cid: "lardons",
         shop: { label: "Lardons fumés", note: "poitrine fumée, déjà taillée" } },
       { name: "Crème liquide entière", qty: 20, unit: "cl", rayon: "Crèmerie & œufs", cid: "creme-liquide" },
-      { name: "Parmesan râpé", qty: 70, unit: "g", rayon: "Fromages", cid: "parmesan" },
+      { name: "Parmesan râpé", qty: 70, unit: "g", rayon: "Fromages", cid: "parmesan",
+        shop: { label: "Parmesan en bloc", note: "à râper soi-même ; déjà râpé possible, sauf pour les copeaux" } },
       { name: "Poivre noir en grains", qty: 1, unit: "c. à c.", note: "concassé grossièrement", rayon: "Épices & assaisonnements", cid: "poivre-grains",
         shop: { label: "Poivre noir en grains" } },
       { name: "Sel fin", qty: null, rayon: "Épices & assaisonnements", cid: "sel-fin" }
@@ -1514,15 +1521,15 @@ const RECIPES = [
     ],
     addons: [
       { id: "oeuf", label: "Œuf en plus", emoji: "🥚",
-        ingredients: [{ name: "Jaunes d'œufs", qty: 2, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs",
+        ingredients: [{ name: "Jaunes d'œufs", qty: 2, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
           shop: { label: "Œufs frais" } }],
-        step: { i: 3, txt: "Hors du feu, fouettez les jaunes d'œufs avec un peu de crème tiède du plat pour les tempérer, puis reversez-les dans la poêle hors du feu en remuant : ils épaississent la sauce sans cuire en grains.", fond: "coagulation-oeuf" } },
+        step: { i: 3, txt: "Hors du feu, fouettez les jaunes d'œufs avec un peu de crème tiède du plat pour les tempérer, puis reversez-les dans la poêle hors du feu en remuant : ils épaississent la sauce sans cuire en grains.", fond: ["coagulation-oeuf", "oeuf-cru"] } },
       { id: "champignons", label: "Champignons", emoji: "🍄",
         ingredients: [{ name: "Champignons de Paris", qty: 200, unit: "g", note: "émincés", rayon: "Fruits & légumes", cid: "champignons" }],
         step: { i: 1, txt: "Ajoutez les champignons émincés dans la poêle avec les lardons et laissez-les dorer avant d'ajouter le poivre." } },
       { id: "persil", label: "Persil plat", emoji: "🌿",
         ingredients: [{ name: "Persil plat", qty: null, qtyText: "quelques brins", rayon: "Herbes fraîches", cid: "persil",
-          shop: { label: "Persil plat", qty: 1, unit: "bouquet" } }],
+        shop: { qty: null, qtyText: "1 bouquet" } }],
         step: { i: 3, txt: "Parsemez de persil plat ciselé au moment de servir, pour la fraîcheur et la couleur." } },
       { id: "ail", label: "Ail", emoji: "🧄",
         ingredients: [{ name: "Ail", qty: 1, unit: "gousse", note: "dégermée", rayon: "Fruits & légumes", cid: "ail" }],
@@ -1543,14 +1550,15 @@ const RECIPES = [
     portions: { base: 6, label: "personnes" },
     note: "Se garde 3 à 4 jours à température ambiante, filmé — souvent meilleur le lendemain, une fois les saveurs installées. Se congèle très bien, entier ou en tranches, jusqu'à 2 mois.",
     ingredients: [
-      { name: "Farine", qty: 150, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine" },
-      { name: "Levure chimique", qty: 1, unit: "sachet", rayon: "Pâtisserie & épicerie sucrée", cid: "levure-chimique",
-        shop: { label: "Levure chimique", qty: 1, unit: "sachet" } },
-      { name: "Œufs", qty: 3, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs",
+      { name: "Farine T55", qty: 150, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine" },
+      { name: "Levure chimique", qty: 1, unit: "sachet", rayon: "Pâtisserie & épicerie sucrée", cid: "levure-chimique" },
+      { name: "Œufs", qty: 3, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } },
       { name: "Lait", qty: 10, unit: "cl", rayon: "Crèmerie & œufs", cid: "lait" },
-      { name: "Huile neutre", qty: 8, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre" },
-      { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre" }
+      { name: "Huile neutre", qty: 8, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre",
+        shop: { label: "Huile neutre (tournesol, pépins de raisin)" } },
+      { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
+        shop: { label: "Sel fin, poivre noir du moulin" } }
     ],
     choices: [{
       id: "garniture", label: "La garniture",
@@ -1580,9 +1588,9 @@ const RECIPES = [
             { name: "Saumon fumé", qty: 150, unit: "g", note: "coupé en lanières", rayon: "Poissonnerie & saumon fumé", cid: "saumon-fume",
               shop: { label: "Saumon fumé" } },
             { name: "Aneth frais", qty: 0.5, unit: "bouquet", rayon: "Herbes fraîches", cid: "aneth",
-              shop: { label: "Aneth frais", qty: 1, unit: "bouquet" } },
+        shop: { qty: null, qtyText: "1 bouquet" } },
             { name: "Citron jaune non traité", qty: 0.5, unit: "", note: "le zeste", rayon: "Fruits & légumes", cid: "citron",
-              shop: { label: "Citron jaune non traité" } }
+              shop: { label: "Citron jaune", note: "non traité, pour le zeste" } }
           ],
           step: { t: "Saumon fumé & aneth",
             txt: "Coupez le saumon fumé en lanières et ciselez l'aneth, puis incorporez le tout à la pâte avec le zeste de citron.",
@@ -1618,10 +1626,11 @@ const RECIPES = [
         step: { i: 0, txt: "Ajoutez une pincée de piment d'Espelette à la pâte, pour une chaleur discrète qui relève sans jamais piquer." } },
       { id: "tomates-sechees", label: "Tomates séchées", emoji: "🍅",
         ingredients: [{ name: "Tomates séchées à l'huile", qty: 60, unit: "g", note: "égouttées", rayon: "Conserves & bocaux", cid: "tomates-sechees",
-          shop: { label: "Tomates séchées à l'huile", qty: 1, unit: "pot" } }],
+          shop: { label: "Tomates séchées à l'huile", qty: null, qtyText: "1 pot" } }],
         step: { i: 0, txt: "Égouttez les tomates séchées, épongez-les et coupez-les en lanières, puis incorporez-les à la pâte avec la garniture. Gardez leur huile parfumée pour une autre recette." } },
       { id: "graines-sesame", label: "Graines de sésame", emoji: "🌾",
-        ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "graines-sesame" }],
+        ingredients: [{ name: "Graines de sésame", qty: 1, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "sesame",
+          shop: { label: "Graines de sésame", qty: null, qtyText: "1 sachet" } }],
         step: { i: 2, txt: "Parsemez le dessus de la pâte de graines de sésame juste avant d'enfourner : elles torréfient et craquent légèrement à la cuisson.", fond: "torrefaction" } }
     ]
   },
@@ -1638,16 +1647,15 @@ const RECIPES = [
     times: { prep: 15, cuisson: 30 },
     portions: { base: 8, label: "personnes" },
     moule: { forme: "rond", diametre: 24 },
-    note: "Se déguste tiède, avec une boule de glace vanille ou une crème anglaise — et encore meilleur le lendemain, à peine réchauffé.",
+    note: "Se déguste tiède, avec une boule de glace vanille ou une crème anglaise — et encore meilleur le lendemain, à peine réchauffé. Ne goûtez pas l'appareil cru : il contient de l'œuf cru et de la farine non cuite.",
     ingredients: [
       { name: "Chocolat pâtissier noir 60-70 %", qty: 250, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "chocolat-patissier",
         shop: { label: "Chocolat pâtissier noir 60-70 %", note: "en tablette" } },
       { name: "Beurre", qty: 250, unit: "g", note: "pommade", rayon: "Crèmerie & œufs", cid: "beurre",
         shop: { label: "Beurre doux" } },
-      { name: "Sucre", qty: 250, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "sucre" },
-      { name: "Farine", qty: 70, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine",
-        shop: { label: "Farine de blé T55 ou T65" } },
-      { name: "Œufs", qty: 4, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs",
+      { name: "Sucre blanc", qty: 250, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "sucre" },
+      { name: "Farine T55", qty: 70, unit: "g", rayon: "Pâtisserie & épicerie sucrée", cid: "farine" },
+      { name: "Œufs", qty: 4, unit: "", rayon: "Crèmerie & œufs", cid: "oeufs", entier: true,
         shop: { label: "Œufs frais" } }
     ],
     choices: [{
@@ -1728,17 +1736,17 @@ const RECIPES = [
     note: "À servir immédiatement, tant que le pain est encore chaud et croustillant.",
     ingredients: [
       { name: "Pain de campagne au levain", qty: 8, unit: "tranche", rayon: "Boulangerie", cid: "pain",
-        shop: { label: "Pain de campagne au levain", note: "ou un pain aux céréales" } },
+        shop: { label: "Pain de campagne", note: "au levain de préférence, ou un pain aux céréales" } },
       { name: "Figues noires", qty: null, qtyText: "6 à 8", note: "bien mûres", rayon: "Fruits & légumes", cid: "figues",
         shop: { label: "Figues noires", note: "bien mûres" } },
       { name: "Miel liquide", qty: 2, unit: "c. à s.", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
-        shop: { label: "Miel liquide", qty: 1, unit: "pot", note: "thym, châtaignier ou toutes fleurs" } },
+        shop: { label: "Miel", qty: null, qtyText: "1 pot", note: "liquide : thym, châtaignier ou toutes fleurs" } },
       { name: "Romarin frais", qty: 2, unit: "brin", rayon: "Herbes fraîches", cid: "romarin",
         shop: { label: "Romarin frais", note: "ou thym frais" } },
       { name: "Cerneaux de noix", qty: 1, unit: "poignée", note: "concassés", rayon: "Fruits secs & graines", cid: "noix" },
       { name: "Huile d'olive vierge extra", qty: null, qtyText: "un filet", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive" },
-      { name: "Fleur de sel et poivre du moulin", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
-        shop: { label: "Fleur de sel, poivre noir du moulin" } }
+      { name: "Fleur de sel et poivre du moulin", qty: null, rayon: "Épices & assaisonnements", cid: "fleur-de-sel",
+        shop: { label: "Fleur de sel" } }
     ],
     choices: [{
       id: "chevre", label: "La préparation du chèvre",
@@ -1776,7 +1784,7 @@ const RECIPES = [
       {
         t: "Assaisonnement minute",
         txt: "Dès la sortie du four — ou juste avant de servir pour la version fraîche —, arrosez d'un filet de miel, parsemez de romarin très finement ciselé et de noix concassées. Terminez par un tour généreux de moulin à poivre et une pincée de fleur de sel. Servez immédiatement.",
-        ing: ["miel", "romarin", "noix", "sel-poivre"],
+        ing: ["miel", "romarin", "noix", "fleur-de-sel"],
         tip: { t: "Geste technique", txt: "Ciselez le romarin au tout dernier moment : ses huiles essentielles s'évaporent vite une fois la feuille coupée, et une tartine assaisonnée à l'avance perd beaucoup de son parfum." }
       }
     ],

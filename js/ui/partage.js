@@ -54,7 +54,7 @@ export function recipeShareText(r) {
   if (vs) lines.push(`Version : ${vs}`);
   lines.push("", `Pour ${p} ${r.portions.label} :`);
   for (const ing of effectiveIngredients(r)) {
-    const q = scaleQty(ing.qty, ing.unit, f);
+    const q = scaleQty(ing.qty, ing.unit, f, ing.entier);
     const qty = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "");
     lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.addon ? " (supplément)" : ing.optional ? " (optionnel)" : ""}`);
   }

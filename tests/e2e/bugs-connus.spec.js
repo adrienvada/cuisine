@@ -66,7 +66,7 @@ test("B1b — une coche faite ailleurs n'est pas effacée par une modification l
 
 /* ---------- B2 : les courses fusionnent sans perdre de quantité ---------- */
 
-test("B2a — la ligne « Ail » additionne les gousses : 5 gousses", async ({ page, context }) => {
+test("B2a — la ligne « Ail » additionne les gousses : 3 gousses", async ({ page, context }) => {
   await preremplir(context, {
     carnet: {
       menu: [
@@ -79,7 +79,7 @@ test("B2a — la ligne « Ail » additionne les gousses : 5 gousses", async ({ p
   await page.goto("/#/courses");
   const ail = page.locator("label", { has: page.locator('input[data-key="ail"]') });
   await expect(ail).toContainText("Ail");
-  await expect(ail.locator(".cqty")).toHaveText("5 gousses");
+  await expect(ail.locator(".cqty")).toHaveText("3 gousses");
 });
 
 test("B2b — la ligne du basilic additionne les deux recettes sans rien perdre", async ({ page, context }) => {
@@ -100,9 +100,9 @@ test("B3 — vider le menu puis remettre la recette : rien n'est coché", async 
   page.on("dialog", d => d.accept());
   await page.goto("/#/courses");
 
-  await page.locator("label", { has: page.locator('input[data-key="farine"]') }).locator(".tick").click();
+  await page.locator("label", { has: page.locator('input[data-key="farine-pain"]') }).locator(".tick").click();
   await page.locator("label", { has: page.locator('input[data-key="levure"]') }).locator(".tick").click();
-  expect((await cochesAffichees(page)).sort()).toEqual(["farine", "levure"]);
+  expect((await cochesAffichees(page)).sort()).toEqual(["farine-pain", "levure"]);
 
   await page.locator('.tabbar a[data-tab="menu"]').click();
   await page.getByRole("button", { name: "Vider le menu" }).click();
@@ -112,7 +112,7 @@ test("B3 — vider le menu puis remettre la recette : rien n'est coché", async 
   await ajouterTelQuel(page);
   await page.locator('.tabbar a[data-tab="courses"]').click();
 
-  await expect(page.locator("label", { has: page.locator('input[data-key="farine"]') })).toBeVisible();
+  await expect(page.locator("label", { has: page.locator('input[data-key="farine-pain"]') })).toBeVisible();
   expect(await cochesAffichees(page)).toEqual([]);
 });
 

@@ -78,7 +78,7 @@ test("recette sans minuteur : la durée annoncée se loge dans les étapes, dép
   assert.equal(plan.retard, 0);
 });
 
-test("focaccia seule : départ, entrée au four, sortie à l'heure, préchauffage un quart d'heure avant", () => {
+test("focaccia seule : départ, entrée au four, sortie à l'heure, préchauffage vingt minutes avant (220 °C)", () => {
   vide();
   ajouter("focaccia-romarin", { k: "f" });
   const plan = planifier({ table: TABLE, taches: menu.tachesDuMenu() });
@@ -87,7 +87,7 @@ test("focaccia seule : départ, entrée au four, sortie à l'heure, préchauffag
   assert.equal(f.debut, TABLE - 210);
   assert.deepEqual(f.four, { temp: 220, entree: TABLE - 20, sortie: TABLE });
   const pre = plan.evenements.find(e => e.type === "prechauffage");
-  assert.equal(pre.t, TABLE - 20 - planning.PRECHAUFFAGE);
+  assert.equal(pre.t, TABLE - 20 - planning.dureePrechauffage(220));
   assert.equal(pre.temp, 220);
   assert.equal(texteEvenement(pre), "Préchauffe le four à 220 °C");
   assert.deepEqual(plan.evenements.map(e => e.type), ["debut", "prechauffage", "enfourner", "sortir", "table"]);

@@ -1,7 +1,7 @@
 /* Le mode cuisine : une étape par écran, minuteurs, ingrédients sous la main, reprise là où l'on s'est arrêté. */
 
 import {
-  DUREE_PRECHAUFFAGE, TAILLES, indexTaille, ingredientsDeLEtape, libelleQuantite,
+  TAILLES, indexTaille, ingredientsDeLEtape, libelleQuantite,
   planPrechauffage, secondesRestantes, sensBalayage, texteALire
 } from "../core/cuisine.js";
 import { save, state } from "../core/etat.js";
@@ -352,7 +352,7 @@ export function renderCook(r, step) {
       return;
     }
     if (sur("#four-start")) {
-      startTimer(r, cookIdx, { timer: DUREE_PRECHAUFFAGE, label: "Préchauffage du four", emoji: "🔥" }, "prechauffage");
+      startTimer(r, cookIdx, { timer: prechauffage.duree, label: "Préchauffage du four", emoji: "🔥" }, "prechauffage");
       return drawZones(s);
     }
     const stop = sur("[data-stop]");
@@ -418,7 +418,7 @@ export function renderCook(r, step) {
     zone.innerHTML = t
       ? `<p><b>Préchauffage en cours</b> · ${prechauffage.temperature} °C</p><div class="cook-timer">${controlesHtml(t, true)}</div>`
       : `<p><b>Lance le préchauffage : ${prechauffage.temperature} °C</b></p>
-         <button type="button" id="four-start">${ICON.timer} Minuteur ${DUREE_PRECHAUFFAGE} min</button>`;
+         <button type="button" id="four-start">${ICON.timer} Minuteur ${prechauffage.duree} min</button>`;
   };
 
   draw();

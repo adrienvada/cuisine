@@ -76,23 +76,23 @@ test("le placard : à part, hors du badge, hors du panier", async ({ page, conte
 
   const placard = page.locator("section.placard");
   await expect(placard.getByRole("heading", { name: "À vérifier au placard" })).toBeVisible();
-  await expect(placard.locator('input[data-key="farine"]')).toHaveCount(1);
+  await expect(placard.locator('input[data-key="sel-fin"]')).toHaveCount(1);
   await expect(placard.locator('input[data-key="huile-olive"]')).toHaveCount(1);
   // Il vient après les rayons.
   const ordre = await page.locator("section.rayon > h2").allTextContents();
   expect(ordre.at(-1)).toBe("À vérifier au placard");
-  // Le badge ne compte que ce qu'il reste à acheter : romarin et levure, ni farine ni huile.
-  await expect(page.locator("#cart-badge")).toHaveText("2");
+  // Le badge ne compte que ce qu'il reste à acheter : farine de pain, romarin et levure, ni sel ni huile.
+  await expect(page.locator("#cart-badge")).toHaveText("3");
 
-  await basculer(page, "farine");
-  await expect(page.locator("#cart-badge")).toHaveText("2");
+  await basculer(page, "sel-fin");
+  await expect(page.locator("#cart-badge")).toHaveText("3");
   // Coché, il reste dans le placard au lieu de partir au panier.
-  await expect(placard.locator('li.cochee input[data-key="farine"]')).toHaveCount(1);
+  await expect(placard.locator('li.cochee input[data-key="sel-fin"]')).toHaveCount(1);
   await expect(page.locator(".panier")).toHaveCount(0);
-  await expect(page.locator(".avance-txt")).toHaveText("0 / 2");
+  await expect(page.locator(".avance-txt")).toHaveText("0 / 3");
 
   await basculer(page, "romarin");
-  await expect(page.locator("#cart-badge")).toHaveText("1");
+  await expect(page.locator("#cart-badge")).toHaveText("2");
 });
 
 test("le partage met le placard dans une section « À vérifier »", async ({ page, context }) => {
@@ -108,9 +108,10 @@ test("le partage met le placard dans une section « À vérifier »", async ({ p
   const texte = await page.evaluate(() => window.__partage);
   expect(texte).toContain("À VÉRIFIER");
   const [avant, apres] = texte.split("À VÉRIFIER");
-  expect(apres).toContain("Farine");
-  expect(avant).not.toContain("Farine");
+  expect(apres).toContain("Sel fin");
+  expect(avant).not.toContain("Sel fin");
   expect(avant).toContain("Levure");
+  expect(avant).toContain("Farine de blé T65");     // la farine du pain s'achète, elle n'est pas au placard
 });
 
 test("ranger les rayons : monter, descendre, « Autre » reste en dernier, l'ordre est retenu", async ({ page, context }) => {
@@ -172,7 +173,7 @@ test("un rayon absent de l'ordre enregistré se place selon l'ordre d'origine", 
 });
 
 test("pour quoi ? : toucher le nom déplie la provenance, recette par recette", async ({ page, context }) => {
-  await preremplir(context, { carnet: { menu: MENU_DEUX } });
+  await preremplir(context, { carnet: { menu: [entree("scoopable-cookies", { k: "k1" }), entree("cake-sale", { k: "c1" })] } });
   await page.goto("/#/courses");
 
   const ligne = ligneDe(page, "farine");
@@ -180,9 +181,9 @@ test("pour quoi ? : toucher le nom déplie la provenance, recette par recette", 
   await expect(origine).toBeHidden();
   await ligne.locator(".nom").click();
   await expect(origine).toBeVisible();
-  await expect(origine).toContainText("Focaccia maison au romarin — 500 g");
+  await expect(origine).toContainText("Scoopable cookies (cookies à la cuillère) — 160 g");
   await expect(origine).toContainText("Cake salé — 150 g");
-  await expect(ligne.locator(".cqty")).toHaveText("650 g");
+  await expect(ligne.locator(".cqty")).toHaveText("310 g");
   // Toucher le nom ne coche pas.
   expect(await cochesAffichees(page)).toEqual([]);
 

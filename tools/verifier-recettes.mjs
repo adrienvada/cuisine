@@ -28,6 +28,9 @@
    8. Annotations des étapes. `ing` ne cite que des ingrédients de la recette, `four`
       est une température crédible sur une étape qui parle de four, `moule` a une
       forme connue et des dimensions positives.
+   9. Logique culinaire. Un même `cid` porte un seul libellé de courses (la liste
+      n'en affiche qu'un, celui de la première recette du menu), et se marque
+      `entier: true` partout ou nulle part.
 
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
@@ -323,6 +326,48 @@ for (const [cid, liste] of Object.entries(SUBSTITUTIONS)) {
     if (!s.par || !String(s.par).trim()) ko(`substitutions.js : « ${cid} » a une substitution sans « par »`);
     if (/[{}]/.test(`${s.par || ""} ${s.note || ""}`)) ko(`substitutions.js : « ${cid} » contient une accolade — réservée aux quantités mises à l'échelle`);
   }
+}
+
+/* ---------- 9. Logique culinaire ---------- */
+
+/* La liste de courses fusionne par `cid` et n'affiche qu'UN libellé par ligne :
+   celui de la première recette du menu qui le porte. Si deux recettes ne s'accordent
+   pas sur ce libellé, la liste dit tantôt « Farine T55 ou T65 » tantôt « Farine »
+   selon l'ordre du menu, et l'une des deux recettes y lit une exigence qui n'est
+   pas la sienne. Deux cas, deux remèdes :
+   - c'est le même produit : un libellé qui convient à toutes les recettes, et ce qui
+     est propre à l'une (« non traité pour le zeste ») va dans `shop.note`, qui se
+     fond sans rien écraser ;
+   - ce sont deux produits (farine de pain contre farine de blé, beurre doux contre
+     salé, sucre blanc contre cassonade) : deux `cid`, donc deux lignes à acheter.
+   Aucune exception : un `cid` partagé par plusieurs recettes dit la même chose partout. */
+const libellesParCid = new Map();
+const entiersParCid = new Map();
+for (const r of RECIPES) {
+  const lotsCulinaires = [
+    [r.id, r.ingredients],
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.ingredients])),
+    ...(r.addons || []).map(a => [`${r.id} / +${a.id}`, a.ingredients])
+  ];
+  for (const [ref, ings] of lotsCulinaires) for (const i of ings || []) {
+    if (i.course === false || !i.cid) continue;
+    const libelle = (i.shop && i.shop.label) || i.name;
+    if (!libellesParCid.has(i.cid)) libellesParCid.set(i.cid, new Map());
+    const parLibelle = libellesParCid.get(i.cid);
+    if (!parLibelle.has(libelle)) parLibelle.set(libelle, []);
+    parLibelle.get(libelle).push(ref);
+    if (!entiersParCid.has(i.cid)) entiersParCid.set(i.cid, new Set());
+    entiersParCid.get(i.cid).add(!!i.entier);
+  }
+}
+for (const [cid, parLibelle] of libellesParCid) {
+  if (parLibelle.size < 2) continue;
+  const detail = [...parLibelle].map(([l, refs]) => `« ${l} » (${[...new Set(refs)].join(", ")})`).join(" contre ");
+  ko(`${cid} : libellés de courses différents — ${detail}. Même produit : un seul shop.label (le plus général), le reste en shop.note ; produits différents : deux cid`);
+}
+/* Un œuf est entier partout ou nulle part : sinon la fiche arrondit « 1½ œuf » dans une recette et pas dans l'autre. */
+for (const [cid, valeurs] of entiersParCid) {
+  if (valeurs.size > 1) ko(`${cid} : \`entier: true\` n'est pas posé sur tous ses ingrédients — une quantité s'arrondirait à la pièce dans une recette et pas dans l'autre`);
 }
 
 if (erreurs.length) {

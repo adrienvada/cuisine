@@ -63,7 +63,7 @@ test("frise : « À table à 20 h », départs et préchauffage dans l'ordre", a
   await expect(lignes).toHaveCount(5);
   await expect(lignes.nth(0)).toContainText("16 h 30");
   await expect(lignes.nth(0)).toContainText("Démarre : Focaccia");
-  await expect(lignes.nth(1)).toContainText("19 h 25");
+  await expect(lignes.nth(1)).toContainText("19 h 20");
   await expect(lignes.nth(1)).toContainText("Préchauffe le four à 220 °C");
   await expect(lignes.nth(2)).toContainText("19 h 40");
   await expect(lignes.nth(2)).toContainText("Enfourne : Focaccia (220 °C)");
@@ -294,7 +294,7 @@ test("annuler : vider le menu, puis « Annuler » restaure menu, coches et repas
   await preremplir(context, {
     carnet: {
       menu: [entree("focaccia-romarin", { k: "f1", portions: 5 })],
-      checked: { farine: true, "x-e1": true },
+      checked: { "farine-pain": true, "x-e1": true },
       extras: [{ id: "e1", name: "Glaçons" }],
       repas: REPAS
     }
@@ -311,7 +311,7 @@ test("annuler : vider le menu, puis « Annuler » restaure menu, coches et repas
   await expect(page.locator(".menu-card")).toHaveCount(1);
   const retour = await lireCarnet(page);
   expect(retour.menu).toEqual([{ k: "f1", rid: "focaccia-romarin", choices: {}, addons: [], portions: 5 }]);
-  expect(retour.checked).toEqual({ farine: true, "x-e1": true });
+  expect(retour.checked).toEqual({ "farine-pain": true, "x-e1": true });
   expect(retour.historique || []).toHaveLength(0);
   expect(retour.repas).toEqual(REPAS);
   await expect(page.locator("#menu-badge")).toHaveText("1");

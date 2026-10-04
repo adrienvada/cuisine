@@ -1,5 +1,7 @@
 /* Adapter une fiche à ce qu'on a : allergènes d'une version, portions permises par un ingrédient qui manque, portions d'un autre moule. */
 
+import { scaleQty } from "./format.js";
+
 /* Bornes des portions de la fiche : celles de ses boutons « − » et « + ». */
 export const PORTIONS_MIN = 1;
 export const PORTIONS_MAX = 24;
@@ -18,10 +20,15 @@ export function allergenesDe(ingredients, table = ALLERGENES, liste = ALLERGENES
 /* « J'en ai moins » : combien de portions permet ce qu'on possède d'un ingrédient.
    On arrondit vers le bas — jamais plus que ce qu'on a. Le 1e-9 absorbe l'erreur
    des flottants : un résultat de 5,9999… doit donner 6, pas 5. Renvoie null si
-   l'ingrédient n'a pas de quantité chiffrée. */
+   l'ingrédient n'a pas de quantité chiffrée.
+   La fiche écrit des quantités arrondies (œufs entiers, grammes entiers) : on
+   ne propose jamais des portions dont la quantité ÉCRITE dépasserait ce qu'on a
+   — 2,6 œufs en main, la fiche à 3 œufs ne serait pas cuisinable. */
 export function portionsPermises(ing, portionsBase, possede) {
   if (ing.qty == null || !(ing.qty > 0) || !(possede >= 0)) return null;
-  return Math.floor(possede / (ing.qty / portionsBase) + 1e-9);
+  let n = Math.floor(possede / (ing.qty / portionsBase) + 1e-9);
+  while (n > 0 && scaleQty(ing.qty, ing.unit, n / portionsBase, ing.entier) > possede + 1e-9) n--;
+  return n;
 }
 
 /* Ce que l'utilisateur a tapé : « 3 », « 1,5 », « 1/2 », « 1 1/2 », « ½ »,
@@ -61,6 +68,17 @@ export const portionsPourMoule = (moule, portionsBase, taille) =>
 export function tailleEquivalente(moule, portionsBase, portions) {
   const r = portions / portionsBase;
   return Math.max(1, Math.round(tailleDeReference(moule) * (moule.forme === "cake" ? r : Math.sqrt(r))));
+}
+
+/* Un autre moule change-t-il la cuisson ? Ici non, ou très peu : les quantités
+   suivent la surface (portionsPourMoule), la pâte garde donc la même épaisseur,
+   et c'est l'épaisseur qui règle le temps. Le piège serait de changer de moule
+   en gardant les quantités : plus étalée la pâte cuit plus vite, plus épaisse
+   plus lentement — la fiche ne le propose pas, mais celui qui verse ses propres
+   quantités doit le savoir. Rien à dire quand le moule est celui de la recette. */
+export function remarqueCuissonMoule(moule, taille) {
+  if (taille === tailleDeReference(moule)) return "";
+  return "La pâte garde la même épaisseur : la cuisson ne change guère, surveille quand même les dernières minutes.";
 }
 
 export function libelleMoule(moule, taille) {

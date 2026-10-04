@@ -6,6 +6,7 @@ import {
   allergenesDe,
   libelleMoule,
   portionsPourMoule,
+  remarqueCuissonMoule,
   tailleDeReference,
   tailleEquivalente
 } from "../core/adaptation.js";
@@ -335,7 +336,7 @@ export function renderRecipe(r) {
     if (taille < 8 || taille > 60) return;
     (state.moules ??= {})[r.id] = taille;
     const p = portionsPourMoule(r.moule, r.portions.base, taille);
-    setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${p} ${unite}`);
+    setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${p} ${unite}. ${remarqueCuissonMoule(r.moule, taille)}`.trim());
   });
 
   /* Toucher une ligne : la feuille de l'ingrédient. */

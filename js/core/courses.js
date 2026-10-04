@@ -1,7 +1,7 @@
 /* La liste de courses calculée depuis le menu : fusion des quantités par rayon, provenance de chaque quantité, placard, ordre des rayons et nombre d'articles restants. */
 
 import { save, state } from "./etat.js";
-import { WEIGHT_UNITS, fmtQty, fmtUnit } from "./format.js";
+import { WEIGHT_UNITS, fmtQty, fmtUnit, scaleQty } from "./format.js";
 import { byId, effectiveIngredients } from "./recettes.js";
 
 /* Le fond de placard est une donnée globale (js/placard.js) : on la lit à
@@ -40,7 +40,11 @@ export function buildCourseList() {
       const unit = "unit" in shop ? shop.unit : (ing.unit || "");
       const qtyText = shop.qtyText != null ? shop.qtyText : (qty == null ? ing.qtyText : null);
       const note = shop.note || null;
-      const scaled = qty == null ? null : qty * f;
+      /* Une quantité donnée par `shop` est déjà celle du magasin (« 1 boîte ») :
+         elle suit les portions telle quelle. Sinon c'est celle de la recette,
+         arrondie comme sur la fiche — grammes entiers, œufs entiers — pour que la
+         liste n'annonce pas 66¾ g ni 2 œufs là où la fiche en met 1. */
+      const scaled = qty == null ? null : ("qty" in shop ? qty * f : scaleQty(qty, unit, f, ing.entier));
       let it = map.get(key);
       if (!it) {
         it = { key, label, rayon: ing.rayon, notes: [], parts: [], textes: [], sources: [], optional: !!ing.optional, addon: !!ing.addon, placard: dansPlacard(key) };

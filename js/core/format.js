@@ -39,7 +39,7 @@ export const PLURALS = {
   rouleau: "rouleaux", bocal: "bocaux", pot: "pots", "petit pot": "petits pots",
   sachet: "sachets", botte: "bottes", bouquet: "bouquets", gousse: "gousses", "petite gousse": "petites gousses",
   tranche: "tranches", brin: "brins", poignée: "poignées", bouteille: "bouteilles",
-  paquet: "paquets", tube: "tubes", flacon: "flacons"
+  paquet: "paquets", tube: "tubes", flacon: "flacons", brique: "briques", "boîte": "boîtes", "œuf": "œufs"
 };
 
 export function fmtUnit(unit, qty) {
@@ -48,10 +48,19 @@ export function fmtUnit(unit, qty) {
   return unit;
 }
 
-export function scaleQty(q, unit, factor) {
+/* Ce qui se compte à la pièce et ne se coupe pas : « 1½ œuf » n'existe pas,
+   pas plus que « 2½ tranches ». Ces unités-là, et tout ingrédient marqué
+   `entier: true` dans les recettes (œufs, cornichons, pitas, feuille de
+   laurier…), s'arrondissent à l'entier le plus proche, la moitié vers le haut
+   (1,5 œuf → 2), sans jamais tomber à zéro. Un oignon, un citron, une gousse se
+   coupent : ils gardent les quarts de fmtQty. */
+const UNITES_ENTIERES = ["tranche", "brin", "œuf"];
+
+export function scaleQty(q, unit, factor, entier = false) {
   if (q == null) return null;
   let s = q * factor;
   if (unit === "g" || unit === "ml") s = Math.round(s);
+  else if (entier || UNITES_ENTIERES.includes(unit)) s = Math.max(1, Math.round(s));
   return s;
 }
 

@@ -24,7 +24,7 @@ const SUBSTITUTIONS = {
   "creme-liquide": [
     { par: "Pour 20 cl de crème : 15 cl de lait entier + 60 g de beurre fondu, mélangés.",
       note: "Marche en cuisson : sauces, gratins, soupes, quiches. Moins onctueux, et ne se monte pas en chantilly." },
-    { par: "Pour 20 cl de crème : 20 cl de crème fraîche épaisse délayée avec 5 cl de lait.",
+    { par: "Pour 20 cl de crème : 15 cl de crème fraîche épaisse délayée avec 5 cl de lait.",
       note: "Cuisson uniquement. Plus acidulée que la crème liquide ; ne la laisser bouillir franchement que si elle est entière (30 % de matière grasse)." },
     { par: "Pour 20 cl de crème : 20 cl de lait de coco entier.",
       note: "Cuisson, plats épicés ou sucrés. Le goût de coco reste, il ne se cache pas." }
@@ -179,7 +179,7 @@ const SUBSTITUTIONS = {
   ],
   "huile-neutre": [
     { par: "Huile de tournesol, de colza ou de pépins de raisin, même quantité.",
-      note: "Cuisson et pâtisserie. L'huile d'olive vierge peut s'y substituer, mais son goût se retrouve." }
+      note: "Cuisson, pâtisserie et vinaigrette. L'huile d'olive vierge peut s'y substituer, mais son goût se retrouve — et pour une mayonnaise elle peut la rendre amère." }
   ],
   miel: [
     { par: "Sirop d'érable, même quantité.",
@@ -198,7 +198,7 @@ const SUBSTITUTIONS = {
       note: "Retrouve la douceur et un peu de chaleur, pas le fruité de l'espelette." }
   ],
   gingembre: [
-    { par: "Pour 1 c. à c. de gingembre frais râpé : ¼ de c. à c. de gingembre moulu.",
+    { par: "Pour 1 c. à s. de gingembre frais râpé : ¼ de c. à c. de gingembre moulu.",
       note: "Plats cuits et pâtisserie. Perd la fraîcheur piquante du frais." }
   ],
   "chocolat-patissier": [
