@@ -104,15 +104,15 @@ function redessiner() {
   route({ garderDefilement: true });
 }
 
-/* Remplace dans l'état les champs synchronisés par `donnees` ; rend vrai si
-   quelque chose a changé. Pas de save() : ce n'est pas une modification locale. */
 /* Les champs que l'état porte toujours (des listes et des dictionnaires que les
    vues lisent sans précaution) : retirés par l'autre appareil, ils reviennent
    vides plutôt qu'absents. Les autres (repas, historique, journal…) sont
    facultatifs et se retirent pour de bon. */
 const VIDE_DE = { menu: [], extras: [], checked: {}, notes: {}, cooked: {} };
 
-function appliquer(donnees) {
+/* Remplace dans l'état les champs synchronisés par `donnees` ; rend vrai si
+   quelque chose a changé. Pas de save() : ce n'est pas une modification locale. */
+function appliquer(donnees, { retirer = true } = {}) {
   /* Ce qui vient d'un autre appareil peut être d'une autre version, ou abîmé :
      comme pour un fichier importé, on écarte entrée par entrée ce qui est mal
      formé. Un champ inutilisable est absent du résultat normalisé, donc laissé
@@ -123,8 +123,10 @@ function appliquer(donnees) {
     if (propre[c] === undefined) {
       /* Absent des données brutes (et non seulement écarté par la normalisation) :
          la fusion ne l'omet que si un appareil l'a supprimé — « Vider le menu »
-         puis « Annuler » retire l'historique. Le garder ici le renverrait au serveur. */
-      if (c in donnees || state[c] === undefined) continue;
+         puis « Annuler » retire l'historique. Le garder ici le renverrait au serveur.
+         `retirer: false` pour des données qui ne sont pas une fusion (rejoindre un
+         carnet : il n'a pas de journal, l'appareil garde le sien). */
+      if (!retirer || c in donnees || state[c] === undefined) continue;
       const vide = structuredClone(VIDE_DE[c]);
       if (memesDonnees({ [c]: state[c] }, { [c]: vide })) continue;
       if (vide === undefined) delete state[c]; else state[c] = vide;
@@ -393,7 +395,7 @@ async function connecter(mdp, { remplacer = false } = {}) {
     local = { mdp }; sale = false;
     garder();
     if (lignes.length) {
-      appliquer(lignes[0].data);                              // remplacer : le carnet partagé fait foi
+      appliquer(lignes[0].data, { retirer: false });           // remplacer : le carnet partagé fait foi
       retenir(lignes[0].data, lignes[0].updated_at);
     } else {
       local.base = {}; local.vu = null; ecrire(local);        // première connexion : ce carnet devient le carnet partagé

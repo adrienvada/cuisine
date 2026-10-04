@@ -75,3 +75,21 @@ test("synchro : un champ mal formé reçu d'un autre téléphone est écarté sa
   expect((await lireCarnet(page)).historique).toEqual(historique);
   await second.close();
 });
+
+test("synchro : rejoindre un carnet partagé sans journal ni note garde ceux de l'appareil", async ({ page, context }) => {
+  // Rejoindre n'est pas une fusion : un champ que le carnet partagé n'a jamais eu n'a pas été supprimé.
+  const journal = [{ id: "j1", rid: "focaccia-romarin", date: "2099-01-02", convives: 4, note: "Croustillante", photo: false }];
+  const notesPerso = { "focaccia-romarin": { txt: "Moins de sel", at: 1 } };
+  await simulerServeur(context, { menu: [entree("focaccia-romarin", { k: "f1" })], checked: {}, extras: [] }, { mdp: MDP });
+  await preremplir(context, { carnet: { menu: [entree("quiche-lorraine", { k: "q1" })], checked: {}, extras: [], journal, notesPerso } });
+  await page.goto("/#/");
+  const res = await page.evaluate(async mdp => {
+    const { carnetSync } = await import("/js/sync.js");
+    return carnetSync.connecter(mdp, { remplacer: true });
+  }, MDP);
+  expect(res.ok).toBe(true);
+  await expect.poll(async () => (await lireCarnet(page)).menu[0].rid).toBe("focaccia-romarin");
+  const carnet = await lireCarnet(page);
+  expect(carnet.journal).toEqual(journal);
+  expect(carnet.notesPerso).toEqual(notesPerso);
+});
