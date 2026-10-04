@@ -17,6 +17,23 @@ export const test = base.extend({
   context: async ({ context }, use) => {
     await context.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort());
     await use(context);
+  },
+  /* Les vues autres que l'accueil se chargent à la demande (import() et feuilles non
+     bloquantes) : elles se dessinent un instant après l'événement load. goto attend
+     donc, pour une page de l'appli, que le routeur ait dessiné la première vue (il
+     écrit alors le titre du document), comme le supposent les tests. */
+  page: async ({ page }, use) => {
+    const goto = page.goto.bind(page);
+    page.goto = async (url, options) => {
+      const reponse = await goto(url, options);
+      const chemin = new URL(url, "http://carnet.test").pathname;
+      if (chemin === "/" || chemin === "/index.html") {
+        await page.waitForFunction(() =>
+          document.title !== "Carnet de cuisine" && document.getElementById("app")?.childElementCount > 0);
+      }
+      return reponse;
+    };
+    await use(page);
   }
 });
 

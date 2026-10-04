@@ -18,6 +18,8 @@ test("le menu tient en une ligne, avec un lien pour le modifier", async ({ page,
 test("le panier : un article coché descend, la progression avance, décocher le fait remonter", async ({ page, context }) => {
   await preremplir(context, { carnet: { menu: [entree("quiche-lorraine", { k: "q1" })] } });
   await page.goto("/#/courses");
+  // La vue se charge à la demande : on compte une fois la liste dessinée.
+  await expect(page.locator("section.rayon:not(.placard) input[data-key]").first()).toBeAttached();
 
   const total = await page.locator("section.rayon:not(.placard) input[data-key]").count();
   await expect(page.locator(".avance-txt")).toHaveText(`0 / ${total}`);

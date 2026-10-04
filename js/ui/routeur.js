@@ -329,8 +329,11 @@ export function route({ garderDefilement = false } = {}) {
   const noms = parts[0] === "fondamentaux" || parts[0] === "fondamental" ? ["savoirs"]
     : parts[0] === "courses" ? ["courses"]
     : parts[0] === "menu" ? ["menu"]
-    : recette ? [parts[2] === "cuisine" || (parts[2] === "m" && parts[4] === "cuisine") ? "cuisine" : "fiche"]
+    : recette ? [parts[2] === "cuisine" || (parts[2] === "m" && parts[4] === "cuisine") ? "cuisine" : "fiche", "savoirs"]
     : [];
+  /* « Pourquoi ça marche » et la feuille d'un savoir (fiche, mode cuisine) passent par
+     savoirs.js : chargé avec la vue, il répond dès le premier appui, sans laisser filer
+     la touche suivante pendant son import. */
   /* La fiche, le mode cuisine et les Savoirs en ont besoin pour s'écrire ;
      l'accueil, le menu et les courses s'en passent et s'affichent tout de suite. */
   const besoinFonds = parts[0] === "fondamentaux" || parts[0] === "fondamental" || recette;

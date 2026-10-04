@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "27eae0e2b9";
+const VERSION = "186bdc38d1";
 
 const CORE = [
   "./",

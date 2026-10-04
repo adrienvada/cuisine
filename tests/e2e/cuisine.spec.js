@@ -163,6 +163,8 @@ const balayer = (page, dx, dy = 0) => page.evaluate(([dx, dy]) => {
 test("balayage : à gauche étape suivante, à droite précédente, le vertical ne compte pas", async ({ page }) => {
   await page.goto(CUISINE);
   const etiquette = page.locator(".cook-step-label");
+  // Le mode cuisine se charge à la demande : on balaie une fois l'étape affichée.
+  await expect(etiquette).toHaveText("Étape 1 / 5");
   await balayer(page, -120);
   await expect(etiquette).toHaveText("Étape 2 / 5");
   await balayer(page, -120, 150);          // plutôt vertical : rien
@@ -177,6 +179,7 @@ test("balayage : à gauche étape suivante, à droite précédente, le vertical 
 
 test("flèches du clavier : droite suivante, gauche précédente", async ({ page }) => {
   await page.goto(CUISINE);
+  await expect(page.locator(".cook-step-label")).toHaveText("Étape 1 / 5");
   await page.keyboard.press("ArrowRight");
   await expect(page.locator(".cook-step-label")).toHaveText("Étape 2 / 5");
   await page.keyboard.press("ArrowLeft");

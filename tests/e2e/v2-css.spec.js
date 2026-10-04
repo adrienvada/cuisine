@@ -2,12 +2,17 @@
    petits écrans (320 px) et pastille « Découverte ». Les mesures se font sur les styles
    calculés par le navigateur, dans les deux thèmes. */
 
-import { test, expect, preremplir, entree } from "./outils.js";
+import { test, expect, preremplir, entree, pageStable } from "./outils.js";
 import { contraste } from "./outils-courses.js";
 
 const VUES = ["#/", "#/recette/quiche-lorraine", "#/menu", "#/courses", "#/fondamentaux", "#/fondamental/maillard", "#/recette/quiche-lorraine/cuisine"];
 
-const sombre = page => page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+/* Le thème posé à la main lance des transitions de couleur (0,2 s) : on mesure une
+   fois la page immobile, sinon on lirait une couleur intermédiaire. */
+const sombre = async page => {
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+  await pageStable(page);
+};
 
 /* Couleur du texte d'un élément et fond réel derrière lui : on empile les fonds
    translucides des ancêtres sur la couleur du thème, et l'opacité de l'élément
@@ -309,6 +314,8 @@ test("n° 12 : à 375 px, les deux boutons de sauvegarde ont la même présentat
 test("n° 14 : sur la page d'un fondamental, la famille respire sous les boutons et l'emoji est séparé du titre", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/#/fondamental/maillard");
+  // Vue et fondamentaux arrivent à la demande : on mesure la page une fois dessinée.
+  await expect(page.locator(".f-fam-tag")).toBeVisible();
   const m = await page.evaluate(() => {
     const barre = document.querySelector(".topbar").getBoundingClientRect();
     const famille = document.querySelector(".f-fam-tag").getBoundingClientRect();
