@@ -55,6 +55,22 @@
      suite. Si le four doit être plus chaud à l'enfournement qu'en cuisson
      (préchauffer à 200 °C, puis baisser à 150 °C), `prechauffe` donne la chaleur
      de départ : c'est elle que lisent le préchauffage et les conflits de four.
+   - `repos` : `true` sur l'étape dont le minuteur est une attente sans les mains
+     et sans chauffer — levée, pousse, repos au frais ou à température ambiante,
+     marinade, trempage, macération, refroidissement, raffermissement au
+     congélateur. Une étape qui mêle un geste et une attente (« mélangez…,
+     réservez au frais 1 h ») en est une quand le minuteur est l'attente. Le feu,
+     la friture et le four n'en sont pas (un repos ne porte jamais `four`) : le
+     rétroplanning les montre autrement. Les options de `choices` et les
+     suppléments qui disent `adds: "repos"` sont déjà des repos, sans autre
+     marque ; une option qui repose sans `adds` (son temps est déjà dans `times`,
+     c'est la version par défaut) porte `repos: true`. Pour la version par défaut,
+     la somme des minuteurs de repos est `times.repos` — le vérificateur y veille.
+     Une attente qui se fait pendant qu'on travaille à autre chose (la sauce
+     réservée au frais, que rien n'attend) n'a pas de minuteur : elle ne retarde
+     personne. `reposLabel` sur une étape (en plus de celui de la recette) nomme
+     ce repos-là dans la frise quand la recette en compte plusieurs, de natures
+     différentes (le gravlax : marinade, puis congélateur).
    - `moule` (au niveau de la recette) : seulement si le texte donne la taille du
      moule ou du plat — `{ forme: "rond", diametre: 26 }`,
      `{ forme: "rectangle", largeur: 20, longueur: 30 }` ou
@@ -102,19 +118,22 @@ const RECIPES = [
         txt: "Dans un grand saladier, diluez la levure dans l'eau tiède. Ajoutez la farine et le sel fin. Mélangez grossièrement à la spatule jusqu'à obtenir une pâte très humide et collante. Versez {2 c. à s.} d'huile sur le dessus, couvrez d'un linge humide et laissez lever 2 h à température ambiante (la pâte doit doubler de volume).", fond: ["gluten","sel-patisserie"],
         ing: ["levure", "Eau tiède", "farine-pain", "sel-fin", "huile-olive"],
         timer: 120,
+        repos: true,
         tip: { t: "L'astuce du chef", txt: "Toutes les 30 minutes pendant la levée, les mains mouillées, attrapez un bord de la pâte, étirez-le vers le haut et repliez-le au centre. Faites le tour aux quatre points cardinaux." }
       },
       {
         t: "Le transfert",
         txt: "Huilez généreusement un moule rectangulaire à bords hauts ou une plaque. Dégazez délicatement la pâte et déposez-la au centre. Laissez-la se détendre 20 min : elle est trop rétractile pour être étirée tout de suite.", fond: "gluten",
         ing: ["huile-olive"],
-        timer: 20
+        timer: 20,
+        repos: true
       },
       {
         t: "L'étirement et la seconde levée",
         txt: "Étirez la pâte doucement du bout des doigts pour qu'elle épouse la forme du moule, puis laissez-la lever à nouveau 30 min. Lancez le préchauffage du four à 220 °C (th. 7-8) maintenant : il sera à température pile quand la pâte sera prête.", fond: "gluten",
         ing: [],
         timer: 30,
+        repos: true,
         tip: { k: "savoir", t: "Geste technique", txt: "Si la pâte revient sur elle-même, ne forcez pas : couvrez-la et attendez cinq minutes de plus. Elle gagnera les angles du moule en deux ou trois reprises." }
       },
       {
@@ -182,6 +201,7 @@ const RECIPES = [
         txt: "Rabattez la moitié de pâte nature sur la moitié garnie. Appuyez légèrement avec la paume de la main pour sceller les deux épaisseurs et chasser l'air, puis placez la pâte 10 minutes au congélateur.", fond: "froid-raffermit",
         ing: [],
         timer: 10,
+        repos: true,
         tip: { t: "L'astuce du chef", txt: "Découpez dès la sortie du congélateur, sans laisser la pâte revenir : le pesto raffermi reste pris entre les deux épaisseurs au lieu de fuir sous la lame." }
       },
       {
@@ -547,7 +567,7 @@ const RECIPES = [
     tags: ["poisson", "marinade", "chic"],
     emoji: "🐟",
     color: "#E38E7A",
-    times: { prep: 30, repos: 720, cuisson: 2 },
+    times: { prep: 30, repos: 735, cuisson: 2 },
     reposLabel: "Marinade",
     portions: { base: 6, label: "personnes" },
     ingredients: [
@@ -590,6 +610,7 @@ const RECIPES = [
         txt: "Filmez le plat au contact et placez au réfrigérateur pendant 12 à 24 heures.", fond: ["osmose-sel","salaison"],
         ing: [],
         timer: 720,
+        repos: true,
         tip: { t: "Astuce du chef", txt: "Posez une petite planche sur le poisson surmontée d'un poids (ex. une boîte de conserve) pour bien tasser la chair et expulser l'humidité." }
       },
       {
@@ -609,6 +630,8 @@ const RECIPES = [
         txt: "Placez le filet 15 minutes au congélateur pour raffermir la chair, puis tranchez-le en fines lamelles dans le sens opposé aux fibres, en inclinant bien la lame.", fond: "froid-raffermit",
         ing: ["saumon"],
         timer: 15,
+        repos: true,
+        reposLabel: "Au congélateur",
         tip: { t: "Astuce du chef", txt: "Un couteau long et fin, une seule passe par tranche, sans scier : c'est ce qui donne ces lamelles presque translucides. Une chair molle, elle, s'écrase sous la lame quelle que soit votre technique." }
       },
       {
@@ -643,7 +666,7 @@ const RECIPES = [
     tags: ["friture", "fromage", "convivial", "végétarien"],
     emoji: "🧀",
     color: "#D9B65C",
-    times: { prep: 25, repos: 60, cuisson: 10 },
+    times: { prep: 25, repos: 30, cuisson: 10 },
     reposLabel: "Repos au frais",
     portions: { base: 4, label: "personnes" },
     ingredients: [
@@ -667,9 +690,8 @@ const RECIPES = [
     steps: [
       {
         t: "Sauce fraîche",
-        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais 1 heure — vous préparerez le reste pendant ce temps.", fond: ["infusion-froid","acidite-finale"],
+        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais — vous préparerez le reste pendant ce temps.", fond: ["infusion-froid","acidite-finale"],
         ing: ["yaourt-grec", "menthe", "citron", "sel-poivre"],
-        timer: 60,
         tip: { t: "Astuce du chef", txt: "Commencez par cette sauce : elle infusera pendant que vous façonnez les boules et montez la pâte. Ciselez la menthe très fin, remuez une fois à mi-parcours, et goûtez avant de dresser." }
       },
       {
@@ -677,6 +699,7 @@ const RECIPES = [
         txt: "Écrasez le fromage de brebis avec la menthe hachée à la fourchette, puis façonnez de petites boules ou quenelles, les mains mouillées ou légèrement huilées pour que ça n'accroche pas. Placez-les 30 minutes au réfrigérateur.", fond: "froid-raffermit",
         ing: ["brebis-frais", "menthe"],
         timer: 30,
+        repos: true,
         tip: { t: "Astuce du chef", txt: "Un brocciu ou une brousse, très humides, s'égouttent longuement avant d'être façonnés : sans quoi la boule s'affaisse et rend son eau dans la pâte. Pressé, dix minutes au congélateur suffisent." }
       },
       {
@@ -796,7 +819,8 @@ const RECIPES = [
     color: "#7CB8A4",
     // 10 min de préparation, mais les verres givrent 15 min en parallèle :
     // c'est ce délai-là qui commande le service.
-    times: { prep: 15 },
+    times: { prep: 10, repos: 15 },
+    reposLabel: "Verres au congélateur",
     portions: { base: 4, label: "verres" },
     ingredients: [
       { name: "Concombre bio", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "concombre",
@@ -817,6 +841,7 @@ const RECIPES = [
         txt: "Placez les verres de service au congélateur : 15 minutes suffisent à les givrer, et ils y resteront pendant toute la préparation. Lavez le concombre et coupez-le en fines tranches sans le peler.",
         ing: ["concombre"],
         timer: 15,
+        repos: true,
         tip: { t: "Astuce du chef", txt: "Conservez la peau du concombre bio : c'est elle qui apporte la couleur vert vif et l'arôme caractéristique à la boisson." }
       },
       {
@@ -868,7 +893,7 @@ const RECIPES = [
     tags: ["frais", "végétarien", "sans cuisson"],
     emoji: "🫒",
     color: "#8C9B5F",
-    times: { prep: 15, repos: 15 },
+    times: { prep: 15, repos: 25 },
     reposLabel: "Repos",
     portions: { base: 4, label: "personnes" },
     ingredients: [
@@ -949,6 +974,8 @@ const RECIPES = [
         txt: "Épluchez l'oignon rouge, émincez-le en très fines lamelles et faites-les tremper 10 minutes dans un bol d'eau glacée.", fond: ["infusion-froid","mordant-oignon"],
         ing: ["oignon-rouge"],
         timer: 10,
+        repos: true,
+        reposLabel: "Oignon dans l'eau glacée",
         tip: { t: "Astuce du chef", txt: "Émincez au plus fin, et pressez les lamelles dans un torchon avant de les mêler aux pois chiches : un oignon mal essoré délave la vinaigrette de toute la salade." }
       },
       {
@@ -968,6 +995,7 @@ const RECIPES = [
         txt: "Égouttez l'oignon. Mélangez les pois chiches, l'oignon et les olives avec la vinaigrette, et laissez reposer 15 minutes. Ajoutez la feta émiettée juste avant de servir.", fond: ["assaisonnement-couches","pectine-acidite"],
         ing: ["oignon-rouge", "pois-chiches", "olives", "feta"],
         timer: 15,
+        repos: true,
         tip: { t: "Astuce du chef", txt: "Ce quart d'heure est pour les pois chiches, qui vivent de ce qu'ils absorbent. La feta n'entre qu'en dernier : mise trop tôt dans la vinaigrette, elle se délite en bouillie salée." }
       }
     ]
@@ -1087,7 +1115,8 @@ const RECIPES = [
     tags: ["légumineuses", "végétarien", "complet"],
     emoji: "🍏",
     color: "#A3B75C",
-    times: { prep: 20, cuisson: 25 },
+    times: { prep: 15, repos: 5, cuisson: 25 },
+    reposLabel: "Macération",
     portions: { base: 4, label: "personnes" },
     ingredients: [
       { name: "Lentilles vertes", qty: 200, unit: "g", note: "type lentilles vertes du Puy", rayon: "Épicerie salée", cid: "lentilles" },
@@ -1121,6 +1150,7 @@ const RECIPES = [
             txt: "Hachez finement l'échalote et ciselez le persil plat. Mélangez-les dans un bol avec le vinaigre de cidre, du sel et du poivre, laissez macérer 5 minutes, puis incorporez l'huile d'olive.", fond: "mordant-oignon",
             ing: ["echalote", "persil", "vinaigre-cidre", "sel-poivre", "huile-olive"],
             timer: 5,
+            repos: true,
             tip: { t: "Astuce du chef", txt: "Cinq minutes, montre en main : passé le quart d'heure, le vinaigre assouplit l'échalote et lui ôte son croquant. Versez l'huile dès le temps écoulé." } } },
         { id: "moutardee", label: "Moutardée", emoji: "🥄",
           ingredients: [
@@ -1155,7 +1185,7 @@ const RECIPES = [
         step: { i: 1, txt: "Taillez le concombre en petits dés, comme la pomme, pour la fraîcheur." } },
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
         ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" }],
-        step: { i: 1, timer: 10, adds: "repos", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
+        step: { i: 1, timer: 10, adds: "repos", reposLabel: "Oignon dans l'eau glacée", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
       { id: "noix", label: "Noix concassées", emoji: "🌰",
         ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Fruits secs & graines", cid: "noix" }],
         step: { i: 3, txt: "Parsemez la salade de noix grossièrement concassées juste avant de servir." } },
@@ -1424,7 +1454,7 @@ const RECIPES = [
           step: { t: "Pâte maison",
             txt: "Du bout des doigts, sablez la farine, le sel et le beurre bien froid en dés jusqu'à une texture de sable grossier. Ajoutez l'eau très froide petit à petit et rassemblez la pâte sans pétrir. Formez un disque, filmez et réservez 30 min au frais, puis étalez-la et foncez-en le moule à tarte (26-28 cm).",
             ing: ["farine", "sel-fin", "beurre", "Eau très froide"],
-            fond: ["gluten", "froid-raffermit"], timer: 30, adds: "repos",
+            fond: ["gluten", "froid-raffermit"], timer: 30, adds: "repos", reposLabel: "Pâte au frais",
             tip: { t: "Astuce du chef", txt: "Travaillez la pâte le moins possible, avec le bout des doigts plutôt que la paume : elle doit juste se tenir, jamais devenir lisse et élastique." } } }
       ]
     }],
@@ -1654,7 +1684,8 @@ const RECIPES = [
     tags: ["four", "chocolat", "fondant", "végétarien"],
     emoji: "🍫",
     color: "#7A4B32",
-    times: { prep: 15, cuisson: 30 },
+    times: { prep: 15, repos: 10, cuisson: 30 },
+    reposLabel: "Refroidissement",
     portions: { base: 8, label: "personnes" },
     moule: { forme: "rond", diametre: 24 },
     note: "Se déguste tiède, avec une boule de glace vanille ou une crème anglaise — et encore meilleur le lendemain, à peine réchauffé. Ne goûtez pas l'appareil cru : il contient de l'œuf cru et de la farine non cuite.",
@@ -1717,6 +1748,7 @@ const RECIPES = [
         txt: "Laissez refroidir 10 minutes avant de démouler — c'est impératif : ce repos permet au cœur fondant de juste assez se raffermir pour tenir à la découpe sans être une pâte crue.",
         ing: [],
         timer: 10,
+        repos: true,
         tip: { t: "Astuce du chef", txt: "Chaque four est différent : la première fois, notez le résultat obtenu. Pour un cœur encore plus coulant, réduisez la cuisson de 2 à 3 min la prochaine fois ; pour un gâteau plus tenu, prolongez-la de 5 min." }
       }
     ],
