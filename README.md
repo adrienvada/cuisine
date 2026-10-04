@@ -150,6 +150,14 @@ Chaque fondamental peut s'illustrer de **schémas, courbes, échelles et étapes
 5. **Regarder le résultat** : `node tools/capturer-savoir.mjs <id> [dossier]` sert l'appli, photographie `#/fondamental/<id>` à 360 px en clair et en sombre (page entière, puis chaque figure), et signale texte trop petit, texte coupé ou chevauchements. Ouvrir les PNG, corriger, recommencer.
 6. **Vérifier** : `npm run verifier` (clés, types, titres, `alt`, `ou`, `apres`, aucune couleur en dur, balises SVG fermées, classes connues), `npm test`, puis `npm run sw`. Un appui sur une figure l'ouvre en grand (bouton, Échap) : rien à écrire pour cela.
 
+**Le thermomètre du carnet** : une figure transversale, hors des fiches. Sous l'introduction de l'onglet Savoirs (`#/fondamentaux`), un encart replié (`<details>`, dessiné à la première ouverture) déroule une grande échelle verticale de −40 à 220 °C qui rassemble les températures-repères citées dans **toutes** les fiches : congélation anti-Anisakis, réfrigérateur, arrêt de croissance des salmonelles, pasteurisation de l'œuf, prise du blanc, Maillard, friture, pyrolyse… Chaque repère est un lien (focalisable) vers sa fiche, `#/fondamental/<id>`. L'encart se masque pendant une recherche.
+
+- **Les données** : `const THERMOMETRE = [ { de, a?, label, fond, ton, ancre?, ouvert? } ]`, dans la section « Vue d'ensemble » de `js/figures.js` (le format y est documenté). `de` est la température, `a` le haut d'une plage, `fond` l'id de la fiche. Un chiffre n'y figure que s'il est dans le texte de cette fiche : un test relit chaque nombre ; un autre exige un repère pour toute fiche qui cite des °C. `npm run verifier` contrôle que chaque `fond` existe.
+- **Une plage est un dégradé**, jamais un bord franc : les fiches répètent qu'il n'y a pas de seuil net. Un point (un plafond, un cap) est un disque sur l'axe.
+- **L'échelle n'est pas linéaire, et le dit** : l'axe se rompt (//) là où plus de 12 °C séparent deux repères, et chaque tronçon a sa propre hauteur de degré (les repères serrés, 55 à 70 °C, ont la place qu'il leur faut ; les déserts, presque rien). La légende l'indique.
+- **Accessibilité** : le SVG est un groupe de vrais liens `<a>`, du plus chaud au plus froid, chacun nommé « 55 à 85 °C : … Fiche : … » ; au clavier, un anneau de focus entoure l'étiquette. Replié, l'encart ne met aucun lien dans l'ordre de tabulation.
+- **Le code** : `thermometreMise()` (mise en page pure : tronçons, rangées de plages, étiquettes sans chevauchement) et `thermometreHtml()` dans `js/ui/figures.js`, testées sous Node ; l'encart dans `js/vues/savoirs.js` ; le style dans `css/figures.css` (le dessin) et `css/savoirs.css` (l'encart). Tests : `tests/unit/figures.test.mjs` et `tests/e2e/thermometre.spec.js`. Sans `js/figures.js`, l'encart n'existe pas.
+
 ## Illustrations & photos
 
 Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dans [`js/illos.js`](js/illos.js) — clé = identifiant de la recette. Si une recette n'a pas d'illustration, son emoji prend le relais ; si elle a une **photo** (`image: "img/….jpg"`), la photo gagne.
@@ -340,7 +348,7 @@ Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, 
 **Les familles de tests.** Chaque thème a ses deux étages, `tests/unit/<thème>.test.mjs` (sous Node) et `tests/e2e/<thème>.spec.js` (dans Chromium) :
 
 - le tronc du carnet : `accueil` (recherche, critères, « J'ai… »), `accueil-fiche`, `fiche`, `recettes`, `format`, `html`, `core` (la règle « core/ sans DOM ») ;
-- le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `figures` (le moteur de rendu des schémas, sa palette et ses données), `culinaire` (logique de cuisinier : un `cid` est un produit) ;
+- le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `figures` (le moteur de rendu des schémas, sa palette et ses données), `thermometre` (la figure transversale des Savoirs), `culinaire` (logique de cuisinier : un `cid` est un produit) ;
 - le menu et les courses : `menu`, `menu-courses`, `courses` (`outils-courses.js`) ;
 - le carnet lui-même : `journal`, `reglages` (`outils-reglages.js`), `synchro` (`outils-synchro.js` : le faux Supabase), `navigation` ;
 - le chargement : `images` (service worker, vignettes ; `outils-images.js`) ;

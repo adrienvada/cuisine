@@ -5,7 +5,7 @@ import { CERTITUDES, figuresDe, fondById, fondMatches, fondsDe, fondsTous, recet
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
-import { figureHtml, figuresA, observerFigures } from "../ui/figures.js";
+import { figureHtml, figuresA, nombreFr, observerFigures, thermometreHtml, thermometreMise } from "../ui/figures.js";
 import { shareFond } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 
@@ -209,6 +209,32 @@ function listeFondamentaux(q) {
     <p class="f-compte">${fondsTous().length} ${fondsTous().length > 1 ? "fondamentaux" : "fondamental"} dans le carnet.</p>`;
 }
 
+/* Le thermomètre du carnet : une figure transversale qui rassemble les températures
+   des fiches (THERMOMETRE, en fin de js/figures.js — un bonus, comme les autres
+   figures : sans le fichier, l'encart n'existe pas). Il se dessine à la première
+   ouverture et se souvient, le temps de la session, d'être ouvert ou fermé. */
+let thermoOuvert = false;
+const donneesThermo = () => (typeof THERMOMETRE !== "undefined" && Array.isArray(THERMOMETRE) ? THERMOMETRE : []);
+const titreDeFond = id => (fondById(id) || {}).t || null;
+
+function encartThermometre(masque) {
+  const mise = thermometreMise(donneesThermo(), { titreDe: titreDeFond });
+  if (!mise) return "";
+  const fiches = new Set(mise.items.map(r => r.fond)).size;
+  const NBSP = " ";
+  return `<details class="th-encart" id="f-thermo"${thermoOuvert ? " open" : ""}${masque ? " hidden" : ""}>
+    <summary>
+      <span class="th-ico" aria-hidden="true">🌡️</span>
+      <span class="th-sum">
+        <b>Le thermomètre du carnet</b>
+        <small>${mise.items.length} repères de ${nombreFr(mise.min)}${NBSP}à${NBSP}${nombreFr(mise.max)}${NBSP}°C, tirés de ${fiches} fiches</small>
+      </span>
+      ${ICON.chev}
+    </summary>
+    <div class="th-corps">${thermoOuvert ? thermometreHtml(donneesThermo(), { titreDe: titreDeFond }) : ""}</div>
+  </details>`;
+}
+
 export function renderFondamentaux() {
   const q = state.fondQuery || "";
 
@@ -219,6 +245,7 @@ export function renderFondamentaux() {
       <p class="byline"><span>les mécanismes du <span class="u">carnet</span></span></p>
     </header>
     <p class="f-intro">Les gestes que tu retrouves d'une recette à l'autre, et ce qui se passe vraiment quand tu les fais.</p>
+    ${raw(encartThermometre(q.trim() !== ""))}
     <div class="searchbar">
       ${raw(ICON.search)}
       <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off" aria-label="Chercher un mécanisme">
@@ -230,9 +257,19 @@ export function renderFondamentaux() {
      le clavier, la sélection et la composition en cours, sans rien à rétablir. */
   const champ = document.getElementById("f-search");
   const zone = document.getElementById("f-resultats");
+  const thermo = document.getElementById("f-thermo");
+  if (thermo) {
+    thermo.addEventListener("toggle", () => {
+      thermoOuvert = thermo.open;
+      const corps = thermo.querySelector(".th-corps");
+      if (thermo.open && !corps.firstChild) corps.innerHTML = thermometreHtml(donneesThermo(), { titreDe: titreDeFond });
+    });
+  }
   champ.addEventListener("input", () => {
     state.fondQuery = champ.value;
     zone.innerHTML = listeFondamentaux(champ.value);
+    /* Pendant une recherche, le thermomètre s'efface : la liste des résultats prend toute la place. */
+    if (thermo) thermo.hidden = champ.value.trim() !== "";
   });
 }
 

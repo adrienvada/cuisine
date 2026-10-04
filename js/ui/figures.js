@@ -660,6 +660,284 @@ export function figuresA(figs, fond, ou, { k = 1, nbParagraphes = 1 } = {}) {
     .join("");
 }
 
+/* ---------- Le thermomètre du carnet ---------- */
+
+/* Une grande échelle verticale qui rassemble les températures-repères de TOUTES les
+   fiches (THERMOMETRE, en fin de js/figures.js). Du plus chaud en haut au plus froid
+   en bas, comme un thermomètre.
+
+   Trois choix de dessin, tous pour la lisibilité ET l'honnêteté :
+   - l'échelle est RÉGULIÈRE par tronçons, pas d'un bout à l'autre : là où plus de
+     12 °C séparent deux repères, l'axe se rompt (//) et le tronçon suivant reprend
+     avec sa propre hauteur de degré. Les repères serrés (55 à 70 °C : une douzaine)
+     reçoivent ainsi la place qu'il leur faut, les déserts (−18 à −2 °C) presque rien.
+     La légende le dit, et la graduation de chaque tronçon se lit sur l'axe ;
+   - une plage est un dégradé, pas un bord franc : les fiches répètent qu'il n'y a pas
+     de seuil net. Un point (un plafond, un cap) est un disque sur l'axe ;
+   - chaque repère est un LIEN (<a> dans le SVG, focalisable) vers sa fiche, nommé pour
+     un lecteur d'écran « 55 à 85 °C : … Fiche : … », dans l'ordre visuel, du chaud
+     au froid. Le SVG est un groupe (pas une image) : ses liens restent atteignables.
+
+   La mise en page (thermometreMise) est pure et se teste sans navigateur : positions,
+   rangées, étiquettes sans chevauchement. Le dessin (thermometreHtml) n'en est que la
+   transcription. Tout est dessiné dans la boîte de 320 unités des autres figures. */
+
+const TH = {
+  xNum: 30, xAxe: 38, xBarres: 46, pasMax: 5.6, xTexte: 104, droite: 313,
+  ligne: INTERLIGNE_PETIT, haut: 10, bas: 10, rupture: 22,
+  ecart: 12,        // au-delà de cet écart (°C) entre deux repères, l'axe se rompt
+  degMin: 2.6,      // hauteur minimale d'un degré dans un tronçon, en unités
+  marge: 1.5        // °C de part et d'autre des repères extrêmes d'un tronçon
+};
+
+const THERMO_TONS_TXT = { terra: "fg-txt-terra", vert: "fg-txt-vert", or: "fg-txt-or", bleu: "fg-txt-bleu", doux: "fg-txt-doux", encre: "" };
+
+/* La valeur affichée en gras devant l'étiquette, et sa version parlée. */
+function valeurRepere(r) {
+  if (r.ouvert === "haut") return { vue: `> ${nombreFr(r.de)} °C`, dite: `${valeurUnite(r.de, "°C")} et au-delà` };
+  if (!nombres(r.a)) return { vue: `${nombreFr(r.de)} °C`, dite: valeurUnite(r.de, "°C") };
+  const neg = r.de < 0 || r.a < 0;
+  return {
+    vue: neg ? `${nombreFr(r.de)} à ${nombreFr(r.a)} °C` : `${nombreFr(r.de)}–${nombreFr(r.a)} °C`,
+    dite: `de ${nombreFr(r.de)} à ${valeurUnite(r.a, "°C")}`
+  };
+}
+
+/* Un repère est valide s'il a une température, une étiquette et une fiche. */
+const repereValide = r => r && typeof r === "object" && nombres(r.de) && String(r.label || "").trim() && r.fond &&
+  (r.a === undefined || (nombres(r.a) && r.a > r.de));
+
+/* Regroupe en tronçons : les repères triés, coupés là où l'écart dépasse TH.ecart. */
+function tronconsDe(items) {
+  const pts = [...new Set(items.flatMap(r => [r.de, r.a].filter(v => nombres(v))))].sort((a, b) => a - b);
+  const bornes = [];
+  let debut = pts[0], prec = pts[0];
+  for (const p of pts.slice(1)) {
+    if (p - prec > TH.ecart) { bornes.push([debut, prec]); debut = p; }
+    prec = p;
+  }
+  bornes.push([debut, prec]);
+  return bornes.map(([v0, v1]) => ({ v0: v0 - TH.marge, v1: v1 + TH.marge }));
+}
+
+/* Des graduations rondes dans un tronçon : le plus petit pas qui laisse 16 unités entre deux. */
+function graduationsTroncon(v0, v1, pxParDeg) {
+  const pas = [1, 2, 5, 10, 20, 25, 50].find(p => p * pxParDeg >= 16) || 50;
+  const sortie = [];
+  for (let v = Math.ceil(v0 / pas) * pas; v <= v1 + 1e-9; v += pas) sortie.push(Math.round(v * 100) / 100);
+  return sortie;
+}
+
+/* Les étiquettes se posent au plus près de leur repère sans se toucher : des blocs de
+   voisines se regroupent et se centrent sur la moyenne de leurs repères (moindres
+   carrés, sous contrainte d'ordre). `souhaits` : { haut (position voulue), h } triés
+   par `haut` croissant ; rend les `haut` retenus, dans le même ordre. */
+function etaler(souhaits, minHaut) {
+  const blocs = [];
+  souhaits.forEach((s, i) => {
+    blocs.push({ ids: [i], decal: [0], somme: s.haut, n: 1, h: s.h, haut: 0 });
+    for (;;) {
+      const b = blocs[blocs.length - 1];
+      b.haut = b.somme / b.n;
+      if (blocs.length === 1) { b.haut = Math.max(b.haut, minHaut); break; }
+      const p = blocs[blocs.length - 2];
+      if (b.haut >= p.haut + p.h - 1e-9) break;
+      blocs.pop();
+      p.ids.push(...b.ids);
+      p.decal.push(...b.decal.map(d => d + p.h));
+      p.somme += b.somme - b.n * p.h;
+      p.n += b.n;
+      p.h += b.h;
+    }
+  });
+  const sortie = souhaits.map(() => 0);
+  for (const b of blocs) b.ids.forEach((id, k) => { sortie[id] = b.haut + b.decal[k]; });
+  return sortie;
+}
+
+/* La mise en page : tout ce qu'il faut pour dessiner, rien de graphique. */
+export function thermometreMise(reperes, { titreDe = id => id } = {}) {
+  const items = (Array.isArray(reperes) ? reperes : []).filter(repereValide).filter(r => titreDe(r.fond) != null && titreDe(r.fond) !== false)
+    .map((r, rang) => ({ ...r, rang, ton: ton(r.ton, "encre") }));
+  if (!items.length) return null;
+  const largTexte = TH.droite - TH.xTexte - 4;
+
+  /* Les étiquettes d'abord : leur hauteur dimensionne les tronçons. */
+  for (const r of items) {
+    const v = valeurRepere(r);
+    const vue = typoFig(v.vue).replace(/ /g, "\u00a0");
+    r.valeur = v;
+    r.vue = vue;
+    r.lignes = enrouler(`${vue} ${r.label}`, largTexte, { taille: T_PETIT });
+    r.hLabel = r.lignes.length * TH.ligne + 3;
+    r.cible = nombres(r.ancre) ? r.ancre : (nombres(r.a) ? (r.de + r.a) / 2 : r.de);
+  }
+
+  /* Les tronçons : hauteur = de quoi poser leurs étiquettes, au moins degMin par degré. */
+  const troncons = tronconsDe(items);
+  const haute = items.some(r => r.ouvert === "haut");
+  if (haute) {
+    const t = troncons[troncons.length - 1];
+    t.v1 = Math.max(t.v1, Math.max(...items.filter(r => r.ouvert === "haut").map(r => r.de)) + 12);
+  }
+  const dans = (t, v) => v >= t.v0 - 1e-9 && v <= t.v1 + 1e-9;
+  for (const t of troncons) {
+    const besoin = items.filter(r => dans(t, r.cible)).reduce((s, r) => s + r.hLabel, 0);
+    t.h = Math.max((t.v1 - t.v0) * TH.degMin, besoin * 0.92, 40);
+    t.pxDeg = t.h / (t.v1 - t.v0);
+  }
+  /* De haut en bas : du plus chaud au plus froid. */
+  let y = TH.haut;
+  for (let i = troncons.length - 1; i >= 0; i--) {
+    const t = troncons[i];
+    t.y0 = y; t.y1 = y + t.h;
+    y = t.y1 + TH.rupture;
+  }
+  const hAxe = troncons[0].y1;
+
+  /* Le passage d'une température à une hauteur, y compris dans une rupture (interpolé). */
+  const yDe = v => {
+    for (let i = 0; i < troncons.length; i++) {
+      const t = troncons[i];
+      if (v <= t.v1) {
+        if (v >= t.v0) return t.y1 - (v - t.v0) * t.pxDeg;
+        if (i === 0) return t.y1;
+        const froid = troncons[i - 1];
+        return froid.y0 - TH.rupture * (v - froid.v1) / (t.v0 - froid.v1);
+      }
+    }
+    return troncons[troncons.length - 1].y0;
+  };
+
+  for (const r of items) {
+    r.y = yDe(r.cible);
+    r.yBas = yDe(r.de);
+    r.yHaut = r.ouvert === "haut" ? troncons[troncons.length - 1].y0 : (nombres(r.a) ? yDe(r.a) : r.yBas);
+    r.zone = r.ouvert === "haut" || nombres(r.a);
+    /* Une zone trop basse pour se voir : au moins 8 unités, centrées. */
+    if (r.zone && r.yBas - r.yHaut < 8) {
+      const c = (r.yBas + r.yHaut) / 2;
+      r.yHaut = c - 4; r.yBas = c + 4;
+    }
+  }
+
+  /* Les rangées des zones : la première libre, de haut en bas. */
+  const zones = items.filter(r => r.zone).sort((a, b) => a.yHaut - b.yHaut || (b.yBas - b.yHaut) - (a.yBas - a.yHaut) || a.rang - b.rang);
+  const fins = [];
+  for (const z of zones) {
+    let k = fins.findIndex(f => f <= z.yHaut - 1.5);
+    if (k < 0) { k = fins.length; fins.push(0); }
+    fins[k] = z.yBas;
+    z.rangee = k;
+  }
+  const nbRangees = Math.max(1, fins.length);
+  const pas = Math.min(TH.pasMax, (TH.xTexte - 12 - TH.xBarres) / nbRangees);
+  const large = Math.max(2.6, pas - 1.8);
+  for (const z of zones) z.x = TH.xBarres + z.rangee * pas;
+  const xSortie = TH.xBarres + nbRangees * pas + 2;
+
+  /* Les étiquettes : dans l'ordre visuel (du chaud au froid), au plus près de leur repère. */
+  const ordre = [...items].sort((a, b) => a.y - b.y || a.rang - b.rang);
+  const hauts = etaler(ordre.map(r => ({ haut: r.y - (r.hLabel - 3) / 2, h: r.hLabel })), TH.haut - 4);
+  ordre.forEach((r, i) => { r.haut = hauts[i]; });
+  const bas = Math.max(hAxe, ...ordre.map(r => r.haut + r.hLabel));
+
+  /* Les graduations de chaque tronçon. */
+  for (const t of troncons) t.graduations = graduationsTroncon(t.v0, t.v1, t.pxDeg);
+
+  return { items: ordre, troncons, h: Math.ceil(bas + TH.bas), hAxe, nbRangees, pas, large, xSortie, min: Math.min(...items.map(r => r.de)), max: Math.max(...items.map(r => nombres(r.a) ? r.a : r.de)) };
+}
+
+/* Les dégradés : un par ton (aux deux bouts qui s'estompent), un par ton pour les
+   zones sans plafond, et le tube de l'axe, du bleu froid au terra chaud. */
+function degradesThermo(uid, h) {
+  const stop = (off, cls, op) => `<stop offset="${off}" class="fg-st-${cls}" stop-opacity="${op}"/>`;
+  let s = "";
+  for (const t of TONS) {
+    s += `<linearGradient id="fg-${uid}-gr-${t}" x1="0" y1="0" x2="0" y2="1">${stop(0, t, 0)}${stop(0.22, t, 1)}${stop(0.78, t, 1)}${stop(1, t, 0)}</linearGradient>`;
+    s += `<linearGradient id="fg-${uid}-grh-${t}" x1="0" y1="0" x2="0" y2="1">${stop(0, t, 1)}${stop(0.72, t, 1)}${stop(1, t, 0)}</linearGradient>`;
+  }
+  s += `<linearGradient id="fg-${uid}-tube" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${n(h)}">${stop(0, "terra", 1)}${stop(0.42, "or", 1)}${stop(0.72, "vert", 1)}${stop(1, "bleu", 1)}</linearGradient>`;
+  return s;
+}
+
+/* Le texte d'une étiquette : la valeur en gras et teintée, puis le libellé. */
+function texteRepere(r, x, y0) {
+  const tspans = r.lignes.map((l, i) => {
+    const dy = i ? ` dy="${TH.ligne}"` : "";
+    if (i === 0 && l.startsWith(r.vue)) {
+      const reste = l.slice(r.vue.length);
+      return `<tspan x="${n(x)}"${dy} class="fg-txt-b${classeTxtTon(r.ton)}">${esc(r.vue)}</tspan><tspan>${esc(reste)}</tspan>`;
+    }
+    return `<tspan x="${n(x)}"${dy}>${esc(l)}</tspan>`;
+  }).join("");
+  return `<text class="fg-txt fg-txt-s th-txt" x="${n(x)}" y="${n(y0)}">${tspans}</text>`;
+}
+const classeTxtTon = t => (THERMO_TONS_TXT[t] ? " " + THERMO_TONS_TXT[t] : "");
+
+/* Le SVG et la figure complète. `titreDe(id)` rend le titre de la fiche (ou null si elle
+   n'existe pas : le repère disparaît plutôt que de mener nulle part). */
+export function thermometreHtml(reperes, { titreDe = id => id, uid = uidSuivant(), titre = "Le thermomètre du carnet", legende = true } = {}) {
+  const mise = thermometreMise(reperes, { titreDe });
+  if (!mise) return "";
+  const { items, troncons, h, hAxe, pas, large, xSortie } = mise;
+  const xT = TH.xTexte;
+  const bas = troncons[0], haut = troncons[troncons.length - 1];
+
+  let fond = "", axe = "", liens = "", guides = "", fuites = "";
+
+  /* Axe : un tube par tronçon, ses graduations, et la rupture entre deux tronçons. */
+  troncons.forEach((t, i) => {
+    axe += `<rect class="th-tube" x="${TH.xAxe - 2.5}" y="${n(t.y0)}" width="5" height="${n(t.h)}" rx="2.5" fill="url(#fg-${uid}-tube)"/>`;
+    for (const v of t.graduations) {
+      const yy = t.y1 - (v - t.v0) * t.pxDeg;
+      guides += ligne(TH.xAxe + 3, yy, xSortie, yy, "fg-t-grille");
+      axe += ligne(TH.xAxe - 6, yy, TH.xAxe - 2.5, yy, "fg-t-axe fg-t-fin");
+      axe += `<text class="fg-txt fg-txt-s th-num" x="${TH.xNum}" y="${n(yy + 4)}" text-anchor="end">${esc(nombreFr(v))}</text>`;
+    }
+    if (i < troncons.length - 1) {
+      const yHaut = troncons[i + 1].y1, yBas = t.y0;     // le bas du tronçon plus chaud, le haut de celui-ci
+      axe += `<path class="fg-t-axe fg-pointilles" d="M${TH.xAxe} ${n(yHaut + 3)}L${TH.xAxe} ${n(yBas - 3)}"/>`;
+      for (const yy of [yHaut + 1, yBas - 1]) axe += `<path class="fg-t-axe th-rupture" d="M${TH.xAxe - 7} ${n(yy + 2.2)}L${TH.xAxe + 7} ${n(yy - 2.2)}"/>`;
+    }
+  });
+
+  /* Les repères : le guide qui mène à l'étiquette (derrière), puis le lien. */
+  for (const r of items) {
+    const yl = r.haut + 7;
+    const x0 = r.zone ? r.x + large : TH.xAxe + 4;
+    const yy = r.y;
+    const coude = `L${n(xSortie)} ${n(yy)}`;
+    fuites += `<path class="th-guide fg-t-${r.ton}" d="M${n(x0)} ${n(yy)}${x0 < xSortie ? coude : ""}L${n(xT - 5)} ${n(yl)}"/>`;
+  }
+  for (const r of items) {
+    const titreFiche = titreDe(r.fond);
+    const nom = `${r.valeur.dite} : ${r.label}. Fiche : ${titreFiche}.`;
+    let marque = "";
+    if (r.zone) {
+      const id = `fg-${uid}-${r.ouvert === "haut" ? "grh" : "gr"}-${r.ton}`;
+      marque = `<rect class="th-barre" x="${n(r.x)}" y="${n(r.yHaut)}" width="${n(large)}" height="${n(r.yBas - r.yHaut)}" rx="${n(large / 2)}" fill="url(#${id})"/>`;
+      if (r.ouvert === "haut") marque += `<path class="fg-t-${r.ton} fg-t-fin" d="M${n(r.x - 0.5)} ${n(r.yHaut + 4)}L${n(r.x + large / 2)} ${n(r.yHaut)}L${n(r.x + large + 0.5)} ${n(r.yHaut + 4)}"/>`;
+    } else {
+      marque = `<circle class="fg-f-${r.ton} fg-pt" cx="${TH.xAxe}" cy="${n(r.y)}" r="4"/>`;
+    }
+    const hit = `<rect class="th-zone" x="${n(xT - 4)}" y="${n(r.haut - 1)}" width="${n(TH.droite + 5 - xT)}" height="${n(r.hLabel - 1)}" rx="5"/>`;
+    liens += `<a class="th-lien" href="#/fondamental/${esc(r.fond)}" aria-label="${esc(typoFig(nom))}" data-th-fond="${esc(r.fond)}">${hit}${marque}${texteRepere(r, xT, r.haut + 10)}</a>`;
+  }
+
+  const alt = `Échelle verticale des températures de ${valeurUnite(mise.min, "°C")} à ${valeurUnite(mise.max, "°C")}, du plus chaud en haut au plus froid en bas. ` +
+    `Elle rassemble ${items.length} repères cités dans les fiches, chacun étant un lien vers sa fiche. L'axe est rompu ${troncons.length - 1} fois : la hauteur d'un degré change d'un tronçon à l'autre. Les plages sont des dégradés, sans seuil net.`;
+  const svg = `<svg class="fg-svg th-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LARGEUR} ${h}" role="group" aria-labelledby="fg-${uid}-t fg-${uid}-d">` +
+    `<title id="fg-${uid}-t">${e(titre)}</title><desc id="fg-${uid}-d">${e(alt)}</desc>` +
+    `<defs>${degradesThermo(uid, hAxe)}</defs>${guides}${fuites}${axe}${liens}</svg>`;
+  const cles = [["bleu", "froid et eau"], ["vert", "végétal et amidon"], ["or", "gras, œuf et épices"], ["terra", "chaleur et coloration"], ["doux", "seuil mal établi"]]
+    .filter(([t]) => items.some(r => r.ton === t))
+    .map(([t, l]) => `<span class="th-cle"><i class="th-puce th-puce-${t}" aria-hidden="true"></i>${e(l)}</span>`).join("");
+  const note = legende ? `<figcaption><span class="fg-legende">Touchez un repère pour ouvrir sa fiche. Une plage est un dégradé : les fiches le répètent, il n'y a pas de seuil net. ` +
+    `L'axe n'est pas régulier : à chaque rupture (//), la hauteur d'un degré change.</span><span class="th-cles">${cles}</span></figcaption>` : "";
+  return `<figure class="fg fg-thermo">${note}<div class="fg-cadre">${svg}</div></figure>`;
+}
+
 /* Les balises d'un balisage SVG sont-elles bien ouvertes et fermées, dans l'ordre ?
    Un contrôle grossier mais suffisant pour des données écrites à la main (le
    vérificateur et les tests s'en servent) : il ne connaît pas les valeurs

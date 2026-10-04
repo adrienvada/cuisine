@@ -186,3 +186,45 @@
 /* Dans la page ou la feuille d'un savoir, une figure ne touche pas son voisin. */
 .f-bloc + .fg, .fg + .f-bloc { margin-top: 18px; }
 .f-bloc .fg:first-of-type { margin-top: 12px; }
+
+/* ---------- Le thermomètre du carnet (onglet Savoirs) ---------- */
+
+/* Les dégradés du SVG (<stop class="fg-st-…">) lisent les mêmes variables que les traits :
+   clair et sombre se règlent ici, une fois. */
+.fg-st-vert { stop-color: var(--green); }
+.fg-st-or { stop-color: var(--gold-deco); }
+.fg-st-terra { stop-color: var(--terra); }
+.fg-st-bleu { stop-color: var(--bleu); }
+.fg-st-encre { stop-color: var(--ink); }
+.fg-st-doux { stop-color: var(--muted); }
+
+/* Une grande figure verticale : elle garde une largeur lisible sur un écran large, et rien
+   de l'agrandissement des autres figures (le dessin y est déjà à sa taille). */
+.fg.fg-thermo { margin-top: 4px; }
+.fg.fg-thermo .fg-cadre { padding: 0 2px; }
+.fg.fg-thermo figcaption { padding: 4px 4px 10px; }
+.fg.fg-thermo .fg-svg { max-width: 480px; margin: 0 auto; cursor: default; }
+
+.th-tube { opacity: 0.9; }
+.th-barre { opacity: 0.95; }
+.th-rupture { stroke-width: 2.2; }
+.th-guide { stroke-width: 1; opacity: 0.55; }
+.th-num { fill: var(--muted); }
+
+/* Un repère est un lien : la zone qui entoure son étiquette s'éclaire au toucher, au survol
+   et au clavier. */
+.th-lien { cursor: pointer; outline: none; }
+.th-zone { fill: transparent; stroke: transparent; stroke-width: 1.6; }
+.th-lien:hover .th-zone { fill: var(--paper-deep); }
+.th-lien:focus-visible .th-zone { fill: var(--paper-deep); stroke: var(--green); }
+
+/* La légende des tons : une puce par famille de repères. */
+.th-cles { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.th-cle { display: inline-flex; align-items: center; gap: 6px; }
+.th-puce { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.th-puce-vert { background: var(--green); }
+.th-puce-or { background: var(--gold-deco); }
+.th-puce-terra { background: var(--terra); }
+.th-puce-bleu { background: var(--bleu); }
+.th-puce-doux { background: var(--muted); }
+.th-puce-encre { background: var(--ink); }
