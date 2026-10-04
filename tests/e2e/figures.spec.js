@@ -30,6 +30,12 @@ test("figures : la page de Maillard montre ses figures, la première juste aprè
 });
 
 test("figures : le catalogue annonce « 4 schémas » sur Maillard, et rien sur une fiche sans figure", async ({ page }) => {
+  /* Toutes les fiches ont désormais leurs figures : on en retire une au vol pour
+     garder la preuve qu'une fiche sans figure n'affiche aucun badge. */
+  await page.route("**/js/figures.js", async route => {
+    const reponse = await route.fetch();
+    await route.fulfill({ response: reponse, body: (await reponse.text()) + '\ndelete FIGURES["deglacage"];\n' });
+  });
   await page.goto("/#/fondamentaux");
   await expect(page.locator(".f-item", { hasText: "La réaction de Maillard" }).locator(".f-item-fig")).toHaveText("4 schémas");
   await expect(page.locator(".f-item", { hasText: "Le déglaçage" }).locator(".f-item-fig")).toHaveCount(0);
