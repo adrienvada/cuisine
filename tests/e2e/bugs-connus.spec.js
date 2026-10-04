@@ -288,13 +288,11 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
   await page.evaluate(() => window.scrollTo(0, 1300));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(1200);
 
-  // Une carte bien à l'écart des deux barres fixes : le tap ne doit pas faire défiler la page.
+  // La carte la plus proche du milieu de l'écran, donc à l'écart des deux barres fixes.
   const id = await page.evaluate(() => {
-    const carte = [...document.querySelectorAll(".card")].find(c => {
-      const r = c.getBoundingClientRect();
-      return r.top > 160 && r.bottom < window.innerHeight - 160;
-    });
-    return carte.dataset.id;
+    const milieu = window.innerHeight / 2;
+    const ecart = c => { const r = c.getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - milieu); };
+    return [...document.querySelectorAll(".card:not(.gone)")].sort((a, b) => ecart(a) - ecart(b))[0].dataset.id;
   });
   const corps = page.locator(`.card[data-id="${id}"] .body`);
   await corps.scrollIntoViewIfNeeded();

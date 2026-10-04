@@ -127,10 +127,13 @@ test("menu : + / − de portions et ✕ gardent le focus au clavier", async ({ p
   await page.keyboard.press("Enter");
   expect(await actif(page)).toMatchObject({ tag: "button", data: { conv: "1" } });
 
-  // La carte retirée laisse le focus au ✕ de la carte qui prend sa place.
+  /* La carte retirée au clavier : « Annuler » prend le focus (on peut se raviser tout de
+     suite), et en fermant le message le focus revient au ✕ de la carte qui a pris sa place. */
   await page.locator('[data-remove="q1"]').focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".menu-card")).toHaveCount(1);
+  await expect(page.locator("#toast .toast-action")).toBeFocused();
+  await page.keyboard.press("Escape");
   expect(await actif(page)).toMatchObject({ tag: "button", data: { remove: "c1" } });
 });
 
