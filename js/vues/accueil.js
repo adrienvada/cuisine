@@ -1,21 +1,21 @@
-/* L'accueil : grille des recettes, recherche, filtres par catégorie et leurs animations. */
+/* L'accueil : grille des recettes, recherche, filtres par catégorie et par critère, « J'ai… », et leurs animations. */
 
 import { save, state } from "../core/etat.js";
-import { fondsDe } from "../core/fonds.js";
 import { fmtTime } from "../core/format.js";
+import { esc } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { MOMENT_TABLE } from "../core/menu.js";
 import {
   FAV_FILTER,
   VERDICTS,
   abbrevDiscovered,
-  addonList,
   byCategoryOrder,
-  choiceList,
   cookedOf,
   isFav,
   verdictOf
 } from "../core/recettes.js";
+import { FILTRES, catalogueJai, estDeSaison, foinDe, motsDe, scoreJai, trouve } from "../core/recherche.js";
+import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
@@ -42,58 +42,189 @@ export function timeChipsHtml(r) {
   ].join("");
 }
 
-export function matches(r, q) {
-  if (!q) return true;
-  /* Les fondamentaux entrent dans le foin : chercher « émulsion » doit ramener
-     les recettes où l'on en fait une, pas seulement celles qui écrivent le mot. */
-  const fonds = [...r.steps, ...(r.choices || []).flatMap(c => c.options.map(o => o.step)),
-    ...(r.addons || []).map(a => a.step)].flatMap(s => fondsDe(s).map(f => f.t));
-  const hay = [r.title, r.subtitle, r.category, ...(r.tags || []), ...r.ingredients.map(i => i.name),
-    ...addonList(r).map(a => a.label),
-    ...choiceList(r).flatMap(c => c.options.map(o => o.label)), ...fonds].join(" ").toLowerCase();
-  return q.toLowerCase().split(/\s+/).every(w => hay.includes(w));
-}
+/* Ce que l'accueil retient pendant la visite — et seulement elle : rouvrir
+   l'appli montre toutes les recettes. Ni la recherche, ni les critères, ni les
+   ingrédients du « J'ai… » ne passent par `state`, donc jamais par localStorage. */
+let requete = "";
+const criteres = new Set();
+const jai = new Set();
+let foins = new Map();
 
 export function renderHome() {
   const anyFav = RECIPES.some(isFav);
   if (state.filter === FAV_FILTER && !anyFav) { state.filter = "Toutes"; save(); }
   const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(RECIPES.map(r => r.category))].sort(byCategoryOrder)];
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
+  /* Le foin de chaque recette, normalisé une fois pour toute la visite. */
+  foins = new Map(RECIPES.map(r => [r.id, foinDe(r)]));
   app.innerHTML = `
     <header class="masthead fade-in">
       <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
       <p class="byline"><span>d'<span class="u">Evadri</span></span> ${ILLO.D.heart}</p>
     </header>
-    <div class="searchbar">
-      ${ICON.search}
-      <input id="search" type="search" placeholder="Une recette, un ingrédient…" value="${state.query}" autocomplete="off">
+    <div class="search-row">
+      <div class="searchbar">
+        ${ICON.search}
+        <input id="search" type="search" placeholder="Recette, ingrédient…" value="${esc(requete)}" autocomplete="off" aria-label="Chercher une recette">
+      </div>
+      <button type="button" class="jai-btn" id="jai-ouvrir" aria-haspopup="dialog"></button>
     </div>
     <div class="chips" id="chips">
-      ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${c}">${chipLabel(c)}</button>`).join("")}
+      ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${esc(c)}" aria-pressed="${state.filter === c}">${chipLabel(c)}</button>`).join("")}
     </div>
+    <div class="chips chips-criteres" id="criteres" role="group" aria-label="Filtres">
+      ${FILTRES.map(f => `<button class="chip ${criteres.has(f.id) ? "on" : ""}" data-critere="${f.id}" aria-pressed="${criteres.has(f.id)}">${f.label}</button>`).join("")}
+    </div>
+    <p class="jai-etat" id="jai-etat" hidden>
+      <span id="jai-resume"></span>
+      <button type="button" class="jai-efface" id="jai-efface">Effacer</button>
+    </p>
     <div class="grid fade-in" id="grid">
       ${RECIPES.map(cardHtml).join("")}
-      <p class="empty grid-empty" style="grid-column:1/-1" hidden>Aucune recette ne correspond…<br>La prochaine fournée arrive bientôt !</p>
+      <p class="empty grid-empty" style="grid-column:1/-1" hidden>Aucune recette ne correspond…<br>Essaie d'enlever un filtre — la prochaine fournée arrive bientôt !</p>
     </div>
   `;
+  majJai();
   document.getElementById("search").addEventListener("input", e => {
-    state.query = e.target.value; save(); applyFilter(true);
+    requete = e.target.value; applyFilter(true);
   });
   document.getElementById("chips").addEventListener("click", e => {
     const b = e.target.closest(".chip");
     if (!b) return;
     state.filter = b.dataset.cat; save();
-    document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
-    if (!REDUCE_MOTION.matches) {
-      b.classList.remove("pop");
-      void b.offsetWidth;
-      b.classList.add("pop");
-    }
+    document.querySelectorAll("#chips .chip").forEach(c => {
+      c.classList.toggle("on", c === b);
+      c.setAttribute("aria-pressed", String(c === b));
+    });
+    rebondir(b);
     applyFilter(true);
   });
+  /* Les critères se cumulent : chacun resserre la grille un peu plus. */
+  document.getElementById("criteres").addEventListener("click", e => {
+    const b = e.target.closest(".chip");
+    if (!b) return;
+    const id = b.dataset.critere;
+    if (!criteres.delete(id)) criteres.add(id);
+    b.classList.toggle("on", criteres.has(id));
+    b.setAttribute("aria-pressed", String(criteres.has(id)));
+    if (criteres.has(id)) rebondir(b);
+    applyFilter(true);
+  });
+  document.getElementById("jai-ouvrir").addEventListener("click", ouvrirJai);
+  document.getElementById("jai-efface").addEventListener("click", () => { jai.clear(); majJai(); applyFilter(true); });
   document.getElementById("grid").addEventListener("click", onShareClick);
   applyFilter(false);
+}
+
+function rebondir(b) {
+  if (REDUCE_MOTION.matches) return;
+  b.classList.remove("pop");
+  void b.offsetWidth;
+  b.classList.add("pop");
+}
+
+/* Le bouton « J'ai… » et la ligne qui rappelle la sélection : ils disent
+   pourquoi la grille est réduite, et la défont d'un geste sans rouvrir la feuille. */
+function majJai() {
+  const bouton = document.getElementById("jai-ouvrir");
+  if (!bouton) return;
+  const n = jai.size, s = n > 1 ? "s" : "";
+  bouton.classList.toggle("on", n > 0);
+  bouton.innerHTML = `J'ai…${n ? ` <span class="jai-n">${n}</span>` : ""}`;
+  bouton.setAttribute("aria-label", n ? `J'ai… (${n} ingrédient${s} choisi${s})` : "J'ai… : choisir les ingrédients que tu as");
+  document.getElementById("jai-etat").hidden = n === 0;
+  document.getElementById("jai-resume").textContent = `Recettes avec ${n} ingrédient${s} de ta sélection`;
+}
+
+/* ---------- « J'ai… » : la feuille des ingrédients ---------- */
+
+/* Le choix se fait sur place : cocher un ingrédient ne refait pas la feuille
+   (elle rejouerait son animation et perdrait son défilement), seuls les boutons
+   changent. La grille, derrière, se recompose à la fermeture. */
+function ouvrirJai() {
+  const catalogue = catalogueJai(RECIPES);
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop";
+  backdrop.innerHTML = `
+    <div class="sheet jai-sheet" role="dialog" aria-modal="true" aria-label="J'ai… : tes ingrédients">
+      <div class="sheet-grip"></div>
+      <h3>J'ai…</h3>
+      <p class="sheet-sub">Choisis ce que tu as sous la main : on te montre les recettes qui s'en servent. Sel, huile, farine… on les suppose déjà chez toi.</p>
+      <div class="searchbar jai-recherche">
+        ${ICON.search}
+        <input id="jai-recherche" type="search" placeholder="Un ingrédient…" autocomplete="off" aria-label="Chercher un ingrédient">
+      </div>
+      <div class="jai-liste" id="jai-liste">
+        ${catalogue.map(i => `<button type="button" class="chip jai-chip ${jai.has(i.cle) ? "on" : ""}" data-cle="${esc(i.cle)}" data-norm="${esc(i.norm)}" aria-pressed="${jai.has(i.cle)}">${esc(i.label)}</button>`).join("")}
+        <p class="empty jai-vide" hidden>Aucun ingrédient ne ressemble à ça.</p>
+      </div>
+      <div class="jai-actions">
+        <button type="button" class="btn secondary" id="jai-vider">Tout effacer</button>
+        <button type="button" class="btn primary" id="jai-ok"></button>
+      </div>
+    </div>`;
+  const liste = backdrop.querySelector("#jai-liste");
+  const vider = backdrop.querySelector("#jai-vider");
+  const ok = backdrop.querySelector("#jai-ok");
+
+  const rafraichir = () => {
+    const n = visibles().length;
+    vider.disabled = jai.size === 0;
+    ok.textContent = !jai.size ? "Fermer" : n === 0 ? "Aucune recette" : n === 1 ? "Voir la recette" : `Voir les ${n} recettes`;
+  };
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop || e.target.closest("#jai-ok")) return fermerFeuille();
+    if (e.target.closest("#jai-vider")) {
+      jai.clear();
+      liste.querySelectorAll(".jai-chip.on").forEach(b => { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); });
+      return rafraichir();
+    }
+    const b = e.target.closest(".jai-chip");
+    if (!b) return;
+    if (!jai.delete(b.dataset.cle)) jai.add(b.dataset.cle);
+    b.classList.toggle("on", jai.has(b.dataset.cle));
+    b.setAttribute("aria-pressed", String(jai.has(b.dataset.cle)));
+    rafraichir();
+  });
+  backdrop.querySelector("#jai-recherche").addEventListener("input", e => {
+    const mots = motsDe(e.target.value);
+    let n = 0;
+    for (const b of liste.querySelectorAll(".jai-chip")) {
+      b.hidden = !trouve(b.dataset.norm, mots);
+      if (!b.hidden) n++;
+    }
+    liste.querySelector(".jai-vide").hidden = n > 0;
+  });
+  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
+  document.addEventListener("keydown", surEchap);
+  rafraichir();
+  ouvrirFeuille(backdrop, () => {
+    document.removeEventListener("keydown", surEchap);
+    majJai();
+    applyFilter(true);
+  });
+}
+
+/* Les recettes à montrer, dans l'ordre où elles s'affichent. Avec « J'ai… », la
+   grille ne garde que celles qui servent un ingrédient choisi : d'abord les plus
+   avancées, puis, à égalité, celles à qui il manque le moins. */
+function visibles() {
+  const mots = motsDe(requete), mois = new Date().getMonth() + 1;
+  const actifs = FILTRES.filter(f => criteres.has(f.id));
+  const liste = RECIPES.filter(r => inFilter(r) && trouve(foins.get(r.id) ?? "", mots) && actifs.every(f => f.test(r, mois)));
+  if (jai.size) {
+    const score = new Map(liste.map(r => [r, scoreJai(r, jai)]));
+    return liste.filter(r => score.get(r).trouves > 0).sort((a, b) => {
+      const sa = score.get(a), sb = score.get(b);
+      return sb.trouves - sa.trouves || (sa.total - sa.trouves) - (sb.total - sb.trouves);
+    });
+  }
+  // Dans les coups de cœur, les plus cuisinées passent devant.
+  if (state.filter === FAV_FILTER) {
+    liste.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
+  }
+  return liste;
 }
 
 export function inFilter(r) {
@@ -109,14 +240,19 @@ export function inFilter(r) {
 export function cardHtml(r) {
   const v = VERDICTS.find(x => x.id === verdictOf(r));
   const c = cookedOf(r);
+  /* Un <article>, pas un lien : le bouton partager ne peut pas vivre dans un
+     <a>. Le lien porte le titre, et son ::after s'étire sur toute la carte
+     (cf. accueil.css) ; le bouton, frère du lien, passe au-dessus. */
   return `
-    <a class="card" data-id="${r.id}" href="#/recette/${r.id}">
+    <article class="card" data-id="${r.id}">
       <div class="visual" style="background:${r.color}22">${visuel(r, { genre: "vignette" })}
         <span class="card-cat">${r.category}</span>
         <button class="card-share" data-share="${r.id}" aria-label="Partager ${r.title}">${ICON.share}</button>
+        ${estDeSaison(r, new Date().getMonth() + 1) ? `<span class="card-saison">De saison</span>` : ""}
+        <span class="card-jai" hidden></span>
       </div>
       <div class="body">
-        <h3>${r.title}</h3>
+        <h3><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
@@ -126,7 +262,7 @@ export function cardHtml(r) {
           <div class="meta">${timeChipsHtml(r)}</div>
         </div>
       </div>
-    </a>`;
+    </article>`;
 }
 
 /* Coup de cœur activé : le cœur du bouton bat, et 2-3 petits cœurs
@@ -167,16 +303,23 @@ export function finishLeave(el) {
 export function applyFilter(animate) {
   const grid = document.getElementById("grid");
   if (!grid) return;
-  const list = RECIPES.filter(r => inFilter(r) && matches(r, state.query));
-  // Dans les coups de cœur, les plus cuisinées passent devant.
-  if (state.filter === FAV_FILTER) {
-    list.sort((a, b) => cookedOf(b).count - cookedOf(a).count || (cookedOf(b).last || 0) - (cookedOf(a).last || 0));
-  }
+  const list = visibles();
   /* La pastille de catégorie n'apprend rien quand le filtre l'annonce déjà en
      haut de l'écran : elle ne sert que dans « Toutes » et dans une recherche.
      (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
   grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER || state.filter === "table"));
   grid.querySelector(".grid-empty").hidden = list.length > 0;
+
+  /* « 3 / 5 » sur la vignette : seulement tant qu'un ingrédient est choisi. */
+  for (const el of grid.querySelectorAll(".card")) {
+    const pastille = el.querySelector(".card-jai");
+    const r = jai.size ? list.find(x => x.id === el.dataset.id) : null;
+    pastille.hidden = !r;
+    if (r) {
+      const { trouves, total } = scoreJai(r, jai);
+      pastille.textContent = `${trouves} / ${total}`;
+    }
+  }
 
   const cardOf = new Map([...grid.querySelectorAll(".card")].map(el => [el.dataset.id, el]));
   const wanted = list.map(r => cardOf.get(r.id));
