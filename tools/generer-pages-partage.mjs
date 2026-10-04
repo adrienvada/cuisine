@@ -51,6 +51,9 @@ function description(r) {
   return `${r.subtitle} · ${bits.join(" · ")} · pour ${r.portions.base} ${r.portions.label}.`;
 }
 
+/* La requête de l'adresse (`?p=8&c=…&a=…`, cf. js/core/liens.js) passe telle
+   quelle à l'application : la page ne la lit pas, elle la transmet, et c'est le
+   routeur qui valide. Les pages de fondamentaux n'en ont pas l'usage. */
 function page(r) {
   const url = `${SITE}r/${r.id}.html`;
   const app = `../#/recette/${r.id}`;
@@ -83,7 +86,7 @@ function page(r) {
 <link rel="icon" href="../icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
-<script>location.replace(${JSON.stringify(app)});</script>
+<script>location.replace(${JSON.stringify(app)} + location.search);</script>
 <style>
   body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
          background: #F7F3E9; color: #2C3326; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
