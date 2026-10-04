@@ -262,16 +262,55 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
   left: 50%;
   bottom: calc(96px + var(--safe-b));
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 24px);   /* jamais rogné, même à 320 px : le texte passe à la ligne */
   background: var(--ink);
   color: var(--paper);
-  border-radius: 999px;
+  border-radius: 22px;
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 500;
   z-index: 200;
-  white-space: nowrap;
-  animation: toast-in 0.25s ease;
   box-shadow: 0 8px 24px rgba(44, 51, 38, 0.3);
+  /* Toujours rendu, simplement invisible : sa région est annoncée à coup sûr. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.toast[hidden] { display: none; }
+
+.toast.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.2s ease;
+  animation: toast-in 0.25s ease;
+}
+
+/* Le plateau de minuteurs flotte juste au-dessus de la barre d'onglets : le message
+   monte d'autant (--plateau-h, minuteurs.css) plutôt que de le recouvrir. */
+body.avec-minuteurs:not(.cooking) .toast { bottom: calc(96px + var(--plateau-h, 0px) + var(--safe-b)); }
+
+/* Texte lisible sans effet de mouvement : lecteurs d'écran seulement. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast, .toast.visible { transition: none; animation: none; }
 }
 
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
@@ -284,7 +323,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
    d'un pouce, et ses marges négatives l'empêchent d'épaissir le message. */
 .toast-action {
   min-height: 44px;
-  margin: -10px -12px -10px 8px;
+  margin: -10px -12px -10px 0;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
@@ -295,7 +334,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
   font-family: var(--sans);
   text-decoration: underline;
   text-underline-offset: 3px;
-  vertical-align: middle;
+  flex: none;
 }
 
 /* Sheet « Ajouter tel quel / composer » à l'ajout au menu */

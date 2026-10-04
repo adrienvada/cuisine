@@ -41,6 +41,7 @@ import {
 } from "../core/planning.js";
 import { VERDICTS, byId, cookedOf, totalTimeText, verdictOf, versionSummary } from "../core/recettes.js";
 import { cookHref, cookingStep } from "../core/seance.js";
+import { annoncer } from "../ui/annonces.js";
 import { garderFocus } from "../ui/focus.js";
 import { onShareClick, shareMenu } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
@@ -300,6 +301,8 @@ function brancher() {
       const n = lireRepas().convives + Number(conv.dataset.conv);
       if (n < 1 || n > 24) return;
       setConvives(n); updateBadge(); redessiner();
+      // La vue est redessinée : une région live posée dedans ne dirait rien.
+      annoncer(pluriel(n, "convive"));
       return;
     }
     const exclu = e.target.closest("[data-exclu]");
@@ -317,6 +320,7 @@ function brancher() {
       if (p < 1 || p > 24) return;
       ent.portions = p;
       save(); updateBadge(); redessiner();
+      annoncer(`${r.title} : ${p} ${r.portions.label}`);
       return;
     }
     /* Toute la carte ouvre la recette : les mains dans la farine, on ne vise pas

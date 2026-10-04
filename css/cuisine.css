@@ -21,7 +21,7 @@
 
 .cook-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
-.cook-top .title { font-family: var(--serif); font-style: italic; font-size: 16px; color: #CBD3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+.cook-top .title { font-family: var(--serif); font-style: italic; font-size: 16px; color: #CBD3B8; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
 
 .cook-tools { display: flex; gap: 8px; }
 

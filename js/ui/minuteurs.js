@@ -7,6 +7,7 @@ import { esc } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { entreeCourante } from "../core/menu.js";
 import { byId } from "../core/recettes.js";
+import { annoncer } from "./annonces.js";
 import { toast } from "./toast.js";
 
 /* ---------- Minuteurs multiples ----------
@@ -109,6 +110,9 @@ export function ensureTick() {
 const aSignaler = new Set();
 
 export function tick() {
+  // Deux minuteurs qui finissent au même battement : une annonce en recouvre l'autre,
+  // on n'en dit donc qu'une, qui les nomme tous.
+  const prets = [];
   for (const t of state.timers) {
     const left = secondesRestantes(t);
     const fini = t.reste == null && left === 0;
@@ -120,6 +124,8 @@ export function tick() {
       const retard = Date.now() - t.end;
       if (document.visibilityState === "hidden") aSignaler.add(t.id);
       else if (retard > 5000) annoncerPrets([t]);
+      // Seule la voix prévient qui ne regarde pas l'écran (la bulle passe, elle, en « Prêt ! »).
+      else prets.push(t);
       sonner(t);
       drawTray();
       if (refreshZone) refreshZone();
@@ -127,6 +133,8 @@ export function tick() {
       setTimeout(() => { document.title = "Carnet de cuisine"; }, 5000);
     }
   }
+  if (prets.length === 1) annoncer(`Minuteur « ${prets[0].label} » prêt`);
+  else if (prets.length) annoncer(`${prets.length} minuteurs prêts : ${prets.map(t => `« ${t.label} »`).join(", ")}`);
 }
 
 /* « Prêt depuis 3 min » : le minuteur a fini pendant qu'on regardait ailleurs. */
@@ -154,9 +162,32 @@ document.addEventListener("visibilitychange", () => {
 
 const ICONE_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
 
+/* Le plateau est réécrit à chaque geste : le doigt, lui, est resté sur la bulle. On
+   note quel contrôle de quelle bulle avait le focus pour le rendre au même, refait.
+   Déplacer le plateau (mode cuisine) lui fait aussi perdre le focus : le repère
+   est alors pris avant le déplacement et attend le prochain dessin. */
+let repereFocus = null;
+
+function reperer(tray) {
+  const el = document.activeElement;
+  const pastille = el && tray.contains(el) ? el.closest("[data-timer]") : null;
+  return pastille ? { id: pastille.dataset.timer, act: el.dataset.act || null } : null;
+}
+
+function rendreLeFocus(tray, repere) {
+  if (!repere) return;
+  const pastille = tray.querySelector(`[data-timer="${repere.id}"]`);
+  if (!pastille) return;
+  // Une bulle qui sonne n'a plus de pause : le focus passe au premier contrôle qui reste.
+  const cible = (repere.act && pastille.querySelector(`[data-act="${repere.act}"]`)) || pastille.querySelector("button");
+  if (cible) cible.focus({ preventScroll: true });
+}
+
 export function drawTray() {
   const tray = document.getElementById("timer-tray");
   if (!tray) return;
+  const repere = repereFocus || reperer(tray);
+  repereFocus = null;
   placerPlateau(tray);
   tray.hidden = !state.timers.length;
   // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
@@ -184,6 +215,7 @@ export function drawTray() {
   // Un plateau dont toutes les bulles sont masquées ne réserve aucune place.
   const visibles = state.timers.some(t => !(etapeAffichee && (t.mk || t.rid) === etapeAffichee.cle && t.step === etapeAffichee.step));
   document.body.classList.toggle("avec-minuteurs", visibles);
+  rendreLeFocus(tray, repere);
 }
 
 /* En mode cuisine le plateau a sa place dans la mise en page, entre l'étape et
@@ -192,7 +224,7 @@ export function drawTray() {
 function placerPlateau(tray) {
   const zone = document.getElementById("plateau-cuisine");
   const cible = zone || document.body;
-  if (tray.parentNode !== cible) cible.appendChild(tray);
+  if (tray.parentNode !== cible) { repereFocus = repereFocus || reperer(tray); cible.appendChild(tray); }
 }
 
 /* Avant de redessiner l'écran de cuisine (ou d'en sortir), le plateau retourne
@@ -201,7 +233,7 @@ export function libererPlateau() {
   const zone = document.getElementById("plateau-cuisine");
   if (zone) zone.removeAttribute("id");
   const tray = document.getElementById("timer-tray");
-  if (tray && tray.parentNode !== document.body) document.body.appendChild(tray);
+  if (tray && tray.parentNode !== document.body) { repereFocus = repereFocus || reperer(tray); document.body.appendChild(tray); }
 }
 
 /* Les trois gestes de la bulle (+1, pause, croix) n'ont pas à ramener à l'étape :
@@ -264,8 +296,13 @@ function contexteAudio() {
   return ctxAudio;
 }
 
-function reprendreAudio() {
-  if (ctxAudio && ctxAudio.state !== "running") ctxAudio.resume().catch(() => {});
+/* Le navigateur ne laisse ni sonner ni vibrer avant un premier toucher : une page
+   rouverte avec un minuteur échu resterait muette, et chaque tentative écrirait une
+   erreur dans la console. Sans API de suivi, on suppose le geste fait. */
+const gestePermis = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+
+function reprendreAudio(geste = false) {
+  if (ctxAudio && ctxAudio.state !== "running" && (geste || gestePermis())) ctxAudio.resume().catch(() => {});
 }
 
 export function debloquerAudio() {
@@ -274,7 +311,7 @@ export function debloquerAudio() {
     if (navigator.audioSession) navigator.audioSession.type = "playback";
     const ctx = contexteAudio();
     if (!ctx) return;
-    reprendreAudio();
+    reprendreAudio(true);
     // Un son muet d'un échantillon, joué pendant le geste : c'est lui qui déverrouille iOS.
     const source = ctx.createBufferSource();
     source.buffer = ctx.createBuffer(1, 1, 22050);
@@ -285,7 +322,7 @@ export function debloquerAudio() {
 
 export function beep() {
   try {
-    const ctx = contexteAudio();
+    const ctx = gestePermis() ? contexteAudio() : null;
     if (ctx) {
       reprendreAudio();
       [0, 0.35, 0.7].forEach(t => {
@@ -298,7 +335,7 @@ export function beep() {
       });
     }
   } catch (e) {}
-  if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 500]);
+  if (navigator.vibrate && gestePermis()) navigator.vibrate([300, 120, 300, 120, 500]);
 }
 
 /* ---------- Sonnerie ----------
