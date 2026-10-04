@@ -26,6 +26,9 @@
   /* Texte posé sur un fond --green : crème en clair, encre en sombre (le vert
      clair du mode sombre ne porte pas du crème : 2,8:1). */
   --sur-vert: #FDFBF3;
+  /* Doré des petits textes posés sur le vert profond fixe (mode cuisine, bulles
+     de minuteur) : --gold, foncé pour la crème, n'y tient plus. */
+  --or-sur-fond-vert: #E8C889;
   --line: #E2DAC5;
   --line-soft: #ECE5D2;
   --radius: 16px;
@@ -88,7 +91,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; color: var(--ink); mar
    d'Android) y espace les lettres de façon irrégulière (« Fo caccia »,
    « ro marin »). Le 600 est net ; en 700 il faut demander la géométrie exacte
    des glyphes. Une règle commune, pour tout titre qui passe en 700. */
-.card h3, .mc-title h3, .steps h3, .steps .num { text-rendering: geometricPrecision; }
+.card h3, .mc-title h3, .steps h3, .steps .num, .f-item-txt b { text-rendering: geometricPrecision; }
 
 button { font-family: var(--sans); cursor: pointer; }
 
@@ -335,3 +338,23 @@ html[data-theme="dark"] .steps .num,
 html[data-theme="dark"] .add-extra button,
 html[data-theme="dark"] .verdict-btn.on.v-encore,
 html[data-theme="dark"] .course-list input:checked + .tick { color: var(--sur-vert); }
+
+/* Les surfaces au vert profond fixe gardent leurs couleurs dans les deux
+   thèmes : leur doré vient donc de --or-sur-fond-vert, pas de --gold (qui
+   suit le thème et, en clair, est devenu brun foncé : 1,6:1 sur le vert). */
+html .cook { --gold: var(--or-sur-fond-vert); }
+html .timer-pill { --gold: var(--or-sur-fond-vert); background: #31492B; }
+html .timer-pill.done { background: #D9AE63; }
+
+/* Pastille du nombre de recettes au menu : crème sur terre cuite claire, 2,7:1 en sombre. */
+html[data-theme="dark"] .badge { color: var(--sur-vert); }
+
+/* L'astuce « à savoir » garde son fond beige en sombre (hors mode cuisine, qui
+   a le sien) : son texte doré suit, sinon doré clair sur beige, 1,4:1. */
+html[data-theme="dark"] .tip.beige:not(.cook .tip) b,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .tip-ico,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-cue,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
+
+/* La feuille reçoit le focus à l'ouverture (feuilles.js) pour que Tab parte d'elle : sans anneau, ce n'est pas une zone à désigner. */
+.sheet:focus { outline: none; }

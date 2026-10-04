@@ -12,7 +12,7 @@ export const carnetSync = window.__carnetSyncSimule;`;
 
 const CORPS_QR = `export const qrSvg = texte => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-texte="' + encodeURIComponent(texte) + '"><rect width="10" height="10"/></svg>';`;
 
-/* options : { disponible, etat, mdp, carnetExistant, lien } */
+/* options : { disponible, etat, mdp, carnetExistant, lien, attente } */
 export async function simulerCarnetSync(context, options = {}) {
   const reglage = { disponible: true, etat: "off", mdp: "secret", carnetExistant: false, lien: "https://exemple.test/cuisine/#/connexion/secret", ...options };
   await context.addInitScript(r => {
@@ -26,8 +26,11 @@ export async function simulerCarnetSync(context, options = {}) {
       surEtat(fn) { abonnes.add(fn); return () => abonnes.delete(fn); },
       async connecter(mdp, opts = {}) {
         o.appels.push(["connecter", mdp, opts]);
-        if (mdp !== r.mdp) return { ok: false, message: "Mot de passe incorrect." };
-        if (r.carnetExistant && !opts.remplacer) return { ok: false, carnetExistant: true, message: "Un carnet partagé existe déjà." };
+        /* Le vrai module passe par « attente » le temps de la vérification, puis revient à « off » si elle échoue. */
+        if (r.attente) { o._etat = "attente"; emettre(); await new Promise(fin => setTimeout(fin, 50)); }
+        const echec = res => { if (r.attente) { o._etat = "off"; emettre(); } return res; };
+        if (mdp !== r.mdp) return echec({ ok: false, message: "Mot de passe incorrect." });
+        if (r.carnetExistant && !opts.remplacer) return echec({ ok: false, carnetExistant: true, message: "Un carnet partagé existe déjà." });
         o._etat = "ok";
         emettre();
         return { ok: true, message: "Synchronisation activée" };

@@ -157,6 +157,16 @@ test("carnet partagé : le mot de passe se saisit dans la feuille, un refus s'ex
   await expect(page.getByRole("button", { name: /^Réglages/ })).toHaveAttribute("data-sync", "ok");
 });
 
+test("carnet partagé : un refus pendant que l'état passe par « connexion » garde la saisie", async ({ page, context }) => {
+  await simulerCarnetSync(context, { etat: "off", mdp: "secret", attente: true });
+  await page.goto("/");
+  const feuille = await ouvrirReglages(page);
+  await feuille.getByLabel("Mot de passe du carnet").fill("mauvais");
+  await feuille.getByRole("button", { name: "Se connecter" }).click();
+  await expect(feuille.getByRole("alert")).toHaveText("Mot de passe incorrect.");
+  await expect(feuille.getByLabel("Mot de passe du carnet")).toHaveValue("mauvais");
+});
+
 test("carnet partagé : si un carnet existe déjà, une feuille demande avant de le remplacer", async ({ page, context }) => {
   await simulerCarnetSync(context, { etat: "off", carnetExistant: true });
   await page.goto("/");
@@ -363,3 +373,42 @@ test("feuilles : une confirmation empilée se ferme seule avec Échap, puis les 
   await page.keyboard.press("Escape");
   await expect(feuille).toBeHidden();
 });
+
+/* ---------- Contrastes des surfaces au vert profond fixe ---------- */
+
+const luminance = rgb => {
+  const [r, g, b] = rgb.match(/[\d.]+/g).slice(0, 3).map(v => {
+    const c = Number(v) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contraste = (a, b) => {
+  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+};
+
+for (const theme of ["light", "dark"]) {
+  test(`contraste (${theme}) : bulles de minuteur et mode cuisine restent lisibles`, async ({ page, context }) => {
+    await page.emulateMedia({ colorScheme: theme });
+    await preremplir(context, { carnet: { timers: [
+      { id: "t1", rid: "torsades-pesto", mk: null, step: 1, slot: null, label: "Levée", emoji: "x", end: Date.now() + 600000, total: 10, fired: false },
+      { id: "t2", rid: "torsades-pesto", mk: null, step: 2, slot: null, label: "Four", emoji: "x", end: Date.now() - 1000, total: 10, fired: true }
+    ] } });
+    await page.goto("/");
+    const bulle = page.locator(".timer-pill:not(.done)").first();
+    await expect(bulle).toBeVisible();
+    const [fond, horloge] = await bulle.evaluate(el => [getComputedStyle(el).backgroundColor, getComputedStyle(el.querySelector(".t-clock")).color]);
+    expect(contraste(horloge, fond)).toBeGreaterThanOrEqual(4.5);
+    const prete = page.locator(".timer-pill.done").first();
+    const [fondPret, textePret] = await prete.evaluate(el => [getComputedStyle(el).backgroundColor, getComputedStyle(el.querySelector(".t-label")).color]);
+    expect(contraste(textePret, fondPret)).toBeGreaterThanOrEqual(4.5);
+
+    await page.locator(".card").first().click();
+    await page.getByRole("link", { name: /Mode cuisine/ }).dispatchEvent("click");   // les bulles recouvrent le bas de la fiche
+    const etiquette = page.locator(".cook-step-label");
+    await expect(etiquette).toBeVisible();
+    const [couleur, vert] = await etiquette.evaluate(el => [getComputedStyle(el).color, getComputedStyle(el.closest(".cook")).backgroundColor]);
+    expect(contraste(couleur, vert)).toBeGreaterThanOrEqual(4.5);
+  });
+}

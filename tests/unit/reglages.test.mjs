@@ -78,6 +78,14 @@ test("contraste : le doré clair des décors reste distinct du doré de texte", 
   assert.ok(luminance(CLAIR["gold-deco"]) > luminance(CLAIR.gold));
 });
 
+test("contraste : le doré des petits textes sur le vert profond fixe (mode cuisine, bulles) atteint 4,5:1", () => {
+  // Le vert du mode cuisine et son encadré d'astuce (crème translucide sur ce vert).
+  for (const fond of ["#31492B", "#455A3D"]) {
+    const r = ratio(CLAIR["or-sur-fond-vert"], fond);
+    assert.ok(r >= 4.5, `--or-sur-fond-vert sur ${fond} : ${r.toFixed(2)}:1`);
+  }
+});
+
 test("contraste : la mesure reproduit les valeurs connues", () => {
   assert.ok(Math.abs(ratio("#000000", "#FFFFFF") - 21) < 0.01);
   // Les mesures du cahier des charges, avant correction.

@@ -233,6 +233,10 @@ function blocSynchro(cs, zone) {
       return;
     }
     erreur(res?.message || "Connexion impossible.");
+    /* L'état a pu passer par « connexion » le temps de l'essai, et la feuille
+       s'est redessinée : le champ est revenu vide. On rend la saisie. */
+    const champ = zone.querySelector("#reg-mdp");
+    if (champ && !champ.value) champ.value = mdp;
   }
 
   async function deconnecter() {
