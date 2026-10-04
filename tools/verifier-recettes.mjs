@@ -46,7 +46,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SINGULIERS_PORTIONS } from "../js/core/format.js";
-import { EMPLACEMENTS, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml } from "../js/ui/figures.js";
+import { EMPLACEMENTS, TONS as TONS_FIGURES, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml } from "../js/ui/figures.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -61,6 +61,7 @@ const FONDAMENTAL_RENAMES = new Function(`${fsrc}; return FONDAMENTAL_RENAMES;`)
 
 const figsrc = readFileSync(join(ROOT, "js", "figures.js"), "utf8");
 const FIGURES = new Function(`${figsrc}; return FIGURES;`)();
+const THERMOMETRE = new Function(`${figsrc}; return THERMOMETRE;`)();
 const cssFigures = readFileSync(join(ROOT, "css", "figures.css"), "utf8");
 
 const DUREE = /(\d+(?:\s*à\s*\d+)?)\s*(minutes?|min\b|heures?|h\b)/i;
@@ -298,6 +299,27 @@ for (const [cle, liste] of Object.entries(FIGURES)) {
   });
 }
 
+/* Le thermomètre du carnet (THERMOMETRE, section « Vue d'ensemble ») : chaque repère
+   désigne une fiche réelle, une température, un ton connu. */
+if (!Array.isArray(THERMOMETRE) || !THERMOMETRE.length) ko("js/figures.js : THERMOMETRE doit être un tableau de repères");
+else {
+  const posThermo = figsrc.indexOf("\nconst THERMOMETRE =");
+  const debutVue = figsrc.indexOf("/* ===== Vue d'ensemble ===== */"), finVue = figsrc.indexOf("/* ===== fin Vue d'ensemble ===== */");
+  if (debutVue < 0 || posThermo < debutVue || posThermo > finVue) ko("js/figures.js : THERMOMETRE s'écrit dans la section « Vue d'ensemble »");
+  THERMOMETRE.forEach((r, i) => {
+    const ref = `THERMOMETRE[${i}]${r && r.label ? ` « ${r.label.slice(0, 40)} »` : ""}`;
+    if (!r || typeof r !== "object") return ko(`${ref} : un objet est attendu`);
+    if (!Number.isFinite(r.de)) ko(`${ref} : « de » doit être un nombre`);
+    if (r.a !== undefined && !(Number.isFinite(r.a) && r.a > r.de)) ko(`${ref} : « a » doit être un nombre supérieur à « de »`);
+    if (r.ouvert !== undefined && (r.ouvert !== "haut" || r.a !== undefined)) ko(`${ref} : « ouvert » vaut « haut » et se passe de « a »`);
+    if (r.ancre !== undefined && !(Number.isFinite(r.ancre) && r.ancre >= r.de && r.ancre <= (r.a ?? r.de))) ko(`${ref} : « ancre » doit tomber dans la zone`);
+    if (!r.label || !String(r.label).trim()) ko(`${ref} : « label » manquant`);
+    if (/[{}]/.test(r.label || "")) ko(`${ref} : accolade dans le label`);
+    if (!TONS_FIGURES.includes(r.ton)) ko(`${ref} : ton « ${r.ton} » inconnu (${TONS_FIGURES.join(", ")})`);
+    if (!FONDAMENTAUX.some(f => f.id === r.fond)) ko(`${ref} : la fiche « ${r.fond} » n'existe pas`);
+  });
+}
+
 /* Chaque `fond` posé dans une recette doit tomber sur un fondamental réel :
    sinon la pastille disparaît sans un mot. */
 const idsFond = o => (!o || !o.fond) ? [] : (Array.isArray(o.fond) ? o.fond : [o.fond]);
@@ -496,7 +518,7 @@ if (erreurs.length) {
 
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
 console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
-console.log(`${nbFigures} figure(s) vérifiée(s) pour ${Object.keys(FIGURES).length} fondamental(aux) : types, titres, alt, emplacements, aucune couleur en dur.`);
+console.log(`${nbFigures} figure(s) vérifiée(s) pour ${Object.keys(FIGURES).length} fondamental(aux) : types, titres, alt, emplacements, aucune couleur en dur ; ${THERMOMETRE.length} repère(s) du thermomètre.`);
 console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions.`);
 
 /* Pour information seulement — jamais une erreur. Un fondamental sans recette

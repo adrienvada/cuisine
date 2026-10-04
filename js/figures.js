@@ -273,6 +273,92 @@ FIGURES["maillard"] = [
 
 /* ===== Vue d'ensemble ===== */
 
-/* (figures transversales de l'onglet Savoirs) */
+/* LE THERMOMÈTRE DU CARNET — la figure transversale de l'onglet Savoirs
+   (#/fondamentaux), dessinée par thermometreHtml() de js/ui/figures.js.
+
+   Chaque entrée est une température-repère CITÉE dans le texte d'une fiche
+   (js/fondamentaux.js) ; rien n'est inventé, et un test relit chaque chiffre
+   dans la fiche qu'il désigne. Forme :
+
+     { de: 150, a: 180, label: "Maillard : franche", fond: "maillard", ton: "terra" }
+
+   - de ....... la température en °C (négative si besoin) : un POINT si `a` manque
+                (un plafond, un cap, « sous 150 °C ») ;
+   - a ........ (facultatif) le haut de la plage : une ZONE de `de` à `a`. Les
+                fiches le répètent : il n'y a pas de seuil net, la zone se dessine
+                donc en dégradé, jamais en bord franc ;
+   - label .... ce que dit la fiche à cette température ; le dessin écrit la valeur
+                en gras devant, inutile de la répéter. Des mots plutôt qu'un chiffre
+                quand la fiche écrit en toutes lettres (« vingt à trente minutes ») ;
+   - fond ..... l'id de la fiche : le repère est un lien vers #/fondamental/<id> ;
+   - ton ...... bleu (froid, eau), vert (végétal, amidon), or (gras, œuf, épices),
+                terra (chaleur, coloration), doux (un « seuil » que la fiche juge
+                mal établi) ;
+   - ancre .... (facultatif) la température où poser l'étiquette d'une zone très
+                étendue ; le milieu de la zone par défaut ;
+   - ouvert ... (facultatif) « haut » : une zone sans plafond (« au-delà de 200 °C »),
+                dessinée jusqu'en haut de l'échelle avec un chevron ; `a` s'omet.
+
+   Le dessin range les repères du plus chaud au plus froid et ouvre des RUPTURES
+   de l'axe là où plus de 12 °C séparent deux repères : la hauteur d'un degré change
+   alors d'un tronçon à l'autre, et la légende le dit. L'ordre ci-dessous est celui
+   de l'écriture (du froid au chaud) : il n'a pas d'autre effet. */
+const THERMOMETRE = [
+  /* Le froid : congélation, réfrigérateur */
+  { de: -40, a: 40, ancre: -40, label: "Beurre : points de fusion étalés sur toute la plage", fond: "froid-raffermit", ton: "or" },
+  { de: -35, label: "Anisakis : 15 heures à cœur", fond: "poisson-cru", ton: "bleu" },
+  { de: -20, label: "Anisakis : 24 heures à cœur", fond: "poisson-cru", ton: "bleu" },
+  { de: -18, label: "Congélateur ménager : 7 jours (Anses)", fond: "poisson-cru", ton: "bleu" },
+  { de: -1.5, a: -1, label: "Saumon : la glace commence à se former", fond: "froid-raffermit", ton: "bleu" },
+  { de: 0, label: "Listeria : se multiplie encore, juste sous zéro", fond: "poisson-cru", ton: "bleu" },
+  { de: 0, a: 4, label: "Réfrigérateur : l'œuf cru, 24 heures", fond: "oeuf-cru", ton: "bleu" },
+  { de: 0, a: 4, label: "Amidon : rétrogradation la plus rapide", fond: "amidon", ton: "vert" },
+  { de: 2, a: 5, label: "Crème à fouetter : la température idéale", fond: "froid-raffermit", ton: "or" },
+  { de: 4, label: "Brunissement : l'enzyme reste active", fond: "oxydation-enzymatique", ton: "vert" },
+  { de: 5, a: 7, label: "Salmonelle : sa croissance s'arrête", fond: "oeuf-cru", ton: "bleu" },
+  { de: 10, label: "Crème : elle monte mal au-dessus", fond: "froid-raffermit", ton: "or" },
+  { de: 12, label: "Basilic : pas en dessous, il noircit", fond: "herbes-coupees", ton: "vert" },
+  { de: 18, a: 23, label: "Mayonnaise acidifiée (pH 4,1) : protocole industriel", fond: "oeuf-cru", ton: "or" },
+
+  /* La chaleur douce : amidon, œuf, sauces au beurre */
+  { de: 40, a: 50, label: "Levure chimique : le gaz se libère au four", fond: "levure-chimique", ton: "or" },
+  { de: 50, a: 60, label: "Pomme de terre : l'enzyme raffermit", fond: "amidon", ton: "vert" },
+  { de: 55, a: 60, label: "Pomme de terre, vingt à trente minutes : ferme pour de bon", fond: "pectine-acidite", ton: "vert" },
+  { de: 52, a: 66, ancre: 58, label: "Gélatinisation : blé de 52 à 64, pomme de terre de 58 à 66", fond: "amidon", ton: "vert" },
+  { de: 55, a: 85, ancre: 85, label: "Sauce montée au beurre : les auteurs divergent", fond: "emulsion", ton: "or" },
+  { de: 57, label: "Œuf en coquille : 75 minutes", fond: "oeuf-cru", ton: "or" },
+  { de: 60, label: "Safran : infusion d'environ 20 minutes", fond: "epices-gras", ton: "or" },
+  { de: 60, a: 63, label: "Poisson cuit à cœur : 63 par sécurité", fond: "poisson-cru", ton: "terra" },
+  { de: 60, a: 80, ancre: 70, label: "Blanc d'œuf : trouble dès 63, ferme vers 70", fond: "coagulation-oeuf", ton: "or" },
+  { de: 63, a: 68, label: "Food Code : quinze secondes à 63, dix-sept à 68", fond: "oeuf-cru", ton: "or" },
+  { de: 65, a: 70, label: "Jaune d'œuf : prend, reste crémeux", fond: "coagulation-oeuf", ton: "or" },
+  { de: 60, a: 80, label: "Beurre monté : jamais d'ébullition", fond: "deglacage", ton: "or" },
+  { de: 80, label: "Blanchiment au-dessus : plus de brunissement", fond: "oxydation-enzymatique", ton: "vert" },
+  { de: 80, a: 85, label: "Quiche, flan, crème prise : l'appareil prend", fond: "coagulation-oeuf", ton: "or" },
+
+  /* L'eau qui bout, puis la coloration */
+  { de: 100, label: "Maillard : très lente, des heures", fond: "maillard", ton: "terra" },
+  { de: 100, label: "Surface mouillée : l'eau plafonne", fond: "eau-coloration", ton: "bleu" },
+  { de: 100, label: "Bain-marie : le moule ne dépasse pas", fond: "coagulation-oeuf", ton: "bleu" },
+  { de: 100, label: "Salé trop tôt : la saumure garde sous ce plafond", fond: "osmose-sel", ton: "bleu" },
+  { de: 100, label: "Champignons salés tôt : pas de dorure", fond: "assaisonnement-couches", ton: "bleu" },
+  { de: 110, a: 160, label: "Sucres : « seuils » lus partout (fructose 110, saccharose 160), jamais fiables", fond: "maillard", ton: "doux" },
+  { de: 120, label: "Acrylamide : se forme au-delà, en milieu sec", fond: "maillard", ton: "terra" },
+  { de: 140, a: 180, ancre: 160, label: "Maillard : visible dès 140, franche de 150 à 180", fond: "maillard", ton: "terra" },
+  { de: 140, a: 180, ancre: 175, label: "Coloration : une surface sans eau", fond: "eau-coloration", ton: "terra" },
+  { de: 140, a: 160, label: "Torréfaction : sucres et acides aminés", fond: "torrefaction", ton: "terra" },
+  { de: 140, a: 160, label: "Épices moulues, dans le gras", fond: "epices-gras", ton: "or" },
+  { de: 150, a: 160, label: "Fruits secs au four : 8 à 12 minutes", fond: "torrefaction", ton: "terra" },
+  { de: 150, label: "Friture : en dessous, le beignet s'imbibe", fond: "friture", ton: "or" },
+  { de: 150, label: "Paprika, piment : hors du feu, sous cette limite", fond: "epices-gras", ton: "or" },
+  { de: 160, label: "Friture : jamais en dessous", fond: "eau-coloration", ton: "or" },
+  { de: 160, label: "Four : en dessous, la croûte reste pâle", fond: "maillard", ton: "terra" },
+  { de: 170, a: 180, label: "Friture : la bonne fenêtre", fond: "friture", ton: "or" },
+  { de: 190, label: "Friture : au-delà, l'huile s'oxyde", fond: "friture", ton: "or" },
+  { de: 200, label: "Épices dans l'huile fumante : elles noircissent", fond: "epices-gras", ton: "terra" },
+  { de: 200, ouvert: "haut", label: "Pyrolyse en surface : l'amertume avant les arômes", fond: "maillard", ton: "terra" },
+  { de: 200, a: 220, label: "Four : une croûte franchement colorée", fond: "maillard", ton: "terra" },
+  { de: 220, label: "Plaque de four : surface sèche", fond: "eau-coloration", ton: "terra" }
+];
 
 /* ===== fin Vue d'ensemble ===== */

@@ -322,3 +322,141 @@ for (const [nom, th] of [["clair", CLAIR], ["sombre", SOMBRE]]) {
     }
   });
 }
+
+/* ---------- Le thermomètre du carnet (THERMOMETRE, js/ui/figures.js) ---------- */
+
+import { THERMOMETRE } from "./donnees.mjs";
+import { thermometreHtml, thermometreMise } from "../../js/ui/figures.js";
+
+const titreDeFiche = id => (FONDAMENTAUX.find(f => f.id === id) || {}).t || null;
+const textesDe = f => [f.accroche, f.pourquoi, f.piege || "", ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join("\n").replace(/[\u00a0\u202f]/g, " ");
+
+test("thermomètre : chaque repère désigne une fiche existante, un ton connu, des bornes cohérentes", () => {
+  assert.ok(Array.isArray(THERMOMETRE) && THERMOMETRE.length >= 30, "THERMOMETRE rassemble les repères des fiches");
+  for (const [i, r] of THERMOMETRE.entries()) {
+    const ref = `THERMOMETRE[${i}] « ${r.label} »`;
+    assert.ok(titreDeFiche(r.fond), `${ref} : la fiche « ${r.fond} » n'existe pas`);
+    assert.ok(TONS.includes(r.ton), `${ref} : ton inconnu`);
+    assert.ok(Number.isFinite(r.de), `${ref} : « de » numérique`);
+    if (r.a !== undefined) assert.ok(r.a > r.de, `${ref} : « a » doit dépasser « de »`);
+    if (r.ouvert !== undefined) assert.ok(r.ouvert === "haut" && r.a === undefined, `${ref} : « ouvert » vaut « haut », sans « a »`);
+    if (r.ancre !== undefined) assert.ok(r.ancre >= r.de && r.ancre <= (r.a ?? r.de), `${ref} : « ancre » dans la zone`);
+    assert.doesNotMatch(r.label, /[{}]|#[0-9a-fA-F]{3,8}\b|rgba?\(/, `${ref} : ni accolade ni couleur`);
+  }
+});
+
+test("thermomètre : aucun chiffre inventé — chaque température et chaque nombre d'une étiquette figure dans la fiche désignée", () => {
+  /* Quand la fiche écrit « une soixantaine » ou « quelques dixièmes sous zéro », le chiffre est son équivalent en mots. */
+  const EQUIVALENT = { 60: /soixantaine/, 80: /quatre-vingts/, 10: /dizaine/, 0: /zéro/ };
+  const present = (texte, v) =>
+    new RegExp(`(?<![\\d,.])${nombreFr(Math.abs(v))}(?![\\d,]|\\.\\d)`).test(texte) || (EQUIVALENT[v] || /$^/).test(texte);
+  for (const r of THERMOMETRE) {
+    const texte = textesDe(FONDAMENTAUX.find(f => f.id === r.fond));
+    for (const v of [r.de, r.a].filter(x => x !== undefined)) assert.ok(present(texte, v), `« ${r.label} » (${r.fond}) : ${v} ne figure pas dans la fiche`);
+    /* Les nombres écrits dans l'étiquette elle-même. */
+    for (const m of r.label.matchAll(/(?<![\d,])\d+(?:,\d+)?(?![\d,])/g)) {
+      assert.ok(present(texte, Number(m[0].replace(",", "."))), `« ${r.label} » (${r.fond}) : « ${m[0]} » ne figure pas dans la fiche`);
+    }
+  }
+});
+
+test("thermomètre : toute fiche qui cite une température en °C a son repère", () => {
+  const sans = FONDAMENTAUX.filter(f => /°C/.test(textesDe(f)) && !THERMOMETRE.some(r => r.fond === f.id)).map(f => f.id);
+  assert.deepEqual(sans, [], "fiches avec des °C mais sans repère dans le thermomètre");
+});
+
+test("thermomètre : la mise en page range du chaud au froid, sans étiquettes qui se touchent", () => {
+  const m = thermometreMise(THERMOMETRE, { titreDe: titreDeFiche });
+  assert.equal(m.items.length, THERMOMETRE.length);
+  /* L'ordre visuel : une hauteur croissante, donc une température décroissante. */
+  for (let i = 1; i < m.items.length; i++) {
+    assert.ok(m.items[i].y >= m.items[i - 1].y - 1e-6, "les repères se suivent du haut vers le bas");
+    assert.ok(m.items[i].haut >= m.items[i - 1].haut + m.items[i - 1].hLabel - 1e-6, `les étiquettes « ${m.items[i - 1].label} » et « ${m.items[i].label} » se chevauchent`);
+  }
+  assert.ok(m.items.every(r => r.haut >= 0 && r.haut + r.hLabel <= m.h), "toutes les étiquettes tiennent dans la hauteur");
+  /* L'échelle : plus chaud = plus haut, y compris d'un tronçon à l'autre. */
+  const par = [...m.items].sort((a, b) => a.cible - b.cible);
+  for (let i = 1; i < par.length; i++) assert.ok(par[i].y <= par[i - 1].y + 1e-6, `${par[i].cible} °C est plus bas que ${par[i - 1].cible} °C`);
+  /* Des ruptures là où plus de 12 °C séparent deux repères (les tronçons débordent de 1,5 °C de chaque côté). */
+  assert.ok(m.troncons.length >= 3);
+  for (let i = 1; i < m.troncons.length; i++) assert.ok(m.troncons[i].v0 - m.troncons[i - 1].v1 > 9 - 1e-6, "plus de 12 °C entre deux repères séparent deux tronçons");
+  for (const t of m.troncons) {
+    assert.ok(t.h > 0 && t.graduations.length >= 1 && t.graduations.every(g => g >= t.v0 - 1e-6 && g <= t.v1 + 1e-6));
+    for (const r of m.items) if (r.ouvert !== "haut" && r.de >= t.v0 && (r.a ?? r.de) <= t.v1) assert.ok(r.yBas <= t.y1 + 4 && r.yHaut >= t.y0 - 4, "une plage reste dans son tronçon");
+  }
+  /* Les rangées des plages : deux plages d'une même rangée ne se recouvrent pas ; elles laissent la place des étiquettes. */
+  const zones = m.items.filter(r => r.zone);
+  for (const a of zones) for (const b of zones) {
+    if (a !== b && a.rangee === b.rangee) assert.ok(a.yBas <= b.yHaut || b.yBas <= a.yHaut, `les plages « ${a.label} » et « ${b.label} » se recouvrent`);
+  }
+  assert.ok(m.xSortie < 100, "les rangées de plages laissent la place des étiquettes");
+  assert.equal(m.min, -40);
+  assert.equal(m.max, 220);
+});
+
+test("thermomètre : chaque repère est un lien focalisable vers sa fiche, nommé pour un lecteur d'écran", () => {
+  const svg = thermometreHtml(THERMOMETRE, { titreDe: titreDeFiche, uid: "t" });
+  assert.ok(balisesEquilibrees(svg), "balises équilibrées");
+  const liens = [...svg.matchAll(/<a class="th-lien" href="#\/fondamental\/([a-z-]+)" aria-label="([^"]*)"/g)];
+  assert.equal(liens.length, THERMOMETRE.length, "un lien par repère");
+  for (const [, id, brut] of liens) {
+    const nom = brut.replace(/[\u00a0\u202f]/g, " ").replace(/&#39;/g, "'");
+    assert.ok(titreDeFiche(id));
+    assert.ok(nom.includes(`Fiche : ${titreDeFiche(id)}`), `le lien vers « ${id} » nomme sa fiche : ${nom}`);
+    assert.match(nom, /°C/, "et dit sa température");
+  }
+  /* Lu du haut vers le bas : le plus chaud d'abord. */
+  assert.match(liens[0][2], /^220/);
+  assert.match(liens.at(-1)[2], /^de −40 à 40/);
+  /* Un groupe (pas une image) : les liens restent atteignables ; nom et description. */
+  assert.match(svg, /<svg [^>]*role="group"[^>]*aria-labelledby="fg-t-t fg-t-d"/);
+  assert.match(svg, /<title id="fg-t-t">Le thermomètre du carnet<\/title><desc id="fg-t-d">[^<]{80,}<\/desc>/);
+  assert.doesNotMatch(svg, /role="img"/);
+  /* Aucune couleur en dur : des classes et des dégradés par référence. */
+  assert.doesNotMatch(svg, /#[0-9a-fA-F]{3,8}\b|rgba?\(|\bstyle=|<script|\son[a-z]+=/);
+  /* Les identifiants sont ceux de CETTE figure : deux thermomètres dans une page ne se marchent pas dessus. */
+  const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+  assert.equal(ids.length, new Set(ids).size);
+  assert.ok(ids.every(id => id.startsWith("fg-t-")));
+  for (const m of svg.matchAll(/url\(#([^)]+)\)/g)) assert.ok(ids.includes(m[1]), `url(#${m[1]}) a sa cible`);
+});
+
+test("thermomètre : un repère dont la fiche n'existe pas disparaît, une figure vide rend une chaîne vide", () => {
+  const donnees = [{ de: 100, label: "Plafond de l'eau", fond: "eau-coloration", ton: "bleu" }, { de: 50, label: "Fiche fantôme", fond: "nulle-part", ton: "or" }];
+  const svg = thermometreHtml(donnees, { titreDe: titreDeFiche, uid: "x" });
+  assert.equal([...svg.matchAll(/<a class="th-lien"/g)].length, 1);
+  assert.doesNotMatch(svg, /nulle-part/);
+  assert.equal(thermometreHtml([], { titreDe: titreDeFiche }), "");
+  assert.equal(thermometreHtml(undefined), "");
+  assert.equal(thermometreHtml([{ de: "chaud", label: "x", fond: "eau-coloration" }, { de: 5, a: 3, label: "inverse", fond: "eau-coloration" }], { titreDe: titreDeFiche }), "");
+});
+
+test("thermomètre : un point est un disque sur l'axe, une plage un dégradé, une zone ouverte un chevron", () => {
+  const svg = thermometreHtml([
+    { de: 100, label: "Un plafond", fond: "eau-coloration", ton: "bleu" },
+    { de: 140, a: 180, label: "Une plage", fond: "maillard", ton: "terra" },
+    { de: 200, ouvert: "haut", label: "Sans plafond", fond: "maillard", ton: "terra" }
+  ], { titreDe: titreDeFiche, uid: "z" });
+  assert.equal([...svg.matchAll(/<circle class="fg-f-bleu fg-pt"/g)].length, 1);
+  assert.match(svg, /<rect class="th-barre"[^>]*fill="url\(#fg-z-gr-terra\)"/);
+  assert.match(svg, /<rect class="th-barre"[^>]*fill="url\(#fg-z-grh-terra\)"/);
+  assert.match(svg, /<linearGradient id="fg-z-gr-terra"[^>]*><stop offset="0" class="fg-st-terra" stop-opacity="0"\/>/);
+  const clair = svg.replace(/[\u00a0\u202f]/g, " ");
+  assert.match(clair, /&gt; 200 °C/);
+  assert.match(clair, /aria-label="200 °C et au-delà : Sans plafond\./);
+  /* Les nombres négatifs portent le vrai signe moins et se disent « de … à … ». */
+  const froid = thermometreHtml([{ de: -1.5, a: -1, label: "Glace", fond: "froid-raffermit", ton: "bleu" }, { de: -18, label: "Congélateur", fond: "poisson-cru", ton: "bleu" }], { titreDe: titreDeFiche, uid: "f" });
+  const froidClair = froid.replace(/[\u00a0\u202f]/g, " ");
+  assert.match(froidClair, /−1,5 à −1 °C/);
+  assert.match(froidClair, /aria-label="de −1,5 à −1 °C : Glace\./);
+  assert.match(froidClair, /aria-label="−18 °C : Congélateur\./);
+});
+
+test("thermomètre : la feuille de style lit les variables du thème, sans couleur en dur", () => {
+  const css = lire("css/figures.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const c of ["fg-st-vert", "fg-st-or", "fg-st-terra", "fg-st-bleu", "fg-st-doux", "th-lien", "th-zone", "th-barre", "th-guide", "th-tube"]) assert.match(css, new RegExp(`\\.${c}\\b`), `.${c} manque à css/figures.css`);
+  assert.match(css, /\.fg-st-terra \{ stop-color: var\(--terra\); \}/);
+  const savoirs = lire("css/savoirs.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.match(savoirs, /\.th-encart\[hidden\] \{ display: none; \}/);
+  assert.doesNotMatch(savoirs.slice(savoirs.indexOf(".th-encart")), /#[0-9a-fA-F]{3,8}\b|rgba?\(/);
+});
