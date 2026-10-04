@@ -51,3 +51,22 @@ test("des étapes de four qui s'enchaînent font une seule plage, enveloppe inch
   assert.deepEqual(a.plagesFour, [{ temp: 200, entree: TABLE - 15, sortie: TABLE }]);
   assert.deepEqual(a.four, { temp: 200, entree: TABLE - 15, sortie: TABLE });
 });
+
+/* Toutes les paires de recettes du carnet : le calcul s'arrête, et deux plats de chaleurs
+   différentes ne se partagent jamais le four sans le dire (conflit signalé) ni se chevauchent. */
+test("toute paire de recettes : le planning se termine et les passages au four de chaleurs différentes ne se chevauchent pas", async () => {
+  const { RECIPES } = await import("./donnees.mjs");
+  const ids = RECIPES.map(r => r.id);
+  for (let i = 0; i < ids.length; i++) {
+    for (let j = i + 1; j < ids.length; j++) {
+      Object.assign(state, { menu: [ids[i], ids[j]].map((rid, n) => ({ k: "m" + n, rid, choices: {}, addons: [], portions: null })), checked: {}, extras: [], portions: {}, choices: {}, addons: {} });
+      const plan = planifier({ table: TABLE, taches: menu.tachesDuMenu() });
+      const [a, b] = plan.recettes;
+      for (const pa of a.plagesFour) for (const pb of b.plagesFour) {
+        if (Math.abs(pa.temp - pb.temp) <= 10) continue;
+        const separes = pa.entree >= pb.sortie || pb.entree >= pa.sortie;
+        assert.ok(separes, `${ids[i]} / ${ids[j]} : passages au four superposés`);
+      }
+    }
+  }
+});

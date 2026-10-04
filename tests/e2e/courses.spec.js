@@ -144,8 +144,9 @@ test("ranger les rayons : monter, descendre, « Autre » reste en dernier, l'ord
   expect(carnet.ordreRayons.at(-1)).toBe("Autre");
   expect(carnet.ordreRayons.indexOf(avant[1])).toBeLessThan(carnet.ordreRayons.indexOf(avant[0]));
 
+  /* Après un rechargement la vue se charge à la demande : on attend qu'elle ait dessiné ses rayons. */
   await page.reload();
-  expect((await titresRayons(page)).slice(0, 3)).toEqual([avant[1], avant[2], avant[0]]);
+  await expect.poll(async () => (await titresRayons(page)).slice(0, 3)).toEqual([avant[1], avant[2], avant[0]]);
 });
 
 test("ranger les rayons : « Remettre l'ordre d'origine »", async ({ page, context }) => {
