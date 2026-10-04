@@ -30,6 +30,7 @@ async function serveurDeuxAppareils(context, donnees) {
     const nom = new URL(requete.url()).pathname.split("/").pop();
     const json = (status, valeur) => route.fulfill({ status, headers: { "access-control-allow-origin": "*" }, contentType: "application/json", body: JSON.stringify(valeur) });
     if (requete.method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "POST, OPTIONS" } });
+    if (nom === "carnet_lire") serveur.lectures++;
     if (nom === "carnet_lire") return json(200, serveur.data ? [{ data: serveur.data, updated_at: serveur.updated_at }] : []);
     if (nom === "carnet_ecrire") {
       if ((corps.p_vu ?? null) !== (serveur.updated_at ?? null)) return json(200, { ok: false, updated_at: serveur.updated_at });
@@ -61,6 +62,14 @@ async function reseau(context, serveur, coupe) {
 
 const revenir = page => page.evaluate(() => window.dispatchEvent(new Event("online")));
 const reveiller = page => page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+/* Réveille l'appareil et attend que le relevé qui suit ait bien eu lieu côté serveur : c'est
+   le signal que « rien n'a été écrasé » se lit après, pas après un délai deviné. */
+async function reveillerEtAttendre(page, serveur) {
+  const avant = serveur.lectures;
+  await reveiller(page);
+  await expect.poll(() => serveur.lectures).toBeGreaterThan(avant);
+  await etat(page, "ok");
+}
 const masquer = page => page.evaluate(() => {
   Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
   document.dispatchEvent(new Event("visibilitychange"));
@@ -86,7 +95,7 @@ test("notes perso : la note d'un autre téléphone s'affiche dans la fiche ouver
 
   // A passe en arrière-plan : la note de B tient, chez A comme au serveur.
   await masquer(page);
-  await page.waitForTimeout(1500);
+  await reveillerEtAttendre(page, serveur);
   expect((await lireCarnet(page)).notesPerso["quiche-lorraine"].txt).toBe("Moins de sel");
   expect(serveur.data.notesPerso["quiche-lorraine"].txt).toBe("Moins de sel");
   await second.context.close();
@@ -110,7 +119,7 @@ test("notes perso : une fiche déjà quittée n'écrase pas la note plus récent
   await reveiller(page);
   await expect.poll(async () => (await lireCarnet(page)).notesPerso?.["quiche-lorraine"]?.txt).toBe("note B");
   await masquer(page);
-  await page.waitForTimeout(1500);
+  await reveillerEtAttendre(page, serveur);
   expect((await lireCarnet(page)).notesPerso["quiche-lorraine"].txt).toBe("note B");
   expect(serveur.data.notesPerso["quiche-lorraine"].txt).toBe("note B");
   await second.context.close();
@@ -134,7 +143,7 @@ test("notes perso : on tape pendant qu'une synchro arrive, la frappe n'est pas �
 
   // Le curseur est toujours dans la note : la version reçue entre dans le carnet, pas
   // dans la zone qu'on est en train de taper.
-  await reveiller(page);
+  await reveillerEtAttendre(page, serveur);
   await expect.poll(async () => (await lireCarnet(page)).notesPerso?.["quiche-lorraine"]?.txt).toBe("note B");
   await expect(page.locator("#note-saisie")).toHaveValue("ma frappe");
   await second.context.close();
@@ -220,8 +229,7 @@ test("ordre des rayons : « Remettre l'ordre d'origine » tient et se propage à
   expect(serveur.data.ordreRayons).toEqual([]);
 
   // Une relève ne ramène pas l'ancien ordre, ni ici ni là-bas.
-  await reveiller(page);
-  await page.waitForTimeout(1000);
+  await reveillerEtAttendre(page, serveur);
   expect((await lireCarnet(page)).ordreRayons).toEqual([]);
   await reveiller(second.page);
   await expect.poll(async () => (await lireCarnet(second.page)).ordreRayons).toEqual([]);

@@ -147,12 +147,24 @@ function chronologie(tache) {
     e.debut = t; t += e.duree; e.fin = t;
     e.libre = !!e.four || (e.fixe && e.duree >= SEUIL_LIBRE);
   }
-  const aufour = etapes.filter(e => e.four);
-  const four = aufour.length
-    /* `temp` est la chaleur qu'il faut au four À L'ENTRÉE (préchauffage, conflits) ;
-       `cuisson` celle de la cuisson, quand une recette préchauffe fort puis baisse
-       (mi-cuit : 200 °C, puis 150 °C en enfournant). */
-    ? { temp: Math.max(aufour[0].four, aufour[0].prechauffe || 0), cuisson: aufour[0].four, entree: aufour[0].debut, sortie: aufour[aufour.length - 1].fin }
+  /* Le four n'est occupé que pendant les étapes qui chauffent : des étapes qui
+     s'enchaînent font une seule plage, mais une quiche qui sort après la cuisson
+     à blanc, le temps de garnir, libère le four entre ses deux passages — la
+     préparation entre les deux n'est pas du four. `temp` est la chaleur qu'il
+     faut au four À L'ENTRÉE de la plage (préchauffage, conflits) ; `cuisson` celle
+     de la cuisson, quand une recette préchauffe fort puis baisse (mi-cuit :
+     200 °C, puis 150 °C en enfournant). */
+  const plages = [];
+  for (const e of etapes) {
+    if (!e.four) continue;
+    const derniere = plages[plages.length - 1];
+    if (derniere && derniere.sortie === e.debut) { derniere.sortie = e.fin; continue; }
+    plages.push({ temp: Math.max(e.four, e.prechauffe || 0), cuisson: e.four, entree: e.debut, sortie: e.fin });
+  }
+  /* `four` garde l'enveloppe (première entrée, dernière sortie) : c'est ce que
+     lisent les départs et la fin de la frise ; les conflits lisent les plages. */
+  const four = plages.length
+    ? { temp: plages[0].temp, cuisson: plages[0].cuisson, entree: plages[0].entree, sortie: plages[plages.length - 1].sortie, plages }
     : null;
   return { etapes, duree: t, four };
 }
@@ -168,8 +180,10 @@ export function planifier({ table, maintenant = null, taches }) {
   const lignes = taches.map((t, i) => ({ i, t, ...chronologie(t), decalage: 0, retard: 0 }));
   for (const l of lignes) { l.debut = au5(table - l.duree); l.depart = l.debut; }
 
-  const entree = l => l.debut + l.four.entree;
-  const sortie = l => l.debut + l.four.sortie;
+  /* Deux plats se gênent quand l'une de leurs plages de four, décalée de leur
+     départ, touche une plage de l'autre à moins de la marge. */
+  const seGenent = (a, b) => a.four.plages.some(pa => b.four.plages.some(pb =>
+    a.debut + pa.entree < b.debut + pb.sortie + MARGE_FOUR && b.debut + pb.entree < a.debut + pa.sortie + MARGE_FOUR));
   const four = lignes.filter(l => l.four).sort((a, b) => b.four.temp - a.four.temp || a.i - b.i);
   const autreTemp = (a, b) => !memeChaleur(a.four.temp, b.four.temp);
 
@@ -179,7 +193,7 @@ export function planifier({ table, maintenant = null, taches }) {
     for (let k = j + 1; k < four.length; k++) {
       const [a, b] = [four[j], four[k]];
       if (!autreTemp(a, b)) continue;
-      if (entree(a) < sortie(b) + MARGE_FOUR && entree(b) < sortie(a) + MARGE_FOUR) {
+      if (seGenent(a, b)) {
         /* Plusieurs plats à la même température contre le même premier ne font
            qu'un conflit : une seule phrase les nomme tous. */
         const second = { k: b.t.k, titre: b.t.titre, temp: b.four.temp };
@@ -190,13 +204,12 @@ export function planifier({ table, maintenant = null, taches }) {
     }
   }
 
-  /* De la fin vers le début : chacun s'écarte de tous ceux qui sont moins chauds. */
+  /* De la fin vers le début : chacun s'écarte de tous ceux qui sont moins chauds,
+     du plus petit pas de cinq minutes qui libère le four (le plus chaud peut
+     passer pendant que l'autre garnit, sans rien lui devoir de plus). */
   for (let j = four.length - 2; j >= 0; j--) {
-    let besoin = 0;
-    for (let k = j + 1; k < four.length; k++) {
-      if (autreTemp(four[j], four[k])) besoin = Math.max(besoin, sortie(four[j]) + MARGE_FOUR - entree(four[k]));
-    }
-    if (besoin > 0) four[j].debut -= sur5(besoin);
+    const gene = () => four.slice(j + 1).some(autre => autreTemp(four[j], autre) && seGenent(four[j], autre));
+    while (gene()) four[j].debut -= PAS;
   }
 
   /* On ne remonte pas le temps : qui devrait partir avant « maintenant » part
@@ -207,7 +220,9 @@ export function planifier({ table, maintenant = null, taches }) {
     for (let j = 0; j < four.length; j++) {
       for (let k = j + 1; k < four.length; k++) {
         if (!autreTemp(four[j], four[k])) continue;
-        const besoin = sortie(four[j]) + MARGE_FOUR - entree(four[k]);
+        /* Le plus chaud garde la priorité : celui qui suit attend la dernière
+           sortie du premier, même si ses plages tombaient entre les siennes. */
+        const besoin = four[j].debut + four[j].four.sortie + MARGE_FOUR - (four[k].debut + four[k].four.entree);
         if (besoin > 0) four[k].debut += sur5(besoin);
       }
     }
@@ -231,6 +246,8 @@ export function planifier({ table, maintenant = null, taches }) {
     recettes: lignes.map(l => ({
       k: l.t.k, titre: l.t.titre, debut: l.debut, fin: l.fin, duree: l.duree,
       retard: l.retard, avance: l.avance, four: l.four ? { temp: l.four.temp, entree: l.debut + l.four.entree, sortie: l.debut + l.four.sortie } : null,
+      /* Les passages au four, un par plage : c'est là, et là seulement, qu'il est occupé. */
+      plagesFour: (l.four?.plages || []).map(p => ({ temp: p.temp, entree: l.debut + p.entree, sortie: l.debut + p.sortie })),
       etapes: l.etapes.map(e => ({ titre: e.titre, debut: l.debut + e.debut, fin: l.debut + e.fin, libre: e.libre }))
     })),
     evenements: evenements(lignes, table + retard)
@@ -244,25 +261,27 @@ function evenements(lignes, table) {
     const { k, titre } = l.t;
     ev.push({ t: l.debut, type: "debut", k, titre });
     if (l.four) {
-      ev.push({ t: l.debut + l.four.entree, type: "enfourner", k, titre, temp: l.four.cuisson ?? l.four.temp });
-      ev.push({ t: l.debut + l.four.sortie, type: "sortir", k, titre, temp: l.four.temp });
+      for (const p of l.four.plages) {
+        ev.push({ t: l.debut + p.entree, type: "enfourner", k, titre, temp: p.cuisson ?? p.temp });
+        ev.push({ t: l.debut + p.sortie, type: "sortir", k, titre, temp: p.temp });
+      }
     }
     if (l.fin <= table - 10 && !(l.four && l.fin === l.debut + l.four.sortie)) ev.push({ t: l.fin, type: "pret", k, titre });
   }
 
   /* Le four : allumé avant la première fournée, réglé à chaque changement de
      température, laissé tel quel quand le plat suivant a la même. */
-  const fournees = lignes.filter(l => l.four).sort((a, b) => a.debut + a.four.entree - (b.debut + b.four.entree));
+  const fournees = lignes.flatMap(l => (l.four?.plages || []).map(p => ({ temp: p.temp, entree: l.debut + p.entree, sortie: l.debut + p.sortie })))
+    .sort((a, b) => a.entree - b.entree);
   let sortieVue = null, tempVue = null;
-  for (const l of fournees) {
-    const entree = l.debut + l.four.entree;
-    if (sortieVue == null || entree - sortieVue > 2 * PRECHAUFFAGE) {
-      ev.push({ t: Math.max(sortieVue ?? -Infinity, entree - dureePrechauffage(l.four.temp)), type: "prechauffage", temp: l.four.temp });
-    } else if (!memeChaleur(l.four.temp, tempVue)) {
-      ev.push({ t: Math.max(sortieVue, entree - MARGE_FOUR), type: "regler", temp: l.four.temp });
+  for (const f of fournees) {
+    if (sortieVue == null || f.entree - sortieVue > 2 * PRECHAUFFAGE) {
+      ev.push({ t: Math.max(sortieVue ?? -Infinity, f.entree - dureePrechauffage(f.temp)), type: "prechauffage", temp: f.temp });
+    } else if (!memeChaleur(f.temp, tempVue)) {
+      ev.push({ t: Math.max(sortieVue, f.entree - MARGE_FOUR), type: "regler", temp: f.temp });
     }
-    sortieVue = Math.max(sortieVue ?? -Infinity, l.debut + l.four.sortie);
-    tempVue = l.four.temp;
+    sortieVue = Math.max(sortieVue ?? -Infinity, f.sortie);
+    tempVue = f.temp;
   }
   ev.push({ t: table, type: "table" });
 

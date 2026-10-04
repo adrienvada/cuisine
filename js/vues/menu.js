@@ -248,10 +248,6 @@ export function renderMenu() {
 
   const todo = courseTodo();
   const repas = lireRepas();
-  const inst = instantTable(repas, maintenantLocal());
-  const plan = inst ? planifier({ table: inst.table, maintenant: inst.maintenant, taches: tachesDuMenu() }) : null;
-  if (plan) planCourant = { plan, convives: repas.convives };
-  const versions = new Map(list.map(({ e, r }) => [e.k, versionSummary(r, e)]));
 
   app.innerHTML = `
     <div id="menu-root">
@@ -262,7 +258,7 @@ export function renderMenu() {
       ${list.length > 1 ? `<p class="menu-order">Dans l'ordre où s'y mettre : la plus longue en premier.</p>` : ""}
     </header>
     ${repasHtml(repas)}
-    ${plan ? retroHtml(plan, inst, versions) : `<p class="retro-note">Indique l'heure du repas pour voir quand t'y mettre.</p>`}
+    <div id="retro-zone">${retroZone(list, repas)}</div>
     <div class="menu-list">
       ${list.map(x => carteHtml(x, repas)).join("")}
     </div>
@@ -277,6 +273,16 @@ export function renderMenu() {
     </div>
   `;
   brancher();
+}
+
+/* La frise (ou l'invitation à donner l'heure), seule : elle se redessine sans
+   toucher au champ de l'heure, que le clavier est peut-être en train de régler. */
+function retroZone(list, repas) {
+  const inst = instantTable(repas, maintenantLocal());
+  const plan = inst ? planifier({ table: inst.table, maintenant: inst.maintenant, taches: tachesDuMenu() }) : null;
+  if (plan) planCourant = { plan, convives: repas.convives };
+  const versions = new Map(list.map(({ e, r }) => [e.k, versionSummary(r, e)]));
+  return plan ? retroHtml(plan, inst, versions) : `<p class="retro-note">Indique l'heure du repas pour voir quand t'y mettre.</p>`;
 }
 
 /* Redessiner sur place, sans revenir en haut de page ni perdre le focus clavier. */
@@ -336,7 +342,12 @@ function brancher() {
   racine.addEventListener("change", e => {
     if (e.target.id === "repas-heure") {
       if (!e.target.value) return;          // champ vidé : on garde la dernière heure valide
-      setHeureRepas(e.target.value); redessiner();
+      /* Redessiner la vue entière referait le champ : au clavier, le curseur
+         repartirait sur le segment des heures à chaque minute changée. */
+      setHeureRepas(e.target.value);
+      const zone = document.getElementById("retro-zone");
+      if (zone) zone.innerHTML = retroZone(menuEntrees(), lireRepas());
+      else redessiner();
     } else if (e.target.id === "repas-date") {
       setDateRepas(e.target.value); redessiner();
     }
