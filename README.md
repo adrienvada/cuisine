@@ -165,6 +165,23 @@ node tools/verifier-recettes.mjs      # cohérence des données, code 1 si erreu
 node tools/generer-pages-partage.mjs  # aperçus de partage r/ et f/
 ```
 
+### Tests
+
+L'application reste sans dépendance ; seuls les tests en ont (`npm install`, une fois).
+
+```bash
+npm run verifier   # cohérence des données de recettes
+npm test           # tests unitaires (tests/unit/, node:test)
+npm run test:e2e   # parcours complets dans Chromium au format téléphone (tests/e2e/)
+npm run pages      # régénère les pages de partage r/ et f/
+```
+
+Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, ou `PORT=…`). Ils pilotent l'interface comme un doigt — jamais par les globales de `js/app.js` — après avoir pré-rempli `localStorage`, et simulent Supabase (`tests/e2e/outils.js`). Chromium doit être installé (`npx playwright install chromium`).
+
+`tests/e2e/bugs-connus.spec.js` rassemble les **`test.fixme`** : des bugs connus, B1 à B12, en attente de correction. Chacun est écrit pour le comportement *attendu* et reste ignoré par la suite. Celui qui corrige un bug retire le `fixme` de son test : il passe alors de lui-même, et c'est son critère d'acceptation.
+
+La CI (`.github/workflows/ci.yml`) rejoue tout cela, puis vérifie que `r/` et `f/` sont à jour.
+
 ### Le menu est une liste d'entrées, pas d'identifiants
 
 Une même recette peut revenir deux fois au menu, composée différemment. `state.menu`
