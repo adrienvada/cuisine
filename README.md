@@ -133,7 +133,7 @@ Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dan
 |---|---|---|
 | Vignette de la grille | 168 × 110 px | 33 % de la largeur, **29 % de la hauteur** (le `cover` recadre, puis `transform: scale(3)` rapproche) |
 | Carte « Au menu » | 88 × 88 px | **25 % de la largeur**, 33 % de la hauteur (même mécanisme, `scale(3)`) |
-| Héro de la fiche | 352 × 170 px | toute la largeur, 64 % de la hauteur (pas de zoom ici : contexte plus généreux) |
+| Héro de la fiche | 352 × 240 px (280 px dès 480 px de large) | toute la largeur, 64 % de la hauteur (pas de zoom ici : contexte plus généreux) |
 
 Autrement dit, pour que le plat remplisse les deux vignettes plutôt que de laisser voir de la table ou du bord d'assiette : **le sujet doit occuper entre 38 % et 62 % de la largeur de l'image, et entre 35 % et 65 % de sa hauteur**, centré. C'est bien plus serré que ce qu'il faut pour l'héro (qui tolère 18–82 % de hauteur) : caler le cadrage sur les vignettes couvre les deux cas. Recadrer en centrant sur le plat — voire sur un détail du plat — et non sur la composition, vaut mieux que de garder un joli décor invisible.
 
@@ -224,6 +224,8 @@ js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.j
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
+js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
+js/core/adaptation.js   Allergènes d'une version, portions permises, moule (module pur, testé sous Node)
 js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses

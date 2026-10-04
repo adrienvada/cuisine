@@ -253,7 +253,7 @@ test.describe("B7", () => {
 
 /* ---------- B8 : les portions d'une version au menu ---------- */
 
-test.fixme("B8 — la fiche d'une version au menu affiche ses portions, et « + » les modifie", async ({ page, context }) => {
+test("B8 — la fiche d'une version au menu affiche ses portions, et « + » les modifie", async ({ page, context }) => {
   await preremplir(context, { carnet: { menu: [entree("cake-sale", { k: "m9", portions: 9 })] } });
   await page.goto("/#/recette/cake-sale/m/m9");
   await expect(page.locator("#p-val")).toHaveText("9 personnes");
