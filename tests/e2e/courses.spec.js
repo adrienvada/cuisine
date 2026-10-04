@@ -1,8 +1,7 @@
 /* L'onglet Courses : panier, placard, ordre des rayons, provenance, annulations. */
 
-import { test, expect, preremplir, entree, lireCarnet, cochesAffichees } from "./outils.js";
+import { test, expect, preremplir, entree, lireCarnet, cochesAffichees, pageStable } from "./outils.js";
 import { annuler, basculer, contraste, ligneDe, titresRayons } from "./outils-courses.js";
-import { animationsFinies } from "./outils-mesure.js";
 
 const MENU_DEUX = [entree("focaccia-romarin", { k: "f1" }), entree("cake-sale", { k: "c1" })];
 
@@ -300,14 +299,14 @@ for (const theme of ["clair", "sombre"]) {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/#/courses");
     if (theme === "sombre") await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
-    // Le fond passe au sombre en 0,2 s : lu pendant la transition, le contraste est faux.
-    await expect(ligneDe(page, "farine")).toBeVisible();
-    await animationsFinies(page);
+    // Mesures sur une page immobile : feuilles toutes appliquées, transition de thème terminée.
+    await pageStable(page);
 
     const tick = ligneDe(page, "farine").locator(".tick");
-    const boite = await tick.boundingBox();
-    expect(Math.round(boite.width)).toBe(26);
-    expect(Math.round(boite.height)).toBe(26);
+    await expect.poll(async () => {
+      const boite = await tick.boundingBox();
+      return [Math.round(boite.width), Math.round(boite.height)];
+    }).toEqual([26, 26]);
 
     // Couleurs relues jusqu'à la fin de la transition du thème.
     const couleurs = () => tick.evaluate(el => {

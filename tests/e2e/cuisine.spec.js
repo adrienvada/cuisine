@@ -58,6 +58,7 @@ test("minuteur : +1 min allonge le compte à rebours", async ({ page }) => {
 });
 
 test("minuteur : pause puis reprise, et la bulle d'une autre étape offre les mêmes gestes", async ({ page }) => {
+  await page.clock.install();
   await page.goto(CUISINE + "/1");
   await page.getByRole("button", { name: /Minuteur 20 min/ }).click();
   const zone = page.locator("#timer-zone");
@@ -67,7 +68,8 @@ test("minuteur : pause puis reprise, et la bulle d'une autre étape offre les m�
   expect(enPause.reste).toBeGreaterThan(19 * 60000);
   await expect(zone.getByRole("button", { name: "Reprendre" })).toBeVisible();
   const fige = await zone.locator(".clock").textContent();
-  await page.waitForTimeout(1300);
+  // Plus d'une seconde simulée s'écoule : un compte à rebours qui tournerait encore aurait bougé.
+  await page.clock.runFor(1300);
   await expect(zone.locator(".clock")).toHaveText(fige);
 
   await zone.getByRole("button", { name: "Reprendre" }).click();

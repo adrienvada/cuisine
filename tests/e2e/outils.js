@@ -84,14 +84,44 @@ export async function simulerSupabase(context, donneesInitiales = null) {
   return serveur;
 }
 
-/* Mauvais réseau, côté serveur de test (cf. tests/serveur.mjs). À remettre à
-   zéro en fin de test : `await reseau(baseURL)` sans réglage. */
-export async function reseau(baseURL, { latence, bloque } = {}) {
-  const q = new URLSearchParams();
+/* Mauvais réseau, côté serveur de test (cf. tests/serveur.mjs), propre au
+   contexte de ce test : un cookie à identifiant unique marque ses requêtes, donc
+   rien n'est partagé avec les tests qui tournent en parallèle. À remettre à zéro
+   en fin de test : `await reseau(context, baseURL)` sans réglage. */
+const identifiants = new WeakMap();
+let compteurReseau = 0;
+
+export async function reseau(context, baseURL, { latence, bloque } = {}) {
+  let id = identifiants.get(context);
+  if (!id) {
+    id = `t${process.pid}-${++compteurReseau}`;
+    identifiants.set(context, id);
+    await context.addCookies([{ name: "reseau", value: id, url: baseURL }]);
+  }
+  const q = new URLSearchParams({ id });
   if (latence) q.set("latence", String(latence));
   if (bloque) q.set("bloque", "1");
-  const res = await fetch(`${baseURL}/__reseau${q.size ? "?" + q : ""}`);
+  const res = await fetch(`${baseURL}/__reseau?${q}`);
   return res.json();
+}
+
+/* Attend une page immobile avant une mesure de géométrie ou de couleur : toutes les
+   feuilles de style appliquées (certaines se chargent sans bloquer, en media=print
+   d'abord), les polices prêtes, et plus aucune transition ni animation en cours
+   (le changement de thème en lance une sur les couleurs). */
+export async function pageStable(page) {
+  await page.waitForLoadState("load");
+  // Sondage plutôt que promesses (document.fonts.ready, Animation.finished) : une
+  // promesse qui ne se règle jamais bloquerait le test jusqu'à son délai.
+  await page.waitForFunction(() => {
+    const feuilles = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .every(lien => lien.sheet && lien.media !== "print");
+    const polices = document.fonts.status !== "loading";
+    // Les animations sans fin (un halo, un spinner) ne se terminent jamais : écartées.
+    const mouvement = document.getAnimations()
+      .some(a => Number.isFinite(a.effect.getComputedTiming().endTime) && a.playState === "running");
+    return feuilles && polices && !mouvement;
+  }, null, { polling: 50 });
 }
 
 /* Les articles cochés de la liste de courses, par clé. */

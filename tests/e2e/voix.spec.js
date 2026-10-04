@@ -101,6 +101,7 @@ test("une commande ne part qu'une fois par énoncé, malgré les résultats inte
 });
 
 test("relance automatique : quand le navigateur coupe, une nouvelle écoute démarre", async ({ page }) => {
+  await page.clock.install();
   await installerFaux(page);
   await ouvrirBanc(page);
   await ecouter(page);
@@ -116,12 +117,13 @@ test("relance automatique : quand le navigateur coupe, une nouvelle écoute dém
 
   // arreter() : plus de relance, plus de commandes.
   await page.evaluate(() => window.__ecoute.arreter());
-  await page.waitForTimeout(600);
+  await page.clock.runFor(10000);
   expect(await actives(page)).toBe(0);
   expect(await page.evaluate(() => window.__faux.sessions.length)).toBe(2);
 });
 
 test("pause pendant la lecture : le micro se tait tant que l'appli parle, puis reprend", async ({ page }) => {
+  await page.clock.install();
   await installerFaux(page);
   await ouvrirBanc(page);
   await ecouter(page);
@@ -130,7 +132,7 @@ test("pause pendant la lecture : le micro se tait tant que l'appli parle, puis r
   await page.evaluate(() => { window.__lue = false; window.voix.lire("Mélangez la farine et le sel.").then(() => { window.__lue = true; }); });
   // L'écoute est coupée dès que la lecture commence, et ne revient pas toute seule.
   await expect.poll(() => actives(page)).toBe(0);
-  await page.waitForTimeout(600);
+  await page.clock.runFor(1000);
   expect(await actives(page)).toBe(0);
   expect(await page.evaluate(() => window.__lue)).toBe(false);
 
@@ -146,6 +148,7 @@ test("pause pendant la lecture : le micro se tait tant que l'appli parle, puis r
 });
 
 test("lire() : voix française locale, et une nouvelle lecture interrompt la précédente", async ({ page }) => {
+  await page.clock.install();
   await installerFaux(page);
   await ouvrirBanc(page);
   await ecouter(page);
@@ -163,7 +166,7 @@ test("lire() : voix française locale, et une nouvelle lecture interrompt la pr�
   await expect.poll(() => page.evaluate(() => window.__fin)).toEqual([1]);
   expect(await page.evaluate(() => window.__faux.annulations)).toBeGreaterThan(0);
   // ... et l'écoute n'a pas repris entre les deux : la seconde parle encore.
-  await page.waitForTimeout(500);
+  await page.clock.runFor(1000);
   expect(await actives(page)).toBe(0);
   await expect.poll(() => page.evaluate(() => window.__faux.lectures.at(-1).text)).toBe("Deuxième étape.");
 });
@@ -180,6 +183,7 @@ test("arreterLecture() : coupe la voix, résout la promesse et rend le micro", a
 });
 
 test("refus du micro : écoute arrêtée pour de bon, message clair en français", async ({ page }) => {
+  await page.clock.install();
   await installerFaux(page, { refus: true });
   await ouvrirBanc(page);
   await ecouter(page);
@@ -189,7 +193,7 @@ test("refus du micro : écoute arrêtée pour de bon, message clair en français
   expect(msg).toMatch(/autorise/i);
 
   // Pas de relance en boucle devant un refus.
-  await page.waitForTimeout(800);
+  await page.clock.runFor(10000);
   expect(await page.evaluate(() => window.__faux.sessions.length)).toBe(1);
   expect(await page.evaluate(() => window.__erreurs.length)).toBe(1);
 });

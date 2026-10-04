@@ -1,9 +1,10 @@
 /* Serveur statique des tests : sert la racine du dépôt, sans dépendance.
-   En plus, une route de contrôle simule un mauvais réseau :
-     GET /__reseau?latence=<ms>   ajoute ce délai à toutes les réponses suivantes
-     GET /__reseau?bloque=1       laisse les requêtes suivantes sans réponse
-     GET /__reseau                remet tout à zéro
-   Un test qui y touche doit toujours remettre à zéro en fin de course. */
+   En plus, une route de contrôle simule un mauvais réseau, PROPRE À UN TEST :
+     GET /__reseau?id=<id>&latence=<ms>   ajoute ce délai aux réponses des requêtes qui portent le cookie reseau=<id>
+     GET /__reseau?id=<id>&bloque=1       laisse ces requêtes sans réponse
+     GET /__reseau?id=<id>                remet à zéro l'état de ce test seulement
+   Chaque test a son identifiant (cookie posé par outils.js) : un test qui ralentit
+   ou bloque le réseau ne touche jamais aux requêtes d'un autre, même en parallèle. */
 
 import http from "node:http";
 import { readFile, stat } from "node:fs/promises";
@@ -29,20 +30,33 @@ const TYPES = {
   ".ico": "image/x-icon"
 };
 
-let latence = 0;
-let bloque = false;
-const enAttente = new Set();   // réponses laissées sans suite : fermées à la remise à zéro
+const reglages = new Map();   // identifiant de test -> { latence, bloque, enAttente }
+
+function etatDe(id) {
+  if (!reglages.has(id)) reglages.set(id, { latence: 0, bloque: false, enAttente: new Set() });
+  return reglages.get(id);
+}
 
 function reseau(url, res) {
   const p = url.searchParams;
-  latence = Math.max(0, Number(p.get("latence")) || 0);
-  bloque = p.get("bloque") === "1";
-  if (!bloque) {
-    for (const r of enAttente) r.destroy();
-    enAttente.clear();
+  const id = p.get("id") || "";
+  const etat = etatDe(id);
+  etat.latence = Math.max(0, Number(p.get("latence")) || 0);
+  etat.bloque = p.get("bloque") === "1";
+  if (!etat.bloque) {
+    // Seules les requêtes en attente de CE test sont fermées.
+    for (const r of etat.enAttente) r.destroy();
+    etat.enAttente.clear();
+    if (!etat.latence) reglages.delete(id);
   }
   res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
-  res.end(JSON.stringify({ latence, bloque }));
+  res.end(JSON.stringify({ latence: etat.latence, bloque: etat.bloque }));
+}
+
+/* Identifiant du test qui émet la requête, lu dans son cookie « reseau ». */
+function identifiant(req) {
+  const m = /(?:^|;\s*)reseau=([\w-]+)/.exec(req.headers.cookie || "");
+  return m ? m[1] : "";
 }
 
 async function servir(url, res) {
@@ -71,7 +85,8 @@ async function servir(url, res) {
 http.createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/__reseau") return reseau(url, res);
-  if (bloque) { enAttente.add(res.socket); return; }
-  if (latence) setTimeout(() => servir(url, res), latence);
+  const etat = reglages.get(identifiant(req));
+  if (etat?.bloque) { etat.enAttente.add(res.socket); return; }
+  if (etat?.latence) setTimeout(() => servir(url, res), etat.latence);
   else servir(url, res);
 }).listen(PORT, () => console.log(`Carnet servi sur http://localhost:${PORT}/`));

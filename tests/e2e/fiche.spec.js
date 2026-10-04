@@ -1,7 +1,6 @@
 /* La fiche recette : retour, allergènes, notes, feuille d'ingrédient, moule, impression. */
 
-import { test, expect, preremplir, entree, lireCarnet } from "./outils.js";
-import { animationsFinies } from "./outils-mesure.js";
+import { test, expect, preremplir, entree, lireCarnet, pageStable } from "./outils.js";
 
 const QUICHE = "/#/recette/quiche-lorraine";
 
@@ -217,7 +216,7 @@ test.describe("mise en page téléphone", () => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto(QUICHE);
     await expect(page.locator("#ing-list li").first()).toBeVisible();
-    await animationsFinies(page);
+    await pageStable(page);
     const m = await page.evaluate(() => {
       const r = s => document.querySelector(s).getBoundingClientRect();
       return {

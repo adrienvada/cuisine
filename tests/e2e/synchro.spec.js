@@ -343,8 +343,11 @@ test("synchro : une relève tardive de l'ancien carnet ne s'applique pas après 
   await page.goto("/#/");
   await arrivee;                       // la relève du vieux carnet est partie et attend sa réponse
   await api(page, "carnetSync.deconnecter(); return carnetSync.connecter(args[0], { remplacer: true })", "nouveau");
+  const livree = page.waitForResponse(r => r.url().includes("carnet_lire") && r.request().postData()?.includes('"vieux"'));
   liberer();
-  await page.waitForTimeout(500);
+  // La réponse tardive est arrivée dans la page ; on laisse ses promesses se régler avant de conclure.
+  await livree;
+  await page.evaluate(() => new Promise(r => setTimeout(r, 0)));
   const menu = (await lireCarnet(page)).menu.map(e => e.rid);
   expect(menu).toEqual(["focaccia-romarin"]);
 });
@@ -353,6 +356,7 @@ test("synchro : une relève tardive de l'ancien carnet ne s'applique pas après 
 
 test("synchro : une mise à jour attend la fin de la saisie en cours", async ({ page, context }) => {
   const serveur = await connecte(context, { menu: [entree("quiche-lorraine", { k: "q1" })] });
+  await page.clock.install();
   await page.goto("/#/courses");
   await etat(page, "ok");
 
@@ -362,8 +366,9 @@ test("synchro : une mise à jour attend la fin de la saisie en cours", async ({ 
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
   await expect.poll(() => serveur.lectures).toBeGreaterThan(1);
 
-  // Le champ garde le focus et ce qui y est tapé tant qu'on y est.
-  await page.waitForTimeout(1500);
+  // Le champ garde le focus et ce qui y est tapé tant qu'on y est : même après les
+  // nouvelles tentatives de redessin (toutes les 0,6 s), qu'on fait défiler d'un coup.
+  await page.clock.runFor(1500);
   await expect(page.locator("#extra-input")).toBeFocused();
   await expect(page.locator("#extra-input")).toHaveValue("Cit");
   await expect(page.locator("li", { hasText: "Pastèque" })).toHaveCount(0);

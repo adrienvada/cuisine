@@ -1,7 +1,6 @@
 /* Le journal des recettes cuisinées : ajout avec photo, persistance, suppression, photo absente de l'appareil. */
 
-import { test, expect, preremplir, lireCarnet } from "./outils.js";
-import { animationsFinies } from "./outils-mesure.js";
+import { test, expect, preremplir, lireCarnet, pageStable } from "./outils.js";
 
 const RID = "quiche-lorraine";
 
@@ -187,7 +186,7 @@ test("journal : sans photo, l'entrée s'enregistre ; la feuille tient à 375 px,
   expect(trop).toBe(false);
   // Les zones de contact font au moins 44 px, mesurées une fois la feuille arrivée : en plein
   // glissement, la boîte sort à 43,99997 px.
-  await animationsFinies(page);
+  await pageStable(page);
   for (const sel of ["#jr-moins", "#jr-plus", "#jr-ok", "#jr-non", ".jr-fichier"]) {
     const boite = await feuille.locator(sel).boundingBox();
     expect(boite.height, sel).toBeGreaterThanOrEqual(44);

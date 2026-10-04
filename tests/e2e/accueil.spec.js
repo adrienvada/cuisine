@@ -1,7 +1,6 @@
 /* L'accueil : critères cumulables, « De saison », « J'ai… », recherche gardée le temps d'une visite, partage depuis la vignette. */
 
-import { test, expect, lireCarnet } from "./outils.js";
-import { animationsFinies } from "./outils-mesure.js";
+import { test, expect, lireCarnet, pageStable } from "./outils.js";
 
 /* Les cartes écartées gardent « card-leave » le temps de s'estomper : seules
    celles-ci sont, tout de suite, l'ensemble que le filtre vient de décider. */
@@ -194,7 +193,7 @@ test("téléphone : rien ne déborde à 375 px, la feuille « J'ai… » compris
   const deborde = () => page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(await deborde()).toBe(false);
 
-  await animationsFinies(page);
+  await pageStable(page);
   const boite = await page.getByRole("button", { name: /^J'ai…/ }).boundingBox();
   expect(boite.height).toBeGreaterThanOrEqual(44);
   expect(boite.width).toBeGreaterThanOrEqual(44);
@@ -202,7 +201,7 @@ test("téléphone : rien ne déborde à 375 px, la feuille « J'ai… » compris
   await page.getByRole("button", { name: /^J'ai…/ }).click();
   expect(await deborde()).toBe(false);
   await expect(page.locator(".jai-chip").first()).toBeVisible();
-  await animationsFinies(page);
+  await pageStable(page);
   const chip = await page.locator(".jai-chip").first().boundingBox();
   expect(chip.height).toBeGreaterThanOrEqual(44);
 });

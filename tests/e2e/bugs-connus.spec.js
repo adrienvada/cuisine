@@ -2,8 +2,7 @@
    ATTENDU. Celui qui corrige un bug retire le « fixme » de son test : c'est son
    critère d'acceptation. Tant qu'il reste, la suite l'ignore. */
 
-import { test, expect, preremplir, entree, simulerSupabase, lireCarnet, cochesAffichees, reseau } from "./outils.js";
-import { animationsFinies } from "./outils-mesure.js";
+import { test, expect, preremplir, entree, simulerSupabase, lireCarnet, cochesAffichees, reseau, pageStable } from "./outils.js";
 
 const VIDE = { menu: [], checked: {}, extras: [] };
 const CARTES = ".card:not(.gone):not(.card-leave)";
@@ -29,6 +28,8 @@ async function ajouterTelQuel(page) {
 
 test("B1a — taper une recherche ou avancer d'une étape n'envoie rien au serveur", async ({ page, context }) => {
   const serveur = await connecte(context);
+  // Horloge simulée : le délai d'envoi (0,8 s) s'écoule à la demande, sans attente réelle.
+  await page.clock.install();
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-synchro", "ok");
 
@@ -40,8 +41,12 @@ test("B1a — taper une recherche ou avancer d'une étape n'envoie rien au serve
   await page.getByRole("button", { name: "Suivant" }).click();
   await expect(page.locator(".cook-step-label")).toHaveText("Étape 2 / 5");
 
-  // L'envoi part 0,8 s après une modification : on laisse passer ce délai avec marge.
-  await page.waitForTimeout(1500);
+  // L'envoi partirait 0,8 s après une modification : on laisse passer ce délai avec marge,
+  // puis un signal positif (une relève de plus) prouve que le serveur a eu le temps de recevoir.
+  await page.clock.runFor(1500);
+  const lectures = serveur.lectures;
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(() => serveur.lectures).toBeGreaterThan(lectures);
   expect(serveur.ecritures).toHaveLength(0);
 });
 
@@ -228,7 +233,7 @@ test("B6 — l'AudioContext est créé ou repris pendant le toucher sur « Minut
 test.describe("B7", () => {
   test.use({ serviceWorkers: "allow" });
 
-  test("B7 — appli en cache, réseau muet : elle s'affiche en moins de 3 s au rechargement", async ({ page, baseURL }) => {
+  test("B7 — appli en cache, réseau muet : elle s'affiche en moins de 3 s au rechargement", async ({ page, context, baseURL }) => {
     try {
       await page.goto("/");
       await page.evaluate(() => navigator.serviceWorker.ready);
@@ -236,7 +241,7 @@ test.describe("B7", () => {
       await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
       await expect(page.locator(".card").first()).toBeVisible();
 
-      await reseau(baseURL, { bloque: true });
+      await reseau(context, baseURL, { bloque: true });
       // Marqueur de l'ancien document : seul le nouveau, une fois chargé, en est dépourvu.
       await page.evaluate(() => { window.__ancien = true; });
       const debut = Date.now();
@@ -247,7 +252,7 @@ test.describe("B7", () => {
       ).toBe(true);
       expect(Date.now() - debut).toBeLessThan(3000);
     } finally {
-      await reseau(baseURL);
+      await reseau(context, baseURL);
     }
   });
 });
@@ -276,27 +281,28 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
   /* Polices chargées et entrée de page finie avant de défiler : un texte qui se recompose
      au-dessus de l'écran déplace la page (ancrage du défilement), et une position lue trop
      tôt serait périmée. */
-  await page.evaluate(() => document.fonts.ready);
-  await animationsFinies(page);
+  await pageStable(page);
   await page.evaluate(() => window.scrollTo(0, 1300));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(1200);
 
-  // Une carte entièrement visible à cet endroit de la page.
+  // Une carte bien à l'écart des deux barres fixes : le tap ne doit pas faire défiler la page.
   const id = await page.evaluate(() => {
     const carte = [...document.querySelectorAll(".card")].find(c => {
       const r = c.getBoundingClientRect();
-      return r.top > 60 && r.bottom < window.innerHeight - 90;
+      return r.top > 160 && r.bottom < window.innerHeight - 160;
     });
     return carte.dataset.id;
   });
-  /* La position de référence est celle du moment du toucher : tap() fait encore défiler la
-     page s'il faut dégager la carte des barres fixes, et c'est cette place-là qu'on doit
+  const corps = page.locator(`.card[data-id="${id}"] .body`);
+  await corps.scrollIntoViewIfNeeded();
+  /* La position de référence est celle du moment du toucher : si tap() devait encore faire
+     défiler la page pour dégager la carte des barres fixes, c'est cette place-là qu'on doit
      retrouver au retour. */
   await page.evaluate(() => {
     const noter = () => { window.__avant ??= window.scrollY; };
     for (const type of ["pointerdown", "touchstart"]) document.addEventListener(type, noter, { capture: true, once: true });
   });
-  await page.locator(`.card[data-id="${id}"] .body`).tap();
+  await corps.tap();
   await expect(page).toHaveURL(new RegExp(`#/recette/${id}$`));
   const avant = await page.evaluate(() => window.__avant);
   expect(avant).toBeGreaterThanOrEqual(1200);
