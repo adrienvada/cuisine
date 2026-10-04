@@ -116,18 +116,31 @@ export function nomCourt(titre) {
 
 /* ---------- Le déroulé d'une recette ---------- */
 
-/* Une tâche : { k, titre, temps: { prep, repos, cuisson }, supplement, etapes: [{ titre, duree, four, genre, libelle }] }
+/* Une tâche : { k, titre, temps: { prep, repos, cuisson }, supplement, etapes: [{ titre, duree, four, genre, libelle, attentes }] }
    `duree` est le minuteur de l'étape (0 sans minuteur), `four` la température
    où elle enfourne. `genre` dit ce que l'étape demande : « repos » (rien à faire :
    levée, marinade, trempage, congélateur), « four » (il chauffe), « travail » (le
    reste : les gestes, le feu qu'on surveille) — sans genre, il se déduit de `four`.
    `libelle` nomme un repos (« Levée »). Les temps de la recette disent combien
    dure le tout ; les minuteurs disent où se logent les attentes ; le reste,
-   c'est du travail des mains, qu'on répartit sur les étapes sans minuteur. */
+   c'est du travail des mains, qu'on répartit sur les étapes sans minuteur.
+
+   Deux sortes d'attentes. Un repos BLOQUE : c'est une étape à part entière, qui
+   dure son minuteur et que la suite attend (la levée, la marinade). Une attente
+   « pendant » (`attentes: [{ duree, libelle }]` sur une étape de travail) COURT
+   en parallèle : elle démarre au début de l'étape qui la porte, les étapes
+   suivantes s'enchaînent sans l'attendre, et elle ne libère pas les mains (ce
+   sont les étapes qui disent si elles sont libres, pas elle). La recette n'en
+   attend la fin qu'à son terme, au service : règle simple, que la fiche
+   explique (« vous préparerez le reste pendant ce temps »). Sa durée ne
+   s'allonge donc que si l'attente dépasse le travail qu'elle recouvre ; le reste
+   de l'attente est alors une attente seule, mains libres (étape `queue`). Les
+   temps de la recette comptent le travail, pas les attentes « pendant ». */
 function chronologie(tache) {
   const etapes = (tache.etapes || []).map(s => ({
     titre: s.titre || "", duree: Math.max(0, Math.round(s.duree || 0)), four: s.four || null, prechauffe: s.prechauffe || null,
-    genre: s.four ? "four" : s.genre === "repos" ? "repos" : "travail", libelle: s.libelle || ""
+    genre: s.four ? "four" : s.genre === "repos" ? "repos" : "travail", libelle: s.libelle || "",
+    attentes: (s.attentes || []).map(a => ({ duree: Math.max(0, Math.round(a.duree || 0)), libelle: a.libelle || "" })).filter(a => a.duree > 0)
   }));
   for (const e of etapes) e.fixe = e.duree > 0;
   const temps = tache.temps || {};
@@ -157,6 +170,16 @@ function chronologie(tache) {
        qui distingue le « Temps libre » d'un repos (on peut s'absenter) du feu. */
     e.libre = e.genre !== "travail" || (e.fixe && e.duree >= SEUIL_LIBRE);
   }
+  /* Les attentes « pendant » : de leur étape jusqu'à leur minuteur. Si la dernière
+     finit après le travail, la recette attend le reste, les mains libres. */
+  const attentes = etapes.flatMap(e => e.attentes.map(a => ({ debut: e.debut, fin: e.debut + a.duree, duree: a.duree, libelle: a.libelle })));
+  const finAttentes = attentes.reduce((n, a) => Math.max(n, a.fin), 0);
+  if (finAttentes > t) {
+    const derniere = attentes.reduce((m, a) => a.fin >= m.fin ? a : m);
+    etapes.push({ titre: derniere.libelle, duree: finAttentes - t, four: null, prechauffe: null, genre: "repos", libelle: derniere.libelle,
+      attentes: [], fixe: true, queue: true, debut: t, fin: finAttentes, libre: true });
+    t = finAttentes;
+  }
   /* Le four n'est occupé que pendant les étapes qui chauffent : des étapes qui
      s'enchaînent font une seule plage, mais une quiche qui sort après la cuisson
      à blanc, le temps de garnir, libère le four entre ses deux passages — la
@@ -176,7 +199,7 @@ function chronologie(tache) {
   const four = plages.length
     ? { temp: plages[0].temp, cuisson: plages[0].cuisson, entree: plages[0].entree, sortie: plages[plages.length - 1].sortie, plages }
     : null;
-  return { etapes, duree: t, four };
+  return { etapes, attentes, duree: t, four };
 }
 
 /* Quand commencer. Chaque recette vise l'heure de table, pile. Si deux plats
@@ -258,7 +281,9 @@ export function planifier({ table, maintenant = null, taches }) {
       retard: l.retard, avance: l.avance, four: l.four ? { temp: l.four.temp, entree: l.debut + l.four.entree, sortie: l.debut + l.four.sortie } : null,
       /* Les passages au four, un par plage : c'est là, et là seulement, qu'il est occupé. */
       plagesFour: (l.four?.plages || []).map(p => ({ temp: p.temp, entree: l.debut + p.entree, sortie: l.debut + p.sortie })),
-      etapes: l.etapes.map(e => ({ titre: e.titre, debut: l.debut + e.debut, fin: l.debut + e.fin, libre: e.libre, genre: e.genre, libelle: e.libelle }))
+      etapes: l.etapes.map(e => ({ titre: e.titre, debut: l.debut + e.debut, fin: l.debut + e.fin, libre: e.libre, genre: e.genre, libelle: e.libelle, queue: !!e.queue })),
+      /* Les attentes « pendant » : elles courent en parallèle des étapes. */
+      attentes: l.attentes.map(a => ({ debut: l.debut + a.debut, fin: l.debut + a.fin, duree: a.duree, libelle: a.libelle }))
     })),
     evenements: evenements(lignes, table + retard)
   };
@@ -277,6 +302,7 @@ function evenements(lignes, table) {
       }
     }
     if (l.fin <= table - 10 && !(l.four && l.fin === l.debut + l.four.sortie)) ev.push({ t: l.fin, type: "pret", k, titre });
+    for (const a of l.attentes) ev.push({ t: l.debut + a.debut, type: "pendant", k, titre, fin: l.debut + a.fin, duree: a.duree, libelle: a.libelle });
 
     /* Les repos d'une recette, d'un seul tenant : trois attentes qui se suivent
        et portent le même nom (la levée de la focaccia : 120 + 20 + 30 min) ne
@@ -286,7 +312,9 @@ function evenements(lignes, table) {
     let courant = null;
     for (const e of l.etapes) {
       if (e.duree <= 0) continue;
-      if (e.genre !== "repos") { courant = null; continue; }
+      /* Le reste d'une attente « pendant » qui dépasse le travail : sa ligne
+         « Pendant ce temps » le dit déjà, pas un repos de plus. */
+      if (e.genre !== "repos" || e.queue) { courant = null; continue; }
       if (courant && courant.fin === l.debut + e.debut && courant.libelle === e.libelle) { courant.fin = l.debut + e.fin; courant.duree = courant.fin - courant.t; continue; }
       courant = { t: l.debut + e.debut, type: "repos", k, titre, fin: l.debut + e.fin, duree: e.duree, libelle: e.libelle };
       ev.push(courant);
@@ -324,7 +352,7 @@ function evenements(lignes, table) {
       .filter(l => l.t.k !== e.k && l.etapes.some(s => s.libre && l.debut + s.debut <= e.t && e.t < l.debut + s.fin))
       .map(l => l.t.titre);
   }
-  const ordre = { prechauffage: 0, regler: 1, sortir: 2, debut: 3, repos: 3.5, enfourner: 4, pret: 5, table: 6 };
+  const ordre = { prechauffage: 0, regler: 1, sortir: 2, debut: 3, repos: 3.5, pendant: 3.6, enfourner: 4, pret: 5, table: 6 };
   ev.sort((a, b) => a.t - b.t || ordre[a.type] - ordre[b.type]);
 
   /* `tempsLibre` : le fil qui court de cet événement au suivant est un temps libre
@@ -364,12 +392,19 @@ export function jourRelatif(jour) {
   return jour < 0 ? `${-jour} jours avant` : `${jour} jours après`;
 }
 
+/* « Oignon dans l'eau glacée » → « oignon dans l'eau glacée » : un libellé se lit
+   au milieu d'une phrase, mais « IGP » ou « Pâte » (deux majuscules d'affilée)
+   ne se touchent pas. */
+const enMinuscule = t => /^\p{Lu}\p{Lu}/u.test(t) ? t : t.charAt(0).toLowerCase() + t.slice(1);
+
 /* Un repos n'est pas un geste : la ligne le dit en deux mots, le détail
-   (detailRepos) dit combien de temps et jusqu'à quand. */
+   (detailRepos) dit combien de temps et jusqu'à quand. Une attente « pendant »
+   dit ce qui attend, et c'est tout : on est occupé, la durée est dessous. */
 export function texteEvenement(e) {
   const nom = nomCourt(e.titre);
   switch (e.type) {
     case "repos": return `Repos : ${nom}`;
+    case "pendant": return `Pendant ce temps : ${enMinuscule(e.libelle || e.titre)}`;
     case "debut": return `Démarre : ${nom}`;
     case "prechauffage": return `Préchauffe le four à ${e.temp} °C`;
     case "regler": return `Règle le four à ${e.temp} °C`;
@@ -392,6 +427,14 @@ export function detailRepos(e) {
     `${libelle}${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`,
     e.duree >= SEUIL_LIBRE ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."
   ];
+}
+
+/* La ligne qui suit une attente « pendant » : de quelle recette, combien de
+   temps, jusqu'à quand. Rien sur les mains : elles sont prises par la suite. */
+export function detailPendant(e) {
+  const autreJour = (e.jourFin ?? 0) - (e.jour ?? 0);
+  const quand = autreJour ? `, ${jourRelatif(autreJour)}` : "";
+  return [`${nomCourt(e.titre)} : ${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`];
 }
 
 /* « À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé : enfourne
@@ -481,9 +524,13 @@ export function icsRepas(plan, { horodatage, convives = null } = {}) {
          démarrer et la table, pas une alarme par attente. Ils se lisent dans la
          description, avec leur fin — c'est ce qu'on regarde pour savoir si l'on
          peut sortir. */
-      description: r.etapes.filter(e => e.titre).map(e => e.genre === "repos"
-        ? `${heureFr(e.debut)} · ${e.titre} (repos, jusqu'à ${heureFr(e.fin)})`
-        : `${heureFr(e.debut)} · ${e.titre}`).join("\n")
+      description: [
+        ...r.etapes.filter(e => e.titre && !e.queue).map(e => ({ t: e.debut, texte: e.genre === "repos"
+          ? `${heureFr(e.debut)} · ${e.titre} (repos, jusqu'à ${heureFr(e.fin)})`
+          : `${heureFr(e.debut)} · ${e.titre}` })),
+        /* Une attente « pendant » se lit où elle démarre, dite en parallèle. */
+        ...r.attentes.map(a => ({ t: a.debut, texte: `${heureFr(a.debut)} · ${a.libelle} (en parallèle, jusqu'à ${heureFr(a.fin)})` }))
+      ].sort((a, b) => a.t - b.t).map(x => x.texte).join("\n")
     });
   }
   for (const e of plan.evenements.filter(x => x.type === "prechauffage" || x.type === "regler")) {

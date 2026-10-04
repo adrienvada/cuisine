@@ -96,10 +96,12 @@ test("données : la somme des repos par défaut est times.repos, recette par rec
 test("données : ce que le cuisinier tient pour un repos, et ce qu'il refuse d'y mettre", () => {
   assert.deepEqual(reposDe(recette("focaccia-romarin")), [120, 20, 30]);
   assert.deepEqual(reposDe(recette("gravlax-saumon-yaourt-bulgare")), [720, 15]);
-  assert.deepEqual(reposDe(recette("salade-mediterraneenne")), [10, 15]);
+  // L'oignon qui trempe court pendant le reste : seul l'assemblage retient la salade (repos-2).
+  assert.deepEqual(reposDe(recette("salade-mediterraneenne")), [15]);
   assert.deepEqual(reposDe(recette("mi-cuit-chocolat-suzy-palatin")), [10]);
-  assert.deepEqual(reposDe(recette("cocktail-concombre-menthe")), [15]);
-  // Les beignets : seul le fromage au frais retient le plat ; la sauce attend en parallèle, sans minuteur.
+  // Les verres givrent pendant la préparation : aucun repos qui bloque (repos-2).
+  assert.deepEqual(reposDe(recette("cocktail-concombre-menthe")), []);
+  // Les beignets : seul le fromage au frais retient le plat ; la sauce attend en parallèle, avec son minuteur (repos-2).
   assert.deepEqual(reposDe(recette("beignets-brebis-menthe")), [30]);
   // Le feu, la friture et le four ne reposent pas.
   for (const id of ["salade-lentilles-feta", "salade-champetre", "scoopable-cookies", "cake-sale", "veloute-butternut-shiitakes"]) {
@@ -147,9 +149,11 @@ test("tachesDuMenu : un supplément minuté a sa propre étape, repos (l'oignon 
   vide();
   ajouter("salade-lentilles-feta", { addons: ["oignon-rouge"] });
   const etapes = menu.tachesDuMenu()[0].etapes;
-  const oignon = etapes.find(e => e.titre === "Oignon rouge");
-  assert.deepEqual([oignon.genre, oignon.duree, oignon.libelle], ["repos", 10, "Oignon dans l'eau glacée"]);
-  assert.equal(etapes.indexOf(oignon), 2, "juste après la découpe qu'il enrichit");
+  // L'oignon trempe pendant que les lentilles cuisent : une attente « pendant »
+  // portée par l'étape qu'il enrichit, pas une étape de plus (repos-2).
+  assert.equal(etapes.find(e => e.titre === "Oignon rouge"), undefined);
+  assert.deepEqual(etapes[1].attentes, [{ duree: 10, libelle: "Oignon dans l'eau glacée" }]);
+  assert.equal(etapes[1].duree, 0);
 
   vide();
   ajouter("houmous-petits-pois-menthe", { addons: ["sesame"] });
@@ -217,17 +221,21 @@ test("gravlax : la marinade de 12 h commence la veille, et la frise le sait", ()
   assert.equal(planning.jourRelatif(0), "");
 });
 
-test("salade méditerranéenne : deux repos distincts, le trempage et le repos de l'assemblage", () => {
+test("salade méditerranéenne : le repos de l'assemblage bloque, le trempage de l'oignon court pendant (repos-2)", () => {
   vide();
   ajouter("salade-mediterraneenne");
-  const [trempage, assemblage] = reposDeLaFrise(plan());
-  assert.deepEqual([trempage.duree, trempage.libelle], [10, "Oignon dans l'eau glacée"]);
+  const p = plan();
+  const [assemblage] = reposDeLaFrise(p);
+  assert.equal(reposDeLaFrise(p).length, 1);
   assert.deepEqual([assemblage.duree, assemblage.libelle], [15, "Repos"]);
   assert.equal(assemblage.fin, TABLE);
   // Un libellé qui ne dit que « Repos » ne se répète pas dans le détail.
   assert.equal(detailRepos(assemblage)[0], "15 min, jusqu'à 20 h");
-  // Moins d'un quart d'heure : les mains sont libres, mais on reste à côté.
-  assert.equal(detailRepos(trempage)[1], "Mains libres : reste à côté.");
+  // Un quart d'heure : on peut s'absenter.
+  assert.equal(detailRepos(assemblage)[1], "Temps libre : tu peux t'absenter.");
+  // Le trempage est une ligne à part, qui ne libère rien.
+  const [trempage] = p.evenements.filter(e => e.type === "pendant");
+  assert.deepEqual([trempage.duree, trempage.libelle], [10, "Oignon dans l'eau glacée"]);
 });
 
 test("mi-cuit : le refroidissement avant démoulage vient après le four, pas dedans", () => {
@@ -255,7 +263,7 @@ test("un menu où un repos croise un autre plat : celui qui démarre pendant la 
   const repos = reposDeLaFrise(p);
   assert.deepEqual(repos.map(e => e.k).sort(), [
     "gravlax-saumon-yaourt-bulgare", "gravlax-saumon-yaourt-bulgare",
-    "mi-cuit-chocolat-suzy-palatin", "salade-mediterraneenne", "salade-mediterraneenne"
+    "mi-cuit-chocolat-suzy-palatin", "salade-mediterraneenne"
   ]);
   // Dans l'ordre du temps, et un repos qui commence en même temps qu'un départ passe après lui.
   assert.deepEqual(p.evenements.map(e => e.t), [...p.evenements.map(e => e.t)].sort((a, b) => a - b));

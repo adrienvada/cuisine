@@ -339,10 +339,16 @@ export function defaireRefaire(cles) {
 
 /* ---------- Ce que le rétroplanning reçoit ---------- */
 
-/* Une étape dont le minuteur est une attente sans les mains : marquée `repos`
-   dans les données, ou, pour une option de choix ou un supplément, annoncée
-   `adds: "repos"` (sa durée s'ajoute alors au poste du repos). */
+/* Une étape dont le minuteur est une attente sans les mains qui BLOQUE la suite :
+   marquée `repos: true` dans les données, ou, pour une option de choix ou un
+   supplément, annoncée `adds: "repos"` (sa durée s'ajoute alors au poste du
+   repos). La levée, la marinade, la pâte au frais avant de l'étaler. */
 export const estRepos = s => !!s && (s.repos === true || s.adds === "repos");
+
+/* Une attente qui court PENDANT qu'on travaille à la suite (`repos: "pendant"`) :
+   l'oignon qui trempe, les verres au congélateur, la sauce au frais. Elle garde
+   son minuteur mais ne retient personne, et n'entre pas dans `times.repos`. */
+export const estPendant = s => !!s && s.repos === "pendant";
 
 /* Les entrées du menu au format de core/planning.js : leur composition compte,
    une option plus longue (pâte maison) rallonge les temps de la recette, et un
@@ -351,24 +357,33 @@ export const estRepos = s => !!s && (s.repos === true || s.adds === "repos");
    n'en sont pas, et la frise doit les distinguer. Chaque étape dit son genre :
    « repos » (on n'a rien à faire), « four » (il chauffe), « travail » (le reste :
    les gestes, le feu qu'on surveille). `libelle` nomme un repos : celui de
-   l'étape, sinon celui de la recette, sinon le titre de l'étape. */
+   l'étape, sinon celui de la recette, sinon le titre de l'étape.
+   Une attente « pendant » n'est pas une étape de plus : elle se porte sur l'étape
+   où elle démarre (`attentes: [{ duree, libelle }]`), qui reste du travail. */
 export function tachesDuMenu() {
   return menuEntrees().map(({ e, r }) => {
     const supplements = selectedAddons(r, e);
     const etapes = [];
     for (const s of effectiveSteps(r, e)) {
+      const pendant = estPendant(s);
       const genre = s.four ? "four" : estRepos(s) ? "repos" : "travail";
-      etapes.push({
+      const etape = {
         titre: s.t,
-        duree: s.timer || 0,
+        duree: pendant ? 0 : s.timer || 0,
         four: s.four || null,
         prechauffe: s.prechauffe || null,
         genre,
         libelle: genre === "repos" ? s.reposLabel || r.reposLabel || s.t : ""
-      });
+      };
+      if (pendant) etape.attentes = [{ duree: s.timer || 0, libelle: s.reposLabel || r.reposLabel || s.t }];
+      etapes.push(etape);
       for (const x of s.extras || []) {
         if (!x.timer) continue;
         const step = supplements.find(a => a.id === x.id)?.step;
+        if (estPendant(step)) {
+          (etape.attentes = etape.attentes || []).push({ duree: x.timer, libelle: step.reposLabel || r.reposLabel || x.label });
+          continue;
+        }
         const repos = estRepos(step);
         etapes.push({
           titre: x.label, duree: x.timer, four: null, prechauffe: null,
@@ -381,7 +396,7 @@ export function tachesDuMenu() {
       k: e.k,
       titre: r.title,
       temps: tempsDe(r, e),
-      supplement: supplements.reduce((n, a) => n + (a.step?.timer || 0), 0),
+      supplement: supplements.reduce((n, a) => n + (a.step?.timer && !estPendant(a.step) ? a.step.timer : 0), 0),
       etapes
     };
   });

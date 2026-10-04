@@ -31,6 +31,7 @@ import {
 } from "../core/menu.js";
 import {
   decomposer,
+  detailPendant,
   detailRepos,
   heureFr,
   icsRepas,
@@ -126,7 +127,7 @@ function repasHtml(repas) {
 
 /* ---------- Le rétroplanning ---------- */
 
-const ICONE_EVT = { prechauffage: ICON.flame, regler: ICON.flame, enfourner: ICON.flame, sortir: ICON.flame, repos: ICON.zzz };
+const ICONE_EVT = { prechauffage: ICON.flame, regler: ICON.flame, enfourner: ICON.flame, sortir: ICON.flame, repos: ICON.zzz, pendant: ICON.timer };
 
 /* Quatre plats à quatre températures font six paires : au-delà de deux phrases,
    le reste se replie, pour que la frise ne soit pas repoussée hors de l'écran. */
@@ -140,6 +141,10 @@ const noteConflit = c => raw(html`<p class="retro-note conflit">${raw(ICON.flame
        <li class="fr fr-<type>"> : une ligne = l'heure (.fr-h), le fil et son point
          ou son icône (.fr-pt), le geste (.fr-txt : un <b>, puis des .fr-sub).
      Un repos est une ligne `fr-repos` : icône de repos, durée et fin en .fr-sub.
+     Une attente qui court pendant qu'on travaille à autre chose est une ligne
+     `fr-pendant` : icône de minuteur, « Pendant ce temps : … » en gras, recette,
+     durée et fin dessous, le tout dans une bulle posée à côté du fil. Elle ne
+     libère pas les mains : jamais de « Temps libre » ni de « Reprends » pour elle.
      `fr-haut-libre` / `fr-bas-libre` : le fil au-dessus / au-dessous de la ligne
      est un temps libre (un repos, et rien d'autre qui occupe les mains) ; il se
      dessine en pointillés, de sorte que le repos se voie à la forme du fil et
@@ -150,7 +155,7 @@ function retroHtml(plan, inst, versions) {
     const version = e.k && ["debut", "enfourner", "sortir"].includes(e.type) ? versions.get(e.k) : "";
     const parallele = e.parallele && e.parallele.length
       ? `Pendant que ${e.parallele.map(nomCourt).join(" et ")} ${e.parallele.length > 1 ? "patientent" : "patiente"}.` : "";
-    const details = e.type === "repos" ? detailRepos(e) : [];
+    const details = e.type === "repos" ? detailRepos(e) : e.type === "pendant" ? detailPendant(e) : [];
     const fil = `${precedent?.tempsLibre ? " fr-haut-libre" : ""}${e.tempsLibre ? " fr-bas-libre" : ""}`;
     return html`<li class="fr fr-${e.type}${fil}">
       <time class="fr-h">${heureFr(e.t)}</time>

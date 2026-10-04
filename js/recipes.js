@@ -66,11 +66,25 @@
      marque ; une option qui repose sans `adds` (son temps est déjà dans `times`,
      c'est la version par défaut) porte `repos: true`. Pour la version par défaut,
      la somme des minuteurs de repos est `times.repos` — le vérificateur y veille.
-     Une attente qui se fait pendant qu'on travaille à autre chose (la sauce
-     réservée au frais, que rien n'attend) n'a pas de minuteur : elle ne retarde
-     personne. `reposLabel` sur une étape (en plus de celui de la recette) nomme
-     ce repos-là dans la frise quand la recette en compte plusieurs, de natures
-     différentes (le gravlax : marinade, puis congélateur).
+     `reposLabel` sur une étape (en plus de celui de la recette) nomme ce repos-là
+     dans la frise quand la recette en compte plusieurs, de natures différentes
+     (le gravlax : marinade, puis congélateur).
+   - `repos: "pendant"` : une attente qui court PENDANT qu'on travaille à la suite
+     (l'oignon qui trempe pendant qu'on prépare le reste, les verres au
+     congélateur, la sauce réservée au frais). Elle garde son minuteur (le mode
+     cuisine le sonne) et son `reposLabel`, mais ne retient personne : elle
+     n'entre pas dans `times.repos`, et le rétroplanning la montre à part
+     (« Pendant ce temps »), sans libérer les mains. Elle démarre au début de son
+     étape, et la recette n'en attend la fin qu'à son terme, au service — sa durée
+     ne s'allonge que si l'attente dépasse le travail qu'elle recouvre. Le
+     vérificateur exige qu'elle tienne dans le temps de la recette (son minuteur
+     ne dépasse pas ce que `times` laisse après les minuteurs qui la précèdent),
+     qu'une étape suive, et refuse `four` et `adds` : `times` compte déjà le
+     travail qu'elle recouvre. Un repos qui bloque, lui, est `repos: true` : la
+     levée, la marinade, la pâte au frais avant de l'étaler, le refroidissement
+     avant le démoulage — on ne peut rien faire d'autre de cette recette
+     avant sa fin. Le doute se tranche ainsi : la suite de la recette peut-elle
+     commencer sans attendre ? Oui, c'est « pendant » ; non, c'est un repos.
    - `moule` (au niveau de la recette) : seulement si le texte donne la taille du
      moule ou du plat — `{ forme: "rond", diametre: 26 }`,
      `{ forme: "rectangle", largeur: 20, longueur: 30 }` ou
@@ -690,8 +704,11 @@ const RECIPES = [
     steps: [
       {
         t: "Sauce fraîche",
-        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais — vous préparerez le reste pendant ce temps.", fond: ["infusion-froid","acidite-finale"],
+        txt: "Mélangez le yaourt grec, la menthe ciselée, le jus de citron, le sel et le poivre dans un bol. Réservez au frais 1 heure — vous préparerez le reste pendant ce temps.", fond: ["infusion-froid","acidite-finale"],
         ing: ["yaourt-grec", "menthe", "citron", "sel-poivre"],
+        timer: 60,
+        repos: "pendant",
+        reposLabel: "Sauce au frais",
         tip: { t: "Astuce du chef", txt: "Commencez par cette sauce : elle infusera pendant que vous façonnez les boules et montez la pâte. Ciselez la menthe très fin, remuez une fois à mi-parcours, et goûtez avant de dresser." }
       },
       {
@@ -817,10 +834,10 @@ const RECIPES = [
     tags: ["sans alcool", "frais", "été", "végétarien"],
     emoji: "🥒",
     color: "#7CB8A4",
-    // 10 min de préparation, mais les verres givrent 15 min en parallèle :
-    // c'est ce délai-là qui commande le service.
-    times: { prep: 10, repos: 15 },
-    reposLabel: "Verres au congélateur",
+    // 10 min de gestes, mais les verres givrent 15 min en parallèle (`repos:
+    // "pendant"` sur la première étape) : c'est ce délai-là qui commande le
+    // service, donc 15 min, et non 10 + 15.
+    times: { prep: 15 },
     portions: { base: 4, label: "verres" },
     ingredients: [
       { name: "Concombre bio", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "concombre",
@@ -841,7 +858,8 @@ const RECIPES = [
         txt: "Placez les verres de service au congélateur : 15 minutes suffisent à les givrer, et ils y resteront pendant toute la préparation. Lavez le concombre et coupez-le en fines tranches sans le peler.",
         ing: ["concombre"],
         timer: 15,
-        repos: true,
+        repos: "pendant",
+        reposLabel: "Verres au congélateur",
         tip: { t: "Astuce du chef", txt: "Conservez la peau du concombre bio : c'est elle qui apporte la couleur vert vif et l'arôme caractéristique à la boisson." }
       },
       {
@@ -893,7 +911,7 @@ const RECIPES = [
     tags: ["frais", "végétarien", "sans cuisson"],
     emoji: "🫒",
     color: "#8C9B5F",
-    times: { prep: 15, repos: 25 },
+    times: { prep: 15, repos: 15 },
     reposLabel: "Repos",
     portions: { base: 4, label: "personnes" },
     ingredients: [
@@ -974,7 +992,7 @@ const RECIPES = [
         txt: "Épluchez l'oignon rouge, émincez-le en très fines lamelles et faites-les tremper 10 minutes dans un bol d'eau glacée.", fond: ["infusion-froid","mordant-oignon"],
         ing: ["oignon-rouge"],
         timer: 10,
-        repos: true,
+        repos: "pendant",
         reposLabel: "Oignon dans l'eau glacée",
         tip: { t: "Astuce du chef", txt: "Émincez au plus fin, et pressez les lamelles dans un torchon avant de les mêler aux pois chiches : un oignon mal essoré délave la vinaigrette de toute la salade." }
       },
@@ -1185,7 +1203,7 @@ const RECIPES = [
         step: { i: 1, txt: "Taillez le concombre en petits dés, comme la pomme, pour la fraîcheur." } },
       { id: "oignon-rouge", label: "Oignon rouge", emoji: "🧅",
         ingredients: [{ name: "Oignon rouge", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" }],
-        step: { i: 1, timer: 10, adds: "repos", reposLabel: "Oignon dans l'eau glacée", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
+        step: { i: 1, timer: 10, repos: "pendant", reposLabel: "Oignon dans l'eau glacée", txt: "Émincez l'oignon rouge en fines lamelles et faites-les tremper 10 min dans l'eau glacée pour ôter le piquant." } },
       { id: "noix", label: "Noix concassées", emoji: "🌰",
         ingredients: [{ name: "Cerneaux de noix", qty: 1, unit: "poignée", rayon: "Fruits secs & graines", cid: "noix" }],
         step: { i: 3, txt: "Parsemez la salade de noix grossièrement concassées juste avant de servir." } },

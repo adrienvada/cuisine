@@ -86,7 +86,7 @@ test("mode sombre et mouvement réduit : la frise garde ses repos lisibles, sans
   });
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/#/menu");
-  await expect(repos(page)).toHaveCount(4);
+  await expect(repos(page)).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   // Le texte de la ligne dit « Repos » : c'est ce qu'entend un lecteur d'écran (l'icône est décorative).
   await expect(repos(page).first().locator(".fr-pt")).toHaveAttribute("aria-hidden", "true");

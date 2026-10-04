@@ -411,6 +411,23 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
 .fr-repos .fr-txt { color: var(--ink-soft); }
 .fr-repos .fr-txt b { font-weight: 600; color: var(--green-deep); }
 
+/* Une attente qui court pendant qu'on travaille à autre chose : les mains ne sont
+   pas libres, donc ni le vert ni le fil en pointillés du repos. Une icône de
+   minuteur et une bulle posée à côté du fil la distinguent par la forme comme par
+   la teinte (neutre, discrète : ce n'est pas un temps à vivre, c'est une
+   annotation du travail en cours). */
+.fr-pendant .fr-pt svg { background: var(--line-soft); color: var(--ink-soft); }
+.fr-pendant .fr-h { color: var(--muted); font-weight: 600; }
+.fr-pendant .fr-txt {
+  align-self: start;
+  padding: 6px 10px 7px;
+  border-radius: 10px;
+  background: var(--line-soft);
+  color: var(--ink-soft);
+}
+.fr-pendant .fr-txt b { font-weight: 600; color: var(--ink); }
+.fr-pendant .fr-sub { color: var(--ink-soft); }
+
 /* Le changement de jour : « La veille », puis le jour du repas. */
 .fr-jour {
   display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px;

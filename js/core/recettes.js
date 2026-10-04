@@ -36,10 +36,12 @@ export function totalTime(r, conf) {
 }
 
 /* Temps qu'ajouteraient tous les suppléments minutés (torréfier des graines,
-   faire tremper un oignon…). `poste` restreint à « prep », « repos » ou
+   faire tremper un oignon…). Un supplément « pendant » (`repos: "pendant"`, l'oignon
+   qui trempe pendant que les lentilles cuisent) n'allonge rien : il n'est pas compté.
+   `poste` restreint à « prep », « repos » ou
    « cuisson » ; sans lui, on additionne tout. */
 export const addonTime = (r, poste) => (r.addons || []).reduce(
-  (n, a) => n + (a.step && a.step.timer && (!poste || a.step.adds === poste) ? a.step.timer : 0), 0);
+  (n, a) => n + (a.step && a.step.timer && a.step.repos !== "pendant" && (!poste || a.step.adds === poste) ? a.step.timer : 0), 0);
 
 /* Le total : la version composée (choix par défaut tant qu'on n'en a pas fait
    d'autre), et jusqu'où elle monte avec tous les petits plus. */
