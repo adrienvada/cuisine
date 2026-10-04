@@ -192,6 +192,44 @@ for (const r of RECIPES) {
 }
 tipsKo.forEach(ko);
 
+/* ---------- 6. Référentiels d'ingrédients (allergènes, saisons, substitutions) ----------
+   Indexés par cid : une clé qui ne tombe sur aucun ingrédient des recettes est
+   une faute de frappe, et la donnée ne s'afficherait jamais. */
+
+const cids = new Set();
+for (const r of RECIPES) {
+  const lots = [r.ingredients, ...(r.choices || []).flatMap(c => c.options.map(o => o.ingredients)),
+    ...(r.addons || []).map(a => a.ingredients)];
+  for (const l of lots) for (const i of l || []) if (i.cid) cids.add(i.cid);
+}
+const lire = (fichier, ...noms) => {
+  const s = readFileSync(join(ROOT, "js", fichier), "utf8");
+  return new Function(`${s}; return [${noms.join(", ")}];`)();
+};
+const [ALLERGENES_LISTE, ALLERGENES, NON_VEGETARIEN] = lire("allergenes.js", "ALLERGENES_LISTE", "ALLERGENES", "NON_VEGETARIEN");
+const [SAISONS] = lire("saisons.js", "SAISONS");
+const [SUBSTITUTIONS] = lire("substitutions.js", "SUBSTITUTIONS");
+const idsAllergenes = ALLERGENES_LISTE.map(a => a.id);
+
+for (const [cid, ids] of Object.entries(ALLERGENES)) {
+  if (!cids.has(cid)) ko(`allergenes.js : « ${cid} » n'est le cid d'aucun ingrédient`);
+  for (const id of ids) if (!idsAllergenes.includes(id)) ko(`allergenes.js : « ${cid} » cite l'allergène « ${id} », absent de ALLERGENES_LISTE`);
+}
+for (const cid of NON_VEGETARIEN) if (!cids.has(cid)) ko(`allergenes.js : NON_VEGETARIEN cite « ${cid} », cid inconnu`);
+for (const [cid, mois] of Object.entries(SAISONS)) {
+  if (!cids.has(cid)) ko(`saisons.js : « ${cid} » n'est le cid d'aucun ingrédient`);
+  if (!Array.isArray(mois) || !mois.length || !mois.every(m => Number.isInteger(m) && m >= 1 && m <= 12)) {
+    ko(`saisons.js : « ${cid} » doit lister des mois entiers de 1 à 12`);
+  }
+}
+for (const [cid, liste] of Object.entries(SUBSTITUTIONS)) {
+  if (!cids.has(cid)) ko(`substitutions.js : « ${cid} » n'est le cid d'aucun ingrédient`);
+  for (const s of liste) {
+    if (!s.par || !String(s.par).trim()) ko(`substitutions.js : « ${cid} » a une substitution sans « par »`);
+    if (/[{}]/.test(`${s.par || ""} ${s.note || ""}`)) ko(`substitutions.js : « ${cid} » contient une accolade — réservée aux quantités mises à l'échelle`);
+  }
+}
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
@@ -199,6 +237,7 @@ if (erreurs.length) {
 
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
 console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
+console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions.`);
 
 /* Pour information seulement — jamais une erreur. Un fondamental sans recette
    est une astuce croisée dans la vie qui attend la sienne, et c'est prévu. */
