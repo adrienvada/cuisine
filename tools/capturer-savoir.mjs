@@ -11,15 +11,19 @@
    Les animations sont coupées (mouvement réduit) : la photo montre la figure
    achevée. Puis il relève, figure par figure, ce qu'un œil pressé manquerait :
    texte trop petit (< 11 px rendus), texte qui sort du cadre, deux textes qui se
-   chevauchent, figure qui déborde de l'écran. « ✓ » : rien à signaler.
+   chevauchent, figure qui déborde de l'écran, bouton de zoom sans cible de 44 px
+   ou posé sur le dessin ou sur un texte. Et, à part (« signalements »), un texte barré
+   par un tracé de courbe ou par une ligne de repère — une tige d'étiquette qui traverse
+   une graduation. « ✓ » : rien à signaler.
 
    Usage :  node tools/capturer-savoir.mjs <id> [dossier] [--largeur=360] [--strict]
    - dossier : défaut <tmp>/captures-savoirs
-   - --strict : code de sortie 1 s'il y a le moindre signalement
+   - --strict : code de sortie 1 s'il y a le moindre signalement ou problème
    Variable PORT : port du serveur local (4290 par défaut ; un serveur déjà là sur ce port est réutilisé).
 
    Ce fichier n'est pas dans le service worker : c'est un outil de développement.
-   `mesurerFigures` est exporté pour les tests de bout en bout. */
+   `mesurerFigures` est exporté pour les tests de bout en bout : ils n'en regardent que
+   `problemes` (les `signalements` sont des défauts de données, corrigés figure par figure). */
 
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
@@ -30,21 +34,22 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const RACINE = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Exécutée DANS la page (page.evaluate) : aucune référence à l'extérieur.
-   Rend, pour chaque figure, la liste de ses problèmes. */
+   Rend, pour chaque figure, { problemes, signalements }. */
 export function mesurerFigures() {
   const rects = (a, b, marge) =>
     a.left + marge < b.right && a.right - marge > b.left && a.top + marge < b.bottom && a.bottom - marge > b.top;
+  const court = t => t.textContent.trim().replace(/\s+/g, " ").slice(0, 34);
   return [...document.querySelectorAll(".fg")].map((fig, i) => {
-    const probleme = [];
+    const probleme = [], signalement = [];
     const svg = fig.querySelector("svg.fg-svg");
     const titre = (fig.querySelector(".fg-titre") || {}).textContent || `figure ${i + 1}`;
-    if (!svg) return { i: i + 1, titre, problemes: ["pas de SVG"] };
+    if (!svg) return { i: i + 1, titre, problemes: ["pas de SVG"], signalements: [] };
     const cadre = svg.getBoundingClientRect();
     const fr = fig.getBoundingClientRect();
     if (fr.right > window.innerWidth + 0.5 || fr.left < -0.5) probleme.push("la figure déborde de l'écran");
     const boites = [...svg.querySelectorAll("text")].filter(t => t.textContent.trim()).map(t => {
       const ctm = t.getScreenCTM();
-      return { b: t.getBoundingClientRect(), taille: parseFloat(getComputedStyle(t).fontSize) * (ctm ? ctm.a : 1), txt: t.textContent.trim().replace(/\s+/g, " ").slice(0, 34) };
+      return { b: t.getBoundingClientRect(), taille: parseFloat(getComputedStyle(t).fontSize) * (ctm ? ctm.a : 1), txt: court(t) };
     });
     for (const x of boites) {
       if (x.taille < 10.9) probleme.push(`texte trop petit (${x.taille.toFixed(1)} px) : « ${x.txt} »`);
@@ -55,7 +60,45 @@ export function mesurerFigures() {
         if (rects(boites[a].b, boites[b].b, 2.5)) probleme.push(`chevauchement : « ${boites[a].txt} » et « ${boites[b].txt} »`);
       }
     }
-    return { i: i + 1, titre, problemes: probleme };
+
+    /* Le bouton d'agrandissement : une cible de 44 px, hors du dessin, sur aucun texte. */
+    const bouton = fig.querySelector(".fg-agrandir");
+    if (bouton) {
+      const bb = bouton.getBoundingClientRect();
+      if (bb.width < 43.5 || bb.height < 43.5) probleme.push(`le bouton de zoom n'a pas une cible de 44 px (${Math.round(bb.width)}×${Math.round(bb.height)})`);
+      if (bb.left < -0.5 || bb.right > window.innerWidth + 0.5) probleme.push("le bouton de zoom sort de l'écran");
+      if (rects(bb, cadre, 0.5)) probleme.push("le bouton de zoom recouvre le dessin");
+      for (const x of boites) if (rects(bb, x.b, 0.5)) probleme.push(`le bouton de zoom recouvre « ${x.txt} »`);
+    }
+
+    /* Un tracé de courbe ou une ligne de repère qui barre un texte : on échantillonne le tracé
+       et l'on cherche un point dans la boîte du texte (rétrécie de 1,5 px). Courbes et échelles. */
+    if (fig.classList.contains("fg-courbe") || fig.classList.contains("fg-echelle")) {
+      const traces = [...svg.querySelectorAll("path.fg-trace, path.fg-tirets, line.fg-tirets, line.fg-t-fin")]
+        .filter(el => typeof el.getTotalLength === "function" && !el.closest("defs, marker, symbol"));
+      const pt = svg.createSVGPoint();
+      const vus = new Set();
+      for (const el of traces) {
+        const ctm = el.getScreenCTM();
+        if (!ctm) continue;
+        const long = el.getTotalLength();
+        const nom = el.classList.contains("fg-trace") ? "un tracé de courbe" : "une ligne de repère";
+        for (let d = 0; d <= long; d += Math.max(1.2, long / 400)) {
+          const p = el.getPointAtLength(d);
+          pt.x = p.x; pt.y = p.y;
+          const s = pt.matrixTransform(ctm);
+          for (const x of boites) {
+            const cle = nom + x.txt;
+            if (vus.has(cle)) continue;
+            if (s.x > x.b.left + 1.5 && s.x < x.b.right - 1.5 && s.y > x.b.top + 1.5 && s.y < x.b.bottom - 1.5) {
+              vus.add(cle);
+              signalement.push(`texte barré par ${nom} : « ${x.txt} »`);
+            }
+          }
+        }
+      }
+    }
+    return { i: i + 1, titre, problemes: probleme, signalements: signalement };
   });
 }
 
@@ -118,8 +161,9 @@ async function principal() {
       console.log(`\n[${nom}] ${nb} figure${nb > 1 ? "s" : ""}, page ${largeur} px${debord ? " — ⚠ la page défile horizontalement" : ""}`);
       if (debord) total++;
       for (const r of rapport) {
-        if (!r.problemes.length) console.log(`  ✓ ${r.i}. ${r.titre}`);
-        else { total += r.problemes.length; console.log(`  ⚠ ${r.i}. ${r.titre}\n${r.problemes.map(p => "      · " + p).join("\n")}`); }
+        const tout = [...r.problemes, ...r.signalements];
+        if (!tout.length) console.log(`  ✓ ${r.i}. ${r.titre}`);
+        else { total += tout.length; console.log(`  ⚠ ${r.i}. ${r.titre}\n${tout.map(p => "      · " + p).join("\n")}`); }
       }
       await contexte.close();
     }

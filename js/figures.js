@@ -53,6 +53,9 @@
                      épaisseur fg-t-fin / fg-t-epais / fg-t-tres-epais ;
                      style fg-tirets / fg-pointilles. Un trait n'a pas de remplissage.
      aplats pleins . fg-f-vert fg-f-or fg-f-terra fg-f-bleu fg-f-encre
+                     fg-f-suie : le noir de brûlé (sucs, croûte, charbon), SOMBRE dans les deux
+                     thèmes avec un liseré clair en sombre — fg-f-encre, lui, devient crème en
+                     sombre : un « fond noir » y deviendrait blanc
      aplats clairs . fg-f-vert-l fg-f-or-l fg-f-terra-l fg-f-bleu-l (portent du texte)
                      fg-f-papier fg-f-doux fg-f-carte fg-f-aucun
      textes ........ fg-txt (13) + fg-txt-s (petit, 11,5) / fg-txt-b (gras) /
@@ -60,10 +63,26 @@
                      teinte fg-txt-vert fg-txt-or fg-txt-terra fg-txt-bleu fg-txt-doux ;
                      fg-halo (liseré de fond, sur un tracé) ; fg-txt-sur (sur un aplat plein vert)
      divers ........ fg-pt (un point : liseré de carte), fg-emoji
-     flèches ....... marker-end="url(#fg-fl-encre)" — encre, vert, or, terra, bleu, doux.
-   Les identifiants sont réécrits par figure : #fg-fl-… devient unique dans la page,
-   et un id que l'auteur pose lui-même s'écrit « fg-@-nom » (id="fg-@-halo",
+     flèches ....... marker-end="url(#fg-fl-encre)" : la pointe d'ARRIVÉE, au bout du tracé ;
+                     marker-start="url(#fg-fd-encre)" : la pointe de DÉPART, pour une cote à
+                     double flèche (<path d="M20 30L300 30" marker-start="url(#fg-fd-encre)"
+                     marker-end="url(#fg-fl-encre)"/>). Tons : encre, vert, or, terra, bleu, doux.
+                     Un <path> à plusieurs « M » ne porte qu'UNE pointe par bout (le début du
+                     premier tracé, la fin du dernier) : une flèche par <path>. Un
+                     <g class="fg-t-terra fg-t-epais"> propage son trait à tous ses enfants (et
+                     marker-end, hérité, s'y met aussi : à ne poser que sur un enfant).
+   Les identifiants sont réécrits par figure : #fg-fl-… et #fg-fd-… deviennent uniques dans la
+   page, et un id que l'auteur pose lui-même s'écrit « fg-@-nom » (id="fg-@-halo",
    url(#fg-@-halo)).
+
+   LE SENS DES COULEURS — la palette dit quelque chose, ne la détournez pas
+   - terra = la chaleur, la coloration brune, l'amertume, le danger ;
+   - or-l (le fond clair doré) = la chair crue, le gras, les sucres ;
+   - bleu = l'eau et le froid ; vert = le végétal, l'amidon, ce qui va bien ;
+   - une nuance plus PÂLE ne doit pas signifier « moins » si le texte ne le dit pas : une
+     teinte claire est un autre ton (un fond), pas une quantité plus petite ;
+   - un POURCENTAGE nomme toujours sa base : « 4 % dans la chair », « 5 % dans la phase
+     aqueuse », jamais un « 4 % » nu.
 
    LES SIX TYPES — un exemple complet de chacun, à copier
 
@@ -79,10 +98,24 @@
                     points: [[0, 0.04], [40, 0.9], [55, 1], [100, 0.1]] } ],
         zones: [ { de: 0, a: 22, label: "trop sec", ton: "or" } ],       // bandes verticales étiquetées
         reperes: [ { x: 55, label: "maximum", ton: "terra" } ],           // { x } vertical ou { y } horizontal
-        notes: [ { x: 55, y: 1, texte: "le plus rapide ici", dx: 24, dy: 10 } ] }  // dx, dy, largeur, ancre facultatifs
+        notes: [ { x: 55, y: 1, texte: "le plus rapide ici", dx: 24, dy: -26 } ] }  // dx, dy, largeur, ancre facultatifs
       Les coordonnées des points sont celles de l'échelle des axes (min, max
       par défaut : l'étendue des données). Un « x » en qualitatif est une échelle
       libre, 0 à 100 par exemple. Plusieurs séries : une légende s'ajoute seule.
+      Plus :
+      - zonesY: [ { de: 150, a: 180, label: "la bonne fenêtre", ton: "vert", ancre: "droite" } ]
+        des BANDES HORIZONTALES (sur toute la largeur du tracé), étiquetées dans la bande, à
+        gauche par défaut (ancre: "droite" pour l'autre bout) ;
+      - reperes: [ { y: 100, label: "plafond", ton: "bleu", ancre: "gauche" } ] : l'étiquette
+        d'un repère horizontal se pose à droite par défaut, à gauche avec ancre: "gauche" ;
+      - une étiquette de zone (x) trop étroite pour sa bande ne se coupe plus en quatre lignes :
+        elle passe AU-DESSUS du tracé, sur une ligne, centrée sur sa bande ;
+      - qualitative + x.graduations : une courbe qualitative peut tout de même graduer son axe
+        en choisissant les valeurs (x: { label, extremites: ["tôt", "tard"], min: 0, max: 100,
+        graduations: [0, 50, 100] }) ; les extrémités passent alors sous les graduations ;
+      - notes : dx est le décalage horizontal du texte, dy le décalage VERTICAL — négatif =
+        VERS LE HAUT (défaut −26 : l'annotation au-dessus du point), positif = en dessous ;
+        la flèche relie toujours l'annotation au point.
 
    2. echelle — une règle graduée : zones colorées et marqueurs étiquetés
       { ou: "cas", type: "echelle",
@@ -95,7 +128,17 @@
                  { de: 200, a: 230, label: "pyrolyse", ton: "terra" } ],
         marqueurs: [ { v: 100, label: "L'eau plafonne la surface à 100 °C", ton: "bleu" } ] }
       Échelle sans chiffres : `qualitative: true, extremites: ["lent", "rapide"]`.
-      Les étiquettes se répartissent seules au-dessus et en dessous de la règle.
+      Les étiquettes se répartissent seules au-dessus et en dessous de la règle ; un nombre
+      n'est jamais séparé de son unité (« 20 g », « 12 heures » ne se coupent pas). Plus :
+      - cote: "haut" | "bas", sur une zone OU un marqueur : force le côté de l'étiquette
+        ({ v: 100, label: "…", cote: "bas" }) ; une zone dont on force le côté sort de la bande ;
+      - coupures: [ { de: 100, a: 900 } ] : un AXE INTERROMPU. Les valeurs de 100 à 900 n'ont plus
+        de place ; la règle se coupe en deux, avec le signe // (celui du thermomètre) et un
+        blanc ; les deux bords de la coupure sont étiquetés, ce qui tombe dedans disparaît, une
+        zone qui l'enjambe se dessine en deux morceaux ;
+      - rangees: true : des zones qui se CHEVAUCHENT passent sur des pistes parallèles au lieu de
+        se superposer (la première piste libre, de haut en bas) ;
+      - une tige d'étiquette ne barre jamais une graduation : celle-ci se range à son côté.
 
    3. barres — barres horizontales comparatives, avec valeur et unité
       { ou: "reperes", type: "barres", titre: "…", legende: "…", alt: "…",
@@ -103,6 +146,9 @@
         barres: [ { label: "Poêle fine", valeur: 1, texte: "1 à 2 min", ton: "or", note: "…" },
                   { label: "Fonte", valeur: 4.5, texte: "4 à 5 min", ton: "terra" } ] }
       `texte` remplace la valeur affichée ; `note` est une ligne de détail sous la barre.
+      Une barre peut être une PLAGE : { label: "Moyenne", de: 4, a: 5, texte: "4 à 5 min" },
+      dessinée comme un segment avec ses deux bornes (deux disques) sur la piste ; sans
+      `texte`, la valeur affichée est « 4 à 5 min ». `min` (0 par défaut) et `max` fixent l'échelle.
 
    4. etapes — un processus en cases reliées par des flèches (2 à 5)
       { ou: "cas", type: "etapes", titre: "…", legende: "…", alt: "…",
@@ -122,6 +168,7 @@
       n'en est que le contenu. Textes de 11,5 minimum, centrés ou ancrés
       (text-anchor) : le SVG ne coupe pas les lignes, c'est à vous de les poser
       (un <tspan x dy> par ligne). Garder 8 à 10 unités de marge sur les bords.
+      Les SYMBOLES PARTAGÉS (plus bas) s'y appellent par <use href="#fg-sym-NOM" …/>.
 
    6. comparaison — deux ou trois panneaux côte à côte, avant/après ou bon/mauvais
       { ou: "reperes", type: "comparaison", titre: "…", legende: "…", alt: "…",
@@ -132,12 +179,51 @@
                       vb: "0 0 100 64", corps: `<circle class="fg-f-terra" cx="50" cy="32" r="22"/>` } ] }
       Chaque panneau est un mini-SVG libre (`vb` et `corps`, comme le type svg)
       dans sa carte, avec son libellé en dessous.
+      - Le TEXTE d'un panneau garde sa taille nominale (11,5 ; 13…) quelle que soit la largeur du
+        panneau : le dessin est mis à l'échelle de sa carte, le texte non (le cadre en annule
+        l'échelle). Le `vb` RECOMMANDÉ donne pourtant l'échelle 1, donc un dessin à la taille
+        qu'on a tracée : sa largeur est celle de la zone de dessin — 134 pour deux panneaux,
+        84 pour trois ; 128 et 77 si `fleche: true` ; 116 en une colonne. Un autre `vb` est mis à
+        l'échelle (le cadre l'ajuste seul) : seul le dessin change de taille.
+      - colonnes: 1 | 2 | 3 : le nombre de panneaux par rangée (le nombre de panneaux par
+        défaut). `colonnes: 1` met chaque panneau sur une ligne — le dessin à gauche, le texte à
+        droite, sur 160 unités : la disposition des TEXTES LONGS, qui se couperaient en six lignes
+        dans une colonne étroite. `colonnes: 2` avec trois panneaux : deux, puis un.
 
-   Le zoom (un appui sur la figure l'ouvre en grand) et l'apparition des tracés
-   sont automatiques. Pour voir ce qu'on dessine : node tools/capturer-savoir.mjs <id>
-   (captures claires et sombres dans un dossier). Le vérificateur
-   (node tools/verifier-recettes.mjs) contrôle clés, types, titres, alt, `ou`, `apres`
-   et l'absence de couleur en dur. */
+   LES SYMBOLES PARTAGÉS — la bibliothèque (SYMBOLES, dans js/ui/figures.js)
+   Un `corps` (svg libre, panneau de comparaison) appelle un symbole par
+     <use href="#fg-sym-NOM" x="10" y="20" width="24" height="30"/>
+   ou, pour le tourner, <use href="#fg-sym-NOM" transform="rotate(40 100 60)" x y width height/>.
+   Le cadre n'injecte dans chaque figure que les <symbol> utilisés, avec des identifiants
+   uniques par figure (comme les marqueurs). Chaque symbole est dessiné dans sa boîte à sa
+   taille d'usage ; width et height le mettent à l'échelle, ses traits avec lui (un trait de
+   2,6 reste de 2,6 à l'échelle 1). Le TON du symbole se choisit par une classe sur le <use> :
+   class="fg-sy-vert" (ou or, terra, bleu, encre, doux) ; sans classe, il garde son ton par
+   défaut. Aucune couleur en dur. Le vérificateur n'autorise <use> QU'avec href="#fg-sym-…"
+   d'un symbole qui existe ; tout autre usage reste interdit.
+     cuisine   poele (72×26, encre) · casserole (58×44, encre) · flamme (24×30, terra) ·
+               vapeur (14×32, bleu) · goutte (16×22, bleu) · bulle (18×18, bleu) ·
+               couteau (72×15, encre) · thermometre (14×40, terra)
+     matière   cellule (56×44, vert : paroi, vacuole, noyau) · grain-sel (8×8, encre) ·
+               cristal (24×24, encre) · bacterie (32×16, terra) · larve (24×24, terra : spirale) ·
+               oeuf (24×30, or : contour) · feuille (30×24, vert) ·
+               emulsifiant (16×46, bleu : tête qui aime l'eau en haut, queue grasse dessous) ·
+               ion-plus (16×16, terra) · ion-moins (16×16, bleu)
+     composés  grains-sel-sucre (184×8 : une rangée de 11 grains, sel et sucre en alternance) ·
+               pelote (20×20, terra : une protéine repliée sur elle-même)
+   Exemple : une couronne de molécules d'émulsifiant autour d'une gouttelette de rayon 36 —
+     <g transform="translate(78 92)"><use href="#fg-sym-emulsifiant" transform="rotate(75)"
+     x="-3" y="-42" width="6" height="17"/> … </g>   (rotate : l'angle de chaque molécule).
+   La planche de tous les symboles, en clair et en sombre : node tools/planche-symboles.mjs <dossier>.
+
+   Le zoom (un appui sur la figure, ou sur le bouton dans la ligne du titre : cible de 44 px,
+   Échap ; sur un écran étroit la figure agrandie défile, une ombre et une ligne le disent) et
+   l'apparition des tracés sont automatiques. Pour voir ce qu'on dessine : node
+   tools/capturer-savoir.mjs <id> (captures claires et sombres dans un dossier ; signale texte
+   trop petit ou coupé, chevauchements, bouton de zoom sur le dessin, texte barré par un tracé
+   ou une ligne de repère). Le vérificateur (node tools/verifier-recettes.mjs) contrôle clés,
+   types, titres, alt, `ou`, `apres`, les options des types, les <use> et l'absence de couleur
+   en dur. */
 
 const FIGURES = {};
 
@@ -776,192 +862,13 @@ FIGURES["emulsion"] = [
     corps: `<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="8" y="8" width="304" height="168" rx="12"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="18" y="28" text-anchor="start"><tspan x="18">phase aqueuse : eau, vinaigre</tspan></text>
 <circle class="fg-f-or-l fg-t-or" cx="78" cy="92" r="36"/>
-<path class="fg-t-or fg-t-fin" d="M105.3 98.7L112.4 100.9"/>
-<path class="fg-t-or fg-t-fin" d="M104.2 101.9L111.4 104.1"/>
-<circle class="fg-f-bleu" cx="115.6" cy="103.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M101.9 106.7L108 111.1"/>
-<path class="fg-t-or fg-t-fin" d="M99.9 109.5L106 113.8"/>
-<circle class="fg-f-bleu" cx="110.2" cy="114.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M96.1 113.4L100.6 119.4"/>
-<path class="fg-t-or fg-t-fin" d="M93.4 115.4L97.9 121.4"/>
-<circle class="fg-f-bleu" cx="101.6" cy="123.5" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M88.6 118L91.1 125.1"/>
-<path class="fg-t-or fg-t-fin" d="M85.4 119.1L87.8 126.2"/>
-<circle class="fg-f-bleu" cx="90.7" cy="129.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M80.1 120L80.2 127.5"/>
-<path class="fg-t-or fg-t-fin" d="M76.7 120L76.8 127.5"/>
-<circle class="fg-f-bleu" cx="78.6" cy="131.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M71.3 119.3L69.1 126.4"/>
-<path class="fg-t-or fg-t-fin" d="M68.1 118.2L65.9 125.4"/>
-<circle class="fg-f-bleu" cx="66.4" cy="129.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M63.3 115.9L58.9 122"/>
-<path class="fg-t-or fg-t-fin" d="M60.5 113.9L56.2 120"/>
-<circle class="fg-f-bleu" cx="55.3" cy="124.2" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M56.6 110.1L50.6 114.6"/>
-<path class="fg-t-or fg-t-fin" d="M54.6 107.4L48.6 111.9"/>
-<circle class="fg-f-bleu" cx="46.5" cy="115.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M52 102.6L44.9 105.1"/>
-<path class="fg-t-or fg-t-fin" d="M50.9 99.4L43.8 101.8"/>
-<circle class="fg-f-bleu" cx="40.7" cy="104.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M50 94.1L42.5 94.2"/>
-<path class="fg-t-or fg-t-fin" d="M50 90.7L42.5 90.8"/>
-<circle class="fg-f-bleu" cx="38.6" cy="92.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M50.7 85.3L43.6 83.1"/>
-<path class="fg-t-or fg-t-fin" d="M51.8 82.1L44.6 79.9"/>
-<circle class="fg-f-bleu" cx="40.4" cy="80.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M54.1 77.3L48 72.9"/>
-<path class="fg-t-or fg-t-fin" d="M56.1 74.5L50 70.2"/>
-<circle class="fg-f-bleu" cx="45.8" cy="69.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M59.9 70.6L55.4 64.6"/>
-<path class="fg-t-or fg-t-fin" d="M62.6 68.6L58.1 62.6"/>
-<circle class="fg-f-bleu" cx="54.4" cy="60.5" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M67.4 66L64.9 58.9"/>
-<path class="fg-t-or fg-t-fin" d="M70.6 64.9L68.2 57.8"/>
-<circle class="fg-f-bleu" cx="65.3" cy="54.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M75.9 64L75.8 56.5"/>
-<path class="fg-t-or fg-t-fin" d="M79.3 64L79.2 56.5"/>
-<circle class="fg-f-bleu" cx="77.4" cy="52.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M84.7 64.7L86.9 57.6"/>
-<path class="fg-t-or fg-t-fin" d="M87.9 65.8L90.1 58.6"/>
-<circle class="fg-f-bleu" cx="89.6" cy="54.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M92.7 68.1L97.1 62"/>
-<path class="fg-t-or fg-t-fin" d="M95.5 70.1L99.8 64"/>
-<circle class="fg-f-bleu" cx="100.7" cy="59.8" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M99.4 73.9L105.4 69.4"/>
-<path class="fg-t-or fg-t-fin" d="M101.4 76.6L107.4 72.1"/>
-<circle class="fg-f-bleu" cx="109.5" cy="68.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M104 81.4L111.1 78.9"/>
-<path class="fg-t-or fg-t-fin" d="M105.1 84.6L112.2 82.2"/>
-<circle class="fg-f-bleu" cx="115.3" cy="79.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M106 89.9L113.5 89.8"/>
-<path class="fg-t-or fg-t-fin" d="M106 93.3L113.5 93.2"/>
-<circle class="fg-f-bleu" cx="117.4" cy="91.4" r="3.1"/>
+<g transform="translate(78 92)"><use href="#fg-sym-emulsifiant" transform="rotate(107)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(125)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(143)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(161)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(179)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(197)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(215)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(233)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(251)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(269)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-73)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-55)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-37)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-19)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-1)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(17)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(35)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(53)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(71)" x="-3" y="-42" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(89)" x="-3" y="-42" width="6" height="17"/></g>
 <circle class="fg-f-or-l fg-t-or" cx="176" cy="66" r="25"/>
-<path class="fg-t-or fg-t-fin" d="M192.7 69.4L199.9 71.6"/>
-<path class="fg-t-or fg-t-fin" d="M191.7 72.6L198.9 74.9"/>
-<circle class="fg-f-bleu" cx="203.1" cy="74.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M189.6 76.3L195.1 81.4"/>
-<path class="fg-t-or fg-t-fin" d="M187.3 78.8L192.8 83.9"/>
-<circle class="fg-f-bleu" cx="196.8" cy="85.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M183.8 81.2L186.5 88.2"/>
-<path class="fg-t-or fg-t-fin" d="M180.6 82.4L183.3 89.4"/>
-<circle class="fg-f-bleu" cx="186.4" cy="92.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M176.4 83.1L175.8 90.6"/>
-<path class="fg-t-or fg-t-fin" d="M173 82.8L172.5 90.3"/>
-<circle class="fg-f-bleu" cx="173.9" cy="94.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M169 81.6L165.2 88.1"/>
-<path class="fg-t-or fg-t-fin" d="M166 79.9L162.3 86.4"/>
-<circle class="fg-f-bleu" cx="161.8" cy="90.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M162.9 77L156.7 81.2"/>
-<path class="fg-t-or fg-t-fin" d="M161 74.2L154.8 78.4"/>
-<circle class="fg-f-bleu" cx="152.5" cy="82" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M159.4 70.2L152 71.3"/>
-<path class="fg-t-or fg-t-fin" d="M158.9 66.8L151.5 68"/>
-<circle class="fg-f-bleu" cx="147.9" cy="70.2" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M159.3 62.6L152.1 60.4"/>
-<path class="fg-t-or fg-t-fin" d="M160.3 59.4L153.1 57.1"/>
-<circle class="fg-f-bleu" cx="148.9" cy="57.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M162.4 55.7L156.9 50.6"/>
-<path class="fg-t-or fg-t-fin" d="M164.7 53.2L159.2 48.1"/>
-<circle class="fg-f-bleu" cx="155.2" cy="46.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M168.2 50.8L165.5 43.8"/>
-<path class="fg-t-or fg-t-fin" d="M171.4 49.6L168.7 42.6"/>
-<circle class="fg-f-bleu" cx="165.6" cy="39.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M175.6 48.9L176.2 41.4"/>
-<path class="fg-t-or fg-t-fin" d="M179 49.2L179.5 41.7"/>
-<circle class="fg-f-bleu" cx="178.1" cy="37.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M183 50.4L186.8 43.9"/>
-<path class="fg-t-or fg-t-fin" d="M186 52.1L189.7 45.6"/>
-<circle class="fg-f-bleu" cx="190.2" cy="41.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M189.1 55L195.3 50.8"/>
-<path class="fg-t-or fg-t-fin" d="M191 57.8L197.2 53.6"/>
-<circle class="fg-f-bleu" cx="199.5" cy="50" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M192.6 61.8L200 60.7"/>
-<path class="fg-t-or fg-t-fin" d="M193.1 65.2L200.5 64"/>
-<circle class="fg-f-bleu" cx="204.1" cy="61.8" r="3.1"/>
+<g transform="translate(176 66)"><use href="#fg-sym-emulsifiant" transform="rotate(107)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(133)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(158)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(184)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(210)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(236)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(261)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-73)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-47)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-22)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(4)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(30)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(56)" x="-3" y="-31" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(81)" x="-3" y="-31" width="6" height="17"/></g>
 <circle class="fg-f-or-l fg-t-or" cx="266" cy="104" r="31"/>
-<path class="fg-t-or fg-t-fin" d="M288.5 109.2L295.6 111.4"/>
-<path class="fg-t-or fg-t-fin" d="M287.5 112.4L294.6 114.6"/>
-<circle class="fg-f-bleu" cx="298.9" cy="114.2" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M285.1 116.9L291 121.6"/>
-<path class="fg-t-or fg-t-fin" d="M283 119.6L288.9 124.3"/>
-<circle class="fg-f-bleu" cx="293" cy="125.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M279.1 123L282.9 129.4"/>
-<path class="fg-t-or fg-t-fin" d="M276.2 124.7L280 131.2"/>
-<circle class="fg-f-bleu" cx="283.4" cy="133.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M271.4 126.4L272.6 133.8"/>
-<path class="fg-t-or fg-t-fin" d="M268 127L269.2 134.4"/>
-<circle class="fg-f-bleu" cx="271.5" cy="137.9" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M262.9 126.9L261.4 134.2"/>
-<path class="fg-t-or fg-t-fin" d="M259.6 126.2L258.1 133.5"/>
-<circle class="fg-f-bleu" cx="258.9" cy="137.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M254.9 124.2L250.8 130.5"/>
-<path class="fg-t-or fg-t-fin" d="M252 122.3L247.9 128.6"/>
-<circle class="fg-f-bleu" cx="247.2" cy="132.8" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M248.3 118.8L242.2 123.2"/>
-<path class="fg-t-or fg-t-fin" d="M246.3 116.1L240.3 120.4"/>
-<circle class="fg-f-bleu" cx="238.1" cy="124.1" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M244.2 111.4L236.9 113.3"/>
-<path class="fg-t-or fg-t-fin" d="M243.3 108.1L236.1 110"/>
-<circle class="fg-f-bleu" cx="232.7" cy="112.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M243 103L235.5 102.2"/>
-<path class="fg-t-or fg-t-fin" d="M243.3 99.7L235.9 98.8"/>
-<circle class="fg-f-bleu" cx="231.8" cy="100" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M244.9 94.8L238.2 91.3"/>
-<path class="fg-t-or fg-t-fin" d="M246.4 91.8L239.8 88.3"/>
-<circle class="fg-f-bleu" cx="235.6" cy="88" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M249.6 87.8L244.7 82.1"/>
-<path class="fg-t-or fg-t-fin" d="M252.2 85.5L247.3 79.9"/>
-<circle class="fg-f-bleu" cx="243.4" cy="78.1" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M256.6 82.9L254 75.9"/>
-<path class="fg-t-or fg-t-fin" d="M259.8 81.8L257.2 74.7"/>
-<circle class="fg-f-bleu" cx="254.3" cy="71.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M264.8 81L265 73.5"/>
-<path class="fg-t-or fg-t-fin" d="M268.2 81L268.4 73.5"/>
-<circle class="fg-f-bleu" cx="266.8" cy="69.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M273.2 82.1L276.1 75.2"/>
-<path class="fg-t-or fg-t-fin" d="M276.4 83.4L279.2 76.5"/>
-<circle class="fg-f-bleu" cx="279.2" cy="72.2" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M280.6 86.2L285.8 80.8"/>
-<path class="fg-t-or fg-t-fin" d="M283.1 88.5L288.3 83.1"/>
-<circle class="fg-f-bleu" cx="289.7" cy="79.1" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M286.1 92.7L292.9 89.5"/>
-<path class="fg-t-or fg-t-fin" d="M287.5 95.8L294.3 92.6"/>
-<circle class="fg-f-bleu" cx="297.1" cy="89.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M288.8 100.7L296.3 100.2"/>
-<path class="fg-t-or fg-t-fin" d="M289.1 104.1L296.5 103.6"/>
-<circle class="fg-f-bleu" cx="300.3" cy="101.6" r="3.1"/>
+<g transform="translate(266 104)"><use href="#fg-sym-emulsifiant" transform="rotate(107)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(128)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(150)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(171)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(192)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(213)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(234)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(255)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-83)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-62)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-41)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-20)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(1)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(23)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(44)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(65)" x="-3" y="-37" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(86)" x="-3" y="-37" width="6" height="17"/></g>
 <circle class="fg-f-or-l fg-t-or" cx="190" cy="138" r="18"/>
-<path class="fg-t-or fg-t-fin" d="M200.1 139.3L207.2 141.5"/>
-<path class="fg-t-or fg-t-fin" d="M199.1 142.6L206.2 144.8"/>
-<circle class="fg-f-bleu" cx="210.4" cy="144.3" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M197.4 145L201.8 151"/>
-<path class="fg-t-or fg-t-fin" d="M194.6 147L199.1 153"/>
-<circle class="fg-f-bleu" cx="202.8" cy="155.1" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M191.8 148L191.9 155.5"/>
-<path class="fg-t-or fg-t-fin" d="M188.4 148L188.5 155.5"/>
-<circle class="fg-f-bleu" cx="190.3" cy="159.4" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M185.6 147.2L181.3 153.3"/>
-<path class="fg-t-or fg-t-fin" d="M182.8 145.2L178.5 151.3"/>
-<circle class="fg-f-bleu" cx="177.7" cy="155.5" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M181.1 142.8L174 145.3"/>
-<path class="fg-t-or fg-t-fin" d="M180 139.6L172.9 142"/>
-<circle class="fg-f-bleu" cx="169.7" cy="144.9" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M179.9 136.7L172.8 134.5"/>
-<path class="fg-t-or fg-t-fin" d="M180.9 133.4L173.8 131.2"/>
-<circle class="fg-f-bleu" cx="169.6" cy="131.7" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M182.6 131L178.2 125"/>
-<path class="fg-t-or fg-t-fin" d="M185.4 129L180.9 123"/>
-<circle class="fg-f-bleu" cx="177.2" cy="120.9" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M188.2 128L188.1 120.5"/>
-<path class="fg-t-or fg-t-fin" d="M191.6 128L191.5 120.5"/>
-<circle class="fg-f-bleu" cx="189.7" cy="116.6" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M194.4 128.8L198.7 122.7"/>
-<path class="fg-t-or fg-t-fin" d="M197.2 130.8L201.5 124.7"/>
-<circle class="fg-f-bleu" cx="202.3" cy="120.5" r="3.1"/>
-<path class="fg-t-or fg-t-fin" d="M198.9 133.2L206 130.7"/>
-<path class="fg-t-or fg-t-fin" d="M200 136.4L207.1 134"/>
-<circle class="fg-f-bleu" cx="210.3" cy="131.1" r="3.1"/>
+<g transform="translate(190 138)"><use href="#fg-sym-emulsifiant" transform="rotate(107)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(143)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(179)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(215)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(251)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-73)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-37)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(-1)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(35)" x="-3" y="-24" width="6" height="17"/><use href="#fg-sym-emulsifiant" transform="rotate(71)" x="-3" y="-24" width="6" height="17"/></g>
 <text class="fg-txt fg-txt-b fg-txt-or" x="78" y="96" text-anchor="middle">huile</text>
 <circle class="fg-t-encre fg-t-fin" cx="104" cy="121" r="9"/>
 <path class="fg-t-axe fg-t-fin fg-pointilles" d="M97 128L40 192M110 129L150 192"/>
@@ -972,15 +879,9 @@ FIGURES["emulsion"] = [
 <text class="fg-txt fg-txt-s fg-txt-b" x="18" y="210" text-anchor="start"><tspan x="18">L'interface, très agrandie</tspan></text>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="18" y="262" text-anchor="start"><tspan x="18">huile</tspan></text>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="18" y="230" text-anchor="start"><tspan x="18">eau</tspan></text>
-<circle class="fg-f-bleu" cx="58" cy="225" r="8"/>
-<path class="fg-t-or fg-t-epais" d="M55 233q-3 8 0 16t0 14"/>
-<path class="fg-t-or fg-t-epais" d="M61 233q3 8 0 16t0 14"/>
-<circle class="fg-f-bleu" cx="100" cy="225" r="8"/>
-<path class="fg-t-or fg-t-epais" d="M97 233q-3 8 0 16t0 14"/>
-<path class="fg-t-or fg-t-epais" d="M103 233q3 8 0 16t0 14"/>
-<circle class="fg-f-bleu" cx="142" cy="225" r="8"/>
-<path class="fg-t-or fg-t-epais" d="M139 233q-3 8 0 16t0 14"/>
-<path class="fg-t-or fg-t-epais" d="M145 233q3 8 0 16t0 14"/>
+<use href="#fg-sym-emulsifiant" x="50" y="217" width="16" height="46"/>
+<use href="#fg-sym-emulsifiant" x="92" y="217" width="16" height="46"/>
+<use href="#fg-sym-emulsifiant" x="134" y="217" width="16" height="46"/>
 <path class="fg-t-bleu fg-t-fin" d="M190 223L162 223" marker-end="url(#fg-fl-bleu)"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="196" y="227" text-anchor="start"><tspan x="196">tête : aime l'eau</tspan></text>
 <path class="fg-t-or fg-t-fin" d="M190 257L156 257" marker-end="url(#fg-fl-or)"/>
@@ -1120,17 +1021,17 @@ FIGURES["gluten"] = [
 <circle class="fg-f-vert fg-pt" cx="150" cy="210" r="4.6"/>
 <circle class="fg-f-vert fg-pt" cx="24" cy="198" r="4.6"/>
 <circle class="fg-f-vert fg-pt" cx="288" cy="192" r="4.6"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="60" cy="182" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="120" cy="180" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="92" cy="216" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="140" cy="200" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="200" cy="192" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="250" cy="182" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="290" cy="210" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="176" cy="216" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="44" cy="218" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="270" cy="198" r="3.8"/>
-<circle class="fg-f-bleu-l fg-t-bleu fg-t-fin" cx="236" cy="218" r="3.8"/>
+<use href="#fg-sym-bulle" x="55.4" y="177.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="115.4" y="175.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="87.4" y="211.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="135.4" y="195.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="195.4" y="187.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="245.4" y="177.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="285.4" y="205.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="171.4" y="211.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="39.4" y="213.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="265.4" y="193.4" width="9.1" height="9.1"/>
+<use href="#fg-sym-bulle" x="231.4" y="213.4" width="9.1" height="9.1"/>
 <path class="fg-t-terra fg-t-epais" d="M24 291q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q2 4.8 4 0"/>
 <path class="fg-t-terra fg-t-epais" d="M24 305q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q2 -4.8 4 0"/>
 <path class="fg-t-terra fg-t-epais" d="M24 319q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q2 4.8 4 0"/>
@@ -1378,18 +1279,12 @@ FIGURES["coagulation-oeuf"] = [
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-sur" x="180" y="199" text-anchor="middle">4</text>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="196" y="200">Surcuit</text>
 <text class="fg-txt fg-txt-s" x="174" y="288" text-anchor="start"><tspan x="174">La maille se resserre</tspan><tspan x="174" dy="13.5">et expulse l'eau, sans</tspan><tspan x="174" dy="13.5">retour possible.</tspan></text>
-<circle class="fg-f-terra-l fg-t-terra" cx="42" cy="56" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M38 58C36 51 46 50 46 55C46 59 41 59 41 55"/>
-<circle class="fg-f-terra-l fg-t-terra" cx="78" cy="48" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M74 50C72 43 82 42 82 47C82 51 77 51 77 47"/>
-<circle class="fg-f-terra-l fg-t-terra" cx="114" cy="60" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M110 62C108 55 118 54 118 59C118 63 113 63 113 59"/>
-<circle class="fg-f-terra-l fg-t-terra" cx="60" cy="78" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M56 80C54 73 64 72 64 77C64 81 59 81 59 77"/>
-<circle class="fg-f-terra-l fg-t-terra" cx="100" cy="82" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M96 84C94 77 104 76 104 81C104 85 99 85 99 81"/>
-<circle class="fg-f-terra-l fg-t-terra" cx="132" cy="44" r="8.5"/>
-<path class="fg-t-terra fg-t-fin" d="M128 46C126 39 136 38 136 43C136 47 131 47 131 43"/>
+<use href="#fg-sym-pelote" x="32" y="46" width="20" height="20"/>
+<use href="#fg-sym-pelote" x="68" y="38" width="20" height="20"/>
+<use href="#fg-sym-pelote" x="104" y="50" width="20" height="20"/>
+<use href="#fg-sym-pelote" x="50" y="68" width="20" height="20"/>
+<use href="#fg-sym-pelote" x="90" y="72" width="20" height="20"/>
+<use href="#fg-sym-pelote" x="122" y="34" width="20" height="20"/>
 <circle class="fg-f-bleu" cx="32" cy="74" r="2"/>
 <circle class="fg-f-bleu" cx="92" cy="62" r="2"/>
 <circle class="fg-f-bleu" cx="74" cy="94" r="2"/>
@@ -1881,7 +1776,7 @@ FIGURES["assaisonnement-couches"] = [
     titre: "Où va le sel : dans l'aliment ou sur lui",
     legende: "Seule l'eau de cuisson peut faire entrer le sel : ce qu'on ajoute ensuite reste en surface. Les points marquent le sel entré dans l'aliment.",
     alt: "Trois coupes d'aliments. Une pomme de terre dans l'eau salée : après vingt minutes, le sel ne gagne que quelques millimètres sous la peau, on le voit en anneau de points à la périphérie, et le cœur reste peu salé. Des pâtes dans l'eau salée : elles boivent l'eau et donc le sel, les points sont répartis dans toute la pâte, salée de part en part. Une pomme de terre salée à la fin : les grains de sel restent tout autour, en surface, et rien n'est entré ; on obtient des pointes salées et un cœur fade.",
-    corps: `<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="45" r="31"/><circle class="fg-t-or fg-t-fin fg-tirets" cx="46" cy="45" r="23"/><circle class="fg-f-encre" cx="70.6" cy="45" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="61.8" r="1.9"/><circle class="fg-f-encre" cx="48.2" cy="20.1" r="1.9"/><circle class="fg-f-encre" cx="61.4" cy="65" r="1.9"/><circle class="fg-f-encre" cx="21" cy="40.6" r="1.9"/><circle class="fg-f-encre" cx="67.6" cy="31.2" r="1.9"/><circle class="fg-f-encre" cx="39.3" cy="70" r="1.9"/><circle class="fg-f-encre" cx="34" cy="21.9" r="1.9"/><circle class="fg-f-encre" cx="70.6" cy="54" r="1.9"/><circle class="fg-f-encre" cx="21.6" cy="55.1" r="1.9"/><circle class="fg-f-encre" cx="57.3" cy="20.9" r="1.9"/><circle class="fg-f-encre" cx="54" cy="70.6" r="1.9"/><circle class="fg-f-encre" cx="22.6" cy="31.5" r="1.9"/><circle class="fg-f-encre" cx="72.6" cy="39.2" r="1.9"/><circle class="fg-f-encre" cx="30.2" cy="67.4" r="1.9"/><circle class="fg-f-encre" cx="42.5" cy="17.6" r="1.9"/><circle class="fg-f-encre" cx="67.2" cy="62.9" r="1.9"/><circle class="fg-f-encre" cx="18.1" cy="46.2" r="1.9"/><circle class="fg-f-encre" cx="66" cy="25.1" r="1.9"/><circle class="fg-f-encre" cx="44.7" cy="73.3" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="23.1" r="1.9"/><circle class="fg-f-encre" cx="74.4" cy="48.8" r="1.9"/><circle class="fg-f-encre" cx="22.3" cy="61.5" r="1.9"/><circle class="fg-f-encre" cx="52.4" cy="16.7" r="1.9"/><circle class="fg-f-encre" cx="60.5" cy="70.4" r="1.9"/><circle class="fg-f-encre" cx="18" cy="36.1" r="1.9"/><text class="fg-txt-script fg-txt-doux" x="46" y="50" text-anchor="middle">cœur</text><text class="fg-txt fg-txt-b" x="96" y="28" text-anchor="start">Pomme de terre, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="45" text-anchor="start"><tspan x="96">Vingt minutes : le sel ne dépasse pas</tspan><tspan x="96" dy="13.5">quelques millimètres sous la peau ;</tspan><tspan x="96" dy="13.5">le cœur reste peu salé.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="123" r="31"/><circle class="fg-f-encre" cx="58.3" cy="123" r="1.9"/><circle class="fg-f-encre" cx="36.4" cy="131.8" r="1.9"/><circle class="fg-f-encre" cx="47.2" cy="109.4" r="1.9"/><circle class="fg-f-encre" cx="54.7" cy="134.3" r="1.9"/><circle class="fg-f-encre" cx="31.4" cy="120.4" r="1.9"/><circle class="fg-f-encre" cx="59" cy="114.7" r="1.9"/><circle class="fg-f-encre" cx="41.9" cy="138.4" r="1.9"/><circle class="fg-f-encre" cx="38.4" cy="108.4" r="1.9"/><circle class="fg-f-encre" cx="61.9" cy="128.8" r="1.9"/><circle class="fg-f-encre" cx="29.9" cy="129.7" r="1.9"/><circle class="fg-f-encre" cx="53.6" cy="106.8" r="1.9"/><circle class="fg-f-encre" cx="51.5" cy="140.5" r="1.9"/><circle class="fg-f-encre" cx="29.7" cy="113.6" r="1.9"/><circle class="fg-f-encre" cx="64.8" cy="118.9" r="1.9"/><circle class="fg-f-encre" cx="34.7" cy="139.1" r="1.9"/><circle class="fg-f-encre" cx="43.4" cy="103" r="1.9"/><circle class="fg-f-encre" cx="61.7" cy="136.2" r="1.9"/><circle class="fg-f-encre" cx="25.1" cy="123.9" r="1.9"/><circle class="fg-f-encre" cx="61.1" cy="107.9" r="1.9"/><circle class="fg-f-encre" cx="45" cy="144.7" r="1.9"/><circle class="fg-f-encre" cx="31.8" cy="106" r="1.9"/><circle class="fg-f-encre" cx="68.3" cy="126" r="1.9"/><circle class="fg-f-encre" cx="27.2" cy="136.1" r="1.9"/><circle class="fg-f-encre" cx="51.1" cy="100.3" r="1.9"/><circle class="fg-f-encre" cx="57.7" cy="143.5" r="1.9"/><circle class="fg-f-encre" cx="23.2" cy="115.7" r="1.9"/><circle class="fg-f-encre" cx="68.1" cy="112.8" r="1.9"/><circle class="fg-f-encre" cx="36.5" cy="145.7" r="1.9"/><circle class="fg-f-encre" cx="37.5" cy="99.5" r="1.9"/><circle class="fg-f-encre" cx="68.4" cy="134.8" r="1.9"/><circle class="fg-f-encre" cx="21.2" cy="129.5" r="1.9"/><circle class="fg-f-encre" cx="60" cy="101.2" r="1.9"/><circle class="fg-f-encre" cx="50.5" cy="148.9" r="1.9"/><circle class="fg-f-encre" cx="25" cy="106.7" r="1.9"/><circle class="fg-f-encre" cx="72.8" cy="120.8" r="1.9"/><circle class="fg-f-encre" cx="27.5" cy="143" r="1.9"/><circle class="fg-f-encre" cx="46.1" cy="95.5" r="1.9"/><circle class="fg-f-encre" cx="64.7" cy="143.6" r="1.9"/><circle class="fg-f-carte fg-t-or" cx="46" cy="123" r="8"/><text class="fg-txt fg-txt-b" x="96" y="106" text-anchor="start">Pâtes, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="123" text-anchor="start"><tspan x="96">Elles boivent l'eau, donc le sel :</tspan><tspan x="96" dy="13.5">salées de part en part.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="201" r="28"/><text class="fg-txt-script fg-txt-doux" x="46" y="206" text-anchor="middle">fade</text><rect class="fg-f-carte fg-t-encre fg-t-fin" x="77.3" y="204.6" width="7" height="7" rx="1.5" transform="rotate(10 80.8 208.1)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="69.1" y="221" width="7" height="7" rx="1.5" transform="rotate(40 72.6 224.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="53.8" y="231.2" width="7" height="7" rx="1.5" transform="rotate(70 57.3 234.7)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="35.4" y="232.3" width="7" height="7" rx="1.5" transform="rotate(100 38.9 235.8)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="19" y="224.1" width="7" height="7" rx="1.5" transform="rotate(130 22.5 227.6)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="8.8" y="208.8" width="7" height="7" rx="1.5" transform="rotate(160 12.3 212.3)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="7.7" y="190.4" width="7" height="7" rx="1.5" transform="rotate(190 11.2 193.9)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="15.9" y="174" width="7" height="7" rx="1.5" transform="rotate(220 19.4 177.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="31.2" y="163.8" width="7" height="7" rx="1.5" transform="rotate(250 34.7 167.3)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="49.6" y="162.7" width="7" height="7" rx="1.5" transform="rotate(280 53.1 166.2)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="66" y="170.9" width="7" height="7" rx="1.5" transform="rotate(310 69.5 174.4)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="76.2" y="186.2" width="7" height="7" rx="1.5" transform="rotate(340 79.7 189.7)"/><text class="fg-txt fg-txt-b" x="96" y="184" text-anchor="start">Sel jeté à la fin</text><text class="fg-txt fg-txt-s" x="96" y="201" text-anchor="start"><tspan x="96">Il ne quitte pas la surface :</tspan><tspan x="96" dy="13.5">pointes salées, cœur fade.</tspan></text><path class="fg-t-grille" d="M10 84H310M10 162H310"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="62" y="262" width="7" height="7" rx="1.5"/>
+    corps: `<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="45" r="31"/><circle class="fg-t-or fg-t-fin fg-tirets" cx="46" cy="45" r="23"/><circle class="fg-f-encre" cx="70.6" cy="45" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="61.8" r="1.9"/><circle class="fg-f-encre" cx="48.2" cy="20.1" r="1.9"/><circle class="fg-f-encre" cx="61.4" cy="65" r="1.9"/><circle class="fg-f-encre" cx="21" cy="40.6" r="1.9"/><circle class="fg-f-encre" cx="67.6" cy="31.2" r="1.9"/><circle class="fg-f-encre" cx="39.3" cy="70" r="1.9"/><circle class="fg-f-encre" cx="34" cy="21.9" r="1.9"/><circle class="fg-f-encre" cx="70.6" cy="54" r="1.9"/><circle class="fg-f-encre" cx="21.6" cy="55.1" r="1.9"/><circle class="fg-f-encre" cx="57.3" cy="20.9" r="1.9"/><circle class="fg-f-encre" cx="54" cy="70.6" r="1.9"/><circle class="fg-f-encre" cx="22.6" cy="31.5" r="1.9"/><circle class="fg-f-encre" cx="72.6" cy="39.2" r="1.9"/><circle class="fg-f-encre" cx="30.2" cy="67.4" r="1.9"/><circle class="fg-f-encre" cx="42.5" cy="17.6" r="1.9"/><circle class="fg-f-encre" cx="67.2" cy="62.9" r="1.9"/><circle class="fg-f-encre" cx="18.1" cy="46.2" r="1.9"/><circle class="fg-f-encre" cx="66" cy="25.1" r="1.9"/><circle class="fg-f-encre" cx="44.7" cy="73.3" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="23.1" r="1.9"/><circle class="fg-f-encre" cx="74.4" cy="48.8" r="1.9"/><circle class="fg-f-encre" cx="22.3" cy="61.5" r="1.9"/><circle class="fg-f-encre" cx="52.4" cy="16.7" r="1.9"/><circle class="fg-f-encre" cx="60.5" cy="70.4" r="1.9"/><circle class="fg-f-encre" cx="18" cy="36.1" r="1.9"/><text class="fg-txt-script fg-txt-doux" x="46" y="50" text-anchor="middle">cœur</text><text class="fg-txt fg-txt-b" x="96" y="28" text-anchor="start">Pomme de terre, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="45" text-anchor="start"><tspan x="96">Vingt minutes : le sel ne dépasse pas</tspan><tspan x="96" dy="13.5">quelques millimètres sous la peau ;</tspan><tspan x="96" dy="13.5">le cœur reste peu salé.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="123" r="31"/><circle class="fg-f-encre" cx="58.3" cy="123" r="1.9"/><circle class="fg-f-encre" cx="36.4" cy="131.8" r="1.9"/><circle class="fg-f-encre" cx="47.2" cy="109.4" r="1.9"/><circle class="fg-f-encre" cx="54.7" cy="134.3" r="1.9"/><circle class="fg-f-encre" cx="31.4" cy="120.4" r="1.9"/><circle class="fg-f-encre" cx="59" cy="114.7" r="1.9"/><circle class="fg-f-encre" cx="41.9" cy="138.4" r="1.9"/><circle class="fg-f-encre" cx="38.4" cy="108.4" r="1.9"/><circle class="fg-f-encre" cx="61.9" cy="128.8" r="1.9"/><circle class="fg-f-encre" cx="29.9" cy="129.7" r="1.9"/><circle class="fg-f-encre" cx="53.6" cy="106.8" r="1.9"/><circle class="fg-f-encre" cx="51.5" cy="140.5" r="1.9"/><circle class="fg-f-encre" cx="29.7" cy="113.6" r="1.9"/><circle class="fg-f-encre" cx="64.8" cy="118.9" r="1.9"/><circle class="fg-f-encre" cx="34.7" cy="139.1" r="1.9"/><circle class="fg-f-encre" cx="43.4" cy="103" r="1.9"/><circle class="fg-f-encre" cx="61.7" cy="136.2" r="1.9"/><circle class="fg-f-encre" cx="25.1" cy="123.9" r="1.9"/><circle class="fg-f-encre" cx="61.1" cy="107.9" r="1.9"/><circle class="fg-f-encre" cx="45" cy="144.7" r="1.9"/><circle class="fg-f-encre" cx="31.8" cy="106" r="1.9"/><circle class="fg-f-encre" cx="68.3" cy="126" r="1.9"/><circle class="fg-f-encre" cx="27.2" cy="136.1" r="1.9"/><circle class="fg-f-encre" cx="51.1" cy="100.3" r="1.9"/><circle class="fg-f-encre" cx="57.7" cy="143.5" r="1.9"/><circle class="fg-f-encre" cx="23.2" cy="115.7" r="1.9"/><circle class="fg-f-encre" cx="68.1" cy="112.8" r="1.9"/><circle class="fg-f-encre" cx="36.5" cy="145.7" r="1.9"/><circle class="fg-f-encre" cx="37.5" cy="99.5" r="1.9"/><circle class="fg-f-encre" cx="68.4" cy="134.8" r="1.9"/><circle class="fg-f-encre" cx="21.2" cy="129.5" r="1.9"/><circle class="fg-f-encre" cx="60" cy="101.2" r="1.9"/><circle class="fg-f-encre" cx="50.5" cy="148.9" r="1.9"/><circle class="fg-f-encre" cx="25" cy="106.7" r="1.9"/><circle class="fg-f-encre" cx="72.8" cy="120.8" r="1.9"/><circle class="fg-f-encre" cx="27.5" cy="143" r="1.9"/><circle class="fg-f-encre" cx="46.1" cy="95.5" r="1.9"/><circle class="fg-f-encre" cx="64.7" cy="143.6" r="1.9"/><circle class="fg-f-carte fg-t-or" cx="46" cy="123" r="8"/><text class="fg-txt fg-txt-b" x="96" y="106" text-anchor="start">Pâtes, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="123" text-anchor="start"><tspan x="96">Elles boivent l'eau, donc le sel :</tspan><tspan x="96" dy="13.5">salées de part en part.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="201" r="28"/><text class="fg-txt-script fg-txt-doux" x="46" y="206" text-anchor="middle">fade</text><use href="#fg-sym-grain-sel" transform="rotate(10 80.8 208.1)" x="76.13" y="203.43" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(40 72.6 224.5)" x="67.93" y="219.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(70 57.3 234.7)" x="52.63" y="230.03" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(100 38.9 235.8)" x="34.23" y="231.13" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(130 22.5 227.6)" x="17.83" y="222.93" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(160 12.3 212.3)" x="7.63" y="207.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(190 11.2 193.9)" x="6.53" y="189.23" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(220 19.4 177.5)" x="14.73" y="172.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(250 34.7 167.3)" x="30.03" y="162.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(280 53.1 166.2)" x="48.43" y="161.53" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(310 69.5 174.4)" x="64.83" y="169.73" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(340 79.7 189.7)" x="75.03" y="185.03" width="9.33" height="9.33"/><text class="fg-txt fg-txt-b" x="96" y="184" text-anchor="start">Sel jeté à la fin</text><text class="fg-txt fg-txt-s" x="96" y="201" text-anchor="start"><tspan x="96">Il ne quitte pas la surface :</tspan><tspan x="96" dy="13.5">pointes salées, cœur fade.</tspan></text><path class="fg-t-grille" d="M10 84H310M10 162H310"/><use href="#fg-sym-grain-sel" x="60.83" y="260.83" width="9.33" height="9.33"/>
 <text class="fg-txt fg-txt-s" x="74" y="269" text-anchor="start">grain de sel</text>
 <circle class="fg-f-encre" cx="162" cy="265.5" r="2.4"/>
 <text class="fg-txt fg-txt-s" x="170" y="269" text-anchor="start">sel entré dans l'aliment</text>`
@@ -2172,13 +2067,13 @@ FIGURES["salaison"] = [
     titre: "Le sel avance du bord vers le cœur",
     legende: "Illustration d'un filet de 500 g coupé en travers, sous un mélange de sel et de sucre en parts égales : des repères d'usage, calés sur l'épaisseur plus que sur une mesure.",
     alt: "Trois coupes d'un filet de saumon, chacune sous et sur une couche de mélange sel et sucre à parts égales, de plus en plus salées du bord vers le cœur. En moins de 8 heures, seule une mince bande du bord est salée, le centre reste cru et mou. Entre 12 et 24 heures, le filet de 500 grammes est salé en dégradé : ferme au bord, plus souple au cœur. Après plus de 36 heures, le sel a gagné tout le cœur : la chair est sèche, dure et compacte.",
-    corps: `<g transform="translate(0 12)"><rect class="fg-f-terra-l fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="22" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="63" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="22" width="184" height="4" opacity="0.28"/><rect class="fg-f-terra" x="126" y="64" width="184" height="4" opacity="0.28"/><rect class="fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="70" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="14" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="70" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="70" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="14" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="70" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="70" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="14" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="70" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="70" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="14" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="70" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="70" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="14" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="70" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="14" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="70" width="6" height="6" rx="1.5"/>
+    corps: `<g transform="translate(0 12)"><rect class="fg-f-terra-l fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="22" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="63" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="22" width="184" height="4" opacity="0.28"/><rect class="fg-f-terra" x="126" y="64" width="184" height="4" opacity="0.28"/><rect class="fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="13" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="69" width="184" height="8"/>
 <text class="fg-txt fg-txt-b" x="8" y="42" text-anchor="start">Moins de 8 h</text>
 <text class="fg-txt fg-txt-s" x="8" y="58" text-anchor="start"><tspan x="8">le centre reste</tspan><tspan x="8" dy="13.5">cru et mou</tspan></text>
-<rect class="fg-f-terra-l fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="104" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="139" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="104" width="184" height="8" opacity="0.28"/><rect class="fg-f-terra" x="126" y="142" width="184" height="8" opacity="0.28"/><rect class="fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="152" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="96" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="152" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="152" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="96" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="152" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="152" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="96" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="152" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="152" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="96" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="152" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="152" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="96" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="152" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="96" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="152" width="6" height="6" rx="1.5"/>
+<rect class="fg-f-terra-l fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="104" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="139" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="104" width="184" height="8" opacity="0.28"/><rect class="fg-f-terra" x="126" y="142" width="184" height="8" opacity="0.28"/><rect class="fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="95" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="151" width="184" height="8"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="8" y="124" text-anchor="start">12 à 24 h</text>
 <text class="fg-txt fg-txt-s" x="8" y="140" text-anchor="start"><tspan x="8">ferme au bord,</tspan><tspan x="8" dy="13.5">souple au cœur</tspan></text>
-<rect class="fg-f-terra-l fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="186" width="184" height="23" opacity="0.5"/><rect class="fg-f-terra" x="126" y="209" width="184" height="23" opacity="0.5"/><rect class="fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="131" y="234" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="178" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="147.5" y="234" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="164" y="234" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="178" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="180.5" y="234" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="197" y="234" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="178" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="213.5" y="234" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="230" y="234" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="178" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="246.5" y="234" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="263" y="234" width="6" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="178" width="7" height="6" rx="1.5"/><rect class="fg-f-or-l fg-t-or fg-t-fin" x="279.5" y="234" width="7" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="178" width="6" height="6" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="296" y="234" width="6" height="6" rx="1.5"/>
+<rect class="fg-f-terra-l fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="186" width="184" height="23" opacity="0.5"/><rect class="fg-f-terra" x="126" y="209" width="184" height="23" opacity="0.5"/><rect class="fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="177" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="233" width="184" height="8"/>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="8" y="206" text-anchor="start">Plus de 36 h</text>
 <text class="fg-txt fg-txt-s" x="8" y="222" text-anchor="start"><tspan x="8">salé à cœur :</tspan><tspan x="8" dy="13.5">sec, dur, compact</tspan></text>
 <rect class="fg-f-carte fg-t-encre fg-t-fin" x="126" y="262" width="7" height="7" rx="1.5"/><text class="fg-txt fg-txt-s" x="138" y="269" text-anchor="start">sel</text>
@@ -2836,8 +2731,8 @@ FIGURES["poisson-cru"] = [
 <path class="fg-t-doux fg-tirets" d="M50 102H226"/>
 <circle class="fg-f-encre" cx="46" cy="94" r="3"/>
 <ellipse class="fg-f-or-l fg-t-or" cx="112" cy="125" rx="46" ry="14"/>
-<path class="fg-t-terra fg-t-epais" d="M104.9 125.4L104.9 125.9L104.7 126.3L104.2 126.7L103.5 126.9L102.7 126.8L101.9 126.4L101.3 125.7L101 124.7L101.1 123.5L101.6 122.4L102.6 121.5L103.8 121L105.3 121L106.8 121.5L108.1 122.5L108.9 124.1L109.2 125.9L108.8 127.8L107.7 129.4L106 130.7L103.9 131.2L101.6 131L99.5 130L97.8 128.2L96.8 125.9L96.7 123.3L97.6 120.7L99.3 118.5L101.8 117L104.7 116.5"/>
-<path class="fg-t-terra fg-t-epais" d="M161.6 89.9L161.1 89.9L160.6 89.6L160.3 89.1L160.1 88.4L160.2 87.7L160.6 86.9L161.4 86.3L162.4 86L163.5 86.1L164.6 86.7L165.5 87.7L166 89L166 90.4L165.4 91.9L164.3 93.1L162.8 93.9L161 94.1L159.1 93.7L157.5 92.5L156.3 90.8L155.8 88.7L156 86.4L157.1 84.3L159 82.7L161.3 81.8L163.9 81.8L166.5 82.7L168.6 84.5L170 87L170.4 90"/>
+<use href="#fg-sym-larve" x="91.7" y="112.1" width="23.5" height="23.5"/>
+<use href="#fg-sym-larve" x="151.9" y="76.2" width="23.4" height="23.4"/>
 <text class="fg-txt fg-txt-s fg-txt-or" x="112" y="156" text-anchor="middle"><tspan x="112">viscères</tspan></text>
 <text class="fg-txt fg-txt-s" x="184" y="66" text-anchor="start"><tspan x="184">chair voisine</tspan></text>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="70" y="40" text-anchor="start"><tspan x="70">larve d'Anisakis</tspan></text>
@@ -2887,7 +2782,7 @@ FIGURES["poisson-cru"] = [
 <text class="fg-txt fg-txt-s fg-txt-b" x="304" y="200" text-anchor="end"><tspan x="304">Température à cœur, axe interrompu</tspan></text>` },
 
   { ou: "pourquoi", apres: 3, type: "comparaison",
-    titre: "Le sel et l'acide, seulement sur des semaines",
+     titre: "Le sel et l'acide, seulement sur des semaines",
     legende: "Les seuls procédés validés associent sel et acide, au froid, pendant des semaines. Un gravlax, un ceviche, des anchois au vinaigre restent du poisson cru : ils demandent une congélation préalable.",
     alt: "Trois morceaux de poisson, chacun avec sa larve enroulée en spirale. Premier, gravlax de 24 heures, ceviche, anchois au vinaigre : sel et acide aux doses de cuisine, la larve est vivante. Deuxième, hareng à 4 % de sel : plus de quatre mois plus tard, des larves survivent. Troisième, hareng à 9 % de sel dans la phase aqueuse avec 2,6 % d'acide acétique, au froid : cinq semaines suffisent, la larve est hors d'état, barrée d'une croix.",
     panneaux: [
@@ -2895,12 +2790,12 @@ FIGURES["poisson-cru"] = [
         sous: "doses de cuisine : larves vivantes",
         ton: "or",
         vb: "0 0 100 68",
-        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><path class="fg-t-terra fg-t-epais" d="M50.9 34.4L51 35L50.8 35.8L50.1 36.4L49.1 36.7L47.8 36.5L46.6 35.8L45.8 34.4L45.4 32.7L45.9 30.8L47.1 29.1L49 28L51.4 27.5L53.9 28.1L56.2 29.7L57.8 32.2L58.4 35.3L57.7 38.5L55.8 41.4L52.8 43.5L49.1 44.3L45.2 43.7L41.6 41.5L39 38.1L37.8 33.7L38.3 29.1L40.6 24.8L44.5 21.6L49.4 19.9L54.8 20.3L59.8 22.7"/>` },
+        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><use href="#fg-sym-larve" x="30.1" y="12.6" width="39" height="39"/>` },
       { label: "4 % de sel",
         sous: "plus de quatre mois : des larves survivent",
         ton: "or",
         vb: "0 0 100 68",
-        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><path class="fg-t-terra fg-t-epais" d="M50.9 34.4L51 35L50.8 35.8L50.1 36.4L49.1 36.7L47.8 36.5L46.6 35.8L45.8 34.4L45.4 32.7L45.9 30.8L47.1 29.1L49 28L51.4 27.5L53.9 28.1L56.2 29.7L57.8 32.2L58.4 35.3L57.7 38.5L55.8 41.4L52.8 43.5L49.1 44.3L45.2 43.7L41.6 41.5L39 38.1L37.8 33.7L38.3 29.1L40.6 24.8L44.5 21.6L49.4 19.9L54.8 20.3L59.8 22.7"/>` },
+        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><use href="#fg-sym-larve" x="30.1" y="12.6" width="39" height="39"/>` },
       { label: "9 % de sel, 2,6 % d'acide acétique",
         sous: "cinq semaines au froid : larves tuées",
         ton: "vert",
@@ -3047,7 +2942,12 @@ FIGURES["oeuf-cru"] = [
 
    Le dessin range les repères du plus chaud au plus froid et ouvre des RUPTURES
    de l'axe là où plus de 12 °C séparent deux repères : la hauteur d'un degré change
-   alors d'un tronçon à l'autre, et la légende le dit. L'ordre ci-dessous est celui
+   alors d'un tronçon à l'autre, et la légende le dit. Chaque étiquette est précédée de
+   l'EMOJI de sa fiche (rien à écrire ici : il vient de js/fondamentaux.js) ; l'axe est un
+   tube dont le réservoir, en bas, a la couleur froide ; les graduations sont légères (les
+   bornes de chaque tronçon, quelques valeurs rondes). Deux repères de MÊME température
+   (mêmes `de` et `a`) dans la MÊME fiche se rangent sous un seul point : leurs
+   étiquettes se suivent, la seconde précédée d'un « + ». L'ordre ci-dessous est celui
    de l'écriture (du froid au chaud) : il n'a pas d'autre effet. */
 const THERMOMETRE = [
   /* Le froid : congélation, réfrigérateur */

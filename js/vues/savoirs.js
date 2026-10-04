@@ -78,7 +78,7 @@ function fondBodyHtml(f, niveau = 4) {
      feu. Ce qu'on fait vient donc avant pourquoi ça marche — la science reste
      entière, une longueur de pouce plus bas. */
   return `
-    <p class="f-accroche">${f.accroche}</p>
+    <p class="f-accroche" data-fg-fond="${f.id}"${figures.length ? " data-fg-ok" : ""}>${f.accroche}</p>
     ${ici("tete")}
     ${f.cas && f.cas.length ? `<div class="f-bloc">
       <h${niveau}>Selon les cas</h${niveau}>
@@ -93,7 +93,7 @@ function fondBodyHtml(f, niveau = 4) {
     <div class="f-bloc">
       <h${niveau}>Pourquoi ça marche</h${niveau}>
       <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
-      ${paragraphes.map((p, i) => `<p>${p}</p>${ici("pourquoi", { k: i + 1, nbParagraphes: paragraphes.length })}`).join("")}
+      ${paragraphes.map((p, i) => `<p data-fg-p="${i + 1}">${p}</p>${ici("pourquoi", { k: i + 1, nbParagraphes: paragraphes.length })}`).join("")}
       ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
     </div>
     ${f.piege ? `<div class="f-piege"><b>L'erreur classique</b>${f.piege}</div>` : ""}
@@ -106,9 +106,9 @@ function fondBodyHtml(f, niveau = 4) {
 }
 
 /* Le zoom d'une figure : la même figure, redessinée depuis les données dans une
-   feuille plus haute, où elle défile si l'écran est plus étroit qu'elle. Une
-   feuille comme les autres : Échap, le geste de retour et le focus sont ceux de
-   js/ui/feuilles.js. */
+   feuille plus haute, où elle défile si l'écran est plus étroit qu'elle (une ombre sur
+   le bord droit et une ligne d'indication le disent). Une feuille comme les autres :
+   Échap, le geste de retour et le focus sont ceux de js/ui/feuilles.js. */
 export function ouvrirFigure(fondId, i) {
   const fig = figuresDe(fondId)[i];
   if (!fig) return;
@@ -119,22 +119,104 @@ export function ouvrirFigure(fondId, i) {
   backdrop.innerHTML = `
     <div class="sheet" role="dialog" aria-modal="true" aria-label="${html`${fig.titre || "Schéma"}`}">
       <div class="sheet-grip"></div>
-      <div class="fg-zoom-corps">${rendu}</div>
+      <div class="fg-zoom-boite"><div class="fg-zoom-corps">${rendu}</div></div>
+      <p class="fg-zoom-indice" hidden>Faites glisser pour voir tout le schéma →</p>
       <button type="button" class="btn secondary f-close" id="fg-close">Fermer</button>
     </div>`;
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop || e.target.closest("#fg-close")) fermerFeuille();
   });
   ouvrirFeuille(backdrop);
+  /* Plus étroit que la figure : l'ombre du bord droit, l'indication, et la fin du défilement. */
+  const boite = backdrop.querySelector(".fg-zoom-boite"), corps = backdrop.querySelector(".fg-zoom-corps");
+  const bouts = () => boite.classList.toggle("fg-fin", corps.scrollLeft + corps.clientWidth >= corps.scrollWidth - 2);
+  if (corps.scrollWidth > corps.clientWidth + 4) {
+    boite.classList.add("fg-defile");
+    boite.style.setProperty("--fg-ombre-h", backdrop.querySelector(".fg-cadre").offsetHeight + "px");   // l'ombre n'est que sur le dessin, pas sur la légende
+    backdrop.querySelector(".fg-zoom-indice").hidden = false;
+    corps.addEventListener("scroll", bouts, { passive: true });
+    bouts();
+  }
 }
 
-/* Un appui sur le cadre d'une figure (le dessin ou le bouton d'agrandissement)
-   l'ouvre. Un seul écouteur délégué : les figures vivent dans la page et dans la
+/* Un appui sur le dessin d'une figure, ou sur son bouton d'agrandissement (dans la ligne
+   du titre), l'ouvre. Un seul écouteur délégué : les figures vivent dans la page et dans la
    feuille d'un savoir, qui se redessinent. */
 document.addEventListener("click", e => {
-  const cadre = e.target.closest(".fg:not(.fg-zoomee) .fg-cadre");
-  const bouton = cadre && cadre.querySelector("[data-fg-zoom]");
+  const fig = e.target.closest(".fg:not(.fg-zoomee)");
+  if (!fig || !e.target.closest(".fg-cadre, .fg-agrandir")) return;
+  const bouton = fig.querySelector("[data-fg-zoom]");
   if (bouton) ouvrirFigure(bouton.dataset.fgFond, Number(bouton.dataset.fgI));
+});
+
+/* ---------- L'arrivée tardive des figures ---------- */
+
+/* js/figures.js peut arriver APRÈS le premier dessin d'une fiche (au-delà du délai de
+   core/fonds.js). La page ouverte et la feuille ouverte se complètent alors d'elles-mêmes :
+   les figures sont insérées à leurs places, sans rien redessiner — le focus, la sélection et le
+   défilement restent où ils sont (et le contenu qui glisse est compensé, au cas où le
+   navigateur ne l'ancrerait pas). */
+const apresLesFigures = ancre => {
+  let fin = ancre;
+  while (fin.nextElementSibling && fin.nextElementSibling.classList.contains("fg")) fin = fin.nextElementSibling;
+  return fin;
+};
+
+const defilant = el => {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if ((o === "auto" || o === "scroll") && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+};
+
+export function completerFigures(racine = document) {
+  for (const accroche of racine.querySelectorAll(".f-accroche[data-fg-fond]:not([data-fg-ok])")) {
+    const id = accroche.dataset.fgFond;
+    const figures = figuresDe(id);
+    if (!figures.length) continue;
+    accroche.dataset.fgOk = "";
+    const page = accroche.parentElement;
+    const defile = defilant(accroche);
+    const haut = defile ? defile.getBoundingClientRect().top : 0;
+    /* Le repère du regard : l'élément le plus fin qui occupe le haut de l'écran (on descend
+       dans un bloc qui le déborde : une figure insérée dans « Pourquoi ça marche » ne fait
+       pas bouger le bloc lui-même, seulement ce qui le suit). */
+    let repere = page;
+    for (;;) {
+      const fils = [...repere.children].find(c => c.getBoundingClientRect().bottom > haut + 1);
+      if (!fils) break;
+      repere = fils;
+      if (fils.getBoundingClientRect().top >= haut) break;
+    }
+    if (repere === page) repere = accroche;
+    const avant = repere.getBoundingClientRect().top;
+
+    const paragraphes = [...page.querySelectorAll("p[data-fg-p]")];
+    let ancre = accroche;
+    const poser = (ou, apres, opts) => {
+      const h = figuresA(figures, id, ou, opts);
+      if (!h) return;
+      apresLesFigures(apres).insertAdjacentHTML("afterend", h);
+    };
+    poser("tete", ancre);
+    const blocCas = page.querySelector("dl.f-cas");
+    if (blocCas) ancre = blocCas.closest(".f-bloc") || ancre;
+    poser("cas", ancre);
+    const listeRep = page.querySelector("ul.f-rep");
+    if (listeRep) ancre = listeRep;
+    poser("reperes", ancre);
+    paragraphes.forEach((p, i) => poser("pourquoi", p, { k: i + 1, nbParagraphes: paragraphes.length }));
+
+    observerFigures(page);
+    const apres = repere.getBoundingClientRect().top;
+    if (Math.abs(apres - avant) > 1) (defile || window).scrollBy({ top: apres - avant, behavior: "instant" });
+  }
+}
+
+document.addEventListener("figures-chargees", () => {
+  completerFigures(document);
+  completerCatalogue();
 });
 
 /* Ouverture par-dessus l'endroit où l'on se trouve : aucune adresse ne change,
@@ -216,9 +298,10 @@ function listeFondamentaux(q) {
 let thermoOuvert = false;
 const donneesThermo = () => (typeof THERMOMETRE !== "undefined" && Array.isArray(THERMOMETRE) ? THERMOMETRE : []);
 const titreDeFond = id => (fondById(id) || {}).t || null;
+const emojiDeFond = id => (fondById(id) || {}).emoji || "";
 
 function encartThermometre(masque) {
-  const mise = thermometreMise(donneesThermo(), { titreDe: titreDeFond });
+  const mise = thermometreMise(donneesThermo(), { titreDe: titreDeFond, emojiDe: emojiDeFond });
   if (!mise) return "";
   const fiches = new Set(mise.items.map(r => r.fond)).size;
   const NBSP = " ";
@@ -231,7 +314,7 @@ function encartThermometre(masque) {
       </span>
       ${ICON.chev}
     </summary>
-    <div class="th-corps">${thermoOuvert ? thermometreHtml(donneesThermo(), { titreDe: titreDeFond }) : ""}</div>
+    <div class="th-corps">${thermoOuvert ? thermometreHtml(donneesThermo(), { titreDe: titreDeFond, emojiDe: emojiDeFond }) : ""}</div>
   </details>`;
 }
 
@@ -257,20 +340,39 @@ export function renderFondamentaux() {
      le clavier, la sélection et la composition en cours, sans rien à rétablir. */
   const champ = document.getElementById("f-search");
   const zone = document.getElementById("f-resultats");
-  const thermo = document.getElementById("f-thermo");
-  if (thermo) {
-    thermo.addEventListener("toggle", () => {
-      thermoOuvert = thermo.open;
-      const corps = thermo.querySelector(".th-corps");
-      if (thermo.open && !corps.firstChild) corps.innerHTML = thermometreHtml(donneesThermo(), { titreDe: titreDeFond });
-    });
-  }
+  brancherThermo(document.getElementById("f-thermo"));
   champ.addEventListener("input", () => {
     state.fondQuery = champ.value;
     zone.innerHTML = listeFondamentaux(champ.value);
     /* Pendant une recherche, le thermomètre s'efface : la liste des résultats prend toute la place. */
+    const thermo = document.getElementById("f-thermo");
     if (thermo) thermo.hidden = champ.value.trim() !== "";
   });
+}
+
+function brancherThermo(thermo) {
+  if (!thermo) return;
+  thermo.addEventListener("toggle", () => {
+    thermoOuvert = thermo.open;
+    const corps = thermo.querySelector(".th-corps");
+    if (thermo.open && !corps.firstChild) corps.innerHTML = thermometreHtml(donneesThermo(), { titreDe: titreDeFond, emojiDe: emojiDeFond });
+  });
+}
+
+/* Les figures arrivées tard : le catalogue (les badges « N schémas », et l'encart du thermomètre
+   qui n'existe qu'avec elles) se complète sans toucher au champ de recherche. */
+function completerCatalogue() {
+  const zone = document.getElementById("f-resultats");
+  if (!zone) return;
+  const q = state.fondQuery || "";
+  zone.innerHTML = listeFondamentaux(q);
+  if (!document.getElementById("f-thermo")) {
+    const barre = document.querySelector(".searchbar");
+    if (barre) {
+      barre.insertAdjacentHTML("beforebegin", encartThermometre(q.trim() !== ""));
+      brancherThermo(document.getElementById("f-thermo"));
+    }
+  }
 }
 
 export function renderFondamental(f) {

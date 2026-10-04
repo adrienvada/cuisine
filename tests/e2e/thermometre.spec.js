@@ -189,3 +189,23 @@ test("thermomètre : sans js/figures.js, l'onglet s'affiche sans l'encart", asyn
   await expect(page.locator(".f-item", { hasText: "La réaction de Maillard" })).toBeVisible();
   await expect(page.locator("#f-thermo")).toHaveCount(0);
 });
+
+test("thermomètre : chaque étiquette porte l'emoji de sa fiche, l'axe est léger et finit par un réservoir bleu", async ({ page }) => {
+  const encart = await ouvrirThermometre(page);
+  const paires = await encart.locator("a.th-lien").evaluateAll(as => as.map(a => [a.dataset.thFond, (a.querySelector(".th-emoji") || {}).textContent]));
+  expect(paires.length).toBeGreaterThanOrEqual(40);
+  const attendu = await page.evaluate(() => Object.fromEntries(FONDAMENTAUX.map(f => [f.id, f.emoji])));
+  for (const [fond, emoji] of paires) expect(emoji, fond).toBe(attendu[fond]);
+  // L'emoji ne se lit pas deux fois : le nom accessible n'en porte pas.
+  const noms = await encart.locator("a.th-lien").evaluateAll(as => as.map(a => a.getAttribute("aria-label")));
+  for (const nom of noms) expect(nom).not.toMatch(/\p{Extended_Pictographic}/u);
+  // Peu de graduations : pas un trait tous les 5 °C.
+  expect(await encart.locator(".th-num").count()).toBeLessThanOrEqual(28);
+  // Le réservoir, de la couleur froide.
+  const bulbe = encart.locator(".th-bulbe");
+  await expect(bulbe).toHaveCount(1);
+  expect(await bulbe.evaluate(el => getComputedStyle(el).fill)).toBe(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--bleu").trim()).then(hex => {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`;
+  }));
+});

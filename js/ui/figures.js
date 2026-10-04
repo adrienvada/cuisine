@@ -35,7 +35,9 @@ const INTERLIGNE = 14.5, INTERLIGNE_PETIT = 13.5, INTERLIGNE_SCRIPT = 17;
 const n = v => { const r = Math.round(v * 10) / 10; return Object.is(r, -0) ? 0 : r; };
 
 /* La typographie du carnet (core/format.js) plus l'espace fine insécable devant « % », que typo() ne pose pas. */
-const typoFig = s => typo(String(s ?? "")).replace(/(\S)[   ]+%/g, "$1 %");
+const typoFig = s => typo(String(s ?? "")).replace(/(\S)[\u00a0\u202f ]+%/g, "$1\u202f%")
+  /* Un nombre ne se sépare jamais de son unité, à la ligne non plus : « 20 g », « 12 heures ». */
+  .replace(/(\d)[\u00a0\u202f ]+(mg|mm|m|s|j|jours?|heures?|minutes?|secondes?|semaines?|mois|ans?|fois)(?![\p{L}\d'’])/gu, "$1\u00a0$2");
 const e = s => esc(typoFig(s));
 
 /* « 12,5 » et le vrai signe moins : la règle d'un nombre affiché. */
@@ -109,8 +111,9 @@ function texte(x, y, lignes, { cls = "fg-txt", ancre = "middle", inter = INTERLI
    sa voisine. `items` : { x (centre voulu), w }. Chacun reçoit { x0, rang } : son bord
    gauche (ramené dans [min, max]) et le premier rang où il tient. `occupe[rang]` :
    des intervalles déjà pris. Gloutonne, de gauche à droite : suffisant pour une
-   poignée d'étiquettes, et déterministe. */
-function repartir(items, { min = 4, max = LARGEUR - 4, ecart = 6, occupe = [], depart = () => 0 } = {}) {
+   poignée d'étiquettes, et déterministe. `depart(i)` : le premier rang essayé, `pas(i)` : le
+   saut d'un rang à l'autre (2 pour rester du même côté d'une règle). */
+function repartir(items, { min = 4, max = LARGEUR - 4, ecart = 6, occupe = [], depart = () => 0, pas = () => 1 } = {}) {
   const rangs = occupe.map(r => r.slice());
   const sortie = items.map(() => null);
   const ordre = items.map((_, i) => i).sort((a, b) => items[a].x - items[b].x);
@@ -119,7 +122,7 @@ function repartir(items, { min = 4, max = LARGEUR - 4, ecart = 6, occupe = [], d
     const x0 = Math.min(Math.max(it.x - it.w / 2, min), Math.max(min, max - it.w));
     const x1 = x0 + it.w;
     let r = depart(i);
-    for (;; r++) {
+    for (;; r += pas(i)) {
       rangs[r] = rangs[r] || [];
       if (!rangs[r].some(([a, b]) => x0 < b + ecart && x1 > a - ecart)) { rangs[r].push([x0, x1]); break; }
     }
@@ -171,16 +174,27 @@ export function cheminLisse(pts) {
 let compteur = 0;
 const uidSuivant = () => "f" + (++compteur);
 
-/* Les pointes de flèche, une par ton. Dans un SVG libre : marker-end="url(#fg-fl-vert)". */
+/* Les pointes de flèche, deux jeux par ton. Dans un SVG libre : marker-end="url(#fg-fl-vert)"
+   pour la pointe d'arrivée, marker-start="url(#fg-fd-vert)" pour celle de départ (une cote
+   à double flèche). Les tons : encre, vert, or, terra, bleu, doux. */
 const marqueurs = uid => TONS.map(t =>
-  `<marker id="fg-${uid}-fl-${t}" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="fg-mk fg-mk-${t}" d="M1 1.5L9 5L1 8.5Z"/></marker>`).join("");
+  `<marker id="fg-${uid}-fl-${t}" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="fg-mk fg-mk-${t}" d="M1 1.5L9 5L1 8.5Z"/></marker>` +
+  `<marker id="fg-${uid}-fd-${t}" viewBox="0 0 10 10" refX="2.5" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto"><path class="fg-mk fg-mk-${t}" d="M9 1.5L1 5L9 8.5Z"/></marker>`).join("");
 
 /* Le balisage SVG libre d'un auteur : les références aux marqueurs du cadre
-   (#fg-fl-vert) et aux identifiants qu'il pose lui-même (fg-@-halo) reçoivent
-   l'identifiant de CETTE figure ; la typographie française passe sur les textes. */
+   (#fg-fl-vert, #fg-fd-vert), aux symboles (#fg-sym-flamme) et aux identifiants qu'il
+   pose lui-même (fg-@-halo) reçoivent l'identifiant de CETTE figure ; un <use> sans
+   classe prend le ton par défaut de son symbole ; la typographie française passe
+   sur les textes. */
 function habiller(corps, uid) {
   return String(corps || "")
     .replace(/#fg-fl-/g, `#fg-${uid}-fl-`)
+    .replace(/#fg-fd-/g, `#fg-${uid}-fd-`)
+    .replace(/<use\b([^>]*?)(\/?)>/g, (m, attrs, fin) => {
+      const nom = (attrs.match(/href="#fg-sym-([a-z0-9-]+)"/) || [])[1];
+      const ton = nom && SYMBOLES[nom] && !/\bclass=/.test(attrs) ? ` class="fg-sy-${SYMBOLES[nom].ton}"` : "";
+      return `<use${attrs.replace(/#fg-sym-/g, `#fg-${uid}-sym-`)}${ton}${fin}>`;
+    })
     .replace(/fg-@/g, `fg-${uid}`)
     .replace(/>([^<>]+)</g, (m, s) => ">" + typoFig(s) + "<");
 }
@@ -190,6 +204,89 @@ const flecheDe = (uid, t) => `url(#fg-${uid}-fl-${t})`;
 /* Un trait ou une flèche, en une ligne. */
 const ligne = (x1, y1, x2, y2, cls, extra = "") =>
   `<line class="${cls}" x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}"${extra}/>`;
+
+/* ---------- Les symboles partagés ---------- */
+
+/* Une bibliothèque de petits dessins que les `corps` des figures appellent par
+   <use href="#fg-sym-NOM" x y width height/> (ou avec un transform). Le cadre
+   n'injecte dans chaque figure que les <symbol> utilisés, avec des identifiants
+   propres à la figure (comme les marqueurs). Chaque symbole est dessiné dans sa
+   boîte `vb` à sa taille d'usage : width et height la mettent à l'échelle, traits
+   compris. Aucune couleur en dur : des classes fg-sy-… (css/figures.css) qui lisent
+   deux variables, --sy-t (le trait, ou le plein) et --sy-f (la teinte claire), posées
+   par la classe de TON de la balise <use> : class="fg-sy-bleu". Sans classe, le
+   cadre pose le ton par défaut du symbole (`ton` ci-dessous). */
+export const SYMBOLES = {
+  /* ----- cuisine ----- */
+  poele: { vb: "0 0 72 26", ton: "encre", desc: "poêle, en coupe, avec son manche",
+    corps: `<path class="fg-sy-t fg-sy-e" d="M4 4L9 20Q10 23 13 23H47Q50 23 51 20L56 4"/><path class="fg-sy-t fg-sy-e" d="M55 8H70"/>` },
+  casserole: { vb: "0 0 58 44", ton: "encre", desc: "casserole, en coupe, avec son manche",
+    corps: `<path class="fg-sy-t fg-sy-e" d="M9 4V35Q9 40 14 40H40Q45 40 45 35V4"/><path class="fg-sy-t fg-sy-e" d="M45 10H57"/>` },
+  flamme: { vb: "0 0 24 30", ton: "terra", desc: "flamme",
+    corps: `<path class="fg-sy-p" d="M12 2C13 9 21 12 21 20A9 9 0 0 1 3 20C3 15 6 13 7 8C9 10 10 9 12 2Z"/><path class="fg-sy-i" d="M12 14C13 18 16 19 16 23A4 4 0 0 1 8 23C8 20 11 19 12 14Z"/>` },
+  vapeur: { vb: "0 0 14 32", ton: "bleu", desc: "volute de vapeur",
+    corps: `<path class="fg-sy-t" d="M7 30C1 24 13 20 7 15C1 10 13 6 7 2"/>` },
+  goutte: { vb: "0 0 16 22", ton: "bleu", desc: "goutte",
+    corps: `<path class="fg-sy-p" d="M8 1C8 1 2 9 2 14A6 6 0 0 0 14 14C14 9 8 1 8 1Z"/><path class="fg-sy-s fg-sy-fin" d="M5 14A3 3 0 0 0 8 17"/>` },
+  bulle: { vb: "0 0 18 18", ton: "bleu", desc: "bulle",
+    corps: `<circle class="fg-sy-f" cx="9" cy="9" r="7.5"/><path class="fg-sy-t fg-sy-fin" d="M5.5 8.5A3.8 3.8 0 0 1 9 5.2"/>` },
+  couteau: { vb: "0 0 72 15", ton: "encre", desc: "couteau de cuisine, de profil",
+    corps: `<path class="fg-sy-f" d="M44 3H16Q7 4 2 12Q3 13 7 13H44Z"/><rect class="fg-sy-p" x="44" y="3" width="26" height="9" rx="3.5"/><circle class="fg-sy-k" cx="52" cy="7.5" r="1.1"/><circle class="fg-sy-k" cx="62" cy="7.5" r="1.1"/>` },
+  thermometre: { vb: "0 0 14 40", ton: "terra", desc: "thermomètre à alcool",
+    corps: `<rect class="fg-sy-n" x="4.5" y="1.5" width="5" height="27" rx="2.5"/><circle class="fg-sy-n" cx="7" cy="33" r="5.5"/><path class="fg-sy-t fg-sy-e" d="M7 33V15"/><circle class="fg-sy-p" cx="7" cy="33" r="3.4"/><path class="fg-sy-n fg-sy-fin" d="M11.5 7H13.2M11.5 12H13.2M11.5 17H13.2"/>` },
+  /* ----- matière ----- */
+  "grains-sel-sucre": { vb: "0 0 184 8", ton: "encre", desc: "une rangée de 11 grains, du sel (le ton) et du sucre (doré) en alternance, sur 184 unités",
+    corps: `<rect class="fg-sy-f fg-sy-fin" x="5" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-f fg-sy-fin" x="38" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-f fg-sy-fin" x="71" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-f fg-sy-fin" x="104" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-f fg-sy-fin" x="137" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-f fg-sy-fin" x="170" y="1" width="6" height="6" rx="1.5"/><rect class="fg-sy-sucre" x="21.5" y="1" width="7" height="6" rx="1.5"/><rect class="fg-sy-sucre" x="54.5" y="1" width="7" height="6" rx="1.5"/><rect class="fg-sy-sucre" x="87.5" y="1" width="7" height="6" rx="1.5"/><rect class="fg-sy-sucre" x="120.5" y="1" width="7" height="6" rx="1.5"/><rect class="fg-sy-sucre" x="153.5" y="1" width="7" height="6" rx="1.5"/>` },
+  pelote: { vb: "0 0 20 20", ton: "terra", desc: "protéine repliée sur elle-même : un disque et sa pelote",
+    corps: `<circle class="fg-sy-f" cx="10" cy="10" r="8.5"/><path class="fg-sy-t fg-sy-fin" d="M6 12C4 5 14 4 14 9C14 13 9 13 9 9"/>` },
+  cellule: { vb: "0 0 56 44", ton: "vert", desc: "cellule végétale : paroi, vacuole, noyau",
+    corps: `<rect class="fg-sy-f fg-sy-e" x="2" y="2" width="52" height="40" rx="9"/><path class="fg-sy-v" d="M12 17C12 9 22 8 30 9C38 10 43 15 42 24C41 32 33 36 24 35C15 34 12 26 12 17Z"/><circle class="fg-sy-p" cx="46" cy="12" r="3.8"/><circle class="fg-sy-k" cx="46" cy="12" r="1.2"/><ellipse class="fg-sy-p" cx="47" cy="32" rx="3" ry="1.8"/><ellipse class="fg-sy-p" cx="9" cy="35.5" rx="3" ry="1.8"/>` },
+  "grain-sel": { vb: "0 0 8 8", ton: "encre", desc: "grain de sel ou de sucre",
+    corps: `<rect class="fg-sy-f fg-sy-fin" x="1" y="1" width="6" height="6" rx="1.5"/>` },
+  cristal: { vb: "0 0 24 24", ton: "encre", desc: "cristal à facettes",
+    corps: `<path class="fg-sy-f" d="M12 2L21 8V16L12 22L3 16V8Z"/><path class="fg-sy-t fg-sy-fin" d="M3 8L12 12L21 8M12 12V22"/>` },
+  bacterie: { vb: "0 0 32 16", ton: "terra", desc: "bactérie en bâtonnet, avec son flagelle",
+    corps: `<rect class="fg-sy-f" x="2" y="3" width="22" height="10" rx="5"/><path class="fg-sy-t fg-sy-fin" d="M24 8C26 4 28 12 30 8"/><circle class="fg-sy-p" cx="9" cy="8" r="1.4"/><circle class="fg-sy-p" cx="15" cy="8" r="1.4"/>` },
+  larve: { vb: "0 0 24 24", ton: "terra", desc: "larve enroulée en spirale",
+    corps: `<path class="fg-sy-t fg-sy-e" d="M11.5 12a1.5 1.5 0 0 1 3 0 3.5 3.5 0 0 1-7 0 5.5 5.5 0 0 1 11 0 7.5 7.5 0 0 1-15 0"/>` },
+  oeuf: { vb: "0 0 24 30", ton: "or", desc: "œuf, en contour",
+    corps: `<path class="fg-sy-f" d="M12 2C6.5 2 2.5 12 2.5 18.5A9.5 9.5 0 0 0 21.5 18.5C21.5 12 17.5 2 12 2Z"/>` },
+  feuille: { vb: "0 0 30 24", ton: "vert", desc: "feuille et sa nervure",
+    corps: `<path class="fg-sy-f" d="M3 21C3 9 12 3 27 3C27 15 20 21 3 21Z"/><path class="fg-sy-t fg-sy-fin" d="M3 21C10 14 17 10 24 6"/>` },
+  emulsifiant: { vb: "0 0 16 46", ton: "bleu", desc: "molécule d'émulsifiant : tête qui aime l'eau (en haut), queue qui aime le gras",
+    corps: `<circle class="fg-sy-p" cx="8" cy="8" r="8"/><path class="fg-sy-q" d="M5 16q-3 8 0 16t0 14M11 16q3 8 0 16t0 14"/>` },
+  "ion-plus": { vb: "0 0 16 16", ton: "terra", desc: "ion positif (signe +)",
+    corps: `<circle class="fg-sy-p" cx="8" cy="8" r="7.5"/><path class="fg-sy-s" d="M4.5 8H11.5M8 4.5V11.5"/>` },
+  "ion-moins": { vb: "0 0 16 16", ton: "bleu", desc: "ion négatif (signe −)",
+    corps: `<circle class="fg-sy-p" cx="8" cy="8" r="7.5"/><path class="fg-sy-s" d="M4.5 8H11.5"/>` }
+};
+
+/* Les <use> d'un `corps` : seulement href="#fg-sym-NOM" d'un symbole qui existe, avec des attributs
+   de placement (x, y, width, height, transform, class, opacity). Rend la liste des problèmes
+   (vide : tout va bien) ; le vérificateur s'en sert, et n'autorise aucun autre <use>. */
+export function usagesInvalides(corps) {
+  const pb = [];
+  const OK = new Set(["href", "x", "y", "width", "height", "transform", "class", "opacity"]);
+  for (const m of String(corps).matchAll(/<use\b([^>]*)>/g)) {
+    const attrs = [...m[1].matchAll(/([\w:-]+)\s*=\s*"([^"]*)"/g)];
+    const reste = m[1].replace(/([\w:-]+)\s*=\s*"([^"]*)"/g, "").replace("/", "").trim();
+    if (reste) pb.push(`<use> mal formé : « ${reste} »`);
+    const h = attrs.find(a => a[1] === "href");
+    if (!h || !/^#fg-sym-[a-z0-9-]+$/.test(h[2])) { pb.push(`<use> : seul href="#fg-sym-NOM" est permis`); continue; }
+    if (!SYMBOLES[h[2].slice(8)]) pb.push(`<use> : le symbole « ${h[2].slice(8)} » n'existe pas (${Object.keys(SYMBOLES).join(", ")})`);
+    for (const a of attrs) if (!OK.has(a[1])) pb.push(`<use> : attribut « ${a[1]} » non permis`);
+    for (const a of attrs) if (a[1] === "transform" && !/^(?:\s*(?:translate|rotate|scale|skewX|skewY)\([\d\s.,-]+\))+\s*$/.test(a[2])) pb.push(`<use> : transform « ${a[2]} » douteux`);
+  }
+  return pb;
+}
+
+/* Les <symbol> d'un balisage déjà habillé : seulement ceux que `corps` appelle. */
+function symbolesDe(corps, uid) {
+  const vus = new Set();
+  for (const m of String(corps).matchAll(new RegExp(`href="#fg-${uid}-sym-([a-z0-9-]+)"`, "g"))) vus.add(m[1]);
+  return [...vus].filter(nom => SYMBOLES[nom]).map(nom =>
+    `<symbol id="fg-${uid}-sym-${nom}" viewBox="${SYMBOLES[nom].vb}">${SYMBOLES[nom].corps}</symbol>`).join("");
+}
 
 /* ---------- Courbe ---------- */
 
@@ -218,18 +315,33 @@ function rendreCourbe(f, uid) {
   const repH = (f.reperes || []).filter(r => nombres(r.y));
   const bandes = zones.map(z => ({ z, x0: px(Math.max(z.de, xmin)), x1: px(Math.min(z.a, xmax)) }));
 
+  /* Une étiquette de zone entre dans sa bande (sur une ou deux lignes), sinon elle passe
+     au-dessus du tracé, sur UNE ligne, plutôt que de se couper en quatre. */
   const etiqZ = bandes.filter(b => b.z.label).map(b => {
-    const lignes = enrouler(b.z.label, Math.max(b.x1 - b.x0 - 4, 40), { taille: T_PETIT });
-    return { b, lignes, w: largeurMax(lignes, T_PETIT) + 2, x: (b.x0 + b.x1) / 2 };
+    const dispo = b.x1 - b.x0 - 4;
+    let lignes = enrouler(b.z.label, Math.max(dispo, 10), { taille: T_PETIT, gras: true });
+    const etroite = lignes.length > 2 || largeurMax(lignes, T_PETIT, { gras: true }) > dispo + 2;
+    if (etroite) lignes = enrouler(b.z.label, LARGEUR - 12, { taille: T_PETIT, gras: true });
+    return { b, lignes, etroite, w: largeurMax(lignes, T_PETIT, { gras: true }) + 2, x: (b.x0 + b.x1) / 2 };
   });
   const etiqR = repV.filter(r => r.label).map(r => {
     const lignes = enrouler(r.label, 96, { taille: T_PETIT });
     return { r, lignes, w: largeurMax(lignes, T_PETIT) + 2, x: px(r.x) };
   });
-  /* Les zones d'abord, toutes au rang 0 (au ras du tracé) ; les repères prennent le rang libre. */
-  const posZ = etiqZ.map(it => ({ x0: it.x - it.w / 2, rang: 0 }));
-  const posR = repartir(etiqR, { min: gauche - 8, max: LARGEUR - 6, occupe: [posZ.map((p, i) => [p.x0, p.x0 + etiqZ[i].w])] });
-  const nbRangs = Math.max(etiqZ.length ? 1 : 0, ...posR.map(p => p.rang + 1), 0);
+  /* Les zones qui tiennent dans leur bande, au rang 0 (au ras du tracé) ; les étroites et les
+     repères prennent ensuite le premier rang libre. */
+  const rangsPris = [[]];
+  const posZ = etiqZ.map(it => it.etroite ? null : { x0: it.x - it.w / 2, rang: 0 });
+  posZ.forEach((p, i) => { if (p) rangsPris[0].push([p.x0, p.x0 + etiqZ[i].w]); });
+  const etroites = etiqZ.map((it, i) => (it.etroite ? i : -1)).filter(i => i >= 0);
+  repartir(etroites.map(i => etiqZ[i]), { min: gauche - 8, max: LARGEUR - 6, occupe: rangsPris }).forEach((p, k) => {
+    posZ[etroites[k]] = p;
+    (rangsPris[p.rang] = rangsPris[p.rang] || []).push([p.x0, p.x0 + etiqZ[etroites[k]].w]);
+  });
+  for (let r = 0; r < rangsPris.length; r++) rangsPris[r] = rangsPris[r] || [];
+  etiqZ.forEach((it, i) => { it.x = posZ[i].x0 + it.w / 2; });
+  const posR = repartir(etiqR, { min: gauche - 8, max: LARGEUR - 6, occupe: rangsPris });
+  const nbRangs = Math.max(etiqZ.length ? 1 : 0, ...posZ.map(p => p.rang + 1), ...posR.map(p => p.rang + 1), 0);
   const hRang = Array.from({ length: nbRangs }, (_, r) => {
     const lignes = Math.max(0, ...etiqZ.filter((_, i) => posZ[i].rang === r).map(it => it.lignes.length),
       ...etiqR.filter((_, i) => posR[i].rang === r).map(it => it.lignes.length));
@@ -246,6 +358,19 @@ function rendreCourbe(f, uid) {
   /* Les bandes verticales, sous tout le reste. */
   for (const b of bandes) {
     corps += `<rect class="${fondClair(ton(b.z.ton, "or"))} fg-bande" x="${n(b.x0)}" y="${n(py0)}" width="${n(b.x1 - b.x0)}" height="${ph}"/>`;
+  }
+  /* Les bandes horizontales (zonesY) : un seuil, une plage de valeurs, étiquetée dans la bande. */
+  const zonesY = (f.zonesY || []).filter(z => nombres(z.de, z.a) && z.a > z.de && z.a > ymin && z.de < ymax);
+  for (const z of zonesY) {
+    const t = ton(z.ton, "or");
+    const y0 = py(Math.min(z.a, ymax)), y1 = py(Math.max(z.de, ymin));
+    corps += `<rect class="${fondClair(t)} fg-bande" x="${gauche}" y="${n(y0)}" width="${n(pw)}" height="${n(y1 - y0)}"/>`;
+    if (z.label) {
+      const droite = z.ancre === "droite";
+      const yt = y1 - y0 >= 17 ? y0 + 12.5 : (y0 + y1) / 2 + 4;
+      corps += texte(droite ? gauche + pw - 5 : gauche + 6, yt, enrouler(z.label, pw - 14, { taille: T_PETIT, gras: true }).slice(0, 1),
+        { cls: `fg-txt fg-txt-s fg-txt-b${classeTexteTon(t)}`, ancre: droite ? "end" : "start" });
+    }
   }
   /* Grille horizontale très discrète, et graduations. */
   for (const g of gradY) {
@@ -275,7 +400,10 @@ function rendreCourbe(f, uid) {
     if (r.y < ymin || r.y > ymax) continue;
     const t = ton(r.ton, "encre");
     corps += ligne(gauche, py(r.y), gauche + pw, py(r.y), `fg-t-${t} fg-t-fin fg-tirets`);
-    if (r.label) corps += texte(gauche + pw - 2, py(r.y) - 5, enrouler(r.label, 150, { taille: T_PETIT }).slice(0, 1), { cls: `fg-txt fg-txt-s fg-halo${classeTexteTon(t)}`, ancre: "end" });
+    if (r.label) {
+      const gauchee = r.ancre === "gauche";
+      corps += texte(gauchee ? gauche + 6 : gauche + pw - 2, py(r.y) - 5, enrouler(r.label, 150, { taille: T_PETIT }).slice(0, 1), { cls: `fg-txt fg-txt-s fg-halo${classeTexteTon(t)}`, ancre: gauchee ? "start" : "end" });
+    }
   }
   /* Repères verticaux et étiquettes d'en-tête : le rang r occupe la bande dont le
      bas est à py0 - 4 - (hauteur des rangs plus proches du tracé). */
@@ -289,9 +417,9 @@ function rendreCourbe(f, uid) {
   repV.filter(r => !r.label).forEach(r => {
     corps += ligne(px(r.x), py0, px(r.x), py1, `fg-t-${ton(r.ton, "encre")} fg-t-fin fg-tirets`);
   });
-  etiqZ.forEach(it => {
+  etiqZ.forEach((it, i) => {
     const t = ton(it.b.z.ton, "or");
-    corps += texte(it.x, basRang(0) - 3 - (it.lignes.length - 1) * INTERLIGNE_PETIT, it.lignes, { cls: `fg-txt fg-txt-s fg-txt-b${classeTexteTon(t)}`, inter: INTERLIGNE_PETIT });
+    corps += texte(it.x, basRang(posZ[i].rang) - 3 - (it.lignes.length - 1) * INTERLIGNE_PETIT, it.lignes, { cls: `fg-txt fg-txt-s fg-txt-b${classeTexteTon(t)}`, inter: INTERLIGNE_PETIT });
   });
 
   /* Les séries. */
@@ -330,9 +458,11 @@ function rendreCourbe(f, uid) {
   /* Sous l'axe : extrémités qualitatives, titre de l'axe x, légende des séries. */
   let yBas = py1 + (gradX.length ? 17 : 0);
   if (qual && Array.isArray(xs.extremites)) {
-    corps += texte(gauche, py1 + 17, [xs.extremites[0] || ""], { cls: "fg-txt fg-txt-s", ancre: "start" });
-    corps += texte(gauche + pw, py1 + 17, [xs.extremites[1] || ""], { cls: "fg-txt fg-txt-s", ancre: "end" });
-    yBas = py1 + 17;
+    /* Avec des graduations explicites (x.graduations), les extrémités passent une ligne plus bas. */
+    const yExt = py1 + (gradX.length ? 31 : 17);
+    corps += texte(gauche, yExt, [xs.extremites[0] || ""], { cls: "fg-txt fg-txt-s", ancre: "start" });
+    corps += texte(gauche + pw, yExt, [xs.extremites[1] || ""], { cls: "fg-txt fg-txt-s", ancre: "end" });
+    yBas = yExt;
   }
   if (xs.label) {
     const lib = xs.unite && !xs.label.includes(xs.unite) ? `${xs.label} (${xs.unite})` : xs.label;
@@ -364,39 +494,92 @@ function rendreEchelle(f, uid) {
   const { min, max } = f;
   if (!nombres(min, max) || !(max > min)) throw new Error("échelle : min et max numériques requis");
   const g0 = 16, g1 = LARGEUR - 16, lw = g1 - g0;
-  const px = v => g0 + (Math.min(Math.max(v, min), max) - min) / (max - min) * lw;
   const unite = f.unite || "";
-  const zones = (f.zones || []).filter(z => nombres(z.de, z.a) && z.a > z.de);
+
+  /* Les coupures : un axe interrompu. Les valeurs de `de` à `a` n'ont plus de place sur la
+     règle, remplacée par un blanc de GAP unités barré du signe // (celui du thermomètre). */
+  const GAP = 16;
+  const coupures = [];
+  for (const c of (f.coupures || []).filter(c => c && nombres(c.de, c.a) && c.a > c.de && c.de > min && c.a < max).sort((a, b) => a.de - b.de)) {
+    if (!coupures.length || c.de >= coupures[coupures.length - 1].a) coupures.push(c);
+  }
+  const retire = coupures.reduce((s, c) => s + c.a - c.de, 0);
+  const span = (max - min) - retire;
+  const utile = lw - coupures.length * GAP;
+  if (!(span > 0) || !(utile > 40)) throw new Error("échelle : coupures trop larges");
+  /* Une valeur dans une coupure se pose au milieu du blanc, ou à son bord (`dedans`) pour une zone. */
+  const px = (v, dedans = "centre") => {
+    v = Math.min(Math.max(v, min), max);
+    let ret = 0, trous = 0;
+    for (const c of coupures) {
+      if (v >= c.a) { ret += c.a - c.de; trous++; continue; }
+      if (v > c.de) {
+        const bord = g0 + (c.de - min - ret) / span * utile + trous * GAP;
+        return dedans === "gauche" ? bord : dedans === "droite" ? bord + GAP : bord + GAP / 2;
+      }
+      break;
+    }
+    return g0 + (v - min - ret) / span * utile + trous * GAP;
+  };
+  const trous = coupures.map(c => px(c.de));                   // bord gauche de chaque blanc
+  const segments = [];
+  let debut = g0;
+  for (const t of trous) { segments.push([debut, t]); debut = t + GAP; }
+  segments.push([debut, g1]);
+
+  const coteDe = c => (c === "haut" ? 0 : c === "bas" ? 1 : null);
   const marqs = (f.marqueurs || []).filter(m => nombres(m.v) && m.label);
 
+  /* Rangées : avec `rangees: true`, des zones qui se chevauchent passent sur des pistes parallèles. */
+  const zonesBrutes = (f.zones || []).filter(z => nombres(z.de, z.a) && z.a > z.de);
+  const rangeeDe = new Map();
+  let nbRangees = 1;
+  if (f.rangees) {
+    const fins = [];
+    for (const z of [...zonesBrutes].sort((a, b) => a.de - b.de || (b.a - b.de) - (a.a - a.de))) {
+      let k = fins.findIndex(fin => fin <= z.de + 1e-9);
+      if (k < 0) { k = fins.length; fins.push(0); }
+      fins[k] = z.a;
+      rangeeDe.set(z, k);
+    }
+    nbRangees = Math.max(1, fins.length);
+  }
+
   /* Zones : l'étiquette entre dans la bande si elle y tient (sur une ou deux
-     lignes), sinon elle monte (ou descend) avec les marqueurs. */
+     lignes), sinon elle monte (ou descend) avec les marqueurs. `cote` la force dehors. */
   let lignesBarre = 1;
-  const zInfo = zones.map(z => {
-    const x0 = px(z.de), x1 = px(z.a), larg = x1 - x0 - 8;
+  const zInfo = zonesBrutes.map(z => {
+    const x0 = px(z.de, "droite"), x1 = px(z.a, "gauche");
+    const pieces = segments.map(([a, b]) => [Math.max(a, x0), Math.min(b, x1)]).filter(([a, b]) => b - a > 0.5);
+    if (!pieces.length) return null;
+    const grande = pieces.reduce((m, p) => (p[1] - p[0] > m[1] - m[0] ? p : m));
+    const larg = grande[1] - grande[0] - 8;
     let dedans = null;
-    if (z.label) {
+    if (z.label && coteDe(z.cote) === null) {
       const lignes = enrouler(z.label, larg, { taille: T_PETIT, gras: true });
       if (lignes.length <= 2 && largeurMax(lignes, T_PETIT, { gras: true }) <= larg) dedans = lignes;
     }
     if (dedans) lignesBarre = Math.max(lignesBarre, dedans.length);
-    return { z, x0, x1, dedans };
-  });
+    return { z, x0, x1, pieces, grande, dedans, rangee: rangeeDe.get(z) || 0 };
+  }).filter(Boolean);
   const hBarre = 14 + lignesBarre * INTERLIGNE_PETIT;
+  const ECART_RANGEES = 5;
+  const hRegle = nbRangees * hBarre + (nbRangees - 1) * ECART_RANGEES;
 
   const items = [];
   for (const zi of zInfo) {
     if (zi.z.label && !zi.dedans) {
       const lignes = enrouler(zi.z.label, 96, { taille: T_PETIT, gras: true });
-      items.push({ lignes, w: largeurMax(lignes, T_PETIT, { gras: true }) + 2, x: (zi.x0 + zi.x1) / 2, xc: (zi.x0 + zi.x1) / 2, ton: ton(zi.z.ton, "or"), gras: true, zone: true });
+      items.push({ lignes, w: largeurMax(lignes, T_PETIT, { gras: true }) + 2, x: (zi.x0 + zi.x1) / 2, xc: (zi.x0 + zi.x1) / 2, ton: ton(zi.z.ton, "or"), gras: true, zone: true, cote: coteDe(zi.z.cote) });
     }
   }
   for (const m of marqs) {
     const lignes = enrouler(m.label, 112, { taille: T_PETIT });
-    items.push({ lignes, w: largeurMax(lignes, T_PETIT) + 2, x: px(m.v), xc: px(m.v), ton: ton(m.ton, "terra"), marq: true });
+    items.push({ lignes, w: largeurMax(lignes, T_PETIT) + 2, x: px(m.v), xc: px(m.v), ton: ton(m.ton, "terra"), marq: true, cote: coteDe(m.cote) });
   }
-  /* Haut, bas, haut… : le rang k = 2r est au-dessus (rang r), k = 2r+1 en dessous. */
-  const pos = repartir(items, { min: 4, max: LARGEUR - 4, ecart: 8 });
+  /* Haut, bas, haut… : le rang k = 2r est au-dessus (rang r), k = 2r+1 en dessous. Une étiquette
+     de `cote` forcé ne saute que de deux rangs : elle reste du même côté. */
+  const pos = repartir(items, { min: 4, max: LARGEUR - 4, ecart: 8, depart: i => items[i].cote ?? 0, pas: i => (items[i].cote === null ? 1 : 2) });
   const cote = i => pos[i].rang & 1;            // 0 = au-dessus, 1 = en dessous
   const niveau = i => pos[i].rang >> 1;
   const hRang = (c, r) => {
@@ -408,34 +591,70 @@ function rendreEchelle(f, uid) {
   const hautTotal = cumul(0, nbRangs(0));
 
   const yBarre = 8 + hautTotal + (hautTotal ? 4 : 0);
-  const yFin = yBarre + hBarre;
+  const yFin = yBarre + hRegle;
   let corps = "";
-  corps += `<rect class="fg-f-doux fg-t-doux" x="${g0}" y="${n(yBarre)}" width="${lw}" height="${n(hBarre)}" rx="4"/>`;
+  for (let k = 0; k < nbRangees; k++) {
+    for (const [a, b] of segments) corps += `<rect class="fg-f-doux fg-t-doux" x="${n(a)}" y="${n(yBarre + k * (hBarre + ECART_RANGEES))}" width="${n(b - a)}" height="${n(hBarre)}" rx="4"/>`;
+  }
   for (const zi of zInfo) {
     const t = ton(zi.z.ton, "or");
-    corps += `<rect class="${fondClair(t)} fg-t-${t} fg-t-fin" x="${n(zi.x0)}" y="${n(yBarre)}" width="${n(zi.x1 - zi.x0)}" height="${n(hBarre)}" rx="2"/>`;
+    const y = yBarre + zi.rangee * (hBarre + ECART_RANGEES);
+    for (const [a, b] of zi.pieces) corps += `<rect class="${fondClair(t)} fg-t-${t} fg-t-fin" x="${n(a)}" y="${n(y)}" width="${n(b - a)}" height="${n(hBarre)}" rx="2"/>`;
     if (zi.dedans) {
-      const yb = yBarre + hBarre / 2 - (zi.dedans.length - 1) * INTERLIGNE_PETIT / 2 + 4;
-      corps += texte((zi.x0 + zi.x1) / 2, yb, zi.dedans, { cls: `fg-txt fg-txt-s fg-txt-b${classeTexteTon(t)}`, inter: INTERLIGNE_PETIT });
+      const yb = y + hBarre / 2 - (zi.dedans.length - 1) * INTERLIGNE_PETIT / 2 + 4;
+      corps += texte((zi.grande[0] + zi.grande[1]) / 2, yb, zi.dedans, { cls: `fg-txt fg-txt-s fg-txt-b${classeTexteTon(t)}`, inter: INTERLIGNE_PETIT });
     }
   }
+  /* Le signe // : deux traits penchés de part et d'autre d'un trait pointillé, sur chaque coupure. */
+  for (const t of trous) {
+    corps += `<path class="fg-t-axe fg-pointilles" d="M${n(t)} ${n(yBarre + hRegle / 2)}H${n(t + GAP)}"/>`;
+    for (const xx of [t + 3, t + GAP - 3]) corps += `<path class="fg-t-axe fg-rupture" d="M${n(xx - 2.6)} ${n(yFin + 5)}L${n(xx + 2.6)} ${n(yBarre - 5)}"/>`;
+  }
 
-  /* Graduations (ou extrémités, pour une échelle qualitative). */
+  /* Graduations (ou extrémités, pour une échelle qualitative). Les bords de chaque coupure
+     sont toujours étiquetés, l'un vers la gauche, l'autre vers la droite du blanc. */
   let basTexte = yFin + 4;
   let unitePerdue = false;
   let textesGrad = "";   // posés après les tiges des étiquettes : leur liseré les laisse lisibles
-  const grad = qual ? [] : (f.graduations || graduationsAuto(min, max, 5));
+  const brutes = qual ? [] : (f.graduations || graduationsAuto(min, max, 5));
+  const bords = coupures.flatMap(c => [{ v: c.de, ancre: "end" }, { v: c.a, ancre: "start" }]);
+  const grad = [...bords, ...brutes.filter(g => g >= min && g <= max && !coupures.some(c => g >= c.de && g <= c.a)).map(v => ({ v, ancre: "middle" }))];
   if (grad.length) {
-    const avec = grad.map(g => valeurUnite(g, unite));
-    const tient = libs => grad.every((g, i) => i === 0 || Math.abs(px(g) - px(grad[i - 1])) >= (largeurTexte(libs[i], T_PETIT) + largeurTexte(libs[i - 1], T_PETIT)) / 2 + 6);
-    let libs = avec;
-    if (unite && !tient(avec)) { libs = grad.map(g => nombreFr(g)); unitePerdue = true; }
-    grad.forEach((g, i) => {
-      corps += ligne(px(g), yFin, px(g), yFin + 5, "fg-t-axe");
-      const w = largeurTexte(libs[i], T_PETIT);
-      const x = Math.min(Math.max(px(g), 2 + w / 2), LARGEUR - 2 - w / 2);
-      textesGrad += texte(x, yFin + 18, [libs[i]], { cls: "fg-txt fg-txt-s fg-halo", ancre: "middle" });
-    });
+    const boite = (g, lib) => {
+      const w = largeurTexte(lib, T_PETIT), x = px(g.v);
+      const x0 = g.ancre === "end" ? x - w : g.ancre === "start" ? x : x - w / 2;
+      const c = Math.min(Math.max(x0, 2), LARGEUR - 2 - w);
+      return [c, c + w];
+    };
+    const retenir = libs => {
+      const gardes = [];
+      const ordre = grad.map((g, i) => i).sort((a, b) => (grad[a].ancre === "middle") - (grad[b].ancre === "middle") || px(grad[a].v) - px(grad[b].v));
+      for (const i of ordre) {
+        const [a, b] = boite(grad[i], libs[i]);
+        if (grad[i].ancre !== "middle" || !gardes.some(j => { const [c, d] = boite(grad[j], libs[j]); return a < d + 6 && b > c - 6; })) gardes.push(i);
+      }
+      return gardes.sort((a, b) => px(grad[a].v) - px(grad[b].v));
+    };
+    let libs = grad.map(g => valeurUnite(g.v, unite));
+    let gardes = retenir(libs);
+    if (unite && gardes.length < grad.length) { libs = grad.map(g => nombreFr(g.v)); unitePerdue = true; gardes = retenir(libs); }
+    /* La tige d'une étiquette d'en dessous traverse la ligne des graduations : une graduation
+       qu'elle toucherait se range à son côté (avant ou après la tige) au lieu d'être barrée. */
+    const tiges = items.filter((it, i) => cote(i) === 1).map(it => it.xc);
+    for (const i of gardes) {
+      const g = grad[i], w = largeurTexte(libs[i], T_PETIT);
+      corps += ligne(px(g.v), yFin, px(g.v), yFin + 5, "fg-t-axe");
+      let ancre = g.ancre;
+      let x = ancre === "end" ? Math.max(px(g.v), 2 + w) : ancre === "start" ? Math.min(px(g.v), LARGEUR - 2 - w) : Math.min(Math.max(px(g.v), 2 + w / 2), LARGEUR - 2 - w / 2);
+      const x0 = ancre === "end" ? x - w : ancre === "start" ? x : x - w / 2;
+      const tige = tiges.find(t => t > x0 - 2.5 && t < x0 + w + 2.5);
+      if (tige !== undefined) {
+        if (tige >= px(g.v)) { ancre = "end"; x = Math.min(tige - 4, LARGEUR - 2); }
+        else { ancre = "start"; x = Math.max(tige + 4, 2); }
+        x = ancre === "end" ? Math.max(x, 2 + w) : Math.min(x, LARGEUR - 2 - w);
+      }
+      textesGrad += texte(x, yFin + 18, [libs[i]], { cls: "fg-txt fg-txt-s fg-halo", ancre });
+    }
     basTexte = yFin + 24;
   } else if (qual && Array.isArray(f.extremites)) {
     corps += texte(g0, yFin + 17, [f.extremites[0] || ""], { cls: "fg-txt fg-txt-s", ancre: "start" });
@@ -480,23 +699,34 @@ function rendreEchelle(f, uid) {
 /* ---------- Barres ---------- */
 
 function rendreBarres(f, uid) {
-  const bs = (f.barres || []).filter(b => nombres(b.valeur) && b.label);
+  /* Une barre porte une `valeur`, ou une plage `de`…`a` (un segment avec ses deux bornes). */
+  const plage = b => nombres(b.de, b.a) && b.a >= b.de;
+  const bs = (f.barres || []).filter(b => (nombres(b.valeur) || plage(b)) && b.label);
   if (!bs.length) throw new Error("barres : aucune barre");
   const unite = f.unite || "";
-  const max = f.max ?? Math.max(...bs.map(b => b.valeur));
+  const bas = f.min ?? 0;
+  const max = f.max ?? Math.max(...bs.map(b => (plage(b) ? b.a : b.valeur)));
+  if (!(max > bas)) throw new Error("barres : bornes de l'échelle incohérentes");
   const g0 = 16, g1 = LARGEUR - 16;
-  const valTexte = b => (b.texte ?? (f.qualitative ? "" : valeurUnite(b.valeur, unite)));
+  const valTexte = b => (b.texte ?? (f.qualitative ? "" : plage(b) ? `${nombreFr(b.de)} à ${valeurUnite(b.a, unite)}` : valeurUnite(b.valeur, unite)));
   const reserve = Math.max(0, ...bs.map(b => largeurTexte(valTexte(b), T_NORMAL, { gras: true }))) + 10;
   const piste = g1 - g0 - reserve;
+  const dePiste = v => Math.min(1, Math.max(0, (v - bas) / (max - bas))) * piste;
   let y = 6, corps = "";
   bs.forEach((b, i) => {
     const t = ton(b.ton, ["vert", "or", "terra", "bleu"][i % 4]);
     const lignes = enrouler(b.label, g1 - g0, { taille: T_NORMAL });
     corps += texte(g0, y + 12, lignes, { cls: "fg-txt", ancre: "start", inter: INTERLIGNE });
     y += lignes.length * INTERLIGNE + 4;
-    const w = Math.max(3, Math.min(1, b.valeur / max) * piste);
     corps += `<rect class="fg-f-doux" x="${g0}" y="${n(y)}" width="${n(piste)}" height="14" rx="4"/>`;
-    corps += `<rect class="fg-f-${t} fg-barre" x="${g0}" y="${n(y)}" width="${n(w)}" height="14" rx="4"/>`;
+    if (plage(b)) {
+      const x0 = g0 + Math.min(dePiste(b.de), piste - 1), x1 = Math.max(g0 + dePiste(b.a), x0 + 1);
+      corps += `<path class="fg-t-${t} fg-t-tres-epais" d="M${n(x0)} ${n(y + 7)}H${n(x1)}"/>`;
+      for (const x of [x0, x1]) corps += `<circle class="fg-pt fg-f-${t}" cx="${n(x)}" cy="${n(y + 7)}" r="5"/>`;
+    } else {
+      const w = f.min === undefined ? Math.max(3, Math.min(1, b.valeur / max) * piste) : Math.max(3, dePiste(b.valeur));
+      corps += `<rect class="fg-f-${t} fg-barre" x="${g0}" y="${n(y)}" width="${n(w)}" height="14" rx="4"/>`;
+    }
     const vt = valTexte(b);
     if (vt) corps += texte(g0 + piste + 8, y + 12, [vt], { cls: `fg-txt fg-txt-b${classeTexteTon(t)}`, ancre: "start" });
     y += 14;
@@ -584,34 +814,82 @@ function rendreSvg(f, uid) {
 
 /* ---------- Comparaison ---------- */
 
+/* Chaque panneau est un mini-SVG imbriqué : son `vb` est mis à l'échelle de la carte. Le
+   TEXTE, lui, garde sa taille nominale (11,5 ou 13 unités de la figure) quelle que soit la
+   largeur du panneau : le cadre pose --fg-k, le facteur d'échelle, et la feuille de style
+   (css/figures.css, .fg-pn) en divise la taille des textes. Le `vb` recommandé donne
+   pourtant l'échelle 1 : sa largeur est celle de la zone de dessin (134 pour deux panneaux,
+   84 pour trois ; 128 et 77 avec des flèches ; 116 en une colonne). */
+function mini(p, vb, x, y, w, h, uid) {
+  const k = Math.min(w / vb[2], h / vb[3]);
+  const style = Math.abs(k - 1) > 0.01 ? ` style="--fg-k:${Math.round(k * 1000) / 1000}"` : "";
+  return `<svg class="fg-pn" x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" viewBox="${vb.join(" ")}" preserveAspectRatio="xMidYMid meet"${style}>${habiller(p.corps, uid)}</svg>`;
+}
+
 function rendreComparaison(f, uid) {
   const ps = (f.panneaux || []).filter(p => p.corps || p.label);
   if (ps.length < 2 || ps.length > 3) throw new Error("comparaison : deux ou trois panneaux");
   const nb = ps.length;
-  const marge = 8, ecart = f.fleche ? (nb === 2 ? 24 : 18) : (nb === 2 ? 12 : 8);
-  const pw = (LARGEUR - 2 * marge - (nb - 1) * ecart) / nb;
+  const cols = [1, 2, 3].includes(f.colonnes) ? Math.min(f.colonnes, nb) : nb;
+  const marge = 8;
   const vbs = ps.map(p => (p.vb || "0 0 100 100").trim().split(/[\s,]+/).map(Number));
   if (vbs.some(v => v.length !== 4 || v.some(x => !Number.isFinite(x)))) throw new Error("comparaison : vb de panneau invalide");
+  let corps = "";
+
+  /* Une colonne : chaque panneau est une ligne, le dessin à gauche, le texte à droite — la
+     disposition des textes longs, qui seraient coupés en quatre dans une colonne étroite. */
+  if (cols === 1) {
+    const ZD = 116, xt = marge + 6 + ZD + 14, lt = LARGEUR - marge - 10 - xt;
+    const entre = f.fleche ? 24 : 10;
+    let y = 10;
+    ps.forEach((p, i) => {
+      const t = ton(p.ton, "vert");
+      const hm = Math.min(130, Math.round(ZD * vbs[i][3] / vbs[i][2]));
+      const l = enrouler(p.label || "", lt, { taille: T_NORMAL, gras: true });
+      const s = p.sous ? enrouler(p.sous, lt, { taille: T_PETIT }) : [];
+      const hTxt = l.length * INTERLIGNE + (s.length ? 3 + s.length * INTERLIGNE_PETIT : 0);
+      const hCarte = Math.max(hm + 12, hTxt + 18);
+      corps += `<rect class="fg-f-carte fg-t-${t}" x="${marge}" y="${n(y)}" width="${LARGEUR - 2 * marge}" height="${n(hCarte)}" rx="10"/>`;
+      corps += `<rect class="${fondClair(t)}" x="${xt - 8}" y="${n(y + 1)}" width="${LARGEUR - marge - 1 - (xt - 8)}" height="${n(hCarte - 2)}" rx="9"/>`;
+      corps += mini(p, vbs[i], marge + 6, y + (hCarte - hm) / 2, ZD, hm, uid);
+      const yt = y + (hCarte - hTxt) / 2 + 11;
+      corps += texte(xt, yt, l, { cls: `fg-txt fg-txt-b${classeTexteTon(t)}`, ancre: "start" });
+      if (s.length) corps += texte(xt, yt + l.length * INTERLIGNE + 2, s, { cls: "fg-txt fg-txt-s", ancre: "start", inter: INTERLIGNE_PETIT });
+      y += hCarte;
+      if (f.fleche && i < nb - 1) corps += ligne(LARGEUR / 2, y + 3, LARGEUR / 2, y + entre - 3, "fg-t-axe", ` marker-end="${flecheDe(uid, "encre")}"`);
+      if (i < nb - 1) y += entre;
+    });
+    return { h: Math.ceil(y + 10), corps };
+  }
+
+  /* Deux ou trois colonnes : des cartes verticales, le dessin au-dessus du texte. */
+  const ecart = f.fleche ? (cols === 2 ? 24 : 18) : (cols === 2 ? 12 : 8);
+  const pw = (LARGEUR - 2 * marge - (cols - 1) * ecart) / cols;
   const zone = pw - 12;
   const hMini = Math.round(Math.max(...vbs.map(v => zone * v[3] / v[2])));
   const ls = ps.map(p => ({ l: enrouler(p.label || "", pw - 12, { taille: T_NORMAL, gras: true }), s: p.sous ? enrouler(p.sous, pw - 12, { taille: T_PETIT }) : [] }));
-  const hTxt = Math.max(...ls.map(m => m.l.length * INTERLIGNE + (m.s.length ? 3 + m.s.length * INTERLIGNE_PETIT : 0)));
-  const hBox = 6 + hMini + 8 + hTxt + 8;
-  let corps = "";
-  ps.forEach((p, i) => {
-    const t = ton(p.ton, "vert");
-    const x = marge + i * (pw + ecart);
-    corps += `<rect class="fg-f-carte fg-t-${t}" x="${n(x)}" y="10" width="${n(pw)}" height="${n(hBox)}" rx="10"/>`;
-    corps += `<svg x="${n(x + 6)}" y="${16}" width="${n(zone)}" height="${hMini}" viewBox="${vbs[i].join(" ")}" preserveAspectRatio="xMidYMid meet">${habiller(p.corps, uid)}</svg>`;
-    const yt = 10 + 6 + hMini + 8 + 11;
-    corps += `<rect class="${fondClair(t)}" x="${n(x + 1)}" y="${n(10 + 6 + hMini + 5)}" width="${n(pw - 2)}" height="${n(hBox - 6 - hMini - 5 - 1)}" rx="9"/>`;
-    corps += texte(x + pw / 2, yt + 3, ls[i].l, { cls: `fg-txt fg-txt-b${classeTexteTon(t)}` });
-    if (ls[i].s.length) corps += texte(x + pw / 2, yt + 3 + ls[i].l.length * INTERLIGNE + 2, ls[i].s, { cls: "fg-txt fg-txt-s", inter: INTERLIGNE_PETIT });
-    if (f.fleche && i < nb - 1) {
-      corps += ligne(x + pw + 3, 10 + (6 + hMini) / 2, x + pw + ecart - 3, 10 + (6 + hMini) / 2, "fg-t-axe", ` marker-end="${flecheDe(uid, "encre")}"`);
-    }
-  });
-  return { h: Math.ceil(10 + hBox + 10), corps };
+  let y0 = 10;
+  for (let r = 0; r < nb; r += cols) {
+    const rang = ps.map((_, i) => i).slice(r, r + cols);
+    const hTxt = Math.max(...rang.map(i => ls[i].l.length * INTERLIGNE + (ls[i].s.length ? 3 + ls[i].s.length * INTERLIGNE_PETIT : 0)));
+    const hBox = 6 + hMini + 8 + hTxt + 8;
+    rang.forEach((i, c) => {
+      const p = ps[i];
+      const t = ton(p.ton, "vert");
+      const x = marge + c * (pw + ecart);
+      corps += `<rect class="fg-f-carte fg-t-${t}" x="${n(x)}" y="${y0}" width="${n(pw)}" height="${n(hBox)}" rx="10"/>`;
+      corps += mini(p, vbs[i], x + 6, y0 + 6, zone, hMini, uid);
+      const yt = y0 + 6 + hMini + 8 + 11;
+      corps += `<rect class="${fondClair(t)}" x="${n(x + 1)}" y="${n(y0 + 6 + hMini + 5)}" width="${n(pw - 2)}" height="${n(hBox - 6 - hMini - 5 - 1)}" rx="9"/>`;
+      corps += texte(x + pw / 2, yt + 3, ls[i].l, { cls: `fg-txt fg-txt-b${classeTexteTon(t)}` });
+      if (ls[i].s.length) corps += texte(x + pw / 2, yt + 3 + ls[i].l.length * INTERLIGNE + 2, ls[i].s, { cls: "fg-txt fg-txt-s", inter: INTERLIGNE_PETIT });
+      if (f.fleche && c < rang.length - 1) {
+        corps += ligne(x + pw + 3, y0 + (6 + hMini) / 2, x + pw + ecart - 3, y0 + (6 + hMini) / 2, "fg-t-axe", ` marker-end="${flecheDe(uid, "encre")}"`);
+      }
+    });
+    y0 += hBox + 10;
+  }
+  return { h: Math.ceil(y0), corps };
 }
 
 const RENDUS = { courbe: rendreCourbe, echelle: rendreEchelle, barres: rendreBarres, etapes: rendreEtapes, svg: rendreSvg, comparaison: rendreComparaison };
@@ -626,7 +904,7 @@ export function svgFigure(fig, uid = uidSuivant()) {
   const vb = rendu.vb || `0 0 ${LARGEUR} ${rendu.h}`;
   return `<svg class="fg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-labelledby="fg-${uid}-t fg-${uid}-d" focusable="false">` +
     `<title id="fg-${uid}-t">${e(fig.titre || "")}</title><desc id="fg-${uid}-d">${e(fig.alt || "")}</desc>` +
-    `<defs>${marqueurs(uid)}</defs>${rendu.corps}</svg>`;
+    `<defs>${marqueurs(uid)}${symbolesDe(rendu.corps, uid)}</defs>${rendu.corps}</svg>`;
 }
 
 /* Le rendu d'une figure : <figure> avec son SVG et sa légende.
@@ -639,9 +917,10 @@ export function figureHtml(fig, { uid = uidSuivant(), fond = "", i = 0, zoom = f
     const svg = svgFigure(fig, uid);
     const bouton = zoom ? "" :
       `<button type="button" class="fg-agrandir" data-fg-zoom data-fg-fond="${esc(fond)}" data-fg-i="${i}" aria-label="Agrandir le schéma : ${e(fig.titre || "")}" aria-haspopup="dialog">${ICONE_ZOOM}</button>`;
+    /* Le bouton d'agrandissement vit dans la ligne du titre, À DROITE : jamais sur le dessin. */
     return `<figure class="fg fg-${esc(fig.type)}${zoom ? " fg-zoomee" : ""}">` +
-      `<div class="fg-cadre">${svg}${bouton}</div>` +
-      `<figcaption>${fig.titre ? `<span class="fg-titre">${e(fig.titre)}</span>` : ""}${fig.legende ? `<span class="fg-legende">${e(fig.legende)}</span>` : ""}</figcaption>` +
+      `<div class="fg-cadre">${svg}</div>` +
+      `<figcaption>${fig.titre ? `<span class="fg-titre">${e(fig.titre)}</span>` : ""}${bouton}${fig.legende ? `<span class="fg-legende">${e(fig.legende)}</span>` : ""}</figcaption>` +
       `</figure>`;
   } catch (err) {
     if (strict) throw err;
@@ -685,6 +964,7 @@ export function figuresA(figs, fond, ou, { k = 1, nbParagraphes = 1 } = {}) {
 const TH = {
   xNum: 30, xAxe: 38, xBarres: 46, pasMax: 5.6, xTexte: 104, droite: 313,
   ligne: INTERLIGNE_PETIT, haut: 10, bas: 10, rupture: 22,
+  emoji: 16,        // le retrait des étiquettes devant lesquelles l'emoji de la fiche se pose
   ecart: 12,        // au-delà de cet écart (°C) entre deux repères, l'axe se rompt
   degMin: 2.6,      // hauteur minimale d'un degré dans un tronçon, en unités
   marge: 1.5        // °C de part et d'autre des repères extrêmes d'un tronçon
@@ -720,12 +1000,21 @@ function tronconsDe(items) {
   return bornes.map(([v0, v1]) => ({ v0: v0 - TH.marge, v1: v1 + TH.marge }));
 }
 
-/* Des graduations rondes dans un tronçon : le plus petit pas qui laisse 16 unités entre deux. */
-function graduationsTroncon(v0, v1, pxParDeg) {
-  const pas = [1, 2, 5, 10, 20, 25, 50].find(p => p * pxParDeg >= 16) || 50;
-  const sortie = [];
-  for (let v = Math.ceil(v0 / pas) * pas; v <= v1 + 1e-9; v += pas) sortie.push(Math.round(v * 100) / 100);
-  return sortie;
+/* Les graduations d'un tronçon, légères : ses deux bornes (le repère le plus froid et le plus chaud
+   qu'il porte) et quelques valeurs rondes (100, 50, puis 10 si le tronçon n'a presque rien),
+   toutes à 15 unités au moins l'une de l'autre. Jamais un trait tous les 5 °C. */
+function graduationsTroncon(t, valeurs) {
+  const dans = valeurs.filter(v => v >= t.v0 - 1e-9 && v <= t.v1 + 1e-9);
+  const gardes = [...new Set([Math.min(...dans), Math.max(...dans)])];
+  const loin = (v, d) => gardes.every(g => Math.abs(g - v) * t.pxDeg >= d);
+  for (const pas of [100, 50, 10]) {
+    if (pas === 10 && gardes.length >= 4) break;
+    for (let v = Math.ceil(t.v0 / pas) * pas; v <= t.v1 + 1e-9; v += pas) {
+      const r = Math.round(v * 100) / 100;
+      if (!gardes.includes(r) && loin(r, pas === 10 ? 24 : 15) && (pas !== 10 || gardes.length < 4)) gardes.push(r);
+    }
+  }
+  return gardes.sort((x, y) => x - y);
 }
 
 /* Les étiquettes se posent au plus près de leur repère sans se toucher : des blocs de
@@ -756,19 +1045,28 @@ function etaler(souhaits, minHaut) {
 }
 
 /* La mise en page : tout ce qu'il faut pour dessiner, rien de graphique. */
-export function thermometreMise(reperes, { titreDe = id => id } = {}) {
-  const items = (Array.isArray(reperes) ? reperes : []).filter(repereValide).filter(r => titreDe(r.fond) != null && titreDe(r.fond) !== false)
-    .map((r, rang) => ({ ...r, rang, ton: ton(r.ton, "encre") }));
+export function thermometreMise(reperes, { titreDe = id => id, emojiDe = () => "" } = {}) {
+  const valides = (Array.isArray(reperes) ? reperes : []).filter(repereValide).filter(r => titreDe(r.fond) != null && titreDe(r.fond) !== false);
+  /* Des repères de même température dans la MÊME fiche se rangent sous un seul point : la
+     première étiquette porte la valeur, les suivantes s'y ajoutent (`autres`). */
+  const items = [];
+  for (const r of valides) {
+    const jumeau = items.find(x => x.fond === r.fond && x.de === r.de && x.a === r.a && x.ouvert === r.ouvert);
+    if (jumeau) jumeau.autres.push(r.label);
+    else items.push({ ...r, rang: items.length, ton: ton(r.ton, "encre"), autres: [] });
+  }
   if (!items.length) return null;
-  const largTexte = TH.droite - TH.xTexte - 4;
 
-  /* Les étiquettes d'abord : leur hauteur dimensionne les tronçons. */
+  /* Les étiquettes d'abord : leur hauteur dimensionne les tronçons. L'emoji de la fiche les
+     précède, en retrait : on reconnaît la fiche d'un coup d'œil. */
   for (const r of items) {
     const v = valeurRepere(r);
     const vue = typoFig(v.vue).replace(/ /g, "\u00a0");
+    r.emoji = emojiDe(r.fond) || "";
+    const largTexte = TH.droite - TH.xTexte - 4 - (r.emoji ? TH.emoji : 0);
     r.valeur = v;
     r.vue = vue;
-    r.lignes = enrouler(`${vue} ${r.label}`, largTexte, { taille: T_PETIT });
+    r.lignes = [...enrouler(`${vue} ${r.label}`, largTexte, { taille: T_PETIT }), ...r.autres.flatMap(a => enrouler(`+ ${a}`, largTexte, { taille: T_PETIT }))];
     r.hLabel = r.lignes.length * TH.ligne + 3;
     r.cible = nombres(r.ancre) ? r.ancre : (nombres(r.a) ? (r.de + r.a) / 2 : r.de);
   }
@@ -843,9 +1141,12 @@ export function thermometreMise(reperes, { titreDe = id => id } = {}) {
   const bas = Math.max(hAxe, ...ordre.map(r => r.haut + r.hLabel));
 
   /* Les graduations de chaque tronçon. */
-  for (const t of troncons) t.graduations = graduationsTroncon(t.v0, t.v1, t.pxDeg);
+  const valeurs = items.flatMap(r => [r.de, r.a].filter(v => nombres(v)));
+  for (const t of troncons) t.graduations = graduationsTroncon(t, valeurs);
 
-  return { items: ordre, troncons, h: Math.ceil(bas + TH.bas), hAxe, nbRangees, pas, large, xSortie, min: Math.min(...items.map(r => r.de)), max: Math.max(...items.map(r => nombres(r.a) ? r.a : r.de)) };
+  /* Le réservoir du thermomètre, en bas de l'axe : un disque de la couleur froide. */
+  const bulbe = { cx: TH.xAxe, cy: hAxe + 4, r: 7.5 };
+  return { items: ordre, troncons, bulbe, h: Math.ceil(Math.max(bas, bulbe.cy + bulbe.r) + TH.bas), hAxe, nbRangees, pas, large, xSortie, min: Math.min(...items.map(r => r.de)), max: Math.max(...items.map(r => nombres(r.a) ? r.a : r.de)) };
 }
 
 /* Les dégradés : un par ton (aux deux bouts qui s'estompent), un par ton pour les
@@ -877,16 +1178,19 @@ const classeTxtTon = t => (THERMO_TONS_TXT[t] ? " " + THERMO_TONS_TXT[t] : "");
 
 /* Le SVG et la figure complète. `titreDe(id)` rend le titre de la fiche (ou null si elle
    n'existe pas : le repère disparaît plutôt que de mener nulle part). */
-export function thermometreHtml(reperes, { titreDe = id => id, uid = uidSuivant(), titre = "Le thermomètre du carnet", legende = true } = {}) {
-  const mise = thermometreMise(reperes, { titreDe });
+export function thermometreHtml(reperes, { titreDe = id => id, emojiDe = () => "", uid = uidSuivant(), titre = "Le thermomètre du carnet", legende = true } = {}) {
+  const mise = thermometreMise(reperes, { titreDe, emojiDe });
   if (!mise) return "";
-  const { items, troncons, h, hAxe, pas, large, xSortie } = mise;
+  const { items, troncons, h, hAxe, pas, large, xSortie, bulbe } = mise;
   const xT = TH.xTexte;
   const bas = troncons[0], haut = troncons[troncons.length - 1];
 
   let fond = "", axe = "", liens = "", guides = "", fuites = "";
 
-  /* Axe : un tube par tronçon, ses graduations, et la rupture entre deux tronçons. */
+  /* Axe : le réservoir (la couleur froide), un tube par tronçon, ses graduations, et la rupture
+     entre deux tronçons. */
+  axe += `<circle class="th-bulbe fg-f-bleu" cx="${bulbe.cx}" cy="${n(bulbe.cy)}" r="${bulbe.r}"/>` +
+    `<circle class="th-reflet fg-f-carte" cx="${n(bulbe.cx - 2.6)}" cy="${n(bulbe.cy - 2.4)}" r="1.9"/>`;
   troncons.forEach((t, i) => {
     axe += `<rect class="th-tube" x="${TH.xAxe - 2.5}" y="${n(t.y0)}" width="5" height="${n(t.h)}" rx="2.5" fill="url(#fg-${uid}-tube)"/>`;
     for (const v of t.graduations) {
@@ -912,7 +1216,7 @@ export function thermometreHtml(reperes, { titreDe = id => id, uid = uidSuivant(
   }
   for (const r of items) {
     const titreFiche = titreDe(r.fond);
-    const nom = `${r.valeur.dite} : ${r.label}. Fiche : ${titreFiche}.`;
+    const nom = `${r.valeur.dite} : ${[r.label, ...r.autres].join(" ; ")}. Fiche : ${titreFiche}.`;
     let marque = "";
     if (r.zone) {
       const id = `fg-${uid}-${r.ouvert === "haut" ? "grh" : "gr"}-${r.ton}`;
@@ -922,7 +1226,8 @@ export function thermometreHtml(reperes, { titreDe = id => id, uid = uidSuivant(
       marque = `<circle class="fg-f-${r.ton} fg-pt" cx="${TH.xAxe}" cy="${n(r.y)}" r="4"/>`;
     }
     const hit = `<rect class="th-zone" x="${n(xT - 4)}" y="${n(r.haut - 1)}" width="${n(TH.droite + 5 - xT)}" height="${n(r.hLabel - 1)}" rx="5"/>`;
-    liens += `<a class="th-lien" href="#/fondamental/${esc(r.fond)}" aria-label="${esc(typoFig(nom))}" data-th-fond="${esc(r.fond)}">${hit}${marque}${texteRepere(r, xT, r.haut + 10)}</a>`;
+    const emoji = r.emoji ? `<text class="fg-emoji th-emoji" x="${xT}" y="${n(r.haut + 10)}" aria-hidden="true">${esc(r.emoji)}</text>` : "";
+    liens += `<a class="th-lien" href="#/fondamental/${esc(r.fond)}" aria-label="${esc(typoFig(nom))}" data-th-fond="${esc(r.fond)}">${hit}${marque}${emoji}${texteRepere(r, xT + (r.emoji ? TH.emoji : 0), r.haut + 10)}</a>`;
   }
 
   const alt = `Échelle verticale des températures de ${valeurUnite(mise.min, "°C")} à ${valeurUnite(mise.max, "°C")}, du plus chaud en haut au plus froid en bas. ` +

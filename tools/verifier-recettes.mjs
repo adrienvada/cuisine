@@ -46,7 +46,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SINGULIERS_PORTIONS } from "../js/core/format.js";
-import { EMPLACEMENTS, TONS as TONS_FIGURES, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml } from "../js/ui/figures.js";
+import { EMPLACEMENTS, TONS as TONS_FIGURES, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml, usagesInvalides } from "../js/ui/figures.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -229,7 +229,7 @@ const SANS_COULEUR = [
   [/#[0-9a-fA-F]{3,8}\b/, "une couleur #hex"],
   [/\b(?:rgba?|hsla?|hwb|lab|lch|oklch|oklab)\s*\(/i, "une couleur rgb()/hsl()"],
   [/\bstyle\s*=/i, "un attribut style"],
-  [/<\s*(?:script|foreignObject|image|use|a)\b|\son[a-z]+\s*=|javascript:|\bhref\s*=/i, "du balisage actif (script, image, lien, évènement)"]
+  [/<\s*(?:script|foreignObject|image|use|a)\b|\son[a-z]+\s*=|javascript:|\bhref\s*=/i, "du balisage actif (script, image, lien, évènement)"]   // <use href="#fg-sym-…"> excepté : voir usagesInvalides
 ];
 const COULEUR_OK = /^(?:none|currentColor|inherit|url\(#[\w@-]+\))$/;
 
@@ -279,15 +279,28 @@ for (const [cle, liste] of Object.entries(FIGURES)) {
     if (fig.type === "etapes" && !(fig.etapes || []).length) ko(`${ref} : aucune étape`);
     else if (fig.type === "etapes" && (fig.etapes.length < 2 || fig.etapes.length > 5)) ko(`${ref} : 2 à 5 étapes (il y en a ${fig.etapes.length})`);
     if (fig.type === "comparaison" && !((fig.panneaux || []).length >= 2 && fig.panneaux.length <= 3)) ko(`${ref} : deux ou trois panneaux`);
-    for (const [chemin, txt] of chaines(fig)) {
-      if (/[{}]/.test(txt)) ko(`${ref} : accolade dans ${chemin} — réservée aux quantités mises à l'échelle`);
+    /* Les options des types calculés : des valeurs permises, des bornes qui se tiennent. */
+    const cotes = [...(fig.zones || []), ...(fig.marqueurs || [])].map(z => z.cote).filter(c => c !== undefined);
+    if (fig.type === "echelle" && cotes.some(c => !["haut", "bas"].includes(c))) ko(`${ref} : « cote » vaut « haut » ou « bas »`);
+    if (fig.type === "echelle") for (const c of fig.coupures || []) if (!(Number.isFinite(c.de) && Number.isFinite(c.a) && c.a > c.de && c.de > fig.min && c.a < fig.max)) ko(`${ref} : une coupure { de, a } doit tomber dans la règle, avec a > de`);
+    if (fig.colonnes !== undefined && (fig.type !== "comparaison" || ![1, 2, 3].includes(fig.colonnes))) ko(`${ref} : « colonnes » (1, 2 ou 3) n'a de sens que pour une comparaison`);
+    if (fig.type === "courbe") {
+      for (const z of fig.zonesY || []) if (!(Number.isFinite(z.de) && Number.isFinite(z.a) && z.a > z.de)) ko(`${ref} : une zone y { de, a } a besoin de deux nombres, a > de`);
+      for (const r of [...(fig.reperes || []), ...(fig.zonesY || [])]) if (r.ancre !== undefined && !["gauche", "droite"].includes(r.ancre)) ko(`${ref} : « ancre » vaut « gauche » ou « droite »`);
+    }
+    if (fig.type === "barres") for (const b of fig.barres || []) if ((b.de !== undefined || b.a !== undefined) && !(Number.isFinite(b.de) && Number.isFinite(b.a) && b.a >= b.de)) ko(`${ref} : une plage { de, a } a besoin de deux nombres, a ≥ de`);
+    for (const [chemin, brut] of chaines(fig)) {
+      if (/[{}]/.test(brut)) ko(`${ref} : accolade dans ${chemin} — réservée aux quantités mises à l'échelle`);
+      /* Un <use> n'est permis que pour un symbole partagé : href="#fg-sym-NOM" d'un symbole qui existe. */
+      for (const pb of usagesInvalides(brut)) ko(`${ref} : ${pb} (dans ${chemin})`);
+      const txt = brut.replace(/<use\b[^>]*>/g, "");
       for (const [re, quoi] of SANS_COULEUR) if (re.test(txt)) ko(`${ref} : ${quoi} dans ${chemin} — aucune couleur en dur, des classes fg-… seulement`);
       if (/(?:^|\.)corps$/.test(chemin)) {
-        for (const m of txt.matchAll(/\b(fill|stroke|stop-color|flood-color|color)\s*=\s*"([^"]*)"/g)) {
+        for (const m of brut.matchAll(/\b(fill|stroke|stop-color|flood-color|color)\s*=\s*"([^"]*)"/g)) {
           if (!COULEUR_OK.test(m[2])) ko(`${ref} : ${m[1]}="${m[2]}" dans ${chemin} — une classe fg-… à la place`);
         }
-        if (!balisesEquilibrees(txt)) ko(`${ref} : balises mal fermées dans ${chemin}`);
-        for (const m of txt.matchAll(/\bclass\s*=\s*"([^"]*)"/g)) {
+        if (!balisesEquilibrees(brut)) ko(`${ref} : balises mal fermées dans ${chemin}`);
+        for (const m of brut.matchAll(/\bclass\s*=\s*"([^"]*)"/g)) {
           for (const c of m[1].split(/\s+/).filter(Boolean)) if (!CLASSES_FG.has(c)) ko(`${ref} : classe « ${c} » inconnue de css/figures.css (dans ${chemin})`);
         }
       }

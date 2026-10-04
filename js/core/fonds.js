@@ -20,14 +20,17 @@ export const figuresChargees = () => typeof FIGURES !== "undefined";
 
 /* Les figures d'un fondamental : un tableau, vide si le fichier n'est pas là ou
    si la fiche n'en a pas. Jamais d'exception. */
+const AUCUNE = Object.freeze([]);
 export function figuresDe(id) {
-  if (!figuresChargees() || !FIGURES) return [];
+  if (!figuresChargees() || !FIGURES) return AUCUNE;
   const liste = FIGURES[fondRenames()[id] || id];
-  return Array.isArray(liste) ? liste : [];
+  return Array.isArray(liste) ? liste : AUCUNE;
 }
 
 /* Les figures n'attendent qu'un instant derrière les fondamentaux : au-delà, la
-   fiche se dessine sans elles plutôt que de patienter pour un bonus. */
+   fiche se dessine sans elles plutôt que de patienter pour un bonus. Si elles arrivent
+   ensuite, l'évènement « figures-chargees » le dit : la fiche ouverte se complète
+   (js/vues/savoirs.js, completerFigures). */
 const DELAI_FIGURES = 1200;
 
 /* Un script classique injecté : la promesse échoue si le fichier ne vient pas (absent, hors ligne). */
@@ -51,13 +54,18 @@ let chargement = null;
 export function chargerFondamentaux() {
   if (fondamentauxCharges()) return Promise.resolve();
   if (!chargement) {
+    let delaiPasse = false;
     const figures = figuresChargees() ? Promise.resolve()
       : injecter("js/figures.js").catch(() => {});
     const fonds = injecter("js/fondamentaux.js");
     chargement = fonds.then(
-      () => Promise.race([figures, new Promise(fin => setTimeout(fin, DELAI_FIGURES))]),
+      () => Promise.race([figures, new Promise(fin => setTimeout(() => { delaiPasse = true; fin(); }, DELAI_FIGURES))]),
       err => { chargement = null; throw err; }
-    ).then(() => { document.dispatchEvent(new Event("fondamentaux-charges")); });
+    ).then(() => {
+      document.dispatchEvent(new Event("fondamentaux-charges"));
+      /* Arrivées après le délai : la page déjà dessinée sans elles se complète. */
+      if (delaiPasse) figures.then(() => { if (figuresChargees()) document.dispatchEvent(new Event("figures-chargees")); });
+    });
   }
   return chargement;
 }
@@ -93,14 +101,20 @@ export const CERTITUDES = {
    tester sous Node. Le texte où l'on cherche est normalisé une fois pour
    toutes — le refaire à chaque lettre tapée, pour une quarantaine de
    fondamentaux, serait du travail perdu — et rempli à la première recherche,
-   les données n'arrivant qu'à la demande. */
+   les données n'arrivant qu'à la demande. Il couvre aussi les titres et les
+   légendes des figures de la fiche ; comme js/figures.js peut arriver après les
+   fondamentaux, le cache retient la LISTE de figures qu'il a lue, et se refait
+   quand elle change (arrivée tardive, ou nouveau fichier). */
 const foins = new Map();
 const foinDe = f => {
-  if (!foins.has(f.id)) {
-    foins.set(f.id, normaliser([f.t, f.accroche, f.pourquoi, f.famille, f.piege,
-      ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ")));
+  const figures = figuresDe(f.id);
+  const vu = foins.get(f.id);
+  if (!vu || vu.liste !== figures) {
+    foins.set(f.id, { liste: figures, texte: normaliser([f.t, f.accroche, f.pourquoi, f.famille, f.piege,
+      ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || []),
+      ...figures.flatMap(g => [g && g.titre, g && g.legende])].filter(Boolean).join(" ")) });
   }
-  return foins.get(f.id);
+  return foins.get(f.id).texte;
 };
 
 export const fondMatches = (f, q) => {
