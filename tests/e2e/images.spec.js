@@ -83,7 +83,7 @@ test.describe("images", () => {
 test.describe("service worker", () => {
   test.use({ serviceWorkers: "allow" });
 
-  test("cache d'abord : 3 s de latence réseau, la liste s'affiche sans les attendre", async ({ page, baseURL }) => {
+  test("cache d'abord : 3 s de latence réseau, la liste s'affiche sans les attendre", async ({ page, context, baseURL }) => {
     try {
       await page.goto("/");
       await page.evaluate(() => navigator.serviceWorker.ready);
@@ -91,13 +91,13 @@ test.describe("service worker", () => {
       await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
       await expect(page.locator(".card").first()).toBeVisible();
 
-      await reseau(baseURL, { latence: 3000 });
+      await reseau(context, baseURL, { latence: 3000 });
       const debut = Date.now();
       await page.reload();
       await expect(page.locator(".card").first()).toBeVisible({ timeout: 2500 });
       expect(Date.now() - debut).toBeLessThan(2500);
     } finally {
-      await reseau(baseURL);
+      await reseau(context, baseURL);
     }
   });
 
@@ -117,7 +117,7 @@ test.describe("service worker", () => {
     expect(enCache).toEqual([]);
   });
 
-  test("hors ligne, une image déjà vue reste servie depuis le cache", async ({ page, baseURL }) => {
+  test("hors ligne, une image déjà vue reste servie depuis le cache", async ({ page, context, baseURL }) => {
     try {
       await page.goto("/#/recette/quiche-lorraine");
       await page.evaluate(() => navigator.serviceWorker.ready);
@@ -127,11 +127,11 @@ test.describe("service worker", () => {
       // Laisse le temps à la copie en cache d'être rangée.
       await expect.poll(() => page.evaluate(async () => !!(await caches.match("img/h/quiche-lorraine.webp")))).toBe(true);
 
-      await reseau(baseURL, { bloque: true });
+      await reseau(context, baseURL, { bloque: true });
       const octets = await page.evaluate(async () => (await (await fetch("img/h/quiche-lorraine.webp")).blob()).size);
       expect(octets).toBeGreaterThan(1000);
     } finally {
-      await reseau(baseURL);
+      await reseau(context, baseURL);
     }
   });
 
@@ -205,7 +205,9 @@ test.describe("service worker", () => {
     try {
       await page.goto(serveur.url + "/");
       await page.evaluate(() => navigator.serviceWorker.ready);
-      await page.waitForTimeout(500);
+      // Une recherche de mise à jour explicite : quand elle est terminée, une « Nouvelle
+      // version » aurait eu l'occasion d'être annoncée.
+      await page.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
       await expect(page.locator("#toast")).toBeHidden();
     } finally {
       await serveur.fermer();
