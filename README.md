@@ -242,7 +242,7 @@ Le carnet bouge comme un vrai carnet entre des mains qui cuisinent : l'encre se 
 ### Du CSS tout fait
 
 - **Retour d'appui.** Les boutons (`.btn`, `.btn-icon`, `.chip`, les liens d'onglets, les boutons de menu, de courses, de minuteur…) s'enfoncent (`scale: 0.965`, 90 ms) et reviennent avec le ressort vif. C'est la propriété individuelle `scale` qui se compose avec `transform` : un élément centré par `translate(-50%)` ou animé par FLIP garde son transform. Pour un nouvel élément : la classe **`.appui`**. Ce qui a déjà son propre retour (`.card`, `.menu-card`, `.verdict-btn`, `.card-share`) n'est pas dans la liste.
-- **Tache d'encre.** Le bouton `.btn.primary` reçoit, au toucher, une goutte de la couleur du texte qui s'étend depuis le doigt et s'efface (520 ms, 20 % d'opacité au plus) : un écouteur délégué passif dans `mouvement.js` et un `::after` dans `base.css`. Discrète : elle sert l'esprit du carnet (une goutte d'encre qui s'étale sur le papier), sans rien ajouter à attendre.
+- **Pas de tache d'encre sur les boutons.** Essayée puis écartée : une goutte qui s'étend depuis le doigt demande un écouteur de plus au démarrage et un `overflow: hidden` sur le bouton (qui rogne les pastilles et les ombres), pour un effet que le ressort d'appui dit déjà. Le retour d'appui suffit.
 - **`.souleve`** : une surface qui gagne de l'ombre (`--ombre-3`) à l'appui ou quand elle porte `.en-main` (posée par l'appelant de `glisser` le temps du geste).
 - **`.arrive`** : arrivée douce (fondu, 10 px, léger zoom), échelonnée par la variable `--i` (35 ms par rang, 7 au plus). Pas pour le premier écran.
 - **`.trace`** : sur un SVG (ou son conteneur), chaque forme `pathLength="1"` se dessine d'un trait ; `--i` décale (60 ms). Sans JavaScript, la classe posée au rendu suffit.
@@ -250,14 +250,14 @@ Le carnet bouge comme un vrai carnet entre des mains qui cuisinent : l'encre se 
 
 ### Les aides (`js/ui/mouvement.js`, `js/ui/geste.js`)
 
-`mouvement.js` est le plus petit possible (il peut entrer sur le chemin de l'accueil) ; `geste.js` porte ce qui ne sert qu'aux gestes. Tout prend un élément du DOM ; en mouvement réduit rien ne bouge ; une promesse ne rejette jamais.
+`mouvement.js` porte les aides courantes, `geste.js` ce qui ne sert qu'aux gestes (glisser, vibrer) ; aucun des deux n'est sur le chemin de l'accueil : une vue qui s'en sert les importe, et les pré-chargements sont ceux de cette vue. Tout prend un élément du DOM ; en mouvement réduit rien ne bouge ; une promesse ne rejette jamais.
 
 ```js
 import { mouvementReduit, animer, flip, sortir, rebondir, secouer, rouler, tracer } from "../ui/mouvement.js";
 import { glisser, relacher, vibrer, vibrationsActives, reglerVibrations } from "../ui/geste.js";
 ```
 
-- **`mouvementReduit()`** → booléen, à jour si la préférence change. Le seul mécanisme (`REDUCE_MOTION` n'existe plus).
+- **`mouvementReduit()`** → booléen, à jour si la préférence change. Le seul mécanisme : la liste de médias `REDUCE_MOTION` de `js/ui/theme.js` (module déjà sur le chemin de l'accueil, d'où `mouvementReduit` y est défini et re-exporté par `mouvement.js`, qui n'entre pas sur ce chemin).
 - **`animer(el, images, options)`** → `Promise<boolean>` (`true` : allée au bout, `false` : interrompue). Web Animations avec les jetons : `duree` (ms ou `"appui"`, `"courte"`, `"moyenne"`, `"longue"`, `"trace"`), `easing` (`"sortie"`, `"entree"`, `"standard"`, `"ressort"`, `"ressort-vif"`, `"ressort-rebond"` ou une chaîne CSS), `delai`, `cle`. Une seule image clé = le point de départ (l'arrivée est le style normal). Une animation de même `cle` sur le même élément remplace la précédente et repart de l'état *visible*. Rien n'est figé : le style normal reprend à la fin, sauf `garder: true` (l'état final est écrit dans `style`).
   ```js
   animer(carte, [{ opacity: 0, translate: "0 12px" }], { easing: "ressort", cle: "entree" });
@@ -374,7 +374,7 @@ js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
 js/ui/miseajour.js      Enregistrement du service worker (au repos, après le premier affichage), « Nouvelle version — Recharger »
 js/ui/theme.js          Thème automatique/clair/sombre
-js/ui/mouvement.js      Aides du mouvement : mouvementReduit(), animer, flip, sortir, rebondir, secouer, rouler, tracer, tache d'encre des boutons principaux
+js/ui/mouvement.js      Aides du mouvement : mouvementReduit(), animer, flip, sortir, rebondir, secouer, rouler, tracer
 js/ui/geste.js          Gestes : glisser, relacher (ressort à la vitesse du doigt), vibrer et la préférence de vibrations
 js/ui/effets.js         Effets rares, chargés à la demande : feuilles (confettis d'herbes), envoler, tampon
 js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome, chargé à la demande)

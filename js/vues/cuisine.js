@@ -28,7 +28,7 @@ import {
 } from "../ui/minuteurs.js";
 import { shareRecipe } from "../ui/partage.js";
 import { app, noterAdresseCourante, retourVers } from "../ui/routeur.js";
-import { mouvementReduit } from "../ui/mouvement.js";
+import { REDUCE_MOTION } from "../ui/theme.js";
 import { toast } from "../ui/toast.js";
 import { extrasHtml } from "./fiche.js";
 import { astuceHtml } from "./savoirs.js";
@@ -138,7 +138,7 @@ export function renderCook(r, step) {
     }
     const repere = reperer(app, document.activeElement);
     libererPlateau();
-    const entree = mouvementReduit() ? "" : sens > 0 ? "vers-suivant" : sens < 0 ? "vers-precedent" : "";
+    const entree = REDUCE_MOTION.matches ? "" : sens > 0 ? "vers-suivant" : sens < 0 ? "vers-precedent" : "";
     app.innerHTML = `
       <div class="cook taille-${t}">
         <div class="cook-top">

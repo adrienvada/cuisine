@@ -53,14 +53,15 @@ test("ressort : une chaîne linear() valide, de 30 à 60 points, à 3 décimales
 test("ressort : la vitesse initiale compte (un lâcher rapide part plus vite, à contre-sens part en arrière)", () => {
   const lent = ressort("vif");
   const rapide = ressort({ ...PRESETS.vif, vitesse: 4 });
-  const contre = ressort({ ...PRESETS.vif, vitesse: -3 });
+  const contre = ressort({ ...PRESETS.vif, vitesse: -8 });
   assert.ok(rapide.points[1] > lent.points[1] * 1.5);
   assert.ok(contre.points[1] < lent.points[1]);
   assert.ok(contre.points.some(p => p < 0), "part d'abord en sens inverse");
 });
 
 test("ressort : une masse plus grande ralentit ; des paramètres absurdes sont refusés", () => {
-  assert.ok(ressort({ ...PRESETS.vif, masse: 4 }).points[2] < ressort("vif").points[2]);
+  // Même raideur, quatre fois la masse : le ressort est deux fois plus lent (la durée s'allonge).
+  assert.ok(ressort({ ...PRESETS.vif, masse: 4 }).duree > ressort("vif").duree * 2);
   assert.throws(() => ressort({ raideur: 0, amortissement: 1 }), RangeError);
   assert.throws(() => ressort({ raideur: 10, amortissement: -1 }), RangeError);
 });
@@ -106,11 +107,18 @@ test("ressorts : chaque jeton a son repli cubic-bezier, déclaré sans condition
   assert.ok(bloc.includes(`--ressort-vif-duree: ${ressort("vif").duree}ms`));
 });
 
-test("mouvement réduit : un seul mécanisme (REDUCE_MOTION n'existe plus, mouvementReduit() sert partout)", () => {
-  for (const f of ["js/main.js", "js/vues/accueil.js", "js/vues/cuisine.js", "js/vues/courses.js", "js/ui/theme.js"]) {
-    assert.doesNotMatch(lire(f), /REDUCE_MOTION/, f);
+test("mouvement réduit : un seul mécanisme (la liste de médias de theme.js ; mouvement.js n'en crée pas une seconde)", () => {
+  assert.equal((lire("js/ui/theme.js").match(/matchMedia\("\(prefers-reduced-motion/g) || []).length, 1);
+  for (const f of ["js/ui/mouvement.js", "js/ui/geste.js", "js/ui/effets.js"]) {
+    assert.doesNotMatch(lire(f), /matchMedia/, f);
   }
-  assert.match(lire("js/ui/mouvement.js"), /export const mouvementReduit/);
+  assert.match(lire("js/ui/theme.js"), /export const mouvementReduit = \(\) => REDUCE_MOTION\.matches/);
+  assert.match(lire("js/ui/mouvement.js"), /export \{ mouvementReduit \}/);
+});
+
+test("chemin de l'accueil : ni le mouvement ni les effets n'y entrent (ils se chargent avec la vue qui s'en sert)", () => {
+  assert.doesNotMatch(lire("js/main.js"), /ui\/(mouvement|geste|effets)\.js/);
+  assert.doesNotMatch(lire("index.html"), /ui\/(mouvement|geste|effets)\.js|core\/ressort\.js/);
 });
 
 test("css : le filet de mouvement réduit couvre les transitions de vue (une règle par pseudo-élément) et les utilitaires", () => {

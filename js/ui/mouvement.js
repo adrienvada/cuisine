@@ -1,6 +1,6 @@
-/* Les aides du mouvement : légères, utilisables partout (c'est le seul module du
-   mouvement qui puisse entrer sur le chemin de l'accueil ; les effets lourds sont dans
-   effets.js, chargé à la demande). Toutes passent par le Web Animations API, avec les
+/* Les aides du mouvement, utilisables partout (une vue qui s'en sert l'importe ; il
+   n'est pas sur le chemin de l'accueil, et les effets lourds sont dans effets.js, chargé
+   à la demande). Toutes passent par le Web Animations API, avec les
    jetons de css/base.css (js/core/ressort.js en est la source côté JS).
 
    Règles communes : en mouvement réduit rien ne bouge (l'état final s'applique, la
@@ -10,12 +10,11 @@
    `opacity`. Le détail et un exemple par aide : README, section « Mouvement ». */
 
 import { COURBES, DUREES, PRESETS, REPLIS_RESSORT, ressort } from "../core/ressort.js";
+import { mouvementReduit } from "./theme.js";
 
-/* Un seul mécanisme pour toute l'appli : la liste de médias est vivante, `.matches` est
-   toujours à jour si la préférence change en cours d'usage. */
-const REDUIT = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
-
-export const mouvementReduit = () => !!REDUIT?.matches;
+/* Un seul mécanisme pour toute l'appli : REDUCE_MOTION de theme.js (liste de médias
+   vivante, toujours à jour si la préférence change en cours d'usage). */
+export { mouvementReduit };
 
 /* ---------- Durées et courbes par leur nom ---------- */
 
@@ -265,29 +264,4 @@ export function tracer(el, { echelonner = true } = {}) {
   if (mouvementReduit() || !el.classList.contains("trace")) el.classList.add("trace");
   else traits().forEach(a => { a.cancel(); a.play(); });
   return mouvementReduit() ? Promise.resolve(true) : Promise.all(traits().map(a => a.finished)).then(() => true, () => false);
-}
-
-/* ---------- Retour d'appui : ce qui ne se fait pas en CSS ---------- */
-
-/* La tache d'encre des boutons principaux : une goutte de la couleur du texte qui
-   s'étend depuis le point d'appui puis s'efface (le ::after est dans base.css).
-   Un seul écouteur délégué, passif, qui ne fait qu'une mesure. */
-function goutte(bouton, e) {
-  const r = bouton.getBoundingClientRect();
-  const x = e.clientX - r.left;
-  const y = e.clientY - r.top;
-  const rayon = Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
-  animer(bouton, [
-    { opacity: 0.2, clipPath: `circle(0px at ${x}px ${y}px)` },
-    { opacity: 0, clipPath: `circle(${rayon}px at ${x}px ${y}px)` }
-  ], { pseudoElement: "::after", duree: 520, easing: "sortie", cle: "encre", reprise: false });
-}
-
-if (typeof document !== "undefined") {
-  document.addEventListener("pointerdown", e => {
-    const bouton = e.target.closest?.(".btn.primary");
-    if (bouton && !bouton.disabled) goutte(bouton, e);
-  }, { passive: true });
-  // Safari d'iOS n'applique :active aux éléments qu'à condition qu'un écouteur tactile existe quelque part.
-  document.addEventListener("touchstart", () => {}, { passive: true });
 }

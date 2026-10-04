@@ -1,6 +1,6 @@
 /* Les gestes : glisser au doigt, relâcher avec un ressort, vibrer. Séparés de
-   js/ui/mouvement.js pour que celui-ci reste le plus petit possible (il peut entrer sur
-   le chemin de l'accueil) : les feuilles, les toasts, le mode cuisine et les courses
+   js/ui/mouvement.js pour que celui-ci reste léger (les vues qui n'ont pas de geste
+   n'ont pas à charger ceci) : les feuilles, les toasts, le mode cuisine et les courses
    importent les deux. Mêmes règles : rien ne bouge en mouvement réduit, rien ne lève. */
 
 import { PRESETS, REPLIS_RESSORT, ressort, resistance, vitesseDeGeste } from "../core/ressort.js";

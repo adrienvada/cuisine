@@ -20,7 +20,7 @@ import { annoncer } from "../ui/annonces.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
-import { mouvementReduit } from "../ui/mouvement.js";
+import { REDUCE_MOTION } from "../ui/theme.js";
 import { visuel } from "../ui/visuel.js";
 import { boutonReglages } from "./reglages.js";
 
@@ -134,7 +134,7 @@ export function renderHome() {
 }
 
 function rebondir(b) {
-  if (mouvementReduit()) return;
+  if (REDUCE_MOTION.matches) return;
   b.classList.remove("pop");
   void b.offsetWidth;
   b.classList.add("pop");
@@ -281,7 +281,7 @@ function cardHtml(r) {
 /* Coup de cœur activé : le cœur du bouton bat, et 2-3 petits cœurs
    s'échappent vers le haut en s'estompant, façon double-tap Instagram. */
 export function burstHeart(btn) {
-  if (mouvementReduit()) return;
+  if (REDUCE_MOTION.matches) return;
   const heart = btn.querySelector(".vb-heart");
   if (heart) {
     heart.classList.remove("pop");
@@ -342,7 +342,7 @@ function applyFilter(animate) {
   const wantedSet = new Set(wanted);
   const cards = [...cardOf.values()];
 
-  if (!animate || mouvementReduit()) {
+  if (!animate || REDUCE_MOTION.matches) {
     for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
     for (const el of wanted) grid.appendChild(el);
     grid.appendChild(grid.querySelector(".grid-empty"));

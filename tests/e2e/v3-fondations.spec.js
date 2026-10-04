@@ -605,7 +605,7 @@ test("relacher : en mouvement réduit, l'élément est posé tout de suite", asy
   expect(r).toEqual({ translate: "", anims: 0 });
 });
 
-/* ---------- retour d'appui, jetons, tache d'encre ---------- */
+/* ---------- retour d'appui, jetons ---------- */
 
 test("jetons : durées, courbes, ressorts avec leur durée, ombres claires et sombres", async ({ page }) => {
   await ouvrir(page);
@@ -663,24 +663,6 @@ test("retour d'appui : sur la barre d'onglets, rien ne bouge au repos, et en mou
   expect(await onglet.evaluate(e => getComputedStyle(e).scale)).toBe("none");
   await page.mouse.move(5, 5);
   await page.mouse.up();
-});
-
-test("tache d'encre : un appui sur un bouton principal lance une goutte sur son ::after, pas en mouvement réduit", async ({ page }) => {
-  await ouvrir(page);
-  await bac(page, '<button id="p" class="btn primary" style="width:300px" type="button">Principal</button>');
-  const b = await page.locator("#p").boundingBox();
-  await page.mouse.move(b.x + 40, b.y + 20);
-  await page.mouse.down();
-  const goutte = await page.evaluate(() => document.getAnimations().filter(a => a.effect.pseudoElement === "::after").map(a => a.effect.getKeyframes()[0].clipPath));
-  await page.mouse.up();
-  expect(goutte.length).toBe(1);
-  expect(goutte[0]).toContain("circle(0px at 40px");
-
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.mouse.down();
-  const reduit = await page.evaluate(() => document.getAnimations().filter(a => a.effect.pseudoElement === "::after").length);
-  await page.mouse.up();
-  expect(reduit).toBe(0);
 });
 
 test("transitions de vue : le CSS de base règle leur rythme, et rien n'est animé en mouvement réduit", async ({ page }) => {

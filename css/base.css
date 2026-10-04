@@ -507,20 +507,6 @@ html .chip.pick { transition: scale var(--ressort-vif-duree) var(--ressort-vif),
   transition-timing-function: var(--e-sortie);
 }
 
-/* Tache d'encre : le bouton principal reçoit une goutte de crème qui s'étend depuis
-   le doigt puis s'efface (js/ui/mouvement.js la lance au pointerdown, en WAAPI). Elle
-   se pose sur --sur-vert : crème sur le vert clair, encre sur le vert sombre. */
-.btn.primary { position: relative; overflow: hidden; isolation: isolate; }
-
-.btn.primary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--sur-vert);
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* Élévation : une surface qu'on soulève (appui, glisser) gagne de l'ombre. La classe
    .en-main est posée par l'appelant de glisser() le temps du geste. */
 .souleve { box-shadow: var(--ombre-1); transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif); }
@@ -593,12 +579,11 @@ html .chip.pick { transition: scale var(--ressort-vif-duree) var(--ressort-vif),
   }
 
   /* Rien ne se déplace, ne rebondit ni ne se dessine : l'appui ne change plus la
-     taille, la tache d'encre n'existe pas, l'arrivée est instantanée et le trait
+     taille, l'arrivée est instantanée et le trait
      est déjà tracé (js/ui/mouvement.js en fait autant pour les animations JS). */
   .btn, .btn-icon, .chip, .tabbar a, .link-danger, .toast-action, .portions button,
   .mc-btn, .r-btn, .t-btn, .cook-close, .cook-outil, .reglages-btn, .jai-btn, .btn-lib,
   .appui { scale: none !important; }
-  .btn.primary::after { display: none; }
   .arrive { animation: none; }
   .trace [pathLength="1"] { animation: none; stroke-dashoffset: 0; }
 }
