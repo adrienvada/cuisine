@@ -63,10 +63,16 @@
 
 .mc-portions .val { min-width: 0; font-size: 13px; }
 
+/* À 320 px la colonne de la carte mesure 170 px : « 8 personnes » entre deux
+   boutons de 44 px la dépassait de quelques pixels. */
+@media (max-width: 340px) {
+  .mc-portions .val { font-size: 12px; padding: 0; }
+}
+
 /* Étroite, la carte écrasait les boutons à 43 px : ils gardent leurs 44. */
 .mc-portions button, .repas .portions button { flex: none; }
 
-.mc-actions { display: flex; gap: 8px; margin-top: 10px; }
+.mc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
 .mc-btn {
   flex: 1;

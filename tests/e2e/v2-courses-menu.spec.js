@@ -236,3 +236,29 @@ test("menu : une date du jour dont l'heure est passée ne crée pas de retard fa
   await expect(page.locator(".retro-titre")).toContainText("demain");
   await expect(page.locator(".retro-note.retard")).toHaveCount(0);
 });
+
+/* ---------- Revue : revenir dans le champ après « + », pas de débordement à 320 px ---------- */
+
+test("courses : toucher « + » rend le focus au champ pour enchaîner les articles", async ({ page, context }) => {
+  await preremplir(context, { carnet: { menu: [entree("quiche-lorraine", { k: "q1" })] } });
+  await page.goto("/#/courses");
+  await page.fill("#extra-input", "éponges");
+  await page.locator("#extra-form button[type=submit]").click();
+  await expect(page.locator("#extra-input")).toBeFocused();
+  await expect(page.locator("#extra-input")).toHaveValue("");
+});
+
+test("menu : les boutons des cartes ne débordent pas à 320 px", async ({ page, context }) => {
+  await preremplir(context, {
+    carnet: { menu: [entree("quiche-lorraine", { k: "q1" }), entree("focaccia-romarin", { k: "f1" })], repas: REPAS }
+  });
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/#/menu");
+  await expect(page.locator(".mc-btn").first()).toBeVisible();
+  const trop = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(trop).toBe(0);
+  // Ni les boutons ni le stepper ne sortent de leur carte.
+  const sortants = await page.evaluate(() => [...document.querySelectorAll(".menu-card .mc-btn, .menu-card .mc-portions")]
+    .filter(el => el.getBoundingClientRect().right > el.closest(".menu-card").getBoundingClientRect().right + 0.5).length);
+  expect(sortants).toBe(0);
+});

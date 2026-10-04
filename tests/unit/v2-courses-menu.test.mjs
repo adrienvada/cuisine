@@ -160,3 +160,20 @@ test("liste de courses : aucun gramme ni millilitre fractionnaire, aucune fracti
     }
   }
 });
+
+/* ---------- Constat n° 27 (reste) : centilitres entiers, comme la fiche ---------- */
+
+test("liste de courses et fiche : aucun centilitre fractionnaire, jamais 0 cl", () => {
+  for (const r of RECIPES) {
+    for (const p of [1, 2, 3, 5, 7, 9, 11, 13]) {
+      vide();
+      ajouter(r.id, { k: "a", portions: p, addons: (r.addons || []).map(a => a.id) });
+      for (const it of buildCourseList()) {
+        for (const q of it.parts) {
+          if (q.unit !== "cl") continue;
+          assert.ok(Number.isInteger(q.qty) && q.qty >= 1, `${r.id} ×${p} : ${it.key} ${q.qty} cl`);
+        }
+      }
+    }
+  }
+});

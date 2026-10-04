@@ -261,6 +261,8 @@ function brancher() {
     if (!v) return;
     articleLibre(v);
     save(); updateBadge(); redessiner();
+    // Le bouton « + » n'a pas d'identité stable : le champ reprend le focus, pour enchaîner les articles.
+    document.getElementById("extra-input")?.focus({ preventScroll: true });
   });
 
   const partage = document.getElementById("share");
