@@ -105,7 +105,7 @@ export function nomCourt(titre) {
    mains, qu'on répartit sur les étapes sans minuteur. */
 function chronologie(tache) {
   const etapes = (tache.etapes || []).map(s => ({
-    titre: s.titre || "", duree: Math.max(0, Math.round(s.duree || 0)), four: s.four || null
+    titre: s.titre || "", duree: Math.max(0, Math.round(s.duree || 0)), four: s.four || null, prechauffe: s.prechauffe || null
   }));
   for (const e of etapes) e.fixe = e.duree > 0;
   const temps = tache.temps || {};
@@ -133,7 +133,10 @@ function chronologie(tache) {
   }
   const aufour = etapes.filter(e => e.four);
   const four = aufour.length
-    ? { temp: aufour[0].four, entree: aufour[0].debut, sortie: aufour[aufour.length - 1].fin }
+    /* `temp` est la chaleur qu'il faut au four À L'ENTRÉE (préchauffage, conflits) ;
+       `cuisson` celle de la cuisson, quand une recette préchauffe fort puis baisse
+       (mi-cuit : 200 °C, puis 150 °C en enfournant). */
+    ? { temp: Math.max(aufour[0].four, aufour[0].prechauffe || 0), cuisson: aufour[0].four, entree: aufour[0].debut, sortie: aufour[aufour.length - 1].fin }
     : null;
   return { etapes, duree: t, four };
 }
@@ -224,7 +227,7 @@ function evenements(lignes, table) {
     const { k, titre } = l.t;
     ev.push({ t: l.debut, type: "debut", k, titre });
     if (l.four) {
-      ev.push({ t: l.debut + l.four.entree, type: "enfourner", k, titre, temp: l.four.temp });
+      ev.push({ t: l.debut + l.four.entree, type: "enfourner", k, titre, temp: l.four.cuisson ?? l.four.temp });
       ev.push({ t: l.debut + l.four.sortie, type: "sortir", k, titre, temp: l.four.temp });
     }
     if (l.fin <= table - 10 && !(l.four && l.fin === l.debut + l.four.sortie)) ev.push({ t: l.fin, type: "pret", k, titre });

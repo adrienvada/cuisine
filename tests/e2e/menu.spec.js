@@ -113,7 +113,8 @@ test("frise : quatre températures, deux phrases de conflit au plus, le reste se
   await expect(page.locator(".retro > .retro-note.conflit")).toHaveCount(2);
   const plus = page.locator(".retro-plus");
   await expect(plus).toContainText("autres conflits de four");
-  await expect(plus.locator(".retro-note.conflit")).toHaveCount(4);
+  /* Le mi-cuit préchauffe à 200 °C (il cuit à 150 °C) : il rejoint les torsades, plus de conflit entre eux. */
+  await expect(plus.locator(".retro-note.conflit")).toHaveCount(2);
   await expect(plus.locator(".retro-note.conflit").first()).toBeHidden();
   await plus.locator("summary").click();
   await expect(plus.locator(".retro-note.conflit").first()).toBeVisible();

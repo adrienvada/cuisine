@@ -350,7 +350,8 @@ export function tachesDuMenu() {
     etapes: effectiveSteps(r, e).map(s => ({
       titre: s.t,
       duree: (s.timer || 0) + (s.extras || []).reduce((n, x) => n + (x.timer || 0), 0),
-      four: s.four || null
+      four: s.four || null,
+      prechauffe: s.prechauffe || null
     }))
   }));
 }

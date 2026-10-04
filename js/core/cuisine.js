@@ -51,13 +51,15 @@ export function planPrechauffage(etapes) {
   const k = etapes.findIndex(s => s.four);
   if (k === -1) return null;
   if (etapes.slice(0, k).some(s => /préchauff/i.test(s.txt || ""))) return null;
-  const duree = dureePrechauffage(etapes[k].four);
+  /* Une recette qui préchauffe plus fort qu'elle ne cuit le dit par `prechauffe`. */
+  const chaleur = Math.max(etapes[k].four, etapes[k].prechauffe || 0);
+  const duree = dureePrechauffage(chaleur);
   let attente = 0, debut = 0;
   for (let i = k - 1; i >= 0; i--) {
     attente += etapes[i].timer || 0;
     if (attente >= duree) { debut = i; break; }
   }
-  return { etape: debut, four: k, temperature: etapes[k].four, duree };
+  return { etape: debut, four: k, temperature: chaleur, duree };
 }
 
 /* ---------- Balayage ---------- */

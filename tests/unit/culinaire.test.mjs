@@ -273,3 +273,36 @@ test("un autre moule : la cuisson ne change guère, on le dit — et rien à dir
   assert.match(remarqueCuissonMoule(rond, 28), /même épaisseur.*cuisson ne change guère/);
   assert.match(remarqueCuissonMoule({ forme: "cake", longueur: 26 }, 30), /même épaisseur/);
 });
+
+/* ---------- Revue : préchauffer plus fort qu'on ne cuit, pluriel ---------- */
+
+test("mi-cuit : on préchauffe à 200 °C même si l'on cuit à 150 °C", () => {
+  const miCuit = RECIPES.find(r => r.id === "mi-cuit-chocolat-suzy-palatin");
+  const cuisson = miCuit.steps.find(s => s.four);
+  assert.equal(cuisson.four, 150);
+  assert.equal(cuisson.prechauffe, 200);
+  // Mode cuisine : le texte d'une étape précédente parle déjà de préchauffer → pas de bandeau ; sinon 200 °C et 15 min.
+  assert.deepEqual(planPrechauffage([{ txt: "a", timer: 30 }, { txt: "b", four: 150, prechauffe: 200 }]),
+    { etape: 0, four: 1, temperature: 200, duree: 15 });
+  // Rétroplanning : le four monte à 200 °C, on enfourne « à 150 °C ».
+  const t = { k: "m", titre: "Mi-cuit", temps: { prep: 0, repos: 0, cuisson: 30 }, supplement: 0,
+    etapes: [{ titre: "Cuisson", duree: 30, four: 150, prechauffe: 200 }] };
+  const plan = planifier({ table: TABLE, taches: [t] });
+  assert.equal(plan.evenements.find(e => e.type === "prechauffage").temp, 200);
+  assert.equal(plan.evenements.find(e => e.type === "enfourner").temp, 150);
+});
+
+test("un mi-cuit préchauffé à 200 °C et une quiche à 180 °C ne cuisent pas ensemble", () => {
+  const t = { k: "m", titre: "Mi-cuit", temps: { prep: 0, repos: 0, cuisson: 30 }, supplement: 0,
+    etapes: [{ titre: "Cuisson", duree: 30, four: 150, prechauffe: 200 }] };
+  const plan = planifier({ table: TABLE, taches: [t, tache("q", "Quiche", 180, 35)] });
+  assert.equal(plan.conflits.length, 1);
+});
+
+test("le pluriel commence à deux : « 1½ boîte », « 2 boîtes »", async () => {
+  const { fmtUnit } = await import("../../js/core/format.js");
+  assert.equal(fmtUnit("boîte", 1), "boîte");
+  assert.equal(fmtUnit("boîte", 1.5), "boîte");
+  assert.equal(fmtUnit("boîte", 2), "boîtes");
+  assert.equal(fmtUnit("sachet", 1.9), "sachets");           // fmtQty écrit « 2 »
+});

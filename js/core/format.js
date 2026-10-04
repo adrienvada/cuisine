@@ -44,7 +44,9 @@ export const PLURALS = {
 
 export function fmtUnit(unit, qty) {
   if (!unit) return "";
-  if (qty > 1 && PLURALS[unit]) return PLURALS[unit];
+  /* En français le pluriel commence à 2 : « 1½ boîte », « 1,5 sachet ». On compare à
+     la quantité telle que fmtQty l'écrit (au quart près), pas à la valeur brute. */
+  if (Math.round(qty * 4) / 4 >= 2 && PLURALS[unit]) return PLURALS[unit];
   return unit;
 }
 

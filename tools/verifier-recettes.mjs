@@ -276,6 +276,9 @@ for (const r of RECIPES) {
     if (!s.ing) etapesSansIng++;
     else if (!Array.isArray(s.ing)) ko(`${ref} : ing doit être une liste`);
     else for (const k of s.ing) if (!connus.has(k)) ko(`${ref} : ing cite « ${k} », qui n'est ni le cid ni le nom d'un ingrédient de la recette`);
+    if ("prechauffe" in s) {
+      if (typeof s.prechauffe !== "number" || !(s.prechauffe > s.four && s.prechauffe <= 300)) ko(`${ref} : prechauffe doit être une température en °C supérieure à four (reçu ${JSON.stringify(s.prechauffe)})`);
+    }
     if ("four" in s) {
       if (typeof s.four !== "number" || !(s.four >= 50 && s.four <= 300)) ko(`${ref} : four doit être un nombre de °C entre 50 et 300 (reçu ${JSON.stringify(s.four)})`);
       if (!LIEN_FOUR.test(s.txt || "")) ko(`${ref} : four est renseigné mais le texte de l'étape ne parle ni de four ni d'enfourner`);

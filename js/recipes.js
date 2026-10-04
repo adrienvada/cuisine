@@ -46,7 +46,9 @@
    - `four` : sur l'étape où le plat entre au four (ou y précuit), la température
      en °C. Jamais pour la friture, la poêle ou un réchauffage facultatif. Si la
      température change en cours de cuisson, c'est la première ; le texte dit la
-     suite.
+     suite. Si le four doit être plus chaud à l'enfournement qu'en cuisson
+     (préchauffer à 200 °C, puis baisser à 150 °C), `prechauffe` donne la chaleur
+     de départ : c'est elle que lisent le préchauffage et les conflits de four.
    - `moule` (au niveau de la recette) : seulement si le texte donne la taille du
      moule ou du plat — `{ forme: "rond", diametre: 26 }`,
      `{ forme: "rectangle", largeur: 20, longueur: 30 }` ou
@@ -1698,6 +1700,7 @@ const RECIPES = [
         txt: "Versez la pâte dans un moule à manqué de 24-25 cm de diamètre, beurré et fariné (idéalement en silicone). Baissez le four à 150 °C et enfournez pendant 30 min.",
         ing: ["beurre", "farine"],
         four: 150,
+        prechauffe: 200,
         timer: 30,
         tip: { t: "Astuce du chef", txt: "Ce four préchauffé fort puis baissé au moment d'enfourner est la signature de la recette : le choc thermique saisit une fine croûte en surface pendant que l'intérieur cuit doucement et reste fondant, presque crémeux." }
       },
