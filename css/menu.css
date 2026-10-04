@@ -472,3 +472,108 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
 
 /* Vider le menu : même zone de contact que les autres commandes. */
 #clear-menu { min-height: 44px; }
+
+/* ---------- Mouvement du menu ---------- */
+
+/* Les cartes se posent sur le papier : une ombre à peine marquée au repos, un peu plus à
+   l'appui, et le même ressort que le reste du carnet. */
+.menu-card, .repas, .passe { box-shadow: var(--ombre-0); }
+.menu-card {
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), box-shadow var(--d-moyenne) var(--e-sortie);
+}
+.menu-card:active:not(:has(a:active, button:active)) { transform: none; scale: 0.985; box-shadow: var(--ombre-1); transition-duration: var(--d-appui); }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-card:active:not(:has(a:active, button:active)) { scale: none; }
+}
+
+.mc-portions .val .nb, .repas .portions .val .nb { display: inline-block; font-variant-numeric: tabular-nums; }
+
+/* « Ajouter au calendrier » a réussi : le bouton prend la teinte de la réussite, la coche se
+   trace (js/vues/menu.js pose .trace et .fait le temps d'un instant). */
+.btn.retro-cal { transition: scale var(--ressort-vif-duree) var(--ressort-vif), background var(--d-courte) var(--e-sortie), border-color var(--d-courte) var(--e-sortie), color var(--d-courte) var(--e-sortie); }
+.btn.retro-cal.fait { background: var(--green-tint); border-color: var(--green); color: var(--green-deep); }
+.retro-cal.fait svg { stroke-width: 3; }
+
+/* L'heure « À table » se lit comme le terme de la frise. */
+.fr-table .fr-h { color: var(--gold-deep); }
+
+/* La frise se trace quand elle entre dans l'écran (js/vues/menu.js pose data-trace) :
+   « attend » tient tout dans son état de départ, « joue » le déroule — le fil se dessine
+   de haut en bas, ligne après ligne (--r le rang, --pas l'intervalle, calculé pour que le
+   tout tienne en 900 ms), puis les points et les icônes se posent avec le ressort vif.
+   Les repos (le fil en pointillés) ont leur propre tracé, plus lent et sans à-coup, et
+   leur icône apparaît en fondu au lieu de sauter. L'heure de la table pulse une fois,
+   quand tout est posé. Sans data-trace (un changement d'heure, un redessin, le mouvement
+   réduit), la frise est directement dans son état final. */
+@media not (prefers-reduced-motion: reduce) {
+  .frise[data-trace="attend"] .fr-pt::before { clip-path: inset(0 0 100% 0); }
+  .frise[data-trace="attend"] .fr-pt::after, .frise[data-trace="attend"] .fr-pt svg { scale: 0; }
+  .frise[data-trace="attend"] .fr-repos .fr-pt svg { scale: 1; opacity: 0; }
+
+  .frise[data-trace="joue"] .fr-pt::before {
+    animation: fr-fil calc(var(--pas) * 1.4) linear both;
+    animation-delay: calc(var(--r, 0) * var(--pas));
+  }
+  .frise[data-trace="joue"] :is(.fr-haut-libre, .fr-bas-libre) .fr-pt::before {
+    animation: fr-fil-calme calc(var(--pas) * 2) var(--e-standard) both;
+    animation-delay: calc(var(--r, 0) * var(--pas));
+  }
+  .frise[data-trace="joue"] .fr-pt::after, .frise[data-trace="joue"] .fr-pt svg {
+    animation: fr-point var(--d-moyenne) var(--ressort-vif) both;
+    animation-delay: calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4);
+  }
+  .frise[data-trace="joue"] .fr-repos .fr-pt svg {
+    animation: fr-fondu var(--d-longue) var(--e-sortie) both;
+    animation-delay: calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4);
+  }
+  .frise[data-trace="joue"] .fr-table .fr-pt::after {
+    animation: fr-point var(--d-moyenne) var(--ressort-vif) both, fr-pouls 700ms var(--e-sortie) both;
+    animation-delay: calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4), calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4 + var(--d-moyenne) - 60ms);
+  }
+}
+
+@keyframes fr-fil { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+@keyframes fr-fil-calme { from { clip-path: inset(0 0 100% 0); opacity: 0.35; } to { clip-path: inset(0); opacity: 1; } }
+@keyframes fr-point { from { scale: 0; } to { scale: 1; } }
+@keyframes fr-fondu { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fr-pouls {
+  from { box-shadow: 0 0 0 3px var(--paper), 0 0 0 3px var(--lueur); }
+  to { box-shadow: 0 0 0 3px var(--paper), 0 0 0 15px transparent; }
+}
+
+/* Les volets repliables (allergies, repas passés, conflits de four de trop) s'ouvrent en
+   hauteur fluide, sans JavaScript : ::details-content et interpolate-size, là où le
+   navigateur les connaît ; ailleurs ils s'ouvrent d'un coup, comme avant. */
+@supports selector(::details-content) {
+  @media not (prefers-reduced-motion: reduce) {
+    :is(.alg, .passes, .retro-plus) { interpolate-size: allow-keywords; }
+    :is(.alg, .passes, .retro-plus)::details-content {
+      block-size: 0;
+      overflow: clip;
+      opacity: 0;
+      transition: block-size var(--d-moyenne) var(--e-entree), opacity var(--d-courte) var(--e-entree), content-visibility var(--d-moyenne) allow-discrete;
+    }
+    :is(.alg, .passes, .retro-plus)[open]::details-content {
+      block-size: auto;
+      opacity: 1;
+      transition: block-size var(--d-moyenne) var(--e-sortie), opacity var(--d-moyenne) var(--e-sortie), content-visibility var(--d-moyenne) allow-discrete;
+    }
+  }
+}
+
+/* Les repas passés qu'on déplie arrivent l'un après l'autre. */
+@media not (prefers-reduced-motion: reduce) {
+  .passes.vient .passe { animation: arrivee var(--d-moyenne) var(--e-sortie) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  .passes-liste .passe:nth-child(2) { --i: 1; }
+  .passes-liste .passe:nth-child(3) { --i: 2; }
+  .passes-liste .passe:nth-child(4) { --i: 3; }
+  .passes-liste .passe:nth-child(5) { --i: 4; }
+  .passes-liste .passe:nth-child(6) { --i: 5; }
+}
+
+/* L'état vide : le verre de l'illustration se remplit après le trait, les bulles suivent. */
+@media not (prefers-reduced-motion: reduce) {
+  .empty-illo.trace [fill-opacity] { animation: fr-fondu var(--d-longue) var(--e-sortie) calc(var(--d-trace) * 0.6) both; }
+  .empty-illo.trace circle { animation: fr-fondu var(--d-moyenne) var(--e-sortie) var(--d-trace) both; }
+}

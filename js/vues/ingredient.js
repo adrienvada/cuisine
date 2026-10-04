@@ -49,6 +49,13 @@ export function ouvrirIngredient(r, ing, { portions, regler }) {
       </div>`) : ""}
     </div>`;
 
+  /* Le contenu arrive avec la feuille, bloc après bloc (le mouvement de la feuille elle-même
+     est celui de feuilles.js) ; sans effet en mouvement réduit (.arrive y est neutralisée). */
+  backdrop.querySelectorAll(".sheet-ing > :not(.sheet-grip)").forEach((e, i) => {
+    e.classList.add("arrive");
+    e.style.setProperty("--i", Math.min(i + 1, 7));
+  });
+
   /* Le résultat se calcule à chaque frappe : on voit tout de suite ce que ça donnerait. */
   let choix = null;
   const saisie = backdrop.querySelector("#ing-possede");

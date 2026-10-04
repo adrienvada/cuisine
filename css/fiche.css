@@ -245,22 +245,20 @@
   min-height: 44px;
   font-size: 15px;
   font-weight: 600;
-  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), background var(--d-courte) var(--e-sortie), color var(--d-courte) var(--e-sortie), border-color var(--d-courte) var(--e-sortie), box-shadow var(--d-moyenne) var(--e-sortie);
 }
 
-.verdict-btn:active { transform: scale(0.96); }
+.verdict-btn:active { scale: 0.96; transition-duration: var(--d-appui); }
 
 .verdict-btn.on.v-encore { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.22); }
 
 /* Le cœur du bouton bat à l'activation, façon double-tap. */
 .vb-heart { display: inline-block; transform-box: fill-box; transform-origin: center; }
-.vb-heart.pop { animation: heart-pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+/* Le ressort de rebond du socle fait lui-même le dépassement : une seule image de départ. */
+.vb-heart.pop { animation: heart-pop var(--ressort-rebond-duree) var(--ressort-rebond); }
 @keyframes heart-pop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.5); }
-  55% { transform: scale(0.85); }
-  75% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  from { scale: 0.4; }
+  to { scale: 1; }
 }
 
 /* Petits cœurs qui s'échappent du bouton et se dissipent vers le haut. */
@@ -270,11 +268,12 @@
   color: var(--terra);
   font-size: 14px;
   pointer-events: none;
-  animation: heart-float 0.9s ease-out forwards;
+  animation: heart-float calc(var(--d-longue) * 2) var(--e-sortie) forwards;
 }
 @keyframes heart-float {
-  0% { opacity: 1; transform: translate(0, 0) scale(0.8); }
-  100% { opacity: 0; transform: translate(var(--dx, 0), -46px) scale(1.1); }
+  0% { opacity: 1; translate: 0 0; scale: 0.8; }
+  70% { opacity: 1; }
+  100% { opacity: 0; translate: var(--dx, 0) -46px; scale: 1.1; }
 }
 
 .cooked-line {
@@ -496,6 +495,191 @@
   white-space: nowrap;
 }
 
+/* ---------- Une page de carnet ----------
+   Rythme et hiérarchie : le titre en Cormorant, le sous-titre manuscrit souligné d'un
+   filet doré, les temps en puces posées sur le papier, des intertitres soulignés d'un
+   trait fin, les étapes reliées par un pointillé comme les lignes d'un cahier. Les
+   ombres viennent des jetons (--ombre-*), teintées d'encre, jamais de noir. */
+
+.hero { box-shadow: var(--ombre-1); }
+
+.r-head h1 { font-size: 34px; letter-spacing: -0.005em; text-wrap: balance; }
+
+.r-head .subtitle { font-size: 21px; }
+
+.r-head .subtitle::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--gold-deco);
+  opacity: 0.75;
+}
+
+.timechip { box-shadow: var(--ombre-0); }
+.timechip .tc-v { font-variant-numeric: tabular-nums; }
+
+.section > h2 { padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); }
+
+.section.verdict > h2, .section-notes > h2 { padding-bottom: 6px; }
+
+.steps > li { position: relative; }
+
+.steps > li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 46px;
+  bottom: -12px;
+  border-left: 1.5px dashed var(--line);
+  pointer-events: none;
+}
+
+.steps .num { box-shadow: var(--ombre-0); position: relative; z-index: 1; }
+
+/* La barre d'actions du bas, en papier calque : le texte de la page passe dessous,
+   adouci par le flou, et la barre se détache par son ombre. */
+.actions {
+  padding: 8px;
+  border-radius: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--ombre-2);
+}
+
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .actions {
+    background: color-mix(in srgb, var(--paper) 80%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    backdrop-filter: blur(14px) saturate(1.1);
+  }
+}
+
+.actions .btn.primary { box-shadow: var(--ombre-1); }
+
+/* ---------- Mouvement de la fiche ---------- */
+
+/* Les puces de choix : la couleur glisse et la puce choisie rebondit (le saut est joué par
+   js/vues/fiche.js ; ici, le ressort de l'appui et le fondu des couleurs). */
+html .pick-row .chip.pick {
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), background var(--d-courte) var(--e-sortie),
+    border-color var(--d-courte) var(--e-sortie), color var(--d-courte) var(--e-sortie);
+}
+
+/* Le stepper : le chiffre garde sa largeur pendant qu'il roule. */
+.portions .val .nb { display: inline-block; font-variant-numeric: tabular-nums; }
+.timechip .rouler, .ing-list .qty .rouler, .moule-lib .rouler { vertical-align: bottom; }
+
+/* « Pourquoi ça marche » (la ligne de savoirs.js, sous les astuces) s'ouvre en hauteur
+   fluide : la feuille de savoirs.css la montre par display, ici elle devient une hauteur
+   qui s'interpole (interpolate-size) ; sans cela elle s'ouvre d'un coup, comme avant. */
+.steps { interpolate-size: allow-keywords; }
+
+@media not (prefers-reduced-motion: reduce) {
+  .steps li .a-savoirs .s-liste {
+    display: block;
+    height: 0;
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    visibility: hidden;
+    border-top-width: 0;
+    animation: none;
+    transition: height var(--d-moyenne) var(--e-sortie), margin-top var(--d-moyenne) var(--e-sortie),
+      visibility 0s linear var(--d-moyenne);
+  }
+
+  .steps li .a-savoirs.ouvert .s-liste {
+    height: auto;
+    margin-top: 6px;
+    padding-top: 2px;
+    visibility: visible;
+    border-top-width: 1px;
+    transition-delay: 0s;
+  }
+}
+
+/* Les lignes et les étapes qui ne sont pas à l'écran au premier dessin attendent d'y entrer
+   (js/vues/fiche.js les marque, puis les libère avec .arrive). */
+[data-attend] { opacity: 0; translate: 0 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-attend] { opacity: 1; translate: none; }
+}
+
+/* La photo glisse un peu moins vite que la page : une parallaxe douce, pilotée par le
+   défilement (sans écouteur de scroll). L'image est agrandie de 10 % pour que son
+   déplacement ne découvre jamais le bord. Sans animation-timeline, ou en mouvement
+   réduit : rien ne bouge. */
+@supports (animation-timeline: scroll()) {
+  @media not (prefers-reduced-motion: reduce) {
+    .hero .visual > picture, .hero .visual > svg { scale: 1.1; animation: fiche-parallaxe linear both; animation-timeline: scroll(root block); animation-range: 0 360px; }
+    @keyframes fiche-parallaxe { from { translate: 0 0; } to { translate: 0 11px; } }
+  }
+}
+
+/* La barre compacte : un fil de hauteur nulle collé en haut, qui porte la barre. Elle
+   apparaît quand le titre est sorti de l'écran et ne masque rien du contenu (la marge de
+   défilement de la page lui laisse la place). */
+.fiche-barre { position: sticky; top: 0; height: 0; z-index: 40; }
+.fiche-barre[hidden] { display: none; }
+
+.fb-in {
+  position: absolute;
+  left: -18px; right: -18px; top: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--ombre-1);
+  translate: 0 -100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: translate var(--d-moyenne) var(--e-entree), opacity var(--d-courte) var(--e-entree), visibility 0s linear var(--d-moyenne);
+}
+
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .fb-in {
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    backdrop-filter: blur(14px) saturate(1.1);
+  }
+}
+
+.fiche-barre.visible .fb-in {
+  translate: 0 0;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: translate var(--ressort-duree) var(--ressort), opacity var(--d-courte) var(--e-sortie), visibility 0s;
+}
+
+.fb-in .btn-icon { flex: none; min-width: 44px; justify-content: center; padding: 8px; }
+
+.fb-titre {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--green-deep);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html:has(.fiche-barre) { scroll-padding-top: 64px; }
+
+/* « Enregistré » et la note qui monte en tête se posent en douceur (js/vues/fiche.js). */
+.note-etat { display: inline-block; }
+
 /* ---------- Impression ---------- */
 
 /* Une fiche sur papier : ni barres ni boutons, la photo en bandeau, les
@@ -517,7 +701,7 @@
 
   .tabbar, .topbar, .actions, .link-restart, .menu-info, .section.verdict, .section-notes, #journal-zone,
   #pick-zone, .portions button, .moule .portions, .moule-dit, .ing-chev, .savoirs, .savoirs-seuls,
-  .timer-tray, #toast, .sheet-backdrop, .hero .corner {
+  .timer-tray, #toast, .sheet-backdrop, .hero .corner, .fiche-barre {
     display: none !important;
   }
 
@@ -537,4 +721,6 @@
   .note-perso { break-inside: avoid; border: 1px solid #999; border-left-width: 3px; }
   .portions { border: none; padding: 0; }
   .ing-ligne:active { background: none; }
+  [data-attend] { opacity: 1 !important; translate: none !important; }
+  .actions { box-shadow: none; }
 }
