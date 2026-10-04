@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Banc d'essai de la voix</title>
+</head>
+<body>
+  <!-- Page des tests de js/ui/voix.js : le module seul, sans l'application. Le test y
+       installe d'abord de fausses SpeechRecognition et speechSynthesis (addInitScript). -->
+  <script type="module">
+    import * as voix from "../../js/ui/voix.js";
+    window.voix = voix;
+    window.__pret = true;
+  </script>
+</body>
+</html>
