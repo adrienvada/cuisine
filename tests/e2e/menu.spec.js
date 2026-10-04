@@ -60,15 +60,18 @@ test("frise : « À table à 20 h », départs et préchauffage dans l'ordre", a
 
   await expect(page.locator(".retro-titre")).toContainText("À table à 20 h");
   const lignes = page.locator(".frise .fr");
-  await expect(lignes).toHaveCount(5);
+  // La levée de la focaccia a désormais sa ligne de repos, juste après le départ.
+  await expect(lignes).toHaveCount(6);
   await expect(lignes.nth(0)).toContainText("16 h 30");
   await expect(lignes.nth(0)).toContainText("Démarre : Focaccia");
-  await expect(lignes.nth(1)).toContainText("19 h 20");
-  await expect(lignes.nth(1)).toContainText("Préchauffe le four à 220 °C");
-  await expect(lignes.nth(2)).toContainText("19 h 40");
-  await expect(lignes.nth(2)).toContainText("Enfourne : Focaccia (220 °C)");
-  await expect(lignes.nth(3)).toContainText("Sors du four : Focaccia");
-  await expect(lignes.nth(4)).toContainText("À table !");
+  await expect(lignes.nth(1)).toContainText("16 h 30");
+  await expect(lignes.nth(1)).toContainText("Repos : Focaccia");
+  await expect(lignes.nth(2)).toContainText("19 h 20");
+  await expect(lignes.nth(2)).toContainText("Préchauffe le four à 220 °C");
+  await expect(lignes.nth(3)).toContainText("19 h 40");
+  await expect(lignes.nth(3)).toContainText("Enfourne : Focaccia (220 °C)");
+  await expect(lignes.nth(4)).toContainText("Sors du four : Focaccia");
+  await expect(lignes.nth(5)).toContainText("À table !");
   await expect(page.locator(".retro-note")).toHaveCount(0);
 
   // Changer l'heure déplace tout.

@@ -31,9 +31,11 @@ import {
 } from "../core/menu.js";
 import {
   decomposer,
+  detailRepos,
   heureFr,
   icsRepas,
   instantTable,
+  jourRelatif,
   minutesMurales,
   nomCourt,
   phraseConflit,
@@ -77,11 +79,14 @@ function squeletteHtml() {
   <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>`;
 }
 
+/* « samedi 10 octobre ». */
+const dateLongue = date => new Date(date + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+
 /* « samedi 10 octobre », ou « aujourd'hui » / « demain » quand c'est le cas. */
 function jourFr(date, aujourdhui) {
   if (date === aujourdhui) return "aujourd'hui";
   if (date === decomposer(minutesMurales(aujourdhui, 0) + 1440).date) return "demain";
-  return new Date(date + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  return dateLongue(date);
 }
 
 /* ---------- Le repas : convives, heure, allergies ---------- */
@@ -121,31 +126,53 @@ function repasHtml(repas) {
 
 /* ---------- Le rétroplanning ---------- */
 
-const ICONE_EVT = { prechauffage: ICON.flame, regler: ICON.flame, enfourner: ICON.flame, sortir: ICON.flame };
+const ICONE_EVT = { prechauffage: ICON.flame, regler: ICON.flame, enfourner: ICON.flame, sortir: ICON.flame, repos: ICON.zzz };
 
 /* Quatre plats à quatre températures font six paires : au-delà de deux phrases,
    le reste se replie, pour que la frise ne soit pas repoussée hors de l'écran. */
 const CONFLITS_VISIBLES = 2;
 const noteConflit = c => raw(html`<p class="retro-note conflit">${raw(ICON.flame)}<span>${phraseConflit(c)}</span></p>`);
 
+/* Le balisage de la frise, stable (un lot d'animation s'y appuiera) :
+     <ol class="frise">
+       <li class="fr-jour"> : seulement quand la frise passe par un autre jour que
+         celui de la table (« La veille ») ; ouvre chaque jour ;
+       <li class="fr fr-<type>"> : une ligne = l'heure (.fr-h), le fil et son point
+         ou son icône (.fr-pt), le geste (.fr-txt : un <b>, puis des .fr-sub).
+     Un repos est une ligne `fr-repos` : icône de repos, durée et fin en .fr-sub.
+     `fr-haut-libre` / `fr-bas-libre` : le fil au-dessus / au-dessous de la ligne
+     est un temps libre (un repos, et rien d'autre qui occupe les mains) ; il se
+     dessine en pointillés, de sorte que le repos se voie à la forme du fil et
+     non à la seule couleur. */
 function retroHtml(plan, inst, versions) {
   const aujourdhui = maintenantLocal().date;
-  const ligne = e => {
+  const ligne = (e, precedent) => {
     const version = e.k && ["debut", "enfourner", "sortir"].includes(e.type) ? versions.get(e.k) : "";
     const parallele = e.parallele && e.parallele.length
       ? `Pendant que ${e.parallele.map(nomCourt).join(" et ")} ${e.parallele.length > 1 ? "patientent" : "patiente"}.` : "";
-    return html`<li class="fr fr-${e.type}">
+    const details = e.type === "repos" ? detailRepos(e) : [];
+    const fil = `${precedent?.tempsLibre ? " fr-haut-libre" : ""}${e.tempsLibre ? " fr-bas-libre" : ""}`;
+    return html`<li class="fr fr-${e.type}${fil}">
       <time class="fr-h">${heureFr(e.t)}</time>
       <span class="fr-pt" aria-hidden="true">${raw(ICONE_EVT[e.type] || "")}</span>
-      <div class="fr-txt"><b>${texteEvenement(e)}</b>${version ? raw(html`<span class="fr-sub">${version}</span>`) : ""}${parallele ? raw(html`<span class="fr-sub">${parallele}</span>`) : ""}</div>
+      <div class="fr-txt"><b>${texteEvenement(e)}</b>${details.map(d => raw(html`<span class="fr-sub">${d}</span>`))}${version ? raw(html`<span class="fr-sub">${version}</span>`) : ""}${parallele ? raw(html`<span class="fr-sub">${parallele}</span>`) : ""}</div>
     </li>`;
   };
+  /* Les jours : une marinade de 12 h fait commencer la veille, et l'heure seule
+     ne le dirait pas. Aucun séparateur tant que tout tient le jour du repas. */
+  const plusieursJours = plan.evenements.some(e => e.jour !== 0);
+  const lignes = plan.evenements.map((e, i, tous) => {
+    const jour = plusieursJours && (i === 0 || e.jour !== tous[i - 1].jour)
+      ? html`<li class="fr-jour"><b>${e.jour < 0 ? jourRelatif(e.jour) : "Le jour du repas"}</b> <span>${dateLongue(decomposer(e.t).date)}</span></li>` : "";
+    return raw(jour + ligne(e, tous[i - 1]));
+  });
   return html`<section class="retro fade-in" aria-label="Rétroplanning">
     <h2 class="retro-titre">À table à ${heureFr(plan.table)} <small>${jourFr(inst.date, aujourdhui)}</small></h2>
     ${plan.conflits.slice(0, CONFLITS_VISIBLES).map(noteConflit)}
     ${plan.conflits.length > CONFLITS_VISIBLES ? raw(html`<details class="retro-plus"><summary>${plan.conflits.length - CONFLITS_VISIBLES} autre${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} conflit${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} de four</summary>${plan.conflits.slice(CONFLITS_VISIBLES).map(noteConflit)}</details>`) : ""}
     ${plan.retard ? raw(html`<p class="retro-note retard">${raw(ICON.clock)}<span>${phraseRetard(plan)}</span></p>`) : ""}
-    <ol class="frise">${plan.evenements.map(e => raw(ligne(e)))}</ol>
+    <ol class="frise">${lignes}</ol>
+    ${plan.evenements.some(e => e.tempsLibre) ? raw(html`<p class="retro-legende">Fil en pointillés : tes mains sont libres.</p>`) : ""}
     <button class="btn secondary retro-cal" id="ajout-calendrier">${raw(ICON.clock)} Ajouter au calendrier</button>
   </section>`;
 }

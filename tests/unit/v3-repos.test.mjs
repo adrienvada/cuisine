@@ -298,3 +298,20 @@ test("calendrier : les repos se lisent dans la description de la recette, sans �
   assert.equal(ics.match(/BEGIN:VEVENT/g).length, 3);
   assert.match(ics, /\(repos\\, jusqu.à 19\sh\s20\)/);
 });
+
+test("tempsLibre : la marinade qui passe la nuit est un temps libre ; un repos pendant qu'on travaille ailleurs n'en est pas un", () => {
+  vide();
+  ajouter("gravlax-saumon-yaourt-bulgare");
+  const p = plan(minutesMurales(JOUR, 12 * 60));
+  const marinade = reposDeLaFrise(p)[0];
+  assert.equal(marinade.tempsLibre, true);
+  assert.equal(p.evenements.at(-1).tempsLibre, false, "rien ne suit la table");
+  // Le départ n'est pas libre : on prépare le saumon, pas encore de repos.
+  assert.equal(p.evenements[0].type, "debut");
+  assert.equal(p.evenements[0].tempsLibre, false);
+
+  // Menu sans repos : jamais de temps libre dessiné.
+  vide();
+  ajouter("dip-chevre-herbes");
+  assert.ok(plan().evenements.every(e => !e.tempsLibre));
+});

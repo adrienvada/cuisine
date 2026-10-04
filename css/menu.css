@@ -328,8 +328,18 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
 
 .retro-note.retard { background: transparent; border: 1px solid var(--terra); color: var(--terra); }
 
-/* Une liste horodatée, lisible d'un pouce : l'heure à gauche, un fil, le geste. */
-.frise { list-style: none; margin: 14px 0 0; padding: 0; }
+/* Une liste horodatée, lisible d'un pouce : l'heure à gauche, un fil, le geste.
+   Le fil est plein, sauf quand les mains sont libres (un repos, et rien d'autre
+   qui les occupe) : il passe alors en pointillés, moitié haute et moitié basse de
+   chaque ligne séparément (.fr-haut-libre / .fr-bas-libre). */
+.frise {
+  list-style: none; margin: 14px 0 0; padding: 0;
+  --fil-plein: linear-gradient(var(--line), var(--line));
+  --fil-libre: repeating-linear-gradient(to bottom, var(--green) 0 4px, transparent 4px 9px);
+}
+
+.fr-haut-libre { --fil-haut: var(--fil-libre); }
+.fr-bas-libre { --fil-bas: var(--fil-libre); }
 
 .fr {
   display: grid;
@@ -355,7 +365,9 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
   position: absolute;
   top: -9px; bottom: -9px;
   width: 2px;
-  background: var(--line);
+  background:
+    var(--fil-haut, var(--fil-plein)) top / 100% 50% no-repeat,
+    var(--fil-bas, var(--fil-plein)) bottom / 100% 50% no-repeat;
 }
 
 .fr:first-child .fr-pt::before { top: 11px; }
@@ -390,6 +402,30 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
 .fr-txt { font-size: 15px; line-height: 1.35; padding-top: 1px; overflow-wrap: anywhere; }
 
 .fr-sub { display: block; font-size: 13px; color: var(--muted); margin-top: 1px; }
+
+/* Un repos : icône de repos verte (le doré est celui du four), texte plus discret,
+   durée et fin dessous — il se reconnaît à la forme (le zzz, le fil en
+   pointillés) autant qu'à la couleur. */
+.fr-repos .fr-pt svg { background: var(--green-tint); color: var(--green); }
+.fr-repos .fr-h { color: var(--muted); font-weight: 600; }
+.fr-repos .fr-txt { color: var(--ink-soft); }
+.fr-repos .fr-txt b { font-weight: 600; color: var(--green-deep); }
+
+/* Le changement de jour : « La veille », puis le jour du repas. */
+.fr-jour {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px;
+  margin: 12px 0 2px;
+  padding: 8px 0 0;
+  border-top: 1px dashed var(--line);
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
+.fr-jour b { font-weight: 400; color: var(--green-deep); }
+.fr-jour b::first-letter { text-transform: uppercase; }
+.fr-jour span { font-size: 16px; }
+
+.retro-legende { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
 
 .fr-table .fr-txt b { font-family: var(--serif); font-size: 20px; color: var(--green-deep); }
 

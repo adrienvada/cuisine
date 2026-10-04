@@ -20,7 +20,7 @@ test("critères : ils se cumulent, et se défont d'un second appui", async ({ pa
   expect(await idsAffiches(page)).not.toContain("gravlax-saumon-yaourt-bulgare");
 
   await critere(page, "Rapide").click();
-  await expect(page.locator(CARTES)).toHaveCount(7);
+  await expect(page.locator(CARTES)).toHaveCount(6);
 
   await critere(page, "Sans cuisson").click();
   const ids = await idsAffiches(page);

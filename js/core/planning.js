@@ -325,7 +325,28 @@ function evenements(lignes, table) {
       .map(l => l.t.titre);
   }
   const ordre = { prechauffage: 0, regler: 1, sortir: 2, debut: 3, repos: 3.5, enfourner: 4, pret: 5, table: 6 };
-  return ev.sort((a, b) => a.t - b.t || ordre[a.type] - ordre[b.type]);
+  ev.sort((a, b) => a.t - b.t || ordre[a.type] - ordre[b.type]);
+
+  /* `tempsLibre` : le fil qui court de cet événement au suivant est un temps libre
+     — un repos est en cours et rien d'autre ne demande les mains (que des repos,
+     du four, un feu qui mijote). C'est ce que la frise dessine en pointillés : la
+     marinade qui passe la nuit, la levée pendant que le four chauffe seul. Un
+     repos pendant qu'on pétrit un autre plat n'est pas un temps libre. Les
+     étapes changent d'état sans événement : on regarde à chaque borne d'étape. */
+  const bornes = [...new Set([...ev.map(e => e.t), ...lignes.flatMap(l => l.etapes.flatMap(e => [l.debut + e.debut, l.debut + e.fin]))])]
+    .sort((a, b) => a - b);
+  const libreA = x => {
+    const actives = lignes.map(l => l.etapes.find(e => l.debut + e.debut <= x && x < l.debut + e.fin)).filter(Boolean);
+    return actives.length > 0 && actives.every(e => e.libre) && actives.some(e => e.genre === "repos");
+  };
+  for (let i = 0; i < ev.length; i++) {
+    const suivant = ev.find(e => e.t > ev[i].t);
+    /* Un repos regarde jusqu'à sa fin seulement : la marinade du soir est un temps
+       libre jusqu'à son terme, le geste qui la suit se lit à la ligne suivante. */
+    const jusque = ev[i].type === "repos" ? Math.min(ev[i].fin, suivant?.t ?? ev[i].fin) : suivant?.t;
+    ev[i].tempsLibre = !!suivant && bornes.filter(x => x >= ev[i].t && x < jusque).every(libreA);
+  }
+  return ev;
 }
 
 /* ---------- Phrases ---------- */
