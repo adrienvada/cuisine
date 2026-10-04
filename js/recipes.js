@@ -656,7 +656,7 @@ const RECIPES = [
         shop: { label: "Bicarbonate de soude", qty: 1, unit: "sachet" } },
       { name: "Fleur de sel", qty: null, qtyText: "quelques pincées", note: "sur le dessus", optional: true, rayon: "Assaisonnements", cid: "fleur-de-sel",
         shop: { label: "Fleur de sel" } },
-      { name: "Pépites de chocolat noir ou au lait", qty: 150, unit: "g", rayon: "Épicerie", cid: "pepites-chocolat" }
+      { name: "Pépites de chocolat noir ou au lait", qty: 75, unit: "g", rayon: "Épicerie", cid: "pepites-chocolat" }
     ],
     steps: [
       {

@@ -1,6 +1,6 @@
 /* Service worker — cache l'application pour un usage hors ligne */
 
-const VERSION = "v21";
+const VERSION = "v22";
 const CACHE = `carnet-cuisine-${VERSION}`;
 
 const CORE = [
