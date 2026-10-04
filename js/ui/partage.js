@@ -2,7 +2,8 @@
 
 import { CERTITUDES, fondById } from "../core/fonds.js";
 import { fmtQty, fmtTime, fmtUnit, scaleQty } from "../core/format.js";
-import { menuEntrees, portionsOf } from "../core/menu.js";
+import { requeteDeVersion } from "../core/liens.js";
+import { compo, menuEntrees, portionsOf } from "../core/menu.js";
 import { byId, effectiveIngredients, effectiveSteps, versionSummary } from "../core/recettes.js";
 import { toast } from "./toast.js";
 
@@ -16,8 +17,13 @@ export function siteUrl() {
 
 /* Chaque recette a une page `r/<id>.html` : elle porte la photo et le titre
    pour l'aperçu dans les messageries, puis renvoie vers l'application.
-   (Générée par `node tools/generer-pages-partage.mjs`.) */
-export function recipeUrl(r) { return siteUrl() + "r/" + r.id + ".html"; }
+   (Générée par `node tools/generer-pages-partage.mjs`.)
+   Le lien porte la version partagée (portions, choix, suppléments) : celui qui
+   l'ouvre retrouve le plat tel qu'on le lui a envoyé, pas la recette nue. */
+export function recipeUrl(r, conf = compo(r.id)) {
+  const q = requeteDeVersion(r, conf);
+  return siteUrl() + "r/" + r.id + ".html" + (q ? "?" + q : "");
+}
 
 export function copyText(text, msg) {
   if (!navigator.clipboard) return toast("Copie impossible sur cet appareil");
@@ -68,7 +74,7 @@ export function shareMenu() {
   const lines = ["🌿 Au menu du carnet de cuisine", ""];
   for (const { e, r } of list) {
     const vs = versionSummary(r, e);
-    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r, e)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r), "");
+    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r, e)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r, e), "");
   }
   shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
 }

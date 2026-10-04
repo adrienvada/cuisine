@@ -265,7 +265,7 @@ test.fixme("B8 — la fiche d'une version au menu affiche ses portions, et « + 
 
 /* ---------- B9 : le défilement ne doit pas revenir en haut ---------- */
 
-test.fixme("B9a — accueil défilé, recette ouverte, retour : même position à 50 px près", async ({ page }) => {
+test("B9a — accueil défilé, recette ouverte, retour : même position à 50 px près", async ({ page }) => {
   /* Chromium rétablit de lui-même la position après le redessin, ce qui masque le
      défaut ; Safari et les PWA installées ne le font pas de façon fiable. On coupe
      donc la restauration native : c'est à l'application de retrouver sa place. */

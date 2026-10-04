@@ -1,4 +1,5 @@
 {
+  "id": "/cuisine/",
   "name": "Carnet de cuisine",
   "short_name": "Cuisine",
   "description": "Le carnet de recettes d'Evadri — recettes, mode cuisine et liste de courses.",
@@ -12,5 +13,21 @@
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Liste de courses",
+      "short_name": "Courses",
+      "description": "Ouvrir la liste de courses",
+      "url": "./#/courses",
+      "icons": [{ "src": "icons/raccourci-courses.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Au menu",
+      "short_name": "Menu",
+      "description": "Ouvrir le menu du prochain repas",
+      "url": "./#/menu",
+      "icons": [{ "src": "icons/raccourci-menu.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }
