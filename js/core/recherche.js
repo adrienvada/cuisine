@@ -25,7 +25,7 @@ export const motsDe = q => normaliser(q).split(/\s+/).filter(Boolean);
 
 export const trouve = (foin, mots) => mots.every(m => foin.includes(m));
 
-/* La recette « de base » : sa version par défaut, sans choix ni supplément. */
+/* Les cid de la recette « de base » : sa version par défaut, sans choix ni supplément. */
 const cles = r => r.ingredients.map(i => i.cid).filter(Boolean);
 
 export const estVegetarien = r => !cles(r).some(c => NON_VEGETARIEN.includes(c));
