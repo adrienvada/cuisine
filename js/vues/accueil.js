@@ -328,6 +328,21 @@ function finishLeave(el) {
   el.classList.add("gone");
 }
 
+/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal
+   placées. Tout ré-attacher (appendChild de chacune) coûte une mise en page, et
+   détache les vignettes : le navigateur oublie celle qu'il comptait pour le plus grand
+   élément peint, et le fondu d'une carte déjà là repartirait. Au premier dessin comme à
+   l'arrivée des fondamentaux (rafraichirFoins), l'ordre est déjà le bon : rien ne bouge. */
+function ordonner(grid, voulues) {
+  let suivante = grid.firstElementChild;
+  for (const el of voulues) {
+    if (el === suivante) suivante = suivante.nextElementSibling;
+    else grid.insertBefore(el, suivante);
+  }
+  const vide = grid.querySelector(".grid-empty");
+  if (grid.lastElementChild !== vide) grid.appendChild(vide);
+}
+
 /* Filtre la grille façon FLIP : les cartes écartées s'estompent sur place,
    les survivantes glissent vers leur nouvelle position, les entrantes
    apparaissent en fondu. Aucune reconstruction du DOM. */
@@ -362,8 +377,7 @@ function applyFilter(animate) {
 
   if (!animate || REDUCE_MOTION.matches) {
     for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
-    for (const el of wanted) grid.appendChild(el);
-    grid.appendChild(grid.querySelector(".grid-empty"));
+    ordonner(grid, wanted);
     return;
   }
 
@@ -397,8 +411,7 @@ function applyFilter(animate) {
   }
 
   /* Ordre cible (le tri des coups de cœur déplace aussi les survivantes) */
-  for (const el of wanted) grid.appendChild(el);
-  grid.appendChild(grid.querySelector(".grid-empty"));
+  ordonner(grid, wanted);
 
   /* LAST + INVERT — chaque survivante repart de son ancienne position… */
   const movers = [];

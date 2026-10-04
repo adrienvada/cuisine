@@ -18,6 +18,8 @@
                elementtiming="carte-titre" posé par js/vues/accueil.js)
      lcp       plus grand élément (temps et nature)
      cls       décalages de mise en page
+     vignettes arrivée de la dernière vignette visible sans défiler (les autres
+               téléchargements du démarrage ne doivent pas la retarder)
      octets    octets transférés (gzip, en-têtes compris) avant les cartes
      script    durée des longues tâches (> 50 ms) avant les cartes
    Options :
@@ -187,12 +189,18 @@ async function passageAccueil(navigateur, url, { sw, detail }) {
     await page.goto(url, { waitUntil: "load" });
     await page.waitForFunction(() => window.__mesure.cartes !== null, null, { timeout: 60000 });
     await attendre(3000); // laisse le LCP se fixer
-    const m = await page.evaluate(() => ({ ...window.__mesure, origine: performance.timeOrigin }));
+    const m = await page.evaluate(() => ({
+      ...window.__mesure,
+      origine: performance.timeOrigin,
+      vignettes: Math.max(0, ...[...document.querySelectorAll("img")]
+        .filter(i => i.getBoundingClientRect().top < innerHeight)
+        .map(i => performance.getEntriesByType("resource").find(r => r.name === i.currentSrc)?.responseEnd ?? 0))
+    }));
     const limite = m.origine + m.cartes;
     const liste = [...suivi.requetes.values()];
     const avant = liste.filter(r => r.fin && suivi.epoque(r.fin) <= limite);
     return {
-      fcp: m.fcp, cartes: m.cartes, lcp: m.lcp, lcpEl: m.lcpEl, cls: m.cls,
+      fcp: m.fcp, cartes: m.cartes, lcp: m.lcp, lcpEl: m.lcpEl, cls: m.cls, vignettes: m.vignettes,
       octets: avant.reduce((s, r) => s + (r.octets || 0), 0),
       requetes: avant.length,
       script: m.longues.filter(([debut]) => debut < m.cartes).reduce((s, [, d]) => s + d, 0),
@@ -259,7 +267,7 @@ async function main() {
       sortie.retour = resume(passages.map(p => p.retour));
       sortie.defilement = resume(passages.map(p => p.defilement));
     } else {
-      for (const k of ["fcp", "cartes", "lcp", "cls", "octets", "script", "requetes"]) sortie[k] = resume(passages.map(p => p[k]));
+      for (const k of ["fcp", "cartes", "lcp", "cls", "vignettes", "octets", "script", "requetes"]) sortie[k] = resume(passages.map(p => p[k]));
       sortie.lcpElements = passages.map(p => p.lcpEl);
       sortie.budgetKo = BUDGET_OCTETS_KO;
       if (o.detail) { sortie.detail = passages.at(-1).detail; sortie.dernier = { fcp: passages.at(-1).fcp, cartes: passages.at(-1).cartes }; }
@@ -276,6 +284,7 @@ async function main() {
       ligne("cartes", sortie.cartes, ms);
       ligne("LCP", sortie.lcp, ms);
       ligne("CLS", sortie.cls, x => x.toFixed(4));
+      ligne("vignettes", sortie.vignettes, ms);
       ligne("octets", sortie.octets, x => `${(x / 1024).toFixed(1)} Ko`);
       ligne("requêtes", sortie.requetes, x => String(Math.round(x)));
       ligne("script", sortie.script, ms);

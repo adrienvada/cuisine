@@ -14,6 +14,9 @@
   color: var(--green);
 }
 
+/* Le premier dessin de la page ne se fond pas (js/ui/routeur.js) : voir plus haut. */
+#app.premier-affichage .fade-in { animation: none; }
+
 .mast-row svg { width: 44px; height: 15px; opacity: 0.85; }
 
 .masthead .eyebrow {

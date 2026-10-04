@@ -229,6 +229,9 @@ function annoncerVue(titre, avecFocus, surPlace) {
    vue déjà chargée se dessine tout de suite, sans attendre. */
 export function route({ garderDefilement = false } = {}) {
   const defilement = window.scrollY;
+  /* Le tout premier dessin ne se fond pas (css/accueil.css) : le fondu de 0,22 s
+     retarde d'autant ce que l'on voit à l'ouverture, alors que la page est vide. */
+  app.classList.toggle("premier-affichage", premierAffichage);
   if (modules.cuisine) modules.cuisine.stopCookMode();
   closeSheets();
   setEntreeCourante(null);
