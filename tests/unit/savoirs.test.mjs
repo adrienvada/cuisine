@@ -4,12 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { FONDAMENTAUX } from "./donnees.mjs";
 
-/* La vue importe des modules qui s'accrochent au navigateur dès le chargement
-   (feuilles, routeur) : un décor minimal suffit, aucun n'est appelé ici. */
-globalThis.window ??= { addEventListener() {} };
-globalThis.matchMedia ??= () => ({ matches: false, addEventListener() {} });
-globalThis.document ??= { getElementById: () => null };
-const { fondMatches } = await import("../../js/vues/savoirs.js");
+const { fondMatches } = await import("../../js/core/fonds.js");
 
 const maillard = FONDAMENTAUX.find(f => f.id === "maillard");
 

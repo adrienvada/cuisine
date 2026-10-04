@@ -1,8 +1,7 @@
 /* L'onglet Savoirs : le catalogue des fondamentaux, leur page, leur feuille et l'astuce qui y renvoie. */
 
 import { state } from "../core/etat.js";
-import { CERTITUDES, fondById, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
-import { normaliser } from "../core/format.js";
+import { CERTITUDES, fondById, fondMatches, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
@@ -154,25 +153,6 @@ export function openFondSheet(id) {
   feuille.tabIndex = -1;
   feuille.focus({ preventScroll: true });
 }
-
-/* Le texte où l'on cherche, normalisé une fois pour toutes : le refaire à
-   chaque lettre tapée, pour une quarantaine de fondamentaux, serait du travail
-   perdu. Rempli à la demande (les données sont des globales, chargées avant
-   les modules mais pas forcément avant cet import). */
-const foins = new Map();
-const foinDe = f => {
-  if (!foins.has(f.id)) {
-    foins.set(f.id, normaliser([f.t, f.accroche, f.pourquoi, f.famille, f.piege,
-      ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ")));
-  }
-  return foins.get(f.id);
-};
-
-export const fondMatches = (f, q) => {
-  if (!q) return true;
-  const foin = foinDe(f);
-  return normaliser(q).split(/\s+/).filter(Boolean).every(w => foin.includes(w));
-};
 
 /* La liste seule : c'est tout ce qui change quand on tape. */
 function listeFondamentaux(q) {

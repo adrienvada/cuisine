@@ -1,5 +1,7 @@
 /* Les fondamentaux vus des recettes : identifiants, liens dans les deux sens, niveau de certitude. */
 
+import { normaliser } from "./format.js";
+
 /* js/fondamentaux.js (le plus gros fichier du carnet) n'est plus lu au
    démarrage : le script est injecté à la demande, une seule fois. D'ici là ses
    globales n'existent pas, et tout accès d'ici les lit à travers `typeof` —
@@ -54,4 +56,24 @@ export const CERTITUDES = {
   etabli: { l: "Mécanisme établi", d: "Compris et documenté." },
   partiel: { l: "Partiellement expliqué", d: "On en connaît une partie, le reste est discuté." },
   empirique: { l: "Empirique", d: "Le geste marche, le mécanisme n'est pas élucidé." }
+};
+
+/* La recherche des Savoirs, pure : elle vit ici plutôt que dans la vue pour se
+   tester sous Node. Le texte où l'on cherche est normalisé une fois pour
+   toutes — le refaire à chaque lettre tapée, pour une quarantaine de
+   fondamentaux, serait du travail perdu — et rempli à la première recherche,
+   les données n'arrivant qu'à la demande. */
+const foins = new Map();
+const foinDe = f => {
+  if (!foins.has(f.id)) {
+    foins.set(f.id, normaliser([f.t, f.accroche, f.pourquoi, f.famille, f.piege,
+      ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ")));
+  }
+  return foins.get(f.id);
+};
+
+export const fondMatches = (f, q) => {
+  if (!q) return true;
+  const foin = foinDe(f);
+  return normaliser(q).split(/\s+/).filter(Boolean).every(w => foin.includes(w));
 };
