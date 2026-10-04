@@ -160,7 +160,7 @@ const minuteurQuiche = () => ({
   label: "Cuisson à blanc", emoji: "🥧", end: Date.now() + 20 * 60000, total: 20, fired: false
 });
 
-test.fixme("B5a — sur une autre fiche, la bulle ne recouvre pas « Ajouter au menu »", async ({ page, context }) => {
+test("B5a — sur une autre fiche, la bulle ne recouvre pas « Ajouter au menu »", async ({ page, context }) => {
   await preremplir(context, { carnet: { timers: [minuteurQuiche()] } });
   await page.goto("/#/recette/focaccia-romarin");
   await expect(page.locator("#timer-tray .timer-pill")).toHaveCount(1);
@@ -176,7 +176,7 @@ test.fixme("B5a — sur une autre fiche, la bulle ne recouvre pas « Ajouter au 
   expect(propriete.bouton, `le centre du bouton appartient à : ${propriete.sur}`).toBe(true);
 });
 
-test.fixme("B5b — en mode cuisine, la bulle du minuteur affiché ne chevauche pas son compte à rebours", async ({ page }) => {
+test("B5b — en mode cuisine, la bulle du minuteur affiché ne chevauche pas son compte à rebours", async ({ page }) => {
   // Petit téléphone (375 × 667) : c'est là que le compte à rebours descend sous la bulle.
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/#/recette/quiche-lorraine/cuisine/1");
@@ -198,7 +198,7 @@ test.fixme("B5b — en mode cuisine, la bulle du minuteur affiché ne chevauche 
 
 /* ---------- B6 : le son doit être débloqué par le geste de l'utilisateur ---------- */
 
-test.fixme("B6 — l'AudioContext est créé ou repris pendant le toucher sur « Minuteur »", async ({ page }) => {
+test("B6 — l'AudioContext est créé ou repris pendant le toucher sur « Minuteur »", async ({ page }) => {
   await page.addInitScript(() => {
     window.__audio = [];
     const Natif = window.AudioContext || window.webkitAudioContext;
