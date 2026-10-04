@@ -1,6 +1,6 @@
 /* Le journal des recettes cuisinées : date, convives, note et photo du résultat, sur la fiche et à la fin du mode cuisine. */
 
-import { save, state } from "../core/etat.js";
+import { etatDeSecours, save, state } from "../core/etat.js";
 import { aujourdhui, dateEnClair, entreesDe } from "../core/journal.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
@@ -49,6 +49,34 @@ async function transaction(mode, faire) {
 const photoEnregistrer = (id, blob) => transaction("readwrite", m => m.put(blob, id));
 const photoLire = id => transaction("readonly", m => m.get(id)).catch(() => undefined);
 const photoSupprimer = id => transaction("readwrite", m => m.delete(id)).catch(() => {});
+
+/* ---------- Photos orphelines ----------
+   Une entrée retirée ailleurs (synchro) ou remplacée (import) laisse sa photo
+   dans la base de l'appareil, et le stockage d'un navigateur est compté. Ici, les
+   photos qu'aucune entrée ne réclame sont supprimées. */
+
+/* Des photos que le journal ne cite pas encore, ou plus pour un instant : celle
+   qu'on est en train de ranger (l'entrée n'existe qu'après), celle d'une entrée
+   supprimée dont « Annuler » est encore possible. Une purge qui passerait là les
+   perdrait pour de bon. */
+const protegees = new Set();
+
+export async function purgerOrphelines() {
+  /* Un état de secours (stockage illisible) a un journal vide qui ne dit rien
+     des photos : les effacer détruirait ce qu'on pourrait encore récupérer. */
+  if (etatDeSecours() || !Array.isArray(state.journal)) return;
+  try {
+    const cles = await transaction("readonly", m => m.getAllKeys());
+    /* Relu après l'attente : l'état a pu changer pendant que la base s'ouvrait. */
+    const citees = new Set(state.journal.map(e => e.id));
+    for (const cle of cles) if (!citees.has(cle) && !protegees.has(cle)) await photoSupprimer(cle);
+  } catch (e) {
+    console.error("Purge des photos orphelines impossible :", e);
+  }
+}
+
+/* Une version venue d'un autre appareil a pu retirer des entrées du journal. */
+if (typeof document !== "undefined") document.addEventListener("carnet-synchro", () => { purgerOrphelines(); });
 
 /* Réduit la photo avant de la ranger : 1 200 px de grand côté, JPEG. Un cliché de
    téléphone fait plusieurs mégaoctets, et le stockage d'un navigateur est compté. */
@@ -165,12 +193,17 @@ function supprimerEntree(id) {
   const [entree] = liste.splice(i, 1);
   save();
   actualiser();
-  const purge = setTimeout(() => { if (entree.photo) photoSupprimer(entree.id); }, DELAI_ANNULER + 1000);
+  protegees.add(entree.id);
+  const purge = setTimeout(() => {
+    protegees.delete(entree.id);
+    if (entree.photo) photoSupprimer(entree.id);
+  }, DELAI_ANNULER + 1000);
   toast("Entrée supprimée", {
     action: "Annuler",
     duree: DELAI_ANNULER,
     surAction: () => {
       clearTimeout(purge);
+      protegees.delete(entree.id);
       /* Une synchro a pu changer la liste entre-temps : on remet à la même place, bornée. */
       const courante = entrees();
       if (!courante.some(e => e.id === entree.id)) courante.splice(Math.min(i, courante.length), 0, entree);
@@ -287,15 +320,25 @@ export function ouvrirJournal(rid) {
       photo: false
     };
     let echecPhoto = false;
-    if (photo) {
-      try { await photoEnregistrer(entree.id, photo); entree.photo = true; }
-      catch { echecPhoto = true; }   // stockage refusé : l'entrée garde sa date et sa note
+    /* La photo existe dans la base avant que l'entrée existe dans l'état : d'ici
+       là, une purge des orphelines la prendrait pour une des siennes. */
+    protegees.add(entree.id);
+    let fini = false;
+    try {
+      if (photo) {
+        try { await photoEnregistrer(entree.id, photo); entree.photo = true; }
+        catch { echecPhoto = true; }   // stockage refusé : l'entrée garde sa date et sa note
+      }
+      entrees().push(entree);
+      save();
+      fermerFeuille();
+      actualiser();
+      toast(echecPhoto ? "Ajouté au journal, sans la photo (stockage indisponible)" : "Ajouté au journal");
+      fini = true;
+    } finally {
+      protegees.delete(entree.id);
+      if (!fini) bouton.disabled = false;   // une erreur ne laisse pas la feuille figée
     }
-    entrees().push(entree);
-    save();
-    fermerFeuille();
-    actualiser();
-    toast(echecPhoto ? "Ajouté au journal, sans la photo (stockage indisponible)" : "Ajouté au journal");
   });
   $("#jr-non").addEventListener("click", () => fermerFeuille());
   fond.addEventListener("click", e => { if (e.target === fond) fermerFeuille(); });

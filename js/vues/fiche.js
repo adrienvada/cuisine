@@ -517,5 +517,5 @@ export function renderRecipe(r) {
     if (!zoneJournal.isConnected || typeof m.dessinerJournal !== "function") return;
     m.dessinerJournal(zoneJournal, r);
     zoneJournal.hidden = false;
-  }).catch(() => {});
+  }).catch(e => console.error("Journal indisponible :", e));
 }

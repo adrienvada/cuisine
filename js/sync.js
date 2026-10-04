@@ -12,6 +12,7 @@
 
 import { CHAMPS_SYNCHRO as CHAMPS, fusionner, memesDonnees } from "./core/fusion.js";
 import { STORE_KEY, state, surSauvegarde } from "./core/etat.js";
+import { normaliserEtat } from "./core/sauvegarde.js";
 import { feuilleOuverte, fermerFeuille, ouvrirFeuille } from "./ui/feuilles.js";
 import { allerEnRemplacant, route } from "./ui/routeur.js";
 import { toast, updateBadge } from "./ui/toast.js";
@@ -96,10 +97,14 @@ function redessiner() {
 /* Remplace dans l'état les champs synchronisés par `donnees` ; rend vrai si
    quelque chose a changé. Pas de save() : ce n'est pas une modification locale. */
 function appliquer(donnees) {
+  /* Ce qui vient d'un autre appareil peut être d'une autre version, ou abîmé :
+     comme pour un fichier importé, on écarte entrée par entrée ce qui est mal
+     formé. Un champ inutilisable est absent du résultat, donc laissé tel quel ici. */
+  const propre = normaliserEtat(donnees, { appareil: false });
   let change = false;
   for (const c of CHAMPS) {
-    if (donnees[c] === undefined || memesDonnees({ [c]: state[c] }, { [c]: donnees[c] })) continue;
-    state[c] = copie(donnees[c]);
+    if (propre[c] === undefined || memesDonnees({ [c]: state[c] }, { [c]: propre[c] })) continue;
+    state[c] = propre[c];
     change = true;
   }
   if (!change) return false;

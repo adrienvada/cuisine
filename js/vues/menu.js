@@ -174,7 +174,7 @@ async function ajouterAuCalendrier() {
 /* ---------- Les repas passés ---------- */
 
 function passesHtml() {
-  const liste = (state.historique || []).slice(0, 6);
+  const liste = (state.historique || []).filter(Boolean).slice(0, 6);
   if (!liste.length) return "";
   const aujourdhui = maintenantLocal().date;
   return html`<details class="passes" id="passes" ${ouvert.passes ? raw("open") : ""}>
@@ -182,7 +182,7 @@ function passesHtml() {
     <ul class="passes-liste">
       ${liste.map(h => raw(html`<li class="passe">
         <div class="passe-tete"><b>${jourFr(h.date, aujourdhui)}</b><span>${pluriel(h.convives, "convive")}</span></div>
-        <p class="passe-liste">${h.entrees.map(x => byId(x.rid)).filter(Boolean).map(r => nomCourt(r.title)).join(" · ")}</p>
+        <p class="passe-liste">${(h.entrees || []).map(x => byId(x?.rid)).filter(Boolean).map(r => nomCourt(r.title)).join(" · ")}</p>
         <button class="mc-btn passe-refaire" data-refaire="${h.id}">Refaire ce repas</button>
       </li>`))}
     </ul>
