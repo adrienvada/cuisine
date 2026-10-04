@@ -1959,21 +1959,25 @@ FIGURES["acidite-finale"] = [
     type: "svg",
     vb: "0 0 320 268",
     titre: "Ce que fait le trait d'acide",
-    legende: "L'effet est perceptif : un contraste pour le gras et le sucré, et la salivation la plus forte de toutes les saveurs. Rien ne réveille d'arômes endormis.",
-    alt: "Deux bandes de sensations. En haut, sans acide : une onde dorée, gras et sucré, occupe seule la bouche, sans rien contre quoi se détacher. En bas, avec un trait d'acide : la même onde est traversée par un pic vert, l'acide, qui fait un contraste, et des gouttes bleues figurent la salivation, qui rince la bouche au lieu de la laisser s'engourdir.",
+    legende: "Schéma simplifié. L'effet est perceptif, observé mais mal modélisé : un contraste pour le gras et le sucré, et la salivation la plus forte de toutes les saveurs. Rien ne réveille d'arômes endormis.",
+    alt: "Deux bandes de sensations. En haut, sans acide : une onde dorée, gras et sucré, occupe seule la bouche, sans rien contre quoi se détacher. En bas, avec un trait d'acide : la même onde est traversée par un pic vert, l'acide, qui fait un contraste, et des gouttes bleues figurent la salivation, qui rince la bouche au lieu de la laisser s'engourdir. Schéma simplifié d'un effet perceptif, observé mais mal modélisé.",
     corps: `<rect class="fg-f-carte fg-t-doux" x="8" y="8" width="304" height="96" rx="12"/>
 <text class="fg-txt fg-txt-b" x="20" y="29" text-anchor="start">Sans acide</text>
+<text class="fg-txt-script fg-txt-doux" x="20" y="49" text-anchor="start">rien contre quoi se détacher</text>
 <path class="fg-f-or-l fg-aire" d="M22 64C46 58 70 70 94 64S142 58 166 64S214 70 238 64S286 58 298 64L298 90L22 90Z"/>
 <path class="fg-t-or fg-t-epais" d="M22 64C46 58 70 70 94 64S142 58 166 64S214 70 238 64S286 58 298 64"/>
 <text class="fg-txt fg-txt-s" x="160" y="82" text-anchor="middle">gras et sucré, seuls dans la bouche</text>
-<text class="fg-txt-script fg-txt-doux" x="298" y="33" text-anchor="end">rien contre quoi se détacher</text>
 <rect class="fg-f-carte fg-t-doux" x="8" y="114" width="304" height="146" rx="12"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="20" y="135" text-anchor="start">Avec un trait d'acide</text>
 <path class="fg-f-or-l fg-aire" d="M22 206C46 200 70 212 94 206S142 200 166 206S214 212 238 206S286 200 298 206L298 232L22 232Z"/>
 <path class="fg-t-or fg-t-epais" d="M22 206C46 200 70 212 94 206S142 200 166 206S214 212 238 206S286 200 298 206"/>
 <path class="fg-f-vert fg-t-vert" d="M104 206C112 206 114 176 118 156C122 176 124 206 132 206Z"/>
 <text class="fg-txt-script fg-txt-vert" x="136" y="180" text-anchor="start"><tspan x="136">l'acide :</tspan><tspan x="136" dy="17">un contraste</tspan></text>
-<path class="fg-f-bleu" transform="translate(236 184) scale(1.25)" d="M0 -6C4 -1 5 2 0 5C-5 2 -4 -1 0 -6Z"/><path class="fg-f-bleu" transform="translate(262 172) scale(1.25)" d="M0 -6C4 -1 5 2 0 5C-5 2 -4 -1 0 -6Z"/><path class="fg-f-bleu" transform="translate(288 186) scale(1.25)" d="M0 -6C4 -1 5 2 0 5C-5 2 -4 -1 0 -6Z"/><path class="fg-f-bleu" transform="translate(248 204) scale(1)" d="M0 -6C4 -1 5 2 0 5C-5 2 -4 -1 0 -6Z"/><path class="fg-f-bleu" transform="translate(276 208) scale(1)" d="M0 -6C4 -1 5 2 0 5C-5 2 -4 -1 0 -6Z"/>
+<use class="fg-sy-bleu" href="#fg-sym-goutte" x="226" y="172" width="16" height="22"/>
+<use class="fg-sy-bleu" href="#fg-sym-goutte" x="254" y="160" width="16" height="22"/>
+<use class="fg-sy-bleu" href="#fg-sym-goutte" x="280" y="174" width="16" height="22"/>
+<use class="fg-sy-bleu" href="#fg-sym-goutte" x="240" y="196" width="12" height="16"/>
+<use class="fg-sy-bleu" href="#fg-sym-goutte" x="268" y="200" width="12" height="16"/>
 <text class="fg-txt-script fg-txt-bleu" x="262" y="150" text-anchor="middle">la salivation</text>
 <text class="fg-txt fg-txt-s" x="160" y="250" text-anchor="middle">la bouche se rince au lieu de s'engourdir</text>`
   },
@@ -1983,22 +1987,22 @@ FIGURES["acidite-finale"] = [
     type: "comparaison",
     fleche: true,
     titre: "Pourquoi le citron éteint l'odeur de poisson",
-    legende: "Ce n'est pas un réveil d'arômes, c'est l'inverse : baisser le pH protone la triméthylamine, qui cesse de s'envoler.",
+    legende: "Ce n'est pas un réveil d'arômes, c'est l'inverse : baisser le pH protone la triméthylamine (un azote entouré de trois groupes), qui cesse de s'envoler.",
     alt: "Deux schémas de la triméthylamine, une molécule basique à l'azote entouré de trois groupes, et une flèche de l'un à l'autre. À gauche, sans acide : la molécule est libre, elle est volatile et s'envole, d'où l'odeur de poisson. À droite, avec du citron : un ion H plus s'est fixé sur l'azote, la molécule est protonée et cesse de s'envoler, l'odeur s'éteint.",
     panneaux: [
       {
         label: "Sans acide",
         sous: "triméthylamine libre : elle s'envole",
-        ton: "terra",
+        ton: "or",
         vb: "0 -10 128 100",
-        corps: `<circle class="fg-f-vert-l fg-t-vert fg-t-epais" cx="60" cy="58" r="13"/><text class="fg-txt fg-txt-b fg-txt-vert" x="60" y="63" text-anchor="middle">N</text><path class="fg-t-vert" d="M60 58L60 28"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="60" cy="28" r="7"/><path class="fg-t-vert" d="M60 58L34 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="34" cy="76" r="7"/><path class="fg-t-vert" d="M60 58L86 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="86" cy="76" r="7"/><path class="fg-t-terra fg-t-fin" d="M44 18C37 12 51 8 44 2S51 -4 44 -8"/><path class="fg-t-terra fg-t-fin" d="M60 18C53 12 67 8 60 2S67 -4 60 -8"/><path class="fg-t-terra fg-t-fin" d="M76 18C69 12 83 8 76 2S83 -4 76 -8"/><text class="fg-txt-script fg-txt-terra" x="86" y="8" text-anchor="start">odeur</text>`
+        corps: `<circle class="fg-f-vert-l fg-t-vert fg-t-epais" cx="60" cy="58" r="13"/><text class="fg-txt fg-txt-b fg-txt-vert" x="60" y="63" text-anchor="middle">N</text><path class="fg-t-vert" d="M60 58L60 28"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="60" cy="28" r="7"/><path class="fg-t-vert" d="M60 58L34 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="34" cy="76" r="7"/><path class="fg-t-vert" d="M60 58L86 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="86" cy="76" r="7"/><path class="fg-t-or fg-t-fin" d="M44 18C37 12 51 8 44 2S51 -4 44 -8"/><path class="fg-t-or fg-t-fin" d="M60 18C53 12 67 8 60 2S67 -4 60 -8"/><path class="fg-t-or fg-t-fin" d="M76 18C69 12 83 8 76 2S83 -4 76 -8"/><text class="fg-txt-script fg-txt-or" x="86" y="8" text-anchor="start">odeur</text>`
       },
       {
         label: "Avec du citron",
         sous: "protonée : elle reste dans le plat",
         ton: "vert",
         vb: "0 -10 128 100",
-        corps: `<circle class="fg-f-vert-l fg-t-vert fg-t-epais" cx="60" cy="58" r="13"/><text class="fg-txt fg-txt-b fg-txt-vert" x="60" y="63" text-anchor="middle">N</text><path class="fg-t-vert" d="M60 58L60 28"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="60" cy="28" r="7"/><path class="fg-t-vert" d="M60 58L34 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="34" cy="76" r="7"/><path class="fg-t-vert" d="M60 58L86 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="86" cy="76" r="7"/><path class="fg-t-or" d="M72 48L90 36"/><circle class="fg-f-or fg-pt" cx="96" cy="31" r="9"/><text class="fg-txt fg-txt-s fg-txt-b" x="96" y="35.5" text-anchor="middle">H<tspan dy="-4">+</tspan></text>`
+        corps: `<circle class="fg-f-vert-l fg-t-vert fg-t-epais" cx="60" cy="58" r="13"/><text class="fg-txt fg-txt-b fg-txt-vert" x="60" y="63" text-anchor="middle">N</text><path class="fg-t-vert" d="M60 58L60 28"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="60" cy="28" r="7"/><path class="fg-t-vert" d="M60 58L34 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="34" cy="76" r="7"/><path class="fg-t-vert" d="M60 58L86 76"/><circle class="fg-f-vert-l fg-t-vert fg-t-fin" cx="86" cy="76" r="7"/><path class="fg-t-or fg-t-epais" d="M71 48L88 37"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="97" cy="31" r="11"/><text class="fg-txt fg-txt-s fg-txt-b" x="97" y="35.5" text-anchor="middle">H<tspan dy="-4">+</tspan></text>`
       }
     ]
   },
@@ -2030,7 +2034,7 @@ FIGURES["acidite-finale"] = [
       }
     ],
     notes: [
-      { x: 60, y: 0.08, texte: "ne reste que l'acidité nue", dx: -10, dy: -56, largeur: 120, ancre: "end" }
+      { x: 70, y: 0.9, texte: "ne reste que l'acidité nue", dx: 0, dy: 38, largeur: 120, ancre: "middle" }
     ]
   },
   {
@@ -2038,14 +2042,15 @@ FIGURES["acidite-finale"] = [
     type: "echelle",
     titre: "Le pH et la tenue des légumes",
     legende: "Plus acide à gauche. La pectine résiste le mieux autour de pH 4 à 4,5 ; plus acide encore, l'hydrolyse prend le relais.",
-    alt: "Règle graduée du pH, de 3 à 5, avec des repères à 3,5, 4 et 4,5. Sous pH 4,5, la β-élimination, voie par laquelle la pectine des parois se défait à la cuisson, est freinée. Entre pH 4 et 4,5, la pectine se dégrade le plus lentement : les légumes tiennent. Vers pH 3,5, l'hydrolyse acide prend le relais et ramollit à son tour.",
+    alt: "Règle graduée du pH, de 3 à 5, plus acide à gauche, avec des repères à 3,5, 4 et 4,5. Sous pH 4,5, la β-élimination, voie par laquelle la pectine des parois se défait à la cuisson, est freinée. Entre pH 4 et 4,5, la pectine se dégrade le plus lentement : les légumes tiennent. Vers pH 3,5, l'hydrolyse acide prend le relais et ramollit à son tour.",
     min: 3,
     max: 5,
     unite: "",
-    label: "pH du milieu",
-    graduations: [3.5, 4, 4.5],
+    label: "pH du milieu (plus acide à gauche)",
+    graduations: [3, 3.5, 4, 4.5, 5],
     zones: [
-      { de: 3, a: 3.5, label: "hydrolyse", ton: "terra" },
+      { de: 3, a: 3.5, label: "hydrolyse acide", ton: "terra" },
+      { de: 3.5, a: 4, label: "freinée", ton: "or" },
       { de: 4, a: 4.5, label: "le plus lent", ton: "vert" }
     ],
     marqueurs: [
@@ -2063,21 +2068,46 @@ FIGURES["salaison"] = [
   {
     ou: "tete",
     type: "svg",
-    vb: "0 0 320 294",
+    vb: "0 0 320 326",
     titre: "Le sel avance du bord vers le cœur",
-    legende: "Illustration d'un filet de 500 g coupé en travers, sous un mélange de sel et de sucre en parts égales : des repères d'usage, calés sur l'épaisseur plus que sur une mesure.",
-    alt: "Trois coupes d'un filet de saumon, chacune sous et sur une couche de mélange sel et sucre à parts égales, de plus en plus salées du bord vers le cœur. En moins de 8 heures, seule une mince bande du bord est salée, le centre reste cru et mou. Entre 12 et 24 heures, le filet de 500 grammes est salé en dégradé : ferme au bord, plus souple au cœur. Après plus de 36 heures, le sel a gagné tout le cœur : la chair est sèche, dure et compacte.",
-    corps: `<g transform="translate(0 12)"><rect class="fg-f-terra-l fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="22" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="63" width="184" height="5" opacity="0.5"/><rect class="fg-f-terra" x="126" y="22" width="184" height="4" opacity="0.28"/><rect class="fg-f-terra" x="126" y="64" width="184" height="4" opacity="0.28"/><rect class="fg-t-terra" x="126" y="22" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="13" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="69" width="184" height="8"/>
-<text class="fg-txt fg-txt-b" x="8" y="42" text-anchor="start">Moins de 8 h</text>
-<text class="fg-txt fg-txt-s" x="8" y="58" text-anchor="start"><tspan x="8">le centre reste</tspan><tspan x="8" dy="13.5">cru et mou</tspan></text>
-<rect class="fg-f-terra-l fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="104" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="139" width="184" height="11" opacity="0.5"/><rect class="fg-f-terra" x="126" y="104" width="184" height="8" opacity="0.28"/><rect class="fg-f-terra" x="126" y="142" width="184" height="8" opacity="0.28"/><rect class="fg-t-terra" x="126" y="104" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="95" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="151" width="184" height="8"/>
-<text class="fg-txt fg-txt-b fg-txt-vert" x="8" y="124" text-anchor="start">12 à 24 h</text>
-<text class="fg-txt fg-txt-s" x="8" y="140" text-anchor="start"><tspan x="8">ferme au bord,</tspan><tspan x="8" dy="13.5">souple au cœur</tspan></text>
-<rect class="fg-f-terra-l fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><rect class="fg-f-terra" x="126" y="186" width="184" height="23" opacity="0.5"/><rect class="fg-f-terra" x="126" y="209" width="184" height="23" opacity="0.5"/><rect class="fg-t-terra" x="126" y="186" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="177" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="233" width="184" height="8"/>
-<text class="fg-txt fg-txt-b fg-txt-terra" x="8" y="206" text-anchor="start">Plus de 36 h</text>
-<text class="fg-txt fg-txt-s" x="8" y="222" text-anchor="start"><tspan x="8">salé à cœur :</tspan><tspan x="8" dy="13.5">sec, dur, compact</tspan></text>
-<rect class="fg-f-carte fg-t-encre fg-t-fin" x="126" y="262" width="7" height="7" rx="1.5"/><text class="fg-txt fg-txt-s" x="138" y="269" text-anchor="start">sel</text>
-<rect class="fg-f-or-l fg-t-or fg-t-fin" x="172" y="262" width="7" height="7" rx="1.5"/><text class="fg-txt fg-txt-s" x="184" y="269" text-anchor="start">sucre, à parts égales</text></g>`
+    legende: "Illustration d'un filet de 500 g coupé en travers, sous un mélange de sel et de sucre en parts égales : des repères d'usage, calés sur l'épaisseur plus que sur une mesure. Au-delà de 36 h, un filet fin est salé à cœur.",
+    alt: "Trois coupes d'un filet de saumon, chacune sous et sur une couche de mélange sel et sucre à parts égales ; plus la chair est foncée, plus elle est salée. En moins de 8 heures, seule une mince bande du bord est salée, le centre reste cru et mou. Entre 12 et 24 heures, le filet de 500 grammes est salé en dégradé : ferme au bord, plus souple au cœur. Après plus de 36 heures, le sel a gagné tout le cœur d'un filet fin : la chair est sèche, dure et compacte. Illustration, d'après des repères d'usage.",
+    corps: `<rect class="fg-f-or-l fg-t-or" x="126" y="34" width="184" height="46" rx="3"/><rect class="fg-f-or" x="126" y="34" width="184" height="5" opacity="0.55"/><rect class="fg-f-or" x="126" y="75" width="184" height="5" opacity="0.55"/><rect class="fg-t-or" x="126" y="34" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="24" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="82" width="184" height="8"/>
+<text class="fg-txt fg-txt-b" x="8" y="54" text-anchor="start">Moins de 8 h</text>
+<text class="fg-txt fg-txt-s" x="8" y="70" text-anchor="start"><tspan x="8">le centre reste</tspan><tspan x="8" dy="13.5">cru et mou</tspan></text>
+<rect class="fg-f-or-l fg-t-or" x="126" y="116" width="184" height="46" rx="3"/><rect class="fg-f-or" x="126" y="116" width="184" height="11" opacity="0.55"/><rect class="fg-f-or" x="126" y="151" width="184" height="11" opacity="0.55"/><rect class="fg-t-or" x="126" y="116" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="106" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="164" width="184" height="8"/>
+<text class="fg-txt fg-txt-b fg-txt-vert" x="8" y="136" text-anchor="start">12 à 24 h</text>
+<text class="fg-txt fg-txt-s" x="8" y="152" text-anchor="start"><tspan x="8">ferme au bord,</tspan><tspan x="8" dy="13.5">souple au cœur</tspan></text>
+<rect class="fg-f-or-l fg-t-or" x="126" y="198" width="184" height="46" rx="3"/><rect class="fg-f-or" x="126" y="198" width="184" height="23" opacity="0.55"/><rect class="fg-f-or" x="126" y="221" width="184" height="23" opacity="0.55"/><rect class="fg-t-or" x="126" y="198" width="184" height="46" rx="3"/><use href="#fg-sym-grains-sel-sucre" x="126" y="188" width="184" height="8"/><use href="#fg-sym-grains-sel-sucre" x="126" y="246" width="184" height="8"/>
+<text class="fg-txt fg-txt-b fg-txt-terra" x="8" y="218" text-anchor="start">Plus de 36 h</text>
+<text class="fg-txt fg-txt-s" x="8" y="234" text-anchor="start"><tspan x="8">filet fin, salé à cœur :</tspan><tspan x="8" dy="13.5">sec, dur, compact</tspan></text>
+<use href="#fg-sym-grains-sel-sucre" x="8" y="266" width="184" height="8"/>
+<text class="fg-txt fg-txt-s" x="8" y="292" text-anchor="start">sel et sucre, à parts égales</text>
+<rect class="fg-f-or-l fg-t-or" x="8" y="304" width="16" height="12" rx="2"/><rect class="fg-f-or fg-t-or" x="24" y="304" width="16" height="12" rx="2" opacity=".55"/>
+<text class="fg-txt fg-txt-s" x="48" y="314" text-anchor="start">plus la chair est foncée, plus elle est salée</text>`
+  },
+  {
+    ou: "cas",
+    type: "comparaison",
+    titre: "La texture se ressemble, pas le résultat sanitaire",
+    legende: "Dans les deux cas la chair se raffermit : mais seule la chaleur détruit micro-organismes et parasites. Un poisson salé reste un poisson cru.",
+    alt: "Deux coupes de poisson côte à côte. À gauche, la cuisson : la chaleur dénature les protéines, la chair devient ferme, et en même temps les micro-organismes et les parasites, représentés par une bactérie et une larve, sont détruits, grisés et barrés d'une croix. À droite, la salaison : le sel dénature aussi les protéines et la chair devient ferme, mais aucune chaleur n'a agi, donc la bactérie et la larve sont toujours là. Un poisson salé reste un poisson cru.",
+    panneaux: [
+      {
+        label: "Cuisson",
+        sous: "ferme ; microbes et parasites détruits",
+        ton: "terra",
+        vb: "0 0 134 104",
+        corps: `<use href="#fg-sym-vapeur" x="43" y="0" width="14" height="32"/><use href="#fg-sym-vapeur" x="60" y="0" width="14" height="32"/><use href="#fg-sym-vapeur" x="77" y="0" width="14" height="32"/><path class="fg-f-or-l fg-t-terra" d="M22 38Q67 24 112 38L112 64Q67 76 22 64Z"/><path class="fg-t-terra fg-t-fin" d="M34 48Q50 42 67 48T100 48"/><use class="fg-sy-doux" href="#fg-sym-bacterie" x="20" y="78" width="32" height="16"/><use class="fg-sy-doux" href="#fg-sym-larve" x="84" y="74" width="24" height="24"/><path class="fg-t-terra fg-t-epais" d="M29 77L43 95M43 77L29 95M89 77L103 95M103 77L89 95"/>`
+      },
+      {
+        label: "Salaison",
+        sous: "ferme ; microbes et parasites toujours là",
+        ton: "or",
+        vb: "0 0 134 104",
+        corps: `<use href="#fg-sym-grain-sel" x="34" y="14" width="8" height="8"/><use href="#fg-sym-grain-sel" x="62" y="8" width="8" height="8" transform="rotate(12 66 12)"/><use href="#fg-sym-grain-sel" x="92" y="14" width="8" height="8"/><path class="fg-f-or-l fg-t-terra" d="M22 38Q67 24 112 38L112 64Q67 76 22 64Z"/><path class="fg-t-terra fg-t-fin" d="M34 48Q50 42 67 48T100 48"/><use href="#fg-sym-bacterie" x="20" y="78" width="32" height="16"/><use href="#fg-sym-larve" x="84" y="74" width="24" height="24"/>`
+      }
+    ]
   },
   {
     ou: "pourquoi",
@@ -2086,15 +2116,17 @@ FIGURES["salaison"] = [
     vb: "0 0 320 224",
     titre: "À poids égal, une douzaine de fois plus de particules",
     legende: "Une molécule de sucre pèse près de six fois celle du sel, et le sel se sépare en deux ions : c'est lui qui tire l'eau, le sucre beaucoup moins.",
-    alt: "À gauche, du sucre : à masse égale, une seule molécule, près de six fois plus lourde que celle du sel. À droite, du sel : six unités, chacune se séparant en deux ions, sodium et chlorure, soit une douzaine de particules actives. Entre les deux, un signe égal et la mention même poids. Conclusion : le tirage d'eau, c'est le sel ; le sucre y participe beaucoup moins qu'on ne le croit.",
+    alt: "À gauche, du sucre : à masse égale, une seule molécule, près de six fois plus lourde que celle du sel. À droite, du sel : six unités, chacune se séparant en deux ions, un sodium positif et un chlorure négatif, soit une douzaine de particules actives. Entre les deux, un signe égal et la mention même poids. Conclusion : le tirage d'eau, c'est le sel ; le sucre y participe beaucoup moins qu'on ne le croit.",
     corps: `<rect class="fg-f-or-l fg-t-or fg-t-fin" x="8" y="10" width="124" height="160" rx="12"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="70" y="32" text-anchor="middle">Sucre</text>
 <path class="fg-f-or fg-t-or fg-t-epais" opacity=".85" d="M89.1 81L70 92L50.9 81L50.9 59L70 48L89.1 59Z"/>
 <text class="fg-txt fg-txt-s" x="70" y="118" text-anchor="middle"><tspan x="70">1 molécule,</tspan><tspan x="70" dy="13.5">près de six fois</tspan><tspan x="70" dy="13.5">plus lourde</tspan></text>
 <rect class="fg-f-doux fg-t-doux" x="188" y="10" width="124" height="160" rx="12"/>
 <text class="fg-txt fg-txt-b" x="250" y="32" text-anchor="middle">Sel</text>
-<circle class="fg-f-carte fg-t-encre" cx="223" cy="50" r="5"/><circle class="fg-f-encre" cx="231" cy="50" r="3.6"/><circle class="fg-f-carte fg-t-encre" cx="259" cy="50" r="5"/><circle class="fg-f-encre" cx="267" cy="50" r="3.6"/><circle class="fg-f-carte fg-t-encre" cx="223" cy="68" r="5"/><circle class="fg-f-encre" cx="231" cy="68" r="3.6"/><circle class="fg-f-carte fg-t-encre" cx="259" cy="68" r="5"/><circle class="fg-f-encre" cx="267" cy="68" r="3.6"/><circle class="fg-f-carte fg-t-encre" cx="223" cy="86" r="5"/><circle class="fg-f-encre" cx="231" cy="86" r="3.6"/><circle class="fg-f-carte fg-t-encre" cx="259" cy="86" r="5"/><circle class="fg-f-encre" cx="267" cy="86" r="3.6"/>
-<text class="fg-txt fg-txt-s" x="250" y="118" text-anchor="middle"><tspan x="250">6 unités, chacune</tspan><tspan x="250" dy="13.5">en 2 ions : une</tspan><tspan x="250" dy="13.5">douzaine de</tspan><tspan x="250" dy="13.5">particules</tspan></text>
+<use href="#fg-sym-ion-plus" x="198" y="42" width="16" height="16"/><use href="#fg-sym-ion-moins" x="226" y="42" width="16" height="16"/><use href="#fg-sym-ion-plus" x="254" y="42" width="16" height="16"/><use href="#fg-sym-ion-moins" x="282" y="42" width="16" height="16"/>
+<use href="#fg-sym-ion-moins" x="198" y="62" width="16" height="16"/><use href="#fg-sym-ion-plus" x="226" y="62" width="16" height="16"/><use href="#fg-sym-ion-moins" x="254" y="62" width="16" height="16"/><use href="#fg-sym-ion-plus" x="282" y="62" width="16" height="16"/>
+<use href="#fg-sym-ion-plus" x="198" y="82" width="16" height="16"/><use href="#fg-sym-ion-moins" x="226" y="82" width="16" height="16"/><use href="#fg-sym-ion-plus" x="254" y="82" width="16" height="16"/><use href="#fg-sym-ion-moins" x="282" y="82" width="16" height="16"/>
+<text class="fg-txt fg-txt-s" x="250" y="122" text-anchor="middle"><tspan x="250">6 unités, chacune</tspan><tspan x="250" dy="13.5">en 2 ions : une</tspan><tspan x="250" dy="13.5">douzaine de particules</tspan></text>
 <text class="fg-txt fg-txt-xl fg-txt-doux" x="160" y="74" text-anchor="middle">=</text>
 <text class="fg-txt-script fg-txt-doux" x="160" y="96" text-anchor="middle"><tspan x="160">même</tspan><tspan x="160" dy="15">poids</tspan></text>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="160" y="196" text-anchor="middle">C'est le sel qui tire l'eau</text>
@@ -2106,10 +2138,10 @@ FIGURES["salaison"] = [
     type: "courbe",
     qualitative: true,
     titre: "Le sel et l'eau retenue par la chair",
-    legende: "Allure qualitative, repères placés à peu près à l'échelle : maximum vers 5 % de sel dans la phase aqueuse ; au-delà, l'effet s'inverse, puis la myosine se dénature.",
-    alt: "Courbe en cloche sans valeurs chiffrées : l'eau retenue par la chair selon la quantité de sel dans sa phase aqueuse. À faible concentration, le sel gonfle les protéines myofibrillaires et la rétention d'eau augmente ; le maximum se situe vers 5 % de sel, à peu près une mole par litre. Au-delà, l'effet s'inverse et les protéines s'agrègent. Vers 8 à 10 % dans le muscle, la myosine se dénature franchement. Allure qualitative.",
+    legende: "Allure qualitative : maximum vers 5 % de sel dans la phase aqueuse ; au-delà, l'effet s'inverse. Les 8 à 10 % de la zone de droite se mesurent dans la chair (cabillaud), pas dans la phase aqueuse : la myosine s'y dénature.",
+    alt: "Courbe en cloche sans valeurs chiffrées : l'eau retenue par la chair selon la quantité de sel. À faible concentration, le sel gonfle les protéines myofibrillaires et la rétention d'eau augmente ; le maximum se situe vers 5 % de sel dans la phase aqueuse, à peu près une mole par litre. Au-delà, l'effet s'inverse et les protéines s'agrègent. Une zone à droite marque 8 à 10 % de sel dans le muscle, une valeur mesurée dans la chair, pas dans la phase aqueuse : la myosine s'y dénature franchement. Allure qualitative.",
     x: {
-      label: "Sel dans la phase aqueuse",
+      label: "Quantité de sel",
       extremites: ["peu", "beaucoup"]
     },
     y: { label: "Eau retenue (allure seulement)" },
@@ -2122,36 +2154,13 @@ FIGURES["salaison"] = [
       }
     ],
     zones: [
-      { de: 80, a: 100, label: "8 à 10 %", ton: "terra" }
+      { de: 80, a: 100, label: "8 à 10 % dans la chair", ton: "terra" }
     ],
     reperes: [
-      { x: 50, label: "vers 5 % : maximum", ton: "vert" }
+      { x: 50, label: "vers 5 % dans la phase aqueuse : maximum", ton: "vert" }
     ],
     notes: [
-      { x: 88, y: 0.3, texte: "la myosine se dénature", dx: -12, dy: -56, largeur: 100, ancre: "end" }
-    ]
-  },
-  {
-    ou: "cas",
-    type: "comparaison",
-    titre: "La texture se ressemble, pas le résultat sanitaire",
-    legende: "Dans les deux cas la chair se raffermit : mais seule la chaleur détruit micro-organismes et parasites. Un poisson salé reste un poisson cru.",
-    alt: "Deux coupes de poisson côte à côte. À gauche, la cuisson : la chaleur dénature les protéines, la chair devient ferme, et en même temps les micro-organismes et les parasites sont détruits, représentés par des points barrés d'une croix. À droite, la salaison : le sel dénature aussi les protéines et la chair devient ferme, mais aucune chaleur n'a agi, donc micro-organismes et parasites sont toujours là. Un poisson salé reste un poisson cru.",
-    panneaux: [
-      {
-        label: "Cuisson",
-        sous: "ferme ; microbes et parasites détruits",
-        ton: "terra",
-        vb: "0 -8 100 108",
-        corps: `<path class="fg-t-terra fg-t-epais" d="M30 24C24 18 36 14 30 8S36 0 30 -4M50 24C44 18 56 14 50 8S56 0 50 -4M70 24C64 18 76 14 70 8S76 0 70 -4"/><path class="fg-f-terra-l fg-t-terra" d="M14 36Q50 22 86 36L86 62Q50 74 14 62Z"/><path class="fg-t-terra fg-t-fin" d="M24 46Q38 40 50 46T76 46"/><circle class="fg-f-vert" cx="26" cy="84" r="3.8" opacity=".45"/><path class="fg-t-terra fg-t-epais" d="M19 77L33 91M33 77L19 91"/><ellipse class="fg-f-vert" cx="56" cy="90" rx="6" ry="3.4" opacity=".45"/><path class="fg-t-terra fg-t-epais" d="M49 83L63 97M63 83L49 97"/><circle class="fg-f-vert" cx="86" cy="84" r="3.8" opacity=".45"/><path class="fg-t-terra fg-t-epais" d="M79 77L93 91M93 77L79 91"/>`
-      },
-      {
-        label: "Salaison",
-        sous: "ferme ; microbes et parasites toujours là",
-        ton: "or",
-        vb: "0 -8 100 108",
-        corps: `<rect class="fg-f-carte fg-t-encre fg-t-fin" x="24" y="12" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="46" y="6" width="8" height="8" rx="1.5" transform="rotate(12 50 10)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="68" y="12" width="8" height="8" rx="1.5"/><path class="fg-f-terra-l fg-t-terra" d="M14 36Q50 22 86 36L86 62Q50 74 14 62Z"/><path class="fg-t-terra fg-t-fin" d="M24 46Q38 40 50 46T76 46"/><circle class="fg-f-vert" cx="26" cy="84" r="3.8"/><ellipse class="fg-f-vert" cx="56" cy="90" rx="6" ry="3.4"/><circle class="fg-f-vert" cx="86" cy="84" r="3.8"/>`
-      }
+      { x: 100, y: 0.12, texte: "la myosine se dénature", dx: -2, dy: -75, largeur: 80, ancre: "end" }
     ]
   }
 ];
@@ -2166,10 +2175,10 @@ FIGURES["herbes-coupees"] = [
   {
     ou: "tete",
     type: "svg",
-    vb: "0 0 320 312",
+    vb: "0 0 320 332",
     titre: "Ce que la lame met en présence",
-    legende: "Dans la feuille intacte, phénols et enzyme sont rangés à part. La coupe les réunit, l'oxygène complète : le brun se fabrique. En parallèle, une autre voie produit l'odeur d'herbe coupée.",
-    alt: "Schéma en deux temps. À gauche, une cellule intacte : les phénols sont rangés dans leur compartiment, l'enzyme polyphénol oxydase est dehors, chacun dans son coin. Une flèche, marquée « la lame », mène à droite vers la même cellule tranchée en deux : le compartiment est ouvert, phénols et enzyme se mélangent, et l'oxygène de l'air entre par la coupe. Il se forme des quinones, puis, en dessous, une chaîne de mélanines, des pigments bruns : c'est le noircissement. Un encadré en bas rappelle qu'en parallèle la lipoxygénase libère le cis-3-hexénal, l'odeur même de l'herbe tondue.",
+    legende: "Schéma simplifié. Dans la feuille intacte, phénols et enzyme sont rangés à part. La coupe les réunit, l'oxygène complète : le brun se fabrique. En parallèle, une autre voie produit l'odeur d'herbe coupée.",
+    alt: "Schéma simplifié en deux temps. À gauche, une cellule intacte : les phénols sont rangés dans leur compartiment, l'enzyme polyphénol oxydase est dehors, l'un d'un côté de la cloison, l'autre de l'autre. Une flèche, marquée « la lame », mène à droite vers la même cellule tranchée en deux : le compartiment est ouvert, phénols et enzyme se mélangent, et l'oxygène de l'air entre par la coupe. Il se forme des quinones, puis, en dessous, une chaîne de polymères bruns, les mélanines : c'est le noircissement. Un encadré en bas rappelle qu'en parallèle la lipoxygénase oxygène l'acide linolénique, qu'une seconde enzyme tranche en cis-3-hexénal, l'odeur même de l'herbe tondue.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-vert" x="66" y="16" text-anchor="middle">Intacte</text>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="254" y="16" text-anchor="middle">Tranchée</text>
 <rect class="fg-f-carte fg-t-vert fg-t-epais" x="10" y="52" width="112" height="100" rx="16"/>
@@ -2178,7 +2187,7 @@ FIGURES["herbes-coupees"] = [
 <path class="fg-f-encre" d="M90 76l4 4-4 4-4-4z"/><path class="fg-f-encre" d="M106 88l4 4-4 4-4-4z"/><path class="fg-f-encre" d="M94 104l4 4-4 4-4-4z"/><path class="fg-f-encre" d="M108 118l4 4-4 4-4-4z"/><path class="fg-f-encre" d="M92 130l4 4-4 4-4-4z"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="47" y="170" text-anchor="middle">phénols</text>
 <text class="fg-txt fg-txt-s fg-txt-b" x="99" y="170" text-anchor="middle">enzyme</text>
-<text class="fg-txt-script fg-txt-vert" x="66" y="199" text-anchor="middle"><tspan x="66">chacun dans son</tspan><tspan x="66" dy="17">compartiment</tspan></text>
+<text class="fg-txt-script fg-txt-vert" x="66" y="199" text-anchor="middle"><tspan x="66">séparés par la</tspan><tspan x="66" dy="17">cloison</tspan></text>
 <text class="fg-txt-script" x="160" y="90" text-anchor="middle">la lame</text>
 <path class="fg-t-axe" d="M132 102L188 102" marker-end="url(#fg-fl-encre)"/>
 <path class="fg-f-carte fg-t-vert fg-t-epais" d="M214 52H250V152H214Q198 152 198 136V68Q198 52 214 52Z"/>
@@ -2194,10 +2203,10 @@ FIGURES["herbes-coupees"] = [
 <path class="fg-t-axe fg-t-fin" d="M254 177L254 188" marker-end="url(#fg-fl-encre)"/>
 <path class="fg-t-terra fg-t-epais" d="M222 204L286 204"/>
 <circle class="fg-f-terra" cx="222" cy="204" r="5.5"/><circle class="fg-f-terra" cx="238" cy="204" r="5.5"/><circle class="fg-f-terra" cx="254" cy="204" r="5.5"/><circle class="fg-f-terra" cx="270" cy="204" r="5.5"/><circle class="fg-f-terra" cx="286" cy="204" r="5.5"/>
-<text class="fg-txt fg-txt-b fg-txt-terra" x="254" y="227" text-anchor="middle">Mélanines</text>
-<text class="fg-txt fg-txt-s" x="254" y="241" text-anchor="middle">pigments bruns</text>
-<rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="10" y="256" width="300" height="46" rx="10"/>
-<text class="fg-txt fg-txt-s" x="160" y="274" text-anchor="middle"><tspan x="160">En parallèle, la lipoxygénase libère le cis-3-hexénal,</tspan><tspan x="160" dy="14.5">l'odeur même de l'herbe tondue.</tspan></text>`
+<text class="fg-txt fg-txt-b fg-txt-terra" x="254" y="227" text-anchor="middle">Polymères bruns</text>
+<text class="fg-txt fg-txt-s" x="254" y="241" text-anchor="middle">les mélanines</text>
+<rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="10" y="256" width="300" height="66" rx="10"/>
+<text class="fg-txt fg-txt-s" x="160" y="274" text-anchor="middle"><tspan x="160">En parallèle, la lipoxygénase oxygène l'acide</tspan><tspan x="160" dy="14.5">linolénique ; une seconde enzyme le tranche en</tspan><tspan x="160" dy="14.5">cis-3-hexénal, l'odeur même de l'herbe tondue.</tspan></text>`
   },
   {
     ou: "pourquoi",
@@ -2205,7 +2214,7 @@ FIGURES["herbes-coupees"] = [
     type: "comparaison",
     titre: "Trancher, écraser, broyer",
     legende: "Illustration du raisonnement de la fiche, plausible mais jamais mesuré en cuisine : plus il y a de cellules ouvertes, plus il y a de rencontres entre enzyme et phénols.",
-    alt: "Trois coupes de feuille, vues comme neuf cellules en grille. Avec une lame affûtée, un passage unique sectionne proprement une seule colonne de cellules, les autres restent intactes : peu de cellules ouvertes. Avec une lame émoussée, la feuille est écrasée et la plupart des cellules sont aplaties et éclatées, d'où le brunissement rapide. Au mixeur, toutes les cellules sont réduites en éclats et la préparation chauffe : c'est le pire traitement pour une feuille tendre. Illustration d'un raisonnement plausible, non mesuré en cuisine.",
+    alt: "Trois coupes de feuille, vues comme neuf cellules en grille. Avec une lame affûtée, un passage unique sectionne proprement une colonne de cellules, ouvertes de part et d'autre du trait, les autres restent intactes : peu de cellules ouvertes. Avec une lame émoussée, la feuille est écrasée et la plupart des cellules sont aplaties et éclatées, d'où le brunissement rapide. Au mixeur, toutes les cellules sont réduites en éclats et la préparation chauffe : c'est le pire traitement pour une feuille tendre. Illustration d'un raisonnement plausible, non mesuré en cuisine.",
     panneaux: [
       {
         label: "Lame affûtée",
@@ -2219,7 +2228,7 @@ FIGURES["herbes-coupees"] = [
         sous: "cellules écrasées et rouvertes",
         ton: "or",
         vb: "0 0 84 96",
-        corps: `<rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="3" y="19.5" width="26" height="13" rx="6" transform="rotate(-7 16 26)"/><circle class="fg-f-terra" cx="11" cy="22" r="2.2"/><circle class="fg-f-terra" cx="20" cy="29" r="2.2"/><circle class="fg-f-terra" cx="12" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="21" width="26" height="10" rx="6" transform="rotate(0 43 26)"/><circle class="fg-f-terra" cx="38" cy="22" r="2.2"/><circle class="fg-f-terra" cx="47" cy="29" r="2.2"/><circle class="fg-f-terra" cx="39" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="57" y="19.5" width="26" height="13" rx="6" transform="rotate(8 70 26)"/><circle class="fg-f-terra" cx="65" cy="22" r="2.2"/><circle class="fg-f-terra" cx="74" cy="29" r="2.2"/><circle class="fg-f-terra" cx="66" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="3" y="47" width="26" height="12" rx="6" transform="rotate(5 16 53)"/><circle class="fg-f-terra" cx="11" cy="49" r="2.2"/><circle class="fg-f-terra" cx="20" cy="56" r="2.2"/><circle class="fg-f-terra" cx="12" cy="59" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="48.5" width="26" height="9" rx="6" transform="rotate(-4 43 53)"/><circle class="fg-f-terra" cx="38" cy="49" r="2.2"/><circle class="fg-f-terra" cx="47" cy="56" r="2.2"/><circle class="fg-f-terra" cx="39" cy="59" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="57" y="47" width="26" height="12" rx="6" transform="rotate(-6 70 53)"/><circle class="fg-f-terra" cx="65" cy="49" r="2.2"/><circle class="fg-f-terra" cx="74" cy="56" r="2.2"/><circle class="fg-f-terra" cx="66" cy="59" r="1.8"/><rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="4" y="68" width="24" height="24" rx="6"/><circle class="fg-f-vert" cx="16" cy="80" r="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="74.5" width="26" height="11" rx="6" transform="rotate(6 43 80)"/><circle class="fg-f-terra" cx="38" cy="76" r="2.2"/><circle class="fg-f-terra" cx="47" cy="83" r="2.2"/><circle class="fg-f-terra" cx="39" cy="86" r="1.8"/><rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="58" y="68" width="24" height="24" rx="6"/><circle class="fg-f-vert" cx="70" cy="80" r="3"/><rect class="fg-f-doux fg-t-encre" x="34" y="0" width="18" height="14" rx="5"/>`
+        corps: `<rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="3" y="19.5" width="26" height="13" rx="6" transform="rotate(-7 16 26)"/><circle class="fg-f-terra" cx="11" cy="22" r="2.2"/><circle class="fg-f-terra" cx="20" cy="29" r="2.2"/><circle class="fg-f-terra" cx="12" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="21" width="26" height="10" rx="6" transform="rotate(0 43 26)"/><circle class="fg-f-terra" cx="38" cy="22" r="2.2"/><circle class="fg-f-terra" cx="47" cy="29" r="2.2"/><circle class="fg-f-terra" cx="39" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="57" y="19.5" width="26" height="13" rx="6" transform="rotate(8 70 26)"/><circle class="fg-f-terra" cx="65" cy="22" r="2.2"/><circle class="fg-f-terra" cx="74" cy="29" r="2.2"/><circle class="fg-f-terra" cx="66" cy="32" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="3" y="47" width="26" height="12" rx="6" transform="rotate(5 16 53)"/><circle class="fg-f-terra" cx="11" cy="49" r="2.2"/><circle class="fg-f-terra" cx="20" cy="56" r="2.2"/><circle class="fg-f-terra" cx="12" cy="59" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="48.5" width="26" height="9" rx="6" transform="rotate(-4 43 53)"/><circle class="fg-f-terra" cx="38" cy="49" r="2.2"/><circle class="fg-f-terra" cx="47" cy="56" r="2.2"/><circle class="fg-f-terra" cx="39" cy="59" r="1.8"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="57" y="47" width="26" height="12" rx="6" transform="rotate(-6 70 53)"/><circle class="fg-f-terra" cx="65" cy="49" r="2.2"/><circle class="fg-f-terra" cx="74" cy="56" r="2.2"/><circle class="fg-f-terra" cx="66" cy="59" r="1.8"/><rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="4" y="68" width="24" height="24" rx="6"/><circle class="fg-f-vert" cx="16" cy="80" r="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="30" y="74.5" width="26" height="11" rx="6" transform="rotate(6 43 80)"/><circle class="fg-f-terra" cx="38" cy="76" r="2.2"/><circle class="fg-f-terra" cx="47" cy="83" r="2.2"/><circle class="fg-f-terra" cx="39" cy="86" r="1.8"/><rect class="fg-f-vert-l fg-t-vert fg-t-fin" x="58" y="68" width="24" height="24" rx="6"/><circle class="fg-f-vert" cx="70" cy="80" r="3"/><path class="fg-f-doux fg-t-encre" d="M27 -2H59L55 9Q43 20 31 9Z"/>`
       },
       {
         label: "Mixeur",
@@ -2234,39 +2243,48 @@ FIGURES["herbes-coupees"] = [
     ou: "cas",
     type: "echelle",
     titre: "Le froid et le basilic",
-    legende: "Le basilic craint le froid autant que la lame : sous 12 °C ses membranes commencent à céder, et il noircit même entier, franchement dès 4 °C.",
-    alt: "Règle des températures de conservation, graduée à 4 et 12 °C. Entre zéro et 4 °C, le basilic noircit franchement, même entier. Entre 4 et 12 °C, ses membranes commencent à céder et il noircit encore entier. Au-dessus de 12 °C, il est à l'abri du froid : on le garde hors du réfrigérateur, la tige dans l'eau. Conclusion : le basilic ne va pas au réfrigérateur.",
+    legende: "Le basilic craint le froid autant que la lame : sous 12 °C ses membranes commencent à céder, et il noircit même entier, franchement dès 4 °C. D'où la règle : pas de réfrigérateur.",
+    alt: "Règle des températures de conservation, graduée à 4 et 12 °C. Entre zéro et 4 °C, le basilic noircit franchement, même entier. Entre 4 et 12 °C, ses membranes commencent à céder et il noircit encore entier. Au-dessus de 12 °C, il est à l'abri du froid : on le garde hors du réfrigérateur, la tige dans l'eau. Conclusion : le basilic ne va pas au réfrigérateur, dont la température tombe dans les deux premières zones.",
     min: 0,
     max: 20,
     unite: "°C",
     label: "Température de conservation",
-    graduations: [4, 12],
+    graduations: [0, 20],
     zones: [
       { de: 0, a: 4, label: "noircit", ton: "terra" },
       { de: 4, a: 12, label: "membranes fragilisées", ton: "or" },
       { de: 12, a: 20, label: "à l'abri du froid", ton: "vert" }
     ],
     marqueurs: [
-      { v: 4, label: "Dès 4 °C : noircit franchement, même entier", ton: "terra" },
-      { v: 12, label: "Sous 12 °C : les membranes cèdent", ton: "or" }
+      { v: 4, label: "À 4 °C et en dessous : noircit franchement, même entier", ton: "terra" },
+      { v: 12, label: "Sous 12 °C : les membranes commencent à céder", ton: "or" }
     ]
   },
   {
     ou: "reperes",
-    type: "etapes",
+    type: "svg",
+    vb: "0 0 320 250",
     titre: "Quand mettre l'herbe",
     legende: "Les ligneuses attendent dans la cuisson, les tendres arrivent à la toute fin : la chaleur efface leurs arômes.",
-    alt: "Trois étapes à la suite. Un : au début de la cuisson, les herbes ligneuses — romarin, thym, laurier, sauge — pendant 15 à 20 minutes, pour qu'elles donnent leur parfum. Deux : on éteint le feu. Trois : au service, les herbes tendres — basilic, cerfeuil, ciboulette, aneth, menthe — ciselées moins de 10 minutes avant de servir.",
-    etapes: [
-      { libelle: "Dès le début", desc: "romarin, thym, laurier, sauge : 15 à 20 minutes de cuisson", emoji: "🌿", ton: "terra" },
-      { libelle: "Hors du feu", desc: "la chaleur efface les arômes des herbes tendres", emoji: "🥘", ton: "or" },
-      {
-        libelle: "Au service",
-        desc: "basilic, cerfeuil, ciboulette, aneth, menthe : ciselés moins de 10 minutes avant",
-        emoji: "🍃",
-        ton: "vert"
-      }
-    ]
+    alt: "Frise du temps de cuisson, de gauche à droite. Au début, les herbes ligneuses — romarin, thym, laurier, sauge — entrent dans la cuisson et y restent 15 à 20 minutes pour donner leur parfum. Puis on éteint le feu. Au service, hors du feu, arrivent les herbes tendres — basilic, cerfeuil, ciboulette, aneth, menthe — ciselées moins de 10 minutes avant de servir, car la chaleur efface leurs arômes.",
+    corps: `<rect class="fg-f-terra-l fg-t-terra" x="10" y="10" width="200" height="66" rx="10"/>
+<text class="fg-txt fg-txt-b fg-txt-terra" x="110" y="30" text-anchor="middle">Herbes ligneuses</text>
+<text class="fg-txt fg-txt-s" x="110" y="46" text-anchor="middle">romarin, thym, laurier, sauge</text>
+<text class="fg-txt fg-txt-s" x="110" y="61" text-anchor="middle">15 à 20 min de cuisson</text>
+<path class="fg-t-axe" d="M110 78L110 94" marker-end="url(#fg-fl-encre)"/>
+<path class="fg-t-axe" d="M10 108L308 108" marker-end="url(#fg-fl-encre)"/>
+<path class="fg-t-terra fg-t-tres-epais" d="M12 108L208 108"/>
+<use href="#fg-sym-flamme" x="12" y="82" width="20" height="25"/>
+<text class="fg-txt fg-txt-s" x="12" y="130" text-anchor="start">dès le début</text>
+<path class="fg-t-doux fg-tirets" d="M220 90L220 122"/>
+<text class="fg-txt fg-txt-s fg-txt-b" x="220" y="140" text-anchor="middle">feu éteint</text>
+<text class="fg-txt fg-txt-s" x="298" y="130" text-anchor="end">service</text>
+<path class="fg-t-axe" d="M268 134L268 148" marker-end="url(#fg-fl-encre)"/>
+<rect class="fg-f-vert-l fg-t-vert" x="110" y="150" width="200" height="88" rx="10"/>
+<text class="fg-txt fg-txt-b fg-txt-vert" x="210" y="169" text-anchor="middle">Herbes tendres</text>
+<text class="fg-txt fg-txt-s" x="210" y="184" text-anchor="middle"><tspan x="210">basilic, cerfeuil, ciboulette,</tspan><tspan x="210" dy="13.5">aneth, menthe : ciselées</tspan><tspan x="210" dy="13.5">moins de 10 min avant</tspan><tspan x="210" dy="13.5">le service</tspan></text>
+<use class="fg-sy-vert" href="#fg-sym-feuille" x="43" y="152" width="30" height="24"/>
+<text class="fg-txt-script fg-txt-vert" x="58" y="190" text-anchor="middle"><tspan x="58">la chaleur</tspan><tspan x="58" dy="16">efface leur</tspan><tspan x="58" dy="16">arôme</tspan></text>`
   }
 ];
 
@@ -2276,17 +2294,17 @@ FIGURES["chlorophylle"] = [
     type: "svg",
     vb: "0 0 320 258",
     titre: "Quand le magnésium s'en va",
-    legende: "Regardez le centre de l'anneau : tant que le magnésium y reste, le vert tient ; quand un proton le remplace, il vire à l'olive, et la bascule est sans retour en cuisine.",
-    alt: "Schéma en deux molécules reliées par une flèche. À gauche, la chlorophylle : un grand anneau avec un atome de magnésium au centre, d'un vert vif. À droite, la phéophytine, d'un vert olive terne : un proton H plus a pris la place du magnésium, qui s'échappe de l'anneau. La flèche est marquée « acides libérés » : les cellules cuites relâchent leurs acides. Elle est sans retour, car le magnésium ne revient jamais dans l'anneau en cuisine. Un encadré en bas rappelle comment retarder la bascule : beaucoup d'eau, pas de couvercle, cuisson courte.",
+    legende: "Schéma simplifié, aux couleurs d'illustration. Regardez le centre de l'anneau : tant que le magnésium y reste, le vert tient ; quand un proton le remplace, il vire à l'olive, et la bascule est sans retour en cuisine.",
+    alt: "Schéma en deux molécules reliées par une flèche. À gauche, la chlorophylle : un grand anneau avec un atome de magnésium au centre, d'un vert vif. À droite, la phéophytine, d'un vert olive terne, ici suggéré par un contour vert sur fond doré : un proton H plus a pris la place du magnésium, qui s'échappe de l'anneau. La flèche est marquée « acides libérés » : les cellules cuites relâchent leurs acides. Elle est sans retour, car le magnésium ne revient jamais dans l'anneau en cuisine. Un encadré en bas rappelle comment retarder la bascule : beaucoup d'eau, pas de couvercle, cuisson courte.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-vert" x="78" y="16" text-anchor="middle">Chlorophylle</text>
 <text class="fg-txt fg-txt-s" x="78" y="31" text-anchor="middle">vert vif</text>
 <text class="fg-txt fg-txt-b fg-txt-or" x="242" y="16" text-anchor="middle">Phéophytine</text>
 <text class="fg-txt fg-txt-s" x="242" y="31" text-anchor="middle">vert olive terne</text>
 <rect class="fg-t-vert fg-t-epais" x="40" y="60" width="76" height="76" rx="22"/><circle class="fg-f-vert-l fg-t-vert" cx="51" cy="71" r="11"/><circle class="fg-f-vert-l fg-t-vert" cx="105" cy="71" r="11"/><circle class="fg-f-vert-l fg-t-vert" cx="51" cy="125" r="11"/><circle class="fg-f-vert-l fg-t-vert" cx="105" cy="125" r="11"/><path class="fg-t-vert fg-t-fin" d="M78 98L53 98"/><circle class="fg-f-vert" cx="53" cy="98" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M78 98L103 98"/><circle class="fg-f-vert" cx="103" cy="98" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M78 98L78 73"/><circle class="fg-f-vert" cx="78" cy="73" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M78 98L78 123"/><circle class="fg-f-vert" cx="78" cy="123" r="3.6"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="78" cy="98" r="12"/><text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="78" y="102" text-anchor="middle">Mg</text>
-<rect class="fg-t-or fg-t-epais" x="204" y="60" width="76" height="76" rx="22"/><circle class="fg-f-or-l fg-t-or" cx="215" cy="71" r="11"/><circle class="fg-f-or-l fg-t-or" cx="269" cy="71" r="11"/><circle class="fg-f-or-l fg-t-or" cx="215" cy="125" r="11"/><circle class="fg-f-or-l fg-t-or" cx="269" cy="125" r="11"/><path class="fg-t-or fg-t-fin" d="M242 98L217 98"/><circle class="fg-f-or" cx="217" cy="98" r="3.6"/><path class="fg-t-or fg-t-fin" d="M242 98L267 98"/><circle class="fg-f-or" cx="267" cy="98" r="3.6"/><path class="fg-t-or fg-t-fin" d="M242 98L242 73"/><circle class="fg-f-or" cx="242" cy="73" r="3.6"/><path class="fg-t-or fg-t-fin" d="M242 98L242 123"/><circle class="fg-f-or" cx="242" cy="123" r="3.6"/><circle class="fg-f-terra-l fg-t-terra fg-t-epais" cx="242" cy="98" r="12"/><text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="242" y="102" text-anchor="middle">H⁺</text>
-<circle class="fg-f-or-l fg-t-or fg-tirets" cx="298" cy="54" r="10"/>
-<text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="298" y="58" text-anchor="middle">Mg</text>
-<path class="fg-t-terra fg-t-fin fg-tirets" d="M276 74Q284 70 288 62" marker-end="url(#fg-fl-terra)"/>
+<rect class="fg-t-vert fg-t-epais" x="204" y="60" width="76" height="76" rx="22"/><circle class="fg-f-or-l fg-t-vert" cx="215" cy="71" r="11"/><circle class="fg-f-or-l fg-t-vert" cx="269" cy="71" r="11"/><circle class="fg-f-or-l fg-t-vert" cx="215" cy="125" r="11"/><circle class="fg-f-or-l fg-t-vert" cx="269" cy="125" r="11"/><path class="fg-t-vert fg-t-fin" d="M242 98L217 98"/><circle class="fg-f-vert" cx="217" cy="98" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M242 98L267 98"/><circle class="fg-f-vert" cx="267" cy="98" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M242 98L242 73"/><circle class="fg-f-vert" cx="242" cy="73" r="3.6"/><path class="fg-t-vert fg-t-fin" d="M242 98L242 123"/><circle class="fg-f-vert" cx="242" cy="123" r="3.6"/><circle class="fg-f-terra-l fg-t-terra fg-t-epais" cx="242" cy="98" r="12"/><text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="242" y="102" text-anchor="middle">H⁺</text>
+<circle class="fg-f-or-l fg-t-or fg-tirets" cx="299" cy="40" r="10"/>
+<text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="299" y="44" text-anchor="middle">Mg</text>
+<path class="fg-t-terra fg-t-fin fg-tirets" d="M273 58Q290 56 296 50" marker-end="url(#fg-fl-terra)"/>
 <text class="fg-txt fg-txt-s" x="160" y="70" text-anchor="middle"><tspan x="160">acides</tspan><tspan x="160" dy="13.5">libérés</tspan></text>
 <path class="fg-t-axe" d="M126 98L194 98" marker-end="url(#fg-fl-encre)"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="160" y="120" text-anchor="middle">sans retour</text>
@@ -2327,15 +2345,15 @@ FIGURES["chlorophylle"] = [
       { x: 10, label: "10 min : kaki", ton: "terra" }
     ],
     notes: [
-      { x: 1, y: 0.7, texte: "l'air est chassé", dx: 6, dy: 52, largeur: 90, ancre: "start" }
+      { x: 1, y: 0.7, texte: "l'air est chassé", dx: 64, dy: 62, largeur: 90, ancre: "start" }
     ]
   },
   {
     ou: "cas",
     type: "comparaison",
-    titre: "Trois gestes, trois verts",
+    titre: "Trois gestes, trois couleurs",
     legende: "Beaucoup d'eau à découvert tient le vert. Le couvercle donne un légume kaki, sans qu'on sache bien pourquoi ; le vinaigre sur un légume brûlant le fait virer en quelques minutes.",
-    alt: "Trois dessins côte à côte. À gauche, une grande casserole d'eau à gros bouillons, sans couvercle, la vapeur s'échappe : les haricots restent d'un vert éclatant, car les acides qu'ils libèrent sont dilués. Au centre, une casserole couverte : les haricots sont kaki, la raison exacte se discute. À droite, des haricots brûlants dans une assiette, du vinaigre ou du citron qui coule dessus : la surface vire en quelques minutes.",
+    alt: "Trois dessins côte à côte. À gauche, une grande casserole d'eau à gros bouillons, sans couvercle, la vapeur s'échappe : les haricots restent d'un vert éclatant, car les acides qu'ils libèrent sont dilués. Au centre, une casserole couverte, avec autant d'eau : les haricots sont kaki, la raison exacte se discute. À droite, des haricots brûlants dans une assiette, du vinaigre ou du citron qui coule dessus : la surface vire en quelques minutes.",
     panneaux: [
       {
         label: "Grande eau, à découvert",
@@ -2354,7 +2372,7 @@ FIGURES["chlorophylle"] = [
         sous: "kaki ; la raison se discute",
         ton: "terra",
         vb: "0 0 84 76",
-        corps: `<path class="fg-f-bleu-l" d="M9 46H75V60Q75 69 66 69H18Q9 69 9 60Z"/>
+        corps: `<path class="fg-f-bleu-l" d="M9 38H75V60Q75 69 66 69H18Q9 69 9 60Z"/>
 <path class="fg-t-encre fg-t-epais" d="M8 34V60Q8 70 18 70H66Q76 70 76 60V34"/>
 <path class="fg-f-doux fg-t-encre fg-t-epais" d="M4 34Q42 8 80 34Z"/>
 <circle class="fg-f-encre" cx="42" cy="19" r="3"/>
@@ -2378,7 +2396,7 @@ FIGURES["chlorophylle"] = [
     type: "etapes",
     titre: "La méthode d'un coup d'œil",
     legende: "Cuire vite dans beaucoup d'eau, refroidir aussitôt, assaisonner à la fin.",
-    alt: "Trois étapes à la suite. Un : cuire au moins 3 litres d'eau pour 500 grammes de légumes verts, à gros bouillons et à découvert, 3 à 5 minutes. Deux : plonger dans un bain glacé, autant de glaçons que d'eau, jusqu'à ce que le légume soit froid à cœur. Trois : assaisonner une fois le légume refroidi, juste avant de passer à table.",
+    alt: "Trois étapes à la suite. Un : cuire les légumes verts dans au moins 3 litres d'eau pour 500 grammes, à gros bouillons et à découvert, 3 à 5 minutes. Deux : plonger dans un bain glacé, autant de glaçons que d'eau, jusqu'à ce que le légume soit froid à cœur. Trois : assaisonner avec la vinaigrette ou le citron une fois le légume refroidi, juste avant de passer à table.",
     etapes: [
       {
         libelle: "Cuire",
@@ -2392,7 +2410,7 @@ FIGURES["chlorophylle"] = [
         emoji: "🧊",
         ton: "bleu"
       },
-      { libelle: "Assaisonner", desc: "une fois refroidi, juste avant de passer à table", emoji: "🥗", ton: "or" }
+      { libelle: "Assaisonner", desc: "vinaigrette, citron : une fois refroidi, juste avant de passer à table", emoji: "🥗", ton: "or" }
     ]
   }
 ];
@@ -2404,7 +2422,7 @@ FIGURES["oxydation-enzymatique"] = [
     vb: "0 0 320 348",
     titre: "Trois conditions, trois leviers",
     legende: "Le brun demande l'enzyme, les phénols et l'oxygène réunis : en retirer un seul suffit. Les barres marquent où chaque geste coupe la chaîne ; le froid, lui, ne fait que ralentir.",
-    alt: "Schéma en trois colonnes qui se rejoignent. Il faut trois choses : l'enzyme polyphénol oxydase, les phénols propres au fruit, et l'oxygène de l'air. Elles mènent aux quinones, puis aux mélanines, des chaînes de pigments bruns, les mêmes que ceux du bronzage. Chaque geste barre une colonne. Sur l'enzyme : l'acidité, avec un pH sous 4 obtenu par le citron, et la chaleur d'un blanchiment au-dessus de 80 degrés. Sur l'oxygène : l'eau ou un film, qui écartent l'air. Une bande en pointillés traverse les trois colonnes : le froid ralentit tout mais n'arrête rien, l'enzyme reste active à 4 °C.",
+    alt: "Schéma en trois colonnes qui se rejoignent. Il faut trois choses : l'enzyme polyphénol oxydase, les phénols propres au fruit, et l'oxygène de l'air. Elles mènent aux quinones, puis aux mélanines, des chaînes de pigments bruns, les mêmes que ceux du bronzage. Chaque geste barre une colonne. Sur l'enzyme : l'acidité, avec un pH sous 4 obtenu par le citron, et la chaleur d'un blanchiment d'une à deux minutes au-dessus de 80 degrés. Sur l'oxygène : l'eau ou un film, qui écartent l'air. Une bande en pointillés traverse les trois colonnes : le froid ralentit tout mais n'arrête rien, l'enzyme reste active à 4 °C.",
     corps: `<rect class="fg-f-or-l fg-t-or" x="10" y="8" width="96" height="62" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="58" y="28" text-anchor="middle">Enzyme</text>
 <text class="fg-txt fg-txt-s" x="58" y="43" text-anchor="middle"><tspan x="58">polyphénol</tspan><tspan x="58" dy="13.5">oxydase</tspan></text>
@@ -2421,17 +2439,17 @@ FIGURES["oxydation-enzymatique"] = [
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="58" y="97" text-anchor="middle">Acidité</text>
 <text class="fg-txt fg-txt-s" x="58" y="111" text-anchor="middle"><tspan x="58">pH sous 4</tspan><tspan x="58" dy="13.5">(le citron)</tspan></text>
 <path class="fg-t-or fg-t-tres-epais" d="M42 135H74"/>
-<rect class="fg-f-carte fg-t-terra" x="10" y="144" width="96" height="48" rx="8"/>
+<rect class="fg-f-carte fg-t-terra" x="10" y="144" width="96" height="62" rx="8"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="58" y="159" text-anchor="middle">Chaleur</text>
-<text class="fg-txt fg-txt-s" x="58" y="173" text-anchor="middle"><tspan x="58">blanchiment,</tspan><tspan x="58" dy="13.5">plus de 80 °C</tspan></text>
-<path class="fg-t-terra fg-t-tres-epais" d="M42 197H74"/>
+<text class="fg-txt fg-txt-s" x="58" y="173" text-anchor="middle"><tspan x="58">blanchiment</tspan><tspan x="58" dy="13.5">1 à 2 min,</tspan><tspan x="58" dy="13.5">plus de 80 °C</tspan></text>
+<path class="fg-t-terra fg-t-tres-epais" d="M42 211H74"/>
 <rect class="fg-f-carte fg-t-bleu" x="214" y="112" width="96" height="44" rx="8"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="262" y="127" text-anchor="middle">Eau, film</text>
 <text class="fg-txt fg-txt-s" x="262" y="141" text-anchor="middle"><tspan x="262">écartent l'air</tspan></text>
 <path class="fg-t-bleu fg-t-tres-epais" d="M246 162H278"/>
-<rect class="fg-f-bleu-l fg-t-bleu fg-tirets" x="10" y="212" width="300" height="44" rx="10"/>
-<text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="160" y="230" text-anchor="middle">Le froid ralentit tout et n'arrête rien</text>
-<text class="fg-txt fg-txt-s" x="160" y="245" text-anchor="middle">l'enzyme reste active à 4 °C</text>
+<rect class="fg-f-bleu-l fg-t-bleu fg-tirets" x="10" y="224" width="300" height="44" rx="10"/>
+<text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="160" y="242" text-anchor="middle">Le froid ralentit tout et n'arrête rien</text>
+<text class="fg-txt fg-txt-s" x="160" y="257" text-anchor="middle">l'enzyme reste active à 4 °C</text>
 <rect class="fg-f-terra-l fg-t-terra" x="10" y="276" width="300" height="62" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="160" y="298" text-anchor="middle">Quinones, puis mélanines</text>
 <text class="fg-txt fg-txt-s" x="160" y="315" text-anchor="middle"><tspan x="160">des chaînes de pigments bruns,</tspan><tspan x="160" dy="13.5">les mêmes que ceux du bronzage</tspan></text>`
@@ -2444,17 +2462,18 @@ FIGURES["oxydation-enzymatique"] = [
     titre: "Du phénol au pigment brun",
     legende: "La chaîne va dans un seul sens, sauf là où la vitamine C du citron fait marche arrière, tant qu'il en reste.",
     alt: "Schéma en trois cases reliées. Les phénols du fruit, sous l'action de l'enzyme et de l'oxygène, deviennent des quinones, très réactives. Les quinones se lient en chaînes pour former les mélanines, des pigments bruns, les mêmes que ceux du bronzage. Une flèche en pointillés revient des quinones vers les phénols : la vitamine C du citron ramène les quinones en arrière, tant qu'il en reste.",
-    corps: `<text class="fg-txt fg-txt-s" x="105" y="19" text-anchor="middle"><tspan x="105">enzyme</tspan><tspan x="105" dy="13.5">+ O₂</tspan></text>
-<text class="fg-txt fg-txt-s" x="216" y="19" text-anchor="middle"><tspan x="216">se lient en</tspan><tspan x="216" dy="13.5">chaînes</tspan></text>
+    corps: `<text class="fg-txt fg-txt-s" x="105" y="14" text-anchor="middle"><tspan x="105">enzyme</tspan><tspan x="105" dy="13.5">+ O₂</tspan></text>
+<text class="fg-txt fg-txt-s" x="216" y="14" text-anchor="middle"><tspan x="216">se lient en</tspan><tspan x="216" dy="13.5">chaînes</tspan></text>
+<path class="fg-t-doux fg-tirets" d="M105 34V68M216 34V68"/>
 <rect class="fg-f-vert-l fg-t-vert" x="8" y="42" width="84" height="62" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="50" y="68" text-anchor="middle">Phénols</text>
 <text class="fg-txt fg-txt-s" x="50" y="85" text-anchor="middle">du fruit</text>
 <rect class="fg-f-or-l fg-t-or" x="118" y="42" width="84" height="62" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="160" y="68" text-anchor="middle">Quinones</text>
-<text class="fg-txt fg-txt-s" x="160" y="85" text-anchor="middle">très réactives</text>
+<text class="fg-txt fg-txt-s" x="160" y="85" text-anchor="middle"><tspan x="160">très</tspan><tspan x="160" dy="13.5">réactives</tspan></text>
 <rect class="fg-f-terra-l fg-t-terra" x="228" y="42" width="84" height="62" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="270" y="68" text-anchor="middle">Mélanines</text>
-<text class="fg-txt fg-txt-s" x="270" y="85" text-anchor="middle">chaînes brunes</text>
+<text class="fg-txt fg-txt-s" x="270" y="85" text-anchor="middle"><tspan x="270">chaînes</tspan><tspan x="270" dy="13.5">brunes</tspan></text>
 <path class="fg-t-axe" d="M94 73L116 73" marker-end="url(#fg-fl-encre)"/>
 <path class="fg-t-axe" d="M204 73L226 73" marker-end="url(#fg-fl-encre)"/>
 <path class="fg-t-or fg-t-epais fg-tirets" d="M150 108Q100 146 56 110" marker-end="url(#fg-fl-or)"/>
@@ -2466,26 +2485,22 @@ FIGURES["oxydation-enzymatique"] = [
     ou: "cas",
     type: "comparaison",
     titre: "La surface exposée décide",
-    legende: "Illustration qualitative : le brunissement se joue sur la face coupée. Une pomme en petits dés, qui n'a presque que des faces coupées, vire beaucoup plus vite qu'un gros morceau.",
-    alt: "Deux dessins de pomme côte à côte. À gauche, un gros morceau : seule sa face coupée, à la base, est teintée de brun ; le reste est intact, donc peu de surface exposée. À droite, des petits dés : neuf cubes dont toutes les faces sont coupées et brunies, donc beaucoup de surface exposée. Elle vire beaucoup plus vite. Illustration qualitative.",
+    legende: "Illustration qualitative : le brunissement se joue sur la face coupée. La même pomme en petits dés n'a presque que des faces coupées : elle vire beaucoup plus vite qu'un gros morceau.",
+    alt: "Deux dessins de la même quantité de pomme, côte à côte. À gauche, un gros morceau : seule la face du dessus, coupée, est soulignée de brun ; le reste est intact, donc peu de surface exposée. À droite, le même morceau découpé en neuf petits dés dont toutes les faces sont coupées et brunies, donc beaucoup de surface exposée. Il vire beaucoup plus vite. Illustration qualitative.",
     panneaux: [
       {
         label: "Un gros morceau",
-        sous: "peu de face coupée à l'air",
+        sous: "une seule face coupée à l'air",
         ton: "vert",
         vb: "0 0 134 96",
-        corps: `<path class="fg-f-carte fg-t-vert fg-t-epais" d="M22 70A45 56 0 0 1 112 70Z"/>
-<path class="fg-t-doux" d="M33 66A34 44 0 0 1 101 66"/>
-<ellipse class="fg-f-doux fg-t-doux" cx="67" cy="60" rx="6" ry="8"/>
-<path class="fg-t-terra fg-t-tres-epais" d="M22 70H112"/>
-<text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="67" y="90" text-anchor="middle">face coupée</text>`
+        corps: `<rect class="fg-f-carte fg-t-vert fg-t-epais" x="28" y="24" width="66" height="62" rx="4"/><ellipse class="fg-f-doux fg-t-doux" cx="61" cy="58" rx="6" ry="8"/><path class="fg-t-terra fg-t-tres-epais" d="M28 24H94"/><text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="61" y="14" text-anchor="middle">face coupée</text>`
       },
       {
         label: "Petits dés",
         sous: "presque tout est face coupée : vire beaucoup plus vite",
         ton: "terra",
         vb: "0 0 134 96",
-        corps: `<rect class="fg-f-terra" opacity=".5" x="28" y="10" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="28" y="10" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="56" y="10" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="56" y="10" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="84" y="10" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="84" y="10" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="28" y="38" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="28" y="38" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="56" y="38" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="56" y="38" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="84" y="38" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="84" y="38" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="28" y="66" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="28" y="66" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="56" y="66" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="56" y="66" width="22" height="22" rx="3"/><rect class="fg-f-terra" opacity=".5" x="84" y="66" width="22" height="22" rx="3"/><rect class="fg-t-terra fg-t-epais" x="84" y="66" width="22" height="22" rx="3"/>`
+        corps: `<rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="28" y="14" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="52" y="14" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="76" y="14" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="28" y="38" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="52" y="38" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="76" y="38" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="28" y="62" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="52" y="62" width="18" height="18" rx="3"/><rect class="fg-f-terra-l fg-t-terra fg-t-epais" x="76" y="62" width="18" height="18" rx="3"/>`
       }
     ]
   },
@@ -2494,14 +2509,15 @@ FIGURES["oxydation-enzymatique"] = [
     type: "echelle",
     titre: "L'acidité qui arrête l'enzyme",
     legende: "L'enzyme travaille au mieux vers pH 6 et s'arrête presque sous pH 4. Comptez le jus d'un citron entier par litre d'eau : un demi ne fait qu'effleurer le seuil.",
-    alt: "Règle du pH de 3 à 7, graduée à 4 et 6. Vers pH 6, l'enzyme travaille au mieux. En dessous de pH 4, elle s'arrête presque : c'est la zone protégée. Pour y descendre, il faut le jus d'un citron entier par litre d'eau ; un demi ne fait qu'effleurer le seuil.",
+    alt: "Règle du pH de 3 à 7, graduée à 4 et 6. Vers pH 6, l'enzyme travaille au mieux. En dessous de pH 4, elle s'arrête presque : c'est la zone protégée. Entre les deux, l'enzyme travaille de plus en plus. Pour descendre sous pH 4, il faut le jus d'un citron entier par litre d'eau ; un demi ne fait qu'effleurer le seuil.",
     min: 3,
     max: 7,
     unite: "",
     label: "pH du milieu",
     graduations: [4, 6],
     zones: [
-      { de: 3, a: 4, label: "presque arrêtée", ton: "vert" }
+      { de: 3, a: 4, label: "presque arrêtée", ton: "vert" },
+      { de: 4, a: 6, label: "de plus en plus active", ton: "or" }
     ],
     marqueurs: [
       { v: 4, label: "Sous pH 4 : l'enzyme s'arrête presque", ton: "vert" },
@@ -2520,7 +2536,7 @@ FIGURES["infusion-froid"] = [
   { ou: "tete", type: "svg",
     vb: "0 0 320 326",
     titre: "Le chaud ouvre la feuille, le froid laisse le temps",
-    legende: "À gauche, l'eau bouillante abîme les membranes et libère tout d'un coup ; à droite, rien ne s'ouvre : les molécules quittent la feuille lentement et se faufilent dans le gel du yaourt. Schéma d'illustration.",
+    legende: "À gauche, l'eau bouillante abîme les membranes et libère tout d'un coup ; à droite, rien ne s'ouvre : les molécules quittent la feuille lentement et se faufilent dans le gel du yaourt. Schéma d'illustration ; les durées sont des ordres de grandeur de cuisine.",
     alt: "Deux cartes côte à côte. À gauche, À chaud, trois minutes : une feuille dont le contour est abîmé, en pointillés, laisse sortir d'un coup ses molécules aromatiques dans toutes les directions, avec la mention membranes abîmées, tout est libéré d'un seul coup. À droite, À froid, une heure : la feuille est intacte au milieu d'un réseau de caséines, le gel du yaourt. Quelques molécules s'en échappent lentement et se faufilent dans le réseau, et des gouttelettes de graisse captent au passage les composés gras. En bas, un bandeau : le froid n'évapore rien et ne dégrade rien, il préserve les terpènes les plus volatils.",
     corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="8" width="148" height="246" rx="12"/>
 <rect class="fg-f-bleu-l fg-t-bleu" x="164" y="8" width="148" height="246" rx="12"/>
@@ -2539,7 +2555,7 @@ FIGURES["infusion-froid"] = [
 <path class="fg-t-vert fg-t-fin" d="M102 94L122 89" marker-end="url(#fg-fl-vert)"/>
 <path class="fg-t-vert fg-t-fin" d="M106 118L130 116" marker-end="url(#fg-fl-vert)"/>
 <path class="fg-t-vert fg-t-fin" d="M100 140L118 145" marker-end="url(#fg-fl-vert)"/>
-<path class="fg-t-terra" d="M24 184q8-8 16 0t16 0t16 0t16 0t16 0"/>
+<text class="fg-txt-script fg-txt-terra" x="82" y="181" text-anchor="middle">eau bouillante</text><path class="fg-t-terra" d="M24 194q8-8 16 0t16 0t16 0t16 0t16 0"/>
 <text class="fg-txt fg-txt-s" x="82" y="208" text-anchor="middle"><tspan x="82">membranes abîmées :</tspan><tspan x="82" dy="13.5">tout est libéré</tspan><tspan x="82" dy="13.5">d'un seul coup</tspan></text>
 <g opacity=".55">
 <path class="fg-t-bleu fg-t-fin" d="M172 66q10-8 20 0t20 0t20 0t20 0t20 0t12 0"/>
@@ -2551,11 +2567,11 @@ FIGURES["infusion-froid"] = [
 </g>
 <path class="fg-f-vert-l fg-t-vert" d="M238 74C262 80 272 108 238 150C204 108 214 80 238 74Z"/>
 <path class="fg-t-vert fg-t-fin" d="M238 84L238 140"/>
-<circle class="fg-f-or-l fg-t-or" cx="192" cy="152" r="10"/><circle class="fg-f-vert" cx="192" cy="152" r="3.2"/>
+<text class="fg-txt-script fg-txt-or fg-halo" x="192" y="178" text-anchor="middle">graisse</text><circle class="fg-f-or-l fg-t-or" cx="192" cy="152" r="10"/><circle class="fg-f-vert" cx="192" cy="152" r="3.2"/>
 <circle class="fg-f-or-l fg-t-or" cx="286" cy="104" r="10"/><circle class="fg-f-vert" cx="286" cy="104" r="3.2"/>
-<path class="fg-t-vert fg-t-fin fg-pointilles" d="M262 100Q270 94 276 100"/>
+<path class="fg-t-vert fg-t-epais fg-pointilles" d="M262 100Q270 94 276 100"/>
 <circle class="fg-f-vert" cx="264" cy="98" r="3.2"/>
-<path class="fg-t-vert fg-t-fin fg-pointilles" d="M214 104Q206 98 200 106"/>
+<path class="fg-t-vert fg-t-epais fg-pointilles" d="M214 104Q206 98 200 106"/>
 <circle class="fg-f-vert" cx="212" cy="104" r="3.2"/>
 <text class="fg-txt fg-txt-s" x="238" y="208" text-anchor="middle"><tspan x="238">un gel de caséines :</tspan><tspan x="238" dy="13.5">on s'y faufile, et la</tspan><tspan x="238" dy="13.5">graisse capte au passage</tspan><tspan x="238" dy="13.5">les composés gras</tspan></text>
 <rect class="fg-f-doux fg-t-doux" x="8" y="264" width="304" height="50" rx="10"/>
@@ -2624,7 +2640,7 @@ FIGURES["infusion-froid"] = [
         sous: "le parfum est dans la sauce : retirez l'herbe",
         ton: "vert",
         vb: "0 0 100 64",
-        corps: `<path class="fg-f-vert-l fg-t-axe" d="M10 24H90C88 48 72 58 50 58C28 58 12 48 10 24Z"/><circle class="fg-f-vert" cx="28" cy="36" r="1.7"/><circle class="fg-f-vert" cx="42" cy="46" r="1.7"/><circle class="fg-f-vert" cx="58" cy="40" r="1.7"/><circle class="fg-f-vert" cx="70" cy="33" r="1.7"/><circle class="fg-f-vert" cx="52" cy="30" r="1.7"/><circle class="fg-f-vert" cx="36" cy="28" r="1.7"/><circle class="fg-f-vert" cx="64" cy="48" r="1.7"/><circle class="fg-f-vert" cx="76" cy="41" r="1.7"/><ellipse class="fg-f-vert" cx="82" cy="10" rx="7" ry="3.2" transform="rotate(-30 82 10)"/><path class="fg-t-axe fg-t-fin" d="M70 20Q76 14 80 14" marker-end="url(#fg-fl-encre)"/>` },
+        corps: `<path class="fg-f-vert-l fg-t-axe" d="M10 24H90C88 48 72 58 50 58C28 58 12 48 10 24Z"/><circle class="fg-f-vert" cx="28" cy="36" r="1.7"/><circle class="fg-f-vert" cx="42" cy="46" r="1.7"/><circle class="fg-f-vert" cx="58" cy="40" r="1.7"/><circle class="fg-f-vert" cx="70" cy="33" r="1.7"/><circle class="fg-f-vert" cx="52" cy="30" r="1.7"/><circle class="fg-f-vert" cx="36" cy="28" r="1.7"/><circle class="fg-f-vert" cx="64" cy="48" r="1.7"/><circle class="fg-f-vert" cx="76" cy="41" r="1.7"/><ellipse class="fg-f-vert" cx="82" cy="10" rx="7" ry="3.2" transform="rotate(-30 82 10)"/><path class="fg-t-axe fg-t-fin" d="M60 22Q68 8 76 11" marker-end="url(#fg-fl-encre)"/>` },
       { label: "Quelques heures",
         sous: "feuilles brunies, amertume : trop tard",
         ton: "terra",
@@ -2645,10 +2661,11 @@ FIGURES["froid-raffermit"] = [
 <text class="fg-txt fg-txt-b fg-txt-bleu" x="238" y="30" text-anchor="middle"><tspan x="238">L'eau de la chair</tspan></text>
 <rect class="fg-f-doux fg-t-axe" x="24" y="108" width="116" height="54" rx="5"/>
 <rect class="fg-f-or" x="24" y="117" width="116" height="6"/><rect class="fg-f-or" x="24" y="131" width="116" height="6"/><rect class="fg-f-or" x="24" y="145" width="116" height="6"/>
-<rect class="fg-f-terra" x="77" y="58" width="10" height="24" rx="3"/><circle class="fg-f-carte" cx="82" cy="65" r="1.5"/><circle class="fg-f-carte" cx="82" cy="75" r="1.5"/><path class="fg-f-doux fg-t-axe" d="M89 82H75V100Q75 118 89 126Z"/>
+<rect class="fg-f-terra" x="77" y="58" width="10" height="24" rx="3"/><circle class="fg-f-carte" cx="82" cy="65" r="1.5"/><circle class="fg-f-carte" cx="82" cy="75" r="1.5"/><path class="fg-f-doux fg-t-axe" d="M89 82H75V100Q75 118 89 126Z"/><use class="fg-sy-bleu" href="#fg-sym-cristal" x="26" y="60" width="20" height="20"/><use class="fg-sy-bleu" href="#fg-sym-cristal" x="114" y="66" width="20" height="20"/>
 <text class="fg-txt fg-txt-s" x="82" y="188" text-anchor="middle"><tspan x="82">le beurre redevient</tspan><tspan x="82" dy="13.5">cassant : la lame</tspan><tspan x="82" dy="13.5">tranche, n'étale pas</tspan></text>
-<ellipse class="fg-f-bleu-l fg-t-bleu fg-t-epais" cx="238" cy="136" rx="62" ry="29"/>
-<ellipse class="fg-f-terra-l fg-t-terra fg-t-fin" cx="238" cy="136" rx="49" ry="18"/>
+<path class="fg-f-bleu-l fg-t-bleu fg-t-epais" d="M174 140C190 106 286 106 302 140C286 174 190 174 174 140Z"/>
+<path class="fg-f-or-l fg-t-or fg-t-fin" d="M194 140C210 124 266 124 282 140C266 156 210 156 194 140Z"/>
+<use class="fg-sy-bleu" href="#fg-sym-cristal" x="170" y="56" width="20" height="20"/><use class="fg-sy-bleu" href="#fg-sym-cristal" x="268" y="62" width="20" height="20"/>
 <rect class="fg-f-terra" x="233" y="58" width="10" height="24" rx="3"/><circle class="fg-f-carte" cx="238" cy="65" r="1.5"/><circle class="fg-f-carte" cx="238" cy="75" r="1.5"/><path class="fg-f-doux fg-t-axe" d="M245 82H231V100Q231 118 245 126Z"/>
 <text class="fg-txt fg-txt-s" x="238" y="188" text-anchor="middle"><tspan x="238">une pellicule raidie</tspan><tspan x="238" dy="13.5">guide la lame ; le</tspan><tspan x="238" dy="13.5">cœur reste souple</tspan></text>
 <rect class="fg-f-doux fg-t-doux" x="8" y="236" width="304" height="50" rx="10"/>
@@ -2671,7 +2688,7 @@ FIGURES["froid-raffermit"] = [
         vb: "0 0 100 58",
         corps: `<rect class="fg-f-or-l fg-t-or" x="14" y="6" width="72" height="46" rx="7"/><rect class="fg-f-or" x="26" y="13.5" width="8" height="5" rx="1" transform="rotate(20 30 16)"/><rect class="fg-f-or" x="62" y="11.5" width="8" height="5" rx="1" transform="rotate(-25 66 14)"/><rect class="fg-f-or" x="44" y="25.5" width="8" height="5" rx="1" transform="rotate(35 48 28)"/><rect class="fg-f-or" x="24" y="38.5" width="8" height="5" rx="1" transform="rotate(-10 28 41)"/><rect class="fg-f-or" x="70" y="35.5" width="8" height="5" rx="1" transform="rotate(30 74 38)"/>` },
       { label: "Passé une vingtaine de degrés",
-        sous: "la part solide a fondu : il file",
+        sous: "presque toute la part solide a fondu : il file",
         ton: "terra",
         vb: "0 0 100 58",
         corps: `<rect class="fg-f-or-l fg-t-or" x="10" y="26" width="80" height="26" rx="13"/><rect class="fg-f-or" x="30" y="37.5" width="8" height="5" rx="1" transform="rotate(20 34 40)"/><rect class="fg-f-or" x="62" y="38.5" width="8" height="5" rx="1" transform="rotate(-25 66 41)"/>` }
@@ -2681,7 +2698,7 @@ FIGURES["froid-raffermit"] = [
     unite: "min",
     titre: "Combien de temps de froid",
     legende: "Un coup de froid court, qui raidit la surface sans geler le cœur. Passé une demi-heure au congélateur, la surface d'un filet fin prend en glace et la lame dérape.",
-    alt: "Cinq barres de durée. Pâte feuilletée au congélateur : 10 minutes, pas davantage. Fromage frais à frire au congélateur : 10 minutes. Fromage frais à frire au réfrigérateur : 30 minutes. Filet de poisson de 500 g au congélateur : 15 minutes, surface raide et cœur souple. Dernière barre, en mise en garde : au-delà d'une demi-heure au congélateur, la surface d'un filet fin prend en glace et la lame dérape.",
+    alt: "Cinq barres de durée. Au congélateur : pâte feuilletée 10 minutes, pas davantage ; fromage frais à frire 10 minutes ; filet de poisson de 500 g 15 minutes, surface raide et cœur souple. En mise en garde, toujours au congélateur : au-delà d'une demi-heure, la surface d'un filet fin prend en glace et la lame dérape. Au réfrigérateur : fromage frais à frire 30 minutes.",
     barres: [
       { label: "Pâte feuilletée, au congélateur",
         valeur: 10,
@@ -2689,7 +2706,6 @@ FIGURES["froid-raffermit"] = [
         ton: "bleu",
         note: "avant la découpe, pas davantage" },
       { label: "Fromage frais à frire, au congélateur", valeur: 10, texte: "10 min", ton: "bleu" },
-      { label: "Fromage frais à frire, au réfrigérateur", valeur: 30, texte: "30 min", ton: "bleu" },
       { label: "Filet de poisson (500 g), au congélateur",
         valeur: 15,
         texte: "15 min",
@@ -2699,20 +2715,21 @@ FIGURES["froid-raffermit"] = [
         valeur: 30,
         texte: "plus de 30 min",
         ton: "or",
-        note: "la surface prend en glace, la lame dérape" }
+        note: "au-delà : la surface prend en glace, la lame dérape" },
+      { label: "Fromage frais à frire, au réfrigérateur", valeur: 30, texte: "30 min", ton: "bleu", note: "le réfrigérateur, quand on a le temps" }
     ] },
 
   { ou: "reperes", type: "echelle",
     titre: "Les températures qui comptent",
-    legende: "La règle entière est la plage où fondent les triglycérides du beurre, d'environ −40 à 40 °C. Le beurre file passé une vingtaine de degrés ; la crème se fouette sous 10 °C, idéalement entre 2 et 5 °C ; le saumon ne cristallise que vers −1 à −1,5 °C.",
-    alt: "Règle graduée de −40 à 40 °C, la plage où fondent les triglycérides du beurre. Un filet de saumon ne commence à cristalliser que vers −1 à −1,5 °C. La crème à fouetter se travaille sous 10 °C, idéalement entre 2 et 5 °C. Passé une vingtaine de degrés, le beurre file.",
-    min: -40,
-    max: 40,
+    legende: "Le beurre fond sur une plage d'environ −40 à 40 °C, bien plus large que cette règle : il file passé une vingtaine de degrés. La crème se fouette sous 10 °C, idéalement entre 2 et 5 °C ; le saumon ne cristallise que vers −1 à −1,5 °C.",
+    alt: "Règle graduée de −5 à 25 °C, un extrait de la plage où fondent les triglycérides du beurre, d'environ −40 à 40 °C. Un filet de saumon ne commence à cristalliser que vers −1 à −1,5 °C. La crème à fouetter se travaille sous 10 °C, idéalement entre 2 et 5 °C. Passé une vingtaine de degrés, le beurre file.",
+    min: -5,
+    max: 25,
     unite: "°C",
     label: "Température",
-    graduations: [-40, -20, 0, 20, 40],
+    graduations: [0, 10, 20],
     zones: [
-      { de: 2, a: 10, label: "Crème : sous 10 °C, idéalement entre 2 et 5 °C", ton: "bleu" },
+      { de: 2, a: 10, label: "Crème : sous 10 °C, idéalement 2 à 5 °C (en vert)", ton: "bleu", cote: "bas" },
       { de: 2, a: 5, ton: "vert" }
     ],
     marqueurs: [
@@ -2738,6 +2755,7 @@ FIGURES["poisson-cru"] = [
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="70" y="40" text-anchor="start"><tspan x="70">larve d'Anisakis</tspan></text>
 <path class="fg-t-axe fg-t-fin" d="M130 44Q150 52 156 76" marker-end="url(#fg-fl-terra)"/>
 <path class="fg-t-axe fg-t-fin" d="M94 46Q84 76 94 110" marker-end="url(#fg-fl-terra)"/>
+<path class="fg-t-axe fg-t-fin" d="M196 72Q186 76 177 86" marker-end="url(#fg-fl-terra)"/>
 <text class="fg-txt fg-txt-s" x="160" y="182" text-anchor="middle"><tspan x="160">ingérée vivante, elle peut perforer la paroi</tspan><tspan x="160" dy="13.5">digestive : c'est l'anisakidose</tspan></text>
 <rect class="fg-f-vert-l fg-t-vert" x="8" y="206" width="148" height="112" rx="12"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="82" y="228" text-anchor="middle"><tspan x="82">Les met hors d'état</tspan></text>
@@ -2753,8 +2771,8 @@ FIGURES["poisson-cru"] = [
   { ou: "cas", type: "svg",
     vb: "0 0 320 210",
     titre: "Du grand froid à la cuisson",
-    legende: "Deux façons de les mettre hors d'état : le froid tenu jusqu'au cœur, ou plus de 60 °C à cœur. Entre les deux, rien n'est garanti, et le froid n'empêche pas Listeria de se multiplier jusqu'à quelques dixièmes de degré sous zéro.",
-    alt: "Règle des températures à cœur, avec un axe interrompu entre le froid et la cuisson. À gauche, de −40 à 0 °C, les durées de congélation : 15 heures à −35 °C, 24 heures à −20 °C, et 7 jours à −18 °C ou moins pour un congélateur domestique. Vers 0 °C, un repère rappelle que Listeria se multiplie encore jusqu'à quelques dixièmes de degré sous zéro. À droite, la cuisson : 60 °C à cœur pendant une minute suffisent, et les guides sanitaires retiennent souvent 63 °C par sécurité.",
+    legende: "Deux façons de les mettre hors d'état : le froid réglementaire tenu jusqu'au cœur (les 7 jours du particulier sont à la figure suivante), ou plus de 60 °C à cœur. Entre les deux, rien n'est garanti, et le froid n'empêche pas Listeria de se multiplier jusqu'à quelques dixièmes de degré sous zéro.",
+    alt: "Règle des températures à cœur, avec un axe interrompu entre le froid et la cuisson. À gauche, de −40 à 0 °C, les durées réglementaires de congélation à cœur : 15 heures à −35 °C, 24 heures à −20 °C. Les 7 jours du congélateur domestique, une marge de sécurité, sont détaillés dans la figure suivante. Vers 0 °C, un repère rappelle que Listeria se multiplie encore jusqu'à quelques dixièmes de degré sous zéro. À droite, la cuisson : 60 °C à cœur pendant une minute suffisent, et les guides sanitaires retiennent souvent 63 °C par sécurité.",
     corps: `<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="16" y="100" width="160" height="16" rx="3"/>
 <rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="204" y="100" width="100" height="16" rx="3"/>
 <path class="fg-t-axe" d="M183 94L189 122M193 94L199 122"/>
@@ -2767,40 +2785,37 @@ FIGURES["poisson-cru"] = [
 <path class="fg-t-bleu fg-t-fin" d="M36 104V88"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="96" y="70" text-anchor="middle"><tspan x="96">−20 °C</tspan><tspan x="96" dy="13.5">24 h</tspan></text>
 <path class="fg-t-bleu fg-t-fin" d="M96 104V88"/>
-<text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="104" y="160" text-anchor="middle"><tspan x="104">−18 °C ou moins :</tspan><tspan x="104" dy="13.5">7 jours</tspan></text>
-<path class="fg-t-or fg-t-fin fg-tirets" d="M104 112V146"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="237" y="70" text-anchor="middle"><tspan x="237">60 °C à cœur,</tspan><tspan x="237" dy="13.5">1 minute</tspan></text>
 <path class="fg-t-terra fg-t-fin" d="M237.3 104V88"/>
 <text class="fg-txt fg-txt-s fg-txt-terra" x="312" y="160" text-anchor="end"><tspan x="312">63 °C : souvent retenu</tspan><tspan x="312" dy="13.5">par les guides sanitaires</tspan></text>
 <path class="fg-t-terra fg-t-fin fg-tirets" d="M257.3 112V146"/>
 <circle class="fg-pt fg-f-bleu" cx="36" cy="108" r="4"/>
 <circle class="fg-pt fg-f-bleu" cx="96" cy="108" r="4"/>
-<circle class="fg-pt fg-f-or" cx="104" cy="108" r="4"/>
 <circle class="fg-pt fg-f-bleu" cx="176" cy="108" r="4"/>
 <circle class="fg-pt fg-f-terra" cx="237.3" cy="108" r="4"/>
 <circle class="fg-pt fg-f-terra" cx="257.3" cy="108" r="4"/>
 <text class="fg-txt fg-txt-s fg-txt-b" x="304" y="200" text-anchor="end"><tspan x="304">Température à cœur, axe interrompu</tspan></text>` },
 
-  { ou: "pourquoi", apres: 3, type: "comparaison",
+  { ou: "pourquoi", apres: 3, type: "comparaison", colonnes: 1,
      titre: "Le sel et l'acide, seulement sur des semaines",
     legende: "Les seuls procédés validés associent sel et acide, au froid, pendant des semaines. Un gravlax, un ceviche, des anchois au vinaigre restent du poisson cru : ils demandent une congélation préalable.",
-    alt: "Trois morceaux de poisson, chacun avec sa larve enroulée en spirale. Premier, gravlax de 24 heures, ceviche, anchois au vinaigre : sel et acide aux doses de cuisine, la larve est vivante. Deuxième, hareng à 4 % de sel : plus de quatre mois plus tard, des larves survivent. Troisième, hareng à 9 % de sel dans la phase aqueuse avec 2,6 % d'acide acétique, au froid : cinq semaines suffisent, la larve est hors d'état, barrée d'une croix.",
+    alt: "Trois morceaux de poisson, chacun avec sa larve enroulée en spirale. Premier, gravlax de 24 heures, ceviche, anchois au vinaigre : sel et acide aux doses de cuisine, la larve est vivante. Deuxième, hareng à 4 % de sel dans la phase aqueuse, avec le même acide : plus de quatre mois plus tard, des larves survivent. Troisième, hareng à 9 % de sel dans la phase aqueuse avec 2,6 % d'acide acétique, au froid : cinq semaines suffisent, la larve est hors d'état, grisée et barrée d'une croix.",
     panneaux: [
       { label: "Gravlax, ceviche",
         sous: "doses de cuisine : larves vivantes",
         ton: "or",
         vb: "0 0 100 68",
         corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><use href="#fg-sym-larve" x="30.1" y="12.6" width="39" height="39"/>` },
-      { label: "4 % de sel",
-        sous: "plus de quatre mois : des larves survivent",
+      { label: "4 % de sel en phase aqueuse",
+        sous: "même acide : plus de quatre mois, des larves survivent",
         ton: "or",
         vb: "0 0 100 68",
         corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><use href="#fg-sym-larve" x="30.1" y="12.6" width="39" height="39"/>` },
-      { label: "9 % de sel, 2,6 % d'acide acétique",
+      { label: "9 % de sel en phase aqueuse, 2,6 % d'acide acétique",
         sous: "cinq semaines au froid : larves tuées",
         ton: "vert",
         vb: "0 0 100 68",
-        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><path class="fg-t-axe fg-t-epais fg-tirets" d="M50.9 34.4L51 35L50.8 35.8L50.1 36.4L49.1 36.7L47.8 36.5L46.6 35.8L45.8 34.4L45.4 32.7L45.9 30.8L47.1 29.1L49 28L51.4 27.5L53.9 28.1L56.2 29.7L57.8 32.2L58.4 35.3L57.7 38.5L55.8 41.4L52.8 43.5L49.1 44.3L45.2 43.7L41.6 41.5L39 38.1L37.8 33.7L38.3 29.1L40.6 24.8L44.5 21.6L49.4 19.9L54.8 20.3L59.8 22.7"/><path class="fg-t-vert fg-t-tres-epais" d="M44 28L56 40M56 28L44 40"/>` }
+        corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="6" width="84" height="56" rx="14"/><use class="fg-sy-doux" href="#fg-sym-larve" x="30.1" y="12.6" width="39" height="39"/><path class="fg-t-vert fg-t-tres-epais" d="M38 20L62 44M62 20L38 44"/>` }
     ] },
 
   { ou: "reperes", type: "barres",
@@ -2822,9 +2837,9 @@ FIGURES["poisson-cru"] = [
 FIGURES["oeuf-cru"] = [
   { ou: "tete", type: "svg",
     vb: "0 0 320 344",
-    titre: "L'œuf en coupe : par où elle entre, où elle se plaît",
-    legende: "Deux voies, une seule courante. Une fois dedans, la bactérie survit sans croître dans le blanc ; c'est en vieillissant que la membrane vitelline devient perméable et que le jaune devient son milieu. Schéma d'illustration : il ne chiffre aucun risque.",
-    alt: "Coupe d'un œuf, avec en haut deux cartes. Voie 1, la coquille, la plus courante : la bactérie arrive sur la coquille à la ponte ou dans le nid. Voie 2, l'intérieur, plus rare : une poule infectée dépose la bactérie dans l'œuf en formation, avant que la coquille se referme. L'œuf est dessiné avec, de l'extérieur vers l'intérieur : la cuticule, qui bouche les pores, la coquille, le blanc, milieu hostile où l'ovotransferrine séquestre le fer, de sorte que les rares bactéries y survivent sans croître, puis la membrane vitelline, qui devient perméable avec l'âge, et enfin le jaune, riche et sans défense, où les bactéries qui passent se multiplient vite.",
+    titre: "L'œuf en coupe : par où la bactérie entre, où elle se plaît",
+    legende: "Schéma simplifié. Deux voies, la coquille étant la plus courante, sans qu'on sache laquelle fait le plus de malades. Une fois dedans, la bactérie survit sans croître dans le blanc ; c'est en vieillissant que la membrane vitelline devient perméable et que le jaune devient son milieu. Il ne chiffre aucun risque.",
+    alt: "Coupe d'un œuf, avec en haut deux cartes. Voie 1, la coquille, la plus courante pour la contamination, sans qu'on sache laquelle des deux voies fait le plus de malades : la bactérie arrive sur la coquille à la ponte ou dans le nid. Voie 2, l'intérieur, plus rare : une poule infectée dépose la bactérie dans l'œuf en formation, avant que la coquille se referme. L'œuf est dessiné avec, de l'extérieur vers l'intérieur : la cuticule, qui bouche les pores, la coquille, le blanc, milieu hostile où l'ovotransferrine séquestre le fer, de sorte que les rares bactéries y survivent sans croître, puis la membrane vitelline, qui devient perméable avec l'âge, et enfin le jaune, riche et sans défense, où les bactéries qui passent se multiplient vite.",
     corps: `<rect class="fg-f-terra-l fg-t-terra" x="8" y="8" width="148" height="66" rx="10"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-terra" x="82" y="28" text-anchor="middle"><tspan x="82">Voie 1 : la coquille</tspan></text>
 <text class="fg-txt fg-txt-s" x="82" y="43" text-anchor="middle"><tspan x="82">la plus courante : à la</tspan><tspan x="82" dy="13.5">ponte ou dans le nid</tspan></text>
@@ -2843,16 +2858,16 @@ FIGURES["oeuf-cru"] = [
 <path class="fg-t-axe fg-t-fin" d="M218 78Q150 92 112 160" marker-end="url(#fg-fl-or)"/>
 <text class="fg-txt fg-txt-s fg-txt-b" x="178" y="104" text-anchor="start"><tspan x="178">Coquille et cuticule</tspan></text>
 <text class="fg-txt fg-txt-s" x="178" y="118" text-anchor="start"><tspan x="178">la cuticule, déposée à la</tspan><tspan x="178" dy="13.5">ponte, bouche les pores</tspan></text>
-<path class="fg-t-doux" d="M174 110L150 148"/>
+<path class="fg-t-axe fg-t-fin" d="M174 110L150 148"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="178" y="160" text-anchor="start"><tspan x="178">Blanc : milieu hostile</tspan></text>
 <text class="fg-txt fg-txt-s" x="178" y="174" text-anchor="start"><tspan x="178">l'ovotransferrine y</tspan><tspan x="178" dy="13.5">séquestre le fer : les</tspan><tspan x="178" dy="13.5">bactéries y survivent</tspan><tspan x="178" dy="13.5">sans croître</tspan></text>
-<path class="fg-t-doux" d="M174 168L138 198"/>
+<path class="fg-t-axe fg-t-fin" d="M174 168L138 198"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="178" y="244" text-anchor="start"><tspan x="178">Membrane vitelline</tspan></text>
 <text class="fg-txt fg-txt-s" x="178" y="258" text-anchor="start"><tspan x="178">perméable avec l'âge :</tspan><tspan x="178" dy="13.5">les bactéries passent</tspan></text>
-<path class="fg-t-doux" d="M174 250L122 238"/>
+<path class="fg-t-axe fg-t-fin" d="M174 250L122 238"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="178" y="298" text-anchor="start"><tspan x="178">Jaune</tspan></text>
 <text class="fg-txt fg-txt-s" x="178" y="312" text-anchor="start"><tspan x="178">riche, sans défense :</tspan><tspan x="178" dy="13.5">elles s'y multiplient vite</tspan></text>
-<path class="fg-t-doux" d="M174 304L108 258"/>` },
+<path class="fg-t-axe fg-t-fin" d="M174 304L108 258"/>` },
 
   { ou: "cas", type: "echelle",
     titre: "Le froid du réfrigérateur : ce qu'il fait, ce qu'il ne fait pas",
@@ -2862,7 +2877,7 @@ FIGURES["oeuf-cru"] = [
     max: 10,
     unite: "°C",
     label: "Température du réfrigérateur",
-    graduations: [0, 2, 4, 6, 8, 10],
+    graduations: [0, 2, 4, 8, 10],
     zones: [
       { de: 0, a: 4, label: "0 à 4 °C : recommandé", ton: "bleu" },
       { de: 5, a: 7, label: "5 à 7 °C : seuil de croissance selon la souche", ton: "or" }
@@ -2874,12 +2889,13 @@ FIGURES["oeuf-cru"] = [
 
   { ou: "cas", type: "comparaison",
     fleche: false,
+    colonnes: 1,
     titre: "Europe et États-Unis : deux systèmes cohérents",
     legende: "Aucun des deux n'a tort, mais il ne faut pas les mélanger : laver ses œufs européens avant de les ranger, c'est retirer la barrière sans rien mettre à la place.",
-    alt: "Deux œufs côte à côte. En Europe, l'œuf n'est pas lavé : la cuticule déposée à la ponte reste, elle bouche les pores et fait barrière, l'œuf se vend à température ambiante, et l'on agit à la source, en vaccinant et en surveillant les pondeuses. Aux États-Unis, l'œuf est lavé et désinfecté au centre de conditionnement, ce qui emporte la cuticule : la coquille devient perméable, et la réfrigération continue, de la ferme au magasin, est obligatoire.",
+    alt: "Deux œufs côte à côte, de petits points figurant les pores. En Europe, l'œuf n'est pas lavé : la cuticule déposée à la ponte, un contour doré, reste ; elle bouche les pores et fait barrière, l'œuf se vend à température ambiante, et l'on agit à la source, en vaccinant et en surveillant les pondeuses. Aux États-Unis, l'œuf est lavé et désinfecté au centre de conditionnement, ce qui emporte la cuticule : la coquille devient perméable, et la réfrigération continue, de la ferme au magasin, est obligatoire, ce que figure un cristal de glace.",
     panneaux: [
       { label: "Europe",
-        sous: "non lavé : la cuticule bouche les pores et fait barrière ; on agit à la source, sur les pondeuses",
+        sous: "non lavé : la cuticule bouche les pores et fait barrière ; vendu à température ambiante ; on agit à la source, sur les pondeuses",
         ton: "vert",
         vb: "0 0 100 84",
         corps: `<path class="fg-f-papier fg-t-axe" d="M50 10C66 10 78 34 78 50C78 64 66 74 50 74C34 74 22 64 22 50C22 34 34 10 50 10Z"/><path class="fg-t-or fg-t-tres-epais" d="M50 10C66 10 78 34 78 50C78 64 66 74 50 74C34 74 22 64 22 50C22 34 34 10 50 10Z" transform="translate(50 42) scale(1.09) translate(-50 -42)"/><circle class="fg-f-or" cx="38" cy="28" r="2"/><circle class="fg-f-or" cx="60" cy="24" r="2"/><circle class="fg-f-or" cx="64" cy="50" r="2"/><circle class="fg-f-or" cx="40" cy="60" r="2"/><circle class="fg-f-or" cx="50" cy="42" r="2"/><circle class="fg-f-or" cx="34" cy="46" r="2"/>` },
@@ -2887,7 +2903,7 @@ FIGURES["oeuf-cru"] = [
         sous: "lavé, désinfecté : plus de cuticule, la coquille devient perméable ; réfrigération continue obligatoire",
         ton: "bleu",
         vb: "0 0 100 84",
-        corps: `<path class="fg-f-papier fg-t-axe" d="M50 10C66 10 78 34 78 50C78 64 66 74 50 74C34 74 22 64 22 50C22 34 34 10 50 10Z"/><circle class="fg-f-encre" cx="38" cy="28" r="2"/><circle class="fg-f-encre" cx="60" cy="24" r="2"/><circle class="fg-f-encre" cx="64" cy="50" r="2"/><circle class="fg-f-encre" cx="40" cy="60" r="2"/><circle class="fg-f-encre" cx="50" cy="42" r="2"/><circle class="fg-f-encre" cx="34" cy="46" r="2"/><path class="fg-t-bleu fg-t-epais" d="M90 14V34M81 19L99 29M81 29L99 19"/>` }
+        corps: `<path class="fg-f-papier fg-t-axe" d="M50 10C66 10 78 34 78 50C78 64 66 74 50 74C34 74 22 64 22 50C22 34 34 10 50 10Z"/><circle class="fg-f-encre" cx="38" cy="28" r="2"/><circle class="fg-f-encre" cx="60" cy="24" r="2"/><circle class="fg-f-encre" cx="64" cy="50" r="2"/><circle class="fg-f-encre" cx="40" cy="60" r="2"/><circle class="fg-f-encre" cx="50" cy="42" r="2"/><circle class="fg-f-encre" cx="34" cy="46" r="2"/><use class="fg-sy-bleu" href="#fg-sym-cristal" x="76" y="2" width="22" height="22"/>` }
     ] },
 
   { ou: "reperes", type: "etapes",

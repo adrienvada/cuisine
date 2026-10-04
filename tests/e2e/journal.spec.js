@@ -111,9 +111,13 @@ test("journal : l'entrée et sa photo survivent au rechargement", async ({ page,
 });
 
 test("journal : plus récente d'abord, « Aujourd'hui » et « Hier » en clair", async ({ page, context }) => {
+  // « Aujourd'hui » est celui du navigateur, donc du fuseau de Playwright (Europe/Paris),
+  // pas celui de Node : près de minuit, les deux jours diffèrent. On lit le jour à Paris,
+  // puis on recule en jours civils (calcul en UTC, sans heure d'été en travers).
   const jour = decalage => {
-    const d = new Date(); d.setDate(d.getDate() - decalage);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const [a, m, j] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" })
+      .format(new Date()).split("-").map(Number);
+    return new Date(Date.UTC(a, m - 1, j - decalage)).toISOString().slice(0, 10);
   };
   await preremplir(context, { carnet: { journal: [
     { id: "j1", rid: RID, date: jour(1), convives: 2, note: "hier", photo: false },
