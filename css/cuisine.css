@@ -1,0 +1,160 @@
+/* Mode cuisine : plein écran vert profond, une étape par page, gros texte.
+   Garde les couleurs du mode clair même quand le site est en mode sombre.
+   Les bulles de minuteur sont dans minuteurs.css. */
+
+/* ---------- Mode cuisine ---------- */
+
+/* Toujours les couleurs du mode clair, même quand le reste du site
+   est en mode sombre : le mode cuisine était déjà sombre par design. */
+.cook {
+  --green-deep: #31492B;
+  --gold: #C1913F;
+  position: fixed;
+  inset: 0;
+  background: var(--green-deep);
+  color: #F4EFE0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 22px calc(18px + var(--safe-b));
+}
+
+.cook-top { display: flex; align-items: center; justify-content: space-between; }
+
+.cook-top .title { font-family: var(--serif); font-style: italic; font-size: 16px; color: #CBD3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+
+.cook-tools { display: flex; gap: 8px; }
+
+.cook-close {
+  background: rgba(244, 239, 224, 0.12);
+  border: none;
+  color: #F4EFE0;
+  border-radius: 999px;
+  width: 44px; height: 44px;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+
+.cook-close svg { width: 17px; height: 17px; }
+
+.cook-close:active { background: rgba(244, 239, 224, 0.24); }
+
+.cook-progress { display: flex; gap: 5px; margin: 16px 0 4px; }
+
+.cook-progress i { flex: 1; height: 3px; border-radius: 2px; background: rgba(244, 239, 224, 0.22); }
+
+.cook-progress i.done { background: var(--gold); }
+
+.cook-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; padding: 10px 0; }
+
+.cook-step-label { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+
+.cook-body h2 { font-family: var(--serif); font-size: 31px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.1; }
+
+.cook-flourish { display: block; width: 88px; height: 12px; color: var(--gold); margin: 0 0 12px; opacity: 0.9; }
+
+.cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #E9E4D2; }
+
+.cook .tip { background: rgba(244, 239, 224, 0.1); color: #DCD6C0; margin-top: 18px; }
+
+.cook .tip b { color: var(--gold); }
+
+.cook .tip-ico { color: var(--gold); }
+
+.cook-timer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cook-timer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(244, 239, 224, 0.13);
+  border: 1px solid rgba(244, 239, 224, 0.3);
+  color: #F4EFE0;
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cook-timer button svg { width: 17px; height: 17px; }
+
+.cook-timer .clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+.cook-timer .clock.flash { animation: flash 0.8s infinite; }
+
+
+.cook-nav { display: flex; gap: 10px; margin-top: 14px; }
+
+.cook-nav button {
+  flex: 1;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid rgba(244, 239, 224, 0.3);
+  background: transparent;
+  color: #F4EFE0;
+}
+
+.cook-nav button.main { background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; }
+
+.cook-nav button:disabled { opacity: 0.35; }
+
+/* Le mode cuisine impose une encre crème sur son fond sombre ; la note d'un
+   supplément, elle, garde sa carte claire et réclame donc une encre foncée.
+   On y fige les couleurs du mode clair, comme le reste du mode cuisine. */
+body.cooking .addon-note {
+  --card: #FFFDF7;
+  --gold-tint: #F4EAD5;
+  --gold-deep: #8A6420;
+  color: #2C3326;
+}
+
+/* Minuteur propre à un supplément, en mode cuisine : plus discret que celui de
+   l'étape, pour qu'on distingue au premier coup d'œil lequel mène la danse. */
+.addon-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.addon-timer:empty { display: none; }
+
+.addon-timer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-tint);
+  border: 1px solid var(--gold);
+  color: var(--gold-deep);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.addon-timer button svg { width: 14px; height: 14px; }
+
+.addon-timer .clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  letter-spacing: 0.02em;
+}
+
+.addon-timer .clock.flash { animation: flash 0.8s infinite; }

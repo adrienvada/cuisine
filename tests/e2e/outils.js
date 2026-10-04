@@ -1,6 +1,6 @@
 /* Aides communes aux tests de bout en bout.
-   Règle de la maison : on ne touche jamais aux globales de js/app.js (state, save,
-   route…) — elles disparaîtront avec le passage aux modules. On pré-remplit
+   Règle de la maison : on ne touche jamais aux modules de js/ (state, save,
+   route…) — ils ne sont plus des globales depuis le passage aux modules. On pré-remplit
    localStorage avant le chargement, puis on pilote l'interface comme le ferait
    un doigt. */
 
