@@ -153,6 +153,8 @@ html[data-theme="dark"] .timer-pill:not(.done) {
 
 .timer-pill .anneau > svg.coche { width: 14px; height: 14px; }
 
+.timer-pill.done .anneau { color: #33270D; }
+
 .timer-pill.done .anneau .piste { opacity: 0.3; }
 
 @media (prefers-reduced-motion: no-preference) {

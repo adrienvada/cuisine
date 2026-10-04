@@ -301,17 +301,22 @@ function avecFlip(tray, muter) {
    début, s'efface, puis ses voisines viennent combler la place. */
 function retirerBulle(tray, el) {
   if (el.dataset.sortie) return;
-  if (REDUCE_MOTION.matches || el.classList.contains("masquee") || tray.hidden) { el.remove(); return; }
+  if (REDUCE_MOTION.matches || el.classList.contains("masquee")) { el.remove(); return; }
   el.dataset.sortie = "1";
   el.inert = true;
   el.setAttribute("aria-hidden", "true");
   el.classList.add("sort");
-  const fin = () => { if (el.isConnected) avecFlip(tray, () => el.remove()); };
+  const fin = () => {
+    if (!el.isConnected) return;
+    avecFlip(tray, () => el.remove());
+    // Le plateau ne se cache qu'une fois sa dernière bulle partie.
+    if (!state.timers.length && !tray.querySelector(".sort")) tray.hidden = true;
+  };
   el.addEventListener("animationend", fin, { once: true });
   setTimeout(fin, 400);
 }
 
-let dernierEmplacement = null;
+let dernierEmplacement = null, dejaDessine = false;
 
 export function drawTray() {
   const tray = document.getElementById("timer-tray");
@@ -322,8 +327,10 @@ export function drawTray() {
   // ce qui recale les anneaux sur le temps réellement restant.
   const deplace = placerPlateau(tray) || dernierEmplacement !== tray.parentNode;
   dernierEmplacement = tray.parentNode;
-  const premier = !tray.children.length;
-  tray.hidden = !state.timers.length;
+  // Au premier dessin (page ouverte avec des minuteurs en route) rien ne part de rien.
+  const premier = !dejaDessine;
+  dejaDessine = true;
+  tray.hidden = !state.timers.length && !tray.querySelector(".sort");
   // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
   const ordre = [...state.timers].sort((a, b) => estFini(b) - estFini(a));
   const presentes = new Map([...tray.children].filter(e => !e.dataset.sortie).map(e => [e.dataset.timer, e]));
@@ -338,7 +345,6 @@ export function drawTray() {
         el = document.createElement("div");
         el.dataset.timer = t.id;
         el.dataset.sonne = t.id;
-        // Au premier affichage (page ouverte avec des minuteurs) rien ne part de rien.
         if (!premier) {
           el.classList.add("arrive-pill");
           el.addEventListener("animationend", e => { if (e.animationName === "pill-arrive") el.classList.remove("arrive-pill"); });
