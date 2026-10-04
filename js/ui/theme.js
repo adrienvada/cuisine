@@ -4,8 +4,6 @@ export const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)");
 
 const SYSTEME_SOMBRE = matchMedia("(prefers-color-scheme: dark)");
 
-export const MODES_THEME = ["auto", "clair", "sombre"];
-
 /* On range « dark » et « light » sous la clé « theme », comme avant les trois
    modes : le script en ligne d'index.html (qui évite le flash au chargement) les
    lit tels quels, et un appareil déjà réglé garde son choix. Pas de valeur =

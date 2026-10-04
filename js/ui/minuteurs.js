@@ -123,8 +123,12 @@ export function tick() {
       sonner(t);
       drawTray();
       if (refreshZone) refreshZone();
-      document.title = "⏰ C'est prêt !";
-      setTimeout(() => { document.title = "Carnet de cuisine"; }, 5000);
+      if (!document.title.startsWith("⏰")) {
+        const titreAvant = document.title;
+        document.title = "⏰ C'est prêt !";
+        // Le titre de la vue (posé par le routeur) revient, sauf si l'on a navigué entre-temps.
+        setTimeout(() => { if (document.title.startsWith("⏰")) document.title = titreAvant; }, 5000);
+      }
     }
   }
 }

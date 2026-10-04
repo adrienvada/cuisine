@@ -151,7 +151,7 @@ const DELAI_NOTE = 600;
 
 export function renderRecipe(r) {
   // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
-  const resume = cookingStep(r) || null;
+  const resume = cookingStep(r, entreeCourante() || undefined) || null;
   const t = r.times;
   const retour = retourDe();
   poserEcouteurs();
@@ -221,7 +221,7 @@ export function renderRecipe(r) {
 
     <div class="actions">
       <button class="btn secondary" id="add-list"></button>
-      <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r)}">${ICON.chef}
+      <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r, entreeCourante() || undefined)}">${ICON.chef}
         ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : `<span>Cuisiner<span class="fiche-sr"> en mode cuisine</span></span>`}
       </a>
     </div>
@@ -438,8 +438,9 @@ export function renderRecipe(r) {
   });
 
   if (resume) document.getElementById("restart-cook").addEventListener("click", () => {
-    forgetCooking(cleCuisine(r));
-    location.hash = `#/recette/${r.id}/cuisine`;
+    const k = entreeCourante() || undefined;
+    forgetCooking(cleCuisine(r, k));
+    location.hash = `${k ? `#/recette/${r.id}/m/${k}` : `#/recette/${r.id}`}/cuisine`;
   });
 
   /* ---------- Mes notes ---------- */
