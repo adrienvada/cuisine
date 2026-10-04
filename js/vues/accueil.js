@@ -50,13 +50,25 @@ const criteres = new Set();
 const jai = new Set();
 let foins = new Map();
 
+/* Le foin de chaque recette, normalisé une fois pour toute la visite. Les
+   fondamentaux, eux, arrivent après le premier affichage (core/fonds.js) : leur
+   titre n'entre dans le foin qu'à ce moment-là, d'où rafraichirFoins(). */
+const calculerFoins = () => { foins = new Map(RECIPES.map(r => [r.id, foinDe(r)])); };
+
+/* Appelée par le routeur quand les fondamentaux sont arrivés : chercher
+   « émulsion » ramène alors les recettes où l'on en fait une, même si la
+   recherche était tapée avant. */
+export function rafraichirFoins() {
+  calculerFoins();
+  if (document.getElementById("grid")) applyFilter(false);
+}
+
 export function renderHome() {
   const anyFav = RECIPES.some(isFav);
   if (state.filter === FAV_FILTER && !anyFav) { state.filter = "Toutes"; save(); }
   const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(RECIPES.map(r => r.category))].sort(byCategoryOrder)];
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
-  /* Le foin de chaque recette, normalisé une fois pour toute la visite. */
-  foins = new Map(RECIPES.map(r => [r.id, foinDe(r)]));
+  calculerFoins();
   app.innerHTML = `
     <header class="masthead fade-in">
       <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>

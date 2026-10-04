@@ -7,7 +7,7 @@ import { versionDeRequete } from "../core/liens.js";
 import { entreeCourante, entreeDe, setEntreeCourante } from "../core/menu.js";
 import { byId } from "../core/recettes.js";
 import { autoResumeStep } from "../core/seance.js";
-import { applyFilter, renderHome } from "../vues/accueil.js";
+import { rafraichirFoins, renderHome } from "../vues/accueil.js";
 import { renderCourses } from "../vues/courses.js";
 import { renderCook, stopCookMode } from "../vues/cuisine.js";
 import { renderRecipe } from "../vues/fiche.js";
@@ -126,9 +126,7 @@ let premierAffichage = true;
    qu'après le premier affichage, donc sans retarder l'accueil. Dès qu'il est
    arrivé, la recherche par mécanisme se remet à jour. */
 function demarrerChargementFonds() {
-  const lancer = () => chargerFondamentaux().then(() => {
-    if (document.getElementById("grid") && state.query) applyFilter(false);
-  }, () => {});
+  const lancer = () => chargerFondamentaux().then(rafraichirFoins, () => {});
   requestAnimationFrame(() => setTimeout(lancer, 0));
 }
 

@@ -185,10 +185,10 @@ test("synchro : canal tenu, heartbeat toutes les 25 s et relevé de secours tout
   const avant = serveur.lectures;
   for (let i = 1; i <= 5; i++) {
     await page.clock.runFor(25000);
-    await expect.poll(() => canal.battements).toBe(i);
+    await expect.poll(() => canal.battements, { timeout: 15000 }).toBe(i);
     if (i === 4) expect(serveur.lectures).toBe(avant);
   }
-  await expect.poll(() => serveur.lectures - avant).toBeGreaterThanOrEqual(1);
+  await expect.poll(() => serveur.lectures - avant, { timeout: 15000 }).toBeGreaterThanOrEqual(1);
   expect(serveur.lectures - avant).toBeLessThanOrEqual(2);
 });
 
@@ -201,8 +201,13 @@ test("synchro : canal refusé, on relève toutes les 10 s", async ({ page, conte
   await etat(page, "ok");
   await expect.poll(() => serveur.lectures).toBeGreaterThan(0);
   const avant = serveur.lectures;
-  await page.clock.runFor(35000);
-  await expect.poll(() => serveur.lectures - avant).toBeGreaterThanOrEqual(3);
+  /* Dix secondes à la fois, en attendant chaque relevé : avancer 35 s d'un coup
+     faisait tomber les trois échéances presque ensemble, pendant qu'une lecture
+     était encore en vol — et sur une machine chargée, la suivante était sautée. */
+  for (let i = 1; i <= 3; i++) {
+    await page.clock.runFor(10000);
+    await expect.poll(() => serveur.lectures - avant, { timeout: 15000 }).toBeGreaterThanOrEqual(i);
+  }
 });
 
 test("synchro : canal coupé, reconnexion à délai croissant", async ({ page, context }) => {

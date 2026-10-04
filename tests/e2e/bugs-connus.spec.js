@@ -334,7 +334,7 @@ test("B10b — dans les Savoirs, « reaction » trouve la réaction de Maillard"
 
 /* ---------- B11 : échappement du texte saisi ---------- */
 
-test.fixme("B11a — un article libre s'affiche en texte brut, sans exécuter son HTML", async ({ page }) => {
+test("B11a — un article libre s'affiche en texte brut, sans exécuter son HTML", async ({ page }) => {
   const nom = '<img src=x onerror="window.__xss=1">Glaçons';
   await page.goto("/#/courses");
   await page.locator("#extra-input").fill(nom);
