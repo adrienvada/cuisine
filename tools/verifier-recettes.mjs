@@ -22,6 +22,12 @@
    5. Fondamentaux. Une étape qui cite un mécanisme inexistant n'affiche rien du
       tout — la pastille disparaît en silence. Le catalogue lui-même doit être
       complet, et son identifiant part dans les liens partagés.
+   6. Unités de courses. Un même article doit s'exprimer dans une seule unité
+      côté courses, sinon la fusion jette une quantité.
+   7. Placard. Chaque produit du fond de placard doit exister dans les recettes.
+   8. Annotations des étapes. `ing` ne cite que des ingrédients de la recette, `four`
+      est une température crédible sur une étape qui parle de four, `moule` a une
+      forme connue et des dimensions positives.
 
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
@@ -39,6 +45,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
 const RECIPES = new Function(`${src}; return RECIPES;`)();
 const RAYONS = new Function(`${src}; return RAYONS;`)();
+const psrc = readFileSync(join(ROOT, "js", "placard.js"), "utf8");
+const PLACARD = new Function(`${psrc}; return PLACARD;`)();
 const fsrc = readFileSync(join(ROOT, "js", "fondamentaux.js"), "utf8");
 const FONDAMENTAUX = new Function(`${fsrc}; return FONDAMENTAUX;`)();
 const FAMILLES = new Function(`${fsrc}; return FAMILLES;`)();
@@ -192,6 +200,93 @@ for (const r of RECIPES) {
 }
 tipsKo.forEach(ko);
 
+/* ---------- 6. Unité de courses unique par article ---------- */
+
+/* La liste de courses n'additionne les quantités d'un même `cid` que si leurs
+   unités sont identiques, et jette la seconde sinon : « gousses » + « gousse »
+   perdait une gousse d'ail, « bouquet » + « botte » la botte de basilic. Pour
+   chaque `cid`, l'unité côté courses (`shop.unit` si présente, sinon `unit`)
+   doit donc être la même dans toutes les recettes, options et suppléments
+   compris. Une unité vide ne compte pas (« 2 citrons » s'additionne avec tout),
+   pas plus qu'une quantité de courses nulle : rien n'y est additionné, la
+   quantité généreuse d'huile d'olive n'entre dans aucun total. */
+const unitesParCid = new Map();
+for (const r of RECIPES) {
+  const lotsCourses = [
+    [r.id, r.ingredients],
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.ingredients])),
+    ...(r.addons || []).map(a => [`${r.id} / +${a.id}`, a.ingredients])
+  ];
+  for (const [ref, ings] of lotsCourses) for (const i of ings || []) {
+    if (i.course === false || !i.cid) continue;
+    const shop = i.shop || {};
+    const qty = "qty" in shop ? shop.qty : i.qty;
+    const unite = ("unit" in shop ? shop.unit : i.unit) || "";
+    if (qty == null || !unite) continue;
+    if (!unitesParCid.has(i.cid)) unitesParCid.set(i.cid, new Map());
+    const parUnite = unitesParCid.get(i.cid);
+    if (!parUnite.has(unite)) parUnite.set(unite, []);
+    parUnite.get(unite).push(ref);
+  }
+}
+for (const [cid, parUnite] of unitesParCid) {
+  if (parUnite.size < 2) continue;
+  const detail = [...parUnite].map(([u, refs]) => `« ${u} » (${refs.join(", ")})`).join(" contre ");
+  ko(`${cid} : unités de courses différentes, une quantité sera perdue à la fusion — ${detail}. Harmoniser avec shop: { qty, unit }`);
+}
+
+/* ---------- 7. Placard ---------- */
+
+/* Chaque produit de fond de placard est un `cid` d'ingrédient : sinon il ne
+   matche rien et la liste « à vérifier » reste silencieusement incomplète. */
+const cidsConnus = new Set(RECIPES.flatMap(r => [
+  ...r.ingredients,
+  ...(r.choices || []).flatMap(c => c.options.flatMap(o => o.ingredients || [])),
+  ...(r.addons || []).flatMap(a => a.ingredients || [])
+]).map(i => i.cid));
+for (const cid of PLACARD) if (!cidsConnus.has(cid)) ko(`PLACARD : « ${cid} » n'est le cid d'aucun ingrédient des recettes`);
+if (new Set(PLACARD).size !== PLACARD.length) ko("PLACARD : un cid figure deux fois");
+
+/* ---------- 8. Annotations des étapes : ing, four, moule ---------- */
+
+/* Ces champs nourrissent le mode cuisine (les ingrédients de l'étape), le
+   préchauffage et les conflits de four au menu, l'adaptation au moule. Une
+   référence qui ne tombe sur rien, ou un four qui ne chauffe pas, s'affichent
+   sans rien dire : on les attrape ici. */
+const FORMES_MOULE = { rond: ["diametre"], rectangle: ["largeur", "longueur"], cake: ["longueur"] };
+const LIEN_FOUR = /four|enfourn/i;
+let etapesSansIng = 0;
+let etapesTotal = 0;
+
+for (const r of RECIPES) {
+  const connus = new Set([
+    ...r.ingredients,
+    ...(r.choices || []).flatMap(c => c.options.flatMap(o => o.ingredients || [])),
+    ...(r.addons || []).flatMap(a => a.ingredients || [])
+  ].map(i => i.cid || i.name));
+  const etapes = [
+    ...r.steps.map((s, i) => [`${r.id}[${i}]`, s]).filter(([, s]) => !s.choice),
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.step]))
+  ];
+  for (const [ref, s] of etapes) {
+    etapesTotal++;
+    if (!s.ing) etapesSansIng++;
+    else if (!Array.isArray(s.ing)) ko(`${ref} : ing doit être une liste`);
+    else for (const k of s.ing) if (!connus.has(k)) ko(`${ref} : ing cite « ${k} », qui n'est ni le cid ni le nom d'un ingrédient de la recette`);
+    if ("four" in s) {
+      if (typeof s.four !== "number" || !(s.four >= 50 && s.four <= 300)) ko(`${ref} : four doit être un nombre de °C entre 50 et 300 (reçu ${JSON.stringify(s.four)})`);
+      if (!LIEN_FOUR.test(s.txt || "")) ko(`${ref} : four est renseigné mais le texte de l'étape ne parle ni de four ni d'enfourner`);
+    }
+  }
+  if (r.moule) {
+    const dims = FORMES_MOULE[r.moule.forme];
+    if (!dims) ko(`${r.id} : forme de moule « ${r.moule.forme} » inconnue (${Object.keys(FORMES_MOULE).join(", ")})`);
+    else for (const d of dims) {
+      if (!(typeof r.moule[d] === "number" && r.moule[d] > 0)) ko(`${r.id} : moule.${d} doit être un nombre positif`);
+    }
+  }
+}
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
@@ -211,3 +306,4 @@ const sansFond = RECIPES.filter(r => ![
 
 if (orphelins.length) console.log(`  · ${orphelins.length} pas encore rattaché(s) : ${orphelins.map(f => f.id).join(", ")}`);
 if (sansFond.length) console.log(`  · ${sansFond.length} recette(s) sans aucun fondamental : ${sansFond.map(r => r.id).join(", ")}`);
+if (etapesSansIng) console.log(`  · ${etapesSansIng} étape(s) sur ${etapesTotal} sans ing (liste des ingrédients de l'étape) : ils n'apparaîtront pas en mode cuisine`);
