@@ -26,10 +26,10 @@ async function ajouterTelQuel(page) {
 
 /* ---------- B1 : la synchro ---------- */
 
-test.fixme("B1a — taper une recherche ou avancer d'une étape n'envoie rien au serveur", async ({ page, context }) => {
+test("B1a — taper une recherche ou avancer d'une étape n'envoie rien au serveur", async ({ page, context }) => {
   const serveur = await connecte(context);
   await page.goto("/");
-  await expect(page.locator("#sync-btn")).toHaveAttribute("data-etat", "ok");
+  await expect(page.locator("html")).toHaveAttribute("data-synchro", "ok");
 
   await page.locator("#search").fill("feta");
   await expect(page.locator(CARTES)).toHaveCount(5);
@@ -44,11 +44,11 @@ test.fixme("B1a — taper une recherche ou avancer d'une étape n'envoie rien au
   expect(serveur.ecritures).toHaveLength(0);
 });
 
-test.fixme("B1b — une coche faite ailleurs n'est pas effacée par une modification locale d'autre chose", async ({ page, context }) => {
+test("B1b — une coche faite ailleurs n'est pas effacée par une modification locale d'autre chose", async ({ page, context }) => {
   const quiche = entree("quiche-lorraine", { k: "q1" });
   const serveur = await connecte(context, { menu: [quiche] });
   await page.goto("/#/courses");
-  await expect(page.locator("#sync-btn")).toHaveAttribute("data-etat", "ok");
+  await expect(page.locator("html")).toHaveAttribute("data-synchro", "ok");
 
   // Un autre appareil coche les œufs ; ce navigateur ne l'a pas encore relevé.
   serveur.modifier({ menu: [quiche], checked: { oeufs: true }, extras: [] });
@@ -292,12 +292,12 @@ test.fixme("B9a — accueil défilé, recette ouverte, retour : même position �
   await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - avant)).toBeLessThanOrEqual(50);
 });
 
-test.fixme("B9b — liste de courses défilée : une mise à jour du serveur ne ramène pas en haut", async ({ page, context }) => {
+test("B9b — liste de courses défilée : une mise à jour du serveur ne ramène pas en haut", async ({ page, context }) => {
   const ids = ["focaccia-romarin", "quiche-lorraine", "veloute-butternut-shiitakes", "cake-sale", "salade-lentilles-feta", "scoopable-cookies"];
   const menu = ids.map((rid, i) => entree(rid, { k: "c" + i }));
   const serveur = await connecte(context, { menu });
   await page.goto("/#/courses");
-  await expect(page.locator("#sync-btn")).toHaveAttribute("data-etat", "ok");
+  await expect(page.locator("html")).toHaveAttribute("data-synchro", "ok");
 
   await page.evaluate(() => window.scrollTo(0, 500));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);

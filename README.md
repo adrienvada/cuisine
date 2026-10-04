@@ -199,7 +199,7 @@ js/sync-config.js       Données : l'adresse de la base de synchro
   (ces fichiers de données sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
 
 js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs, service worker
-js/sync.js              Synchronisation entre appareils (Supabase)
+js/sync.js              Synchronisation entre appareils (Supabase REST + canal Realtime)
 
 js/core/etat.js         L'état, save(), abonnés à la sauvegarde, migrations des anciens formats
 js/core/format.js       Durées, quantités à l'échelle, dates, horloge, normaliser()
@@ -210,6 +210,7 @@ js/core/fonds.js        Les fondamentaux vus des recettes, et inversement
 js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas, basiques oubliés
 js/core/courses.js      La liste de courses calculée depuis le menu
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
+js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
 js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour
@@ -218,6 +219,7 @@ js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
 js/ui/theme.js          Thème clair/sombre, mouvement réduit
+js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js (MIT)
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
@@ -285,24 +287,18 @@ reprenant la composition rangée sous l'identifiant de la recette.
 
 ### Synchronisation entre appareils (Supabase)
 
-Le menu, les cases cochées et les articles libres (`menu`, `checked`, `extras`) sont
-stockés dans **une seule base partagée**. Le reste (thème, recherche, minuteurs, notes)
-reste local à chaque appareil.
+Le menu, les cases cochées, les articles libres, les verdicts, les compteurs de recettes cuisinées, les notes perso, le prochain repas, l'historique, le journal et l'ordre des rayons (`menu`, `checked`, `extras`, `notes`, `cooked`, `notesPerso`, `repas`, `historique`, `journal`, `ordreRayons` — la liste est `CHAMPS_SYNCHRO` dans `js/core/fusion.js`) sont stockés dans **une seule base partagée**. Le reste (thème, recherche, minuteurs, réglages de l'appareil) reste local. Les photos du journal ne voyagent pas.
 
-- **Un mot de passe**, saisi une fois par navigateur (icône nuage en haut à gauche : barré = pas connecté, coché vert = connecté, Wi-Fi barré doré = connecté mais hors réseau, flèches qui tournent = connexion en cours).
-  Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans
-  `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe,
-  on ne lit ni n'écrit rien.
-- Mise en place, une fois : exécuter [`supabase/carnet.sql`](supabase/carnet.sql) dans le
-  SQL Editor (en remplaçant `MON_MOT_DE_PASSE`), puis renseigner l'URL et la clé
-  publique dans [`js/sync-config.js`](js/sync-config.js). Vide, la synchro est désactivée
-  et le bouton caché. Changer le mot de passe : relancer l'`insert … on conflict`.
-- La première connexion sur une base vide en fait le carnet partagé ; les suivantes
-  remplacent le menu et la liste du navigateur par ceux de la base (avec confirmation).
-- `localStorage` reste la source hors ligne ; les changements partent 0,8 s après
-  la modification, et l'appareil relit le serveur toutes les 10 s et au retour sur l'app.
-- En cas de modifications simultanées, la dernière écriture l'emporte.
-- Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
+- **Un mot de passe**, saisi une fois par navigateur depuis les réglages. Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe, on ne lit ni n'écrit rien. L'API est `carnetSync` (`js/sync.js`) : `disponible`, `etat()` (`off` | `attente` | `ok` | `hors`, aussi posé sur `<html data-synchro>`), `surEtat(fn)`, `connecter(mdp, { remplacer })`, `deconnecter()`, `lienConnexion()`, `relever()`. `connecter` ne remplace jamais un carnet existant sans `remplacer: true` : il répond `carnetExistant: true` et c'est à l'interface de demander confirmation. Une mise à jour venue d'un autre appareil émet l'évènement `carnet-synchro` sur `document`.
+- **Mise en place**, une fois : exécuter [`supabase/carnet.sql`](supabase/carnet.sql) dans le SQL Editor (en remplaçant `MON_MOT_DE_PASSE`), puis renseigner l'URL et la clé publique dans [`js/sync-config.js`](js/sync-config.js). Vide, la synchro est désactivée. Changer le mot de passe : relancer l'`insert … on conflict`.
+- **Projet déjà en service : exécuter le bloc 4 de `supabase/carnet.sql`** (« Migration : contrôle de version »), seul, dans le SQL Editor. Il est idempotent et ajoute `carnet_ecrire(p_mdp, p_data, p_vu)` ; l'ancienne fonction reste. Tant qu'il n'est pas passé, l'appli se replie sur l'ancienne fonction (elle relit juste avant d'écrire) — sans contrôle de version côté serveur.
+- **Rien ne part sans changement** : `save()` est appelé pour tout, mais l'envoi (0,8 s après) n'a lieu que si un champ synchronisé diffère de la dernière version serveur connue (la « base », gardée dans `localStorage` avec le mot de passe).
+- **Fusion à trois voies** (base / local / serveur, `js/core/fusion.js`, fonctions pures) : à l'envoi, l'appareil relit le serveur, fusionne, puis écrit en donnant la version vue (`p_vu`). Si le serveur refuse parce qu'elle a bougé, il relit, refusionne et réessaie (3 fois au plus). Listes à clé (menu par `k` ; extras, historique, journal par `id`) : ajouts et retraits des deux côtés respectés, entrée modifiée des deux côtés → la version locale ; une entrée retirée d'un côté et modifiée de l'autre reste retirée. Dictionnaires (`checked`, `notes`, `cooked`, `notesPerso`) : clé par clé, ce qui a changé d'un côté l'emporte, des deux côtés → le local, sauf `notesPerso` (la plus récente selon `at`) et `cooked` (plus grand compte, date la plus récente). `repas` : champ par champ. `ordreRayons` : celui qui a changé. Un champ absent reste absent.
+- **Temps réel** : l'appareil rejoint un canal Supabase Realtime en *broadcast* dont le nom est le SHA-256 hexadécimal de `carnet:` collé au mot de passe (introuvable sans lui). Après chaque écriture il y diffuse un simple « change » — aucune donnée n'y passe — et les autres appareils relèvent aussitôt. Protocole Phoenix minimal, sans dépendance : `phx_join`, heartbeat toutes les 25 s, reconnexion à délai croissant (1 s à 1 min). Canal tenu : relevé de secours toutes les 2 min ; sinon toutes les 10 s, comme avant. Si les canaux publics sont désactivés (Realtime → Settings → « Allow public access »), la synchro continue par relevé.
+- **Connexion par QR code** : `lienConnexion()` donne `…/#/connexion/<mot de passe en base64url>`, que les réglages encodent avec `qrSvg` (`js/ui/qr.js`, sur la bibliothèque MIT `js/vendor/qrcode-generator.js`, chargée seulement à l'affichage du code). Ouvrir ce lien se connecte (avec confirmation si l'appareil porte déjà un menu et que le carnet partagé existe), puis l'adresse est remplacée par `#/` pour que le jeton ne reste pas dans l'historique. Le jeton *est* le mot de passe : à ne montrer qu'à l'écran d'un appareil déjà connecté.
+- **Ne pas déranger** : une mise à jour redessine Menu ou Courses sur place (`route({ garderDefilement: true })`), mais attend la fin d'une saisie et la fermeture d'une feuille.
+- `localStorage` reste la source hors ligne. Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
+- Les tests simulent Supabase (`page.route`) et le canal (`page.routeWebSocket`) — `tests/e2e/outils-synchro.js` — et ne touchent jamais au vrai serveur.
 
 Pour tester en local :
 
