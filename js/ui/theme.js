@@ -14,7 +14,7 @@ export function modeTheme() {
   return v === "dark" ? "sombre" : v === "light" ? "clair" : "auto";
 }
 
-export const themeSombre = mode => mode === "sombre" || (mode === "auto" && SYSTEME_SOMBRE.matches);
+const themeSombre = mode => mode === "sombre" || (mode === "auto" && SYSTEME_SOMBRE.matches);
 
 function appliquer() {
   const dark = themeSombre(modeTheme());

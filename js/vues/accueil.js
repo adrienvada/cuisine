@@ -35,7 +35,7 @@ export function discoveredHtml(r) {
    fourchette — sur une vignette on annonce le temps le plus court, la fiche
    détaille ce que les suppléments y ajoutent. Un poste absent ne prend pas de
    place, sauf l'absence de cuisson, qui est une information. */
-export function timeChipsHtml(r) {
+function timeChipsHtml(r) {
   const t = tempsDe(r);
   const part = (icone, min) => `<span class="t-part">${icone} ${fmtTime(min)}</span>`;
   return [
@@ -212,11 +212,8 @@ function ouvrirJai() {
     }
     liste.querySelector(".jai-vide").hidden = n > 0;
   });
-  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
-  document.addEventListener("keydown", surEchap);
   rafraichir();
   ouvrirFeuille(backdrop, () => {
-    document.removeEventListener("keydown", surEchap);
     majJai();
     applyFilter(true);
   });
@@ -253,7 +250,7 @@ export function inFilter(r) {
 /* Une carte par recette, créée une seule fois par visite de l'accueil.
    Filtrer ne reconstruit plus rien : les cartes restent dans le DOM et
    `applyFilter` ne fait que les montrer, les cacher et les déplacer. */
-export function cardHtml(r) {
+function cardHtml(r) {
   const v = VERDICTS.find(x => x.id === verdictOf(r));
   const c = cookedOf(r);
   /* Un <article>, pas un lien : le bouton partager ne peut pas vivre dans un
@@ -305,7 +302,7 @@ export function burstHeart(btn) {
 }
 
 /* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée. */
-export function finishLeave(el) {
+function finishLeave(el) {
   clearTimeout(el._lv);
   if (!el.classList.contains("card-leave")) return;
   el.classList.remove("card-leave");
@@ -316,7 +313,7 @@ export function finishLeave(el) {
 /* Filtre la grille façon FLIP : les cartes écartées s'estompent sur place,
    les survivantes glissent vers leur nouvelle position, les entrantes
    apparaissent en fondu. Aucune reconstruction du DOM. */
-export function applyFilter(animate) {
+function applyFilter(animate) {
   const grid = document.getElementById("grid");
   if (!grid) return;
   const list = visibles();

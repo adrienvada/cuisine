@@ -10,6 +10,7 @@ import {
   tailleDeReference,
   tailleEquivalente
 } from "../core/adaptation.js";
+import { libelleQuantite } from "../core/cuisine.js";
 import { save, state } from "../core/etat.js";
 import { scaleText, timeText } from "../core/format.js";
 import { esc, html, raw } from "../core/html.js";
@@ -46,7 +47,7 @@ import { allerEnRemplacant, app, hashPrecedent } from "../ui/routeur.js";
 import { toast, updateBadge } from "../ui/toast.js";
 import { visuel } from "../ui/visuel.js";
 import { burstHeart, discoveredHtml } from "./accueil.js";
-import { ouvrirIngredient, quantiteTexte } from "./ingredient.js";
+import { ouvrirIngredient } from "./ingredient.js";
 import { astuceHtml, savoirsHtml } from "./savoirs.js";
 
 /* Le geste d'un supplément, affiché dans l'étape concernée.
@@ -64,7 +65,7 @@ export const extrasHtml = (s, cuisine) => (s.extras || []).map(x => {
 }).join("");
 
 /* Chips de sélection, partagées entre la page recette et la sheet d'ajout. */
-export const pickChipsHtml = r => `
+const pickChipsHtml = r => `
   ${choiceList(r).map(c => `
     <p class="pick-label">${c.label}</p>
     <div class="pick-row" role="group" aria-label="${esc(c.label)}">${c.options.map(o => `
@@ -79,7 +80,7 @@ export const pickChipsHtml = r => `
     </div>` : ""}`;
 
 /* Applique un tap sur une chip (choix ou supplément). Renvoie true si l'état a changé. */
-export function onPickClick(e, r) {
+function onPickClick(e, r) {
   const oc = e.target.closest("[data-choice]");
   if (oc) { setChoice(r.id, oc.dataset.choice, oc.dataset.option); return true; }
   const oa = e.target.closest("[data-addon]");
@@ -88,7 +89,7 @@ export function onPickClick(e, r) {
 }
 
 /* La sheet « façon fast-food » à l'ajout au menu : composer, ou ajouter tel quel. */
-export function openAddSheet(r, done) {
+function openAddSheet(r, done) {
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop";
   backdrop.innerHTML = `
@@ -249,7 +250,7 @@ export function renderRecipe(r) {
     document.getElementById("p-val").textContent = `${p} ${unite}`;
     document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map((ing, i) => html`<li>
       <button type="button" class="ing-ligne" data-i="${i}" aria-haspopup="dialog">
-        <span class="qty">${quantiteTexte(ing, f)}</span>
+        <span class="qty">${libelleQuantite(ing, f) || "—"}</span>
         <span class="ing-nom">${ing.name}${ing.addon ? raw(`<span class="opt sup">supplément</span>`) : ""}${ing.optional ? raw(`<span class="opt">optionnel</span>`) : ""}${ing.note ? raw(html`<span class="note"> — ${scaleText(ing.note, f)}</span>`) : ""}</span>
         <span class="ing-chev" aria-hidden="true">${raw(ICON.chev)}</span>
       </button>

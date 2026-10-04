@@ -1,7 +1,6 @@
 /* Une version de recette dans une adresse : portions, choix et suppléments, de ou vers une requête (`?p=8&c=garniture:olives-feta&a=tomates-sechees`). */
 
-/* Les mêmes bornes que les boutons de portions de la fiche. */
-const PORTIONS_MAX = 24;
+import { PORTIONS_MAX, PORTIONS_MIN } from "./adaptation.js";
 
 /* Ce qui s'écarte des valeurs par défaut, et seulement cela : un lien sans
    réglage reste le lien nu d'avant. Les choix valent « identifiant:option »,
@@ -26,7 +25,7 @@ export function versionDeRequete(r, requete) {
   const q = new URLSearchParams(requete || "");
   const v = {};
   const p = q.get("p");
-  if (p && /^\d{1,2}$/.test(p) && +p >= 1 && +p <= PORTIONS_MAX) v.portions = +p;
+  if (p && /^\d{1,2}$/.test(p) && +p >= PORTIONS_MIN && +p <= PORTIONS_MAX) v.portions = +p;
   const choices = {};
   for (const brut of q.getAll("c")) {
     const i = brut.indexOf(":");

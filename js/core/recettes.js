@@ -13,7 +13,7 @@ export const byId = id => RECIPES.find(r => r.id === id);
    poste où ce temps s'ajoute), exactement comme un supplément. Sans `adds`, le
    minuteur de l'option est déjà compris dans `times`. `conf` : la composition à
    lire, la courante si on l'omet. */
-export const choiceTime = (r, poste, conf) => choiceList(r).reduce((n, c) => {
+const choiceTime = (r, poste, conf) => choiceList(r).reduce((n, c) => {
   const s = optionOf(r, c, conf).step;
   return n + (s && s.timer && s.adds === poste ? s.timer : 0);
 }, 0);
@@ -52,7 +52,7 @@ export const VERDICTS = [
 export const FAV_FILTER = "coup-de-coeur";
 
 /* Ordre des catégories dans les filtres : celui d'un repas, boissons en dernier. */
-export const CATEGORY_ORDER = ["Apéro", "Entrées", "Soupes", "Salades", "Plats", "Sauces", "Desserts", "Boissons"];
+const CATEGORY_ORDER = ["Apéro", "Entrées", "Soupes", "Salades", "Plats", "Sauces", "Desserts", "Boissons"];
 export const byCategoryOrder = (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b);
 
 export const verdictOf = r => state.notes[r.id] || null;

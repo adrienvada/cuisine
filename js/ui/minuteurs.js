@@ -277,7 +277,7 @@ export async function acquireWakeLock() {
   demandeEnCours = false;
 }
 
-export function majVerrou() {
+function majVerrou() {
   if (verrouNecessaire()) acquireWakeLock();
   else if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
 }
@@ -309,7 +309,7 @@ function reprendreAudio(geste = false) {
   if (ctxAudio && ctxAudio.state !== "running" && (geste || gestePermis())) ctxAudio.resume().catch(() => {});
 }
 
-export function debloquerAudio() {
+function debloquerAudio() {
   try {
     // Sans cela, iOS fait taire la sonnerie quand le téléphone est en silencieux.
     if (navigator.audioSession) navigator.audioSession.type = "playback";
@@ -324,7 +324,7 @@ export function debloquerAudio() {
   } catch (e) {}
 }
 
-export function beep() {
+function beep() {
   try {
     const ctx = gestePermis() ? contexteAudio() : null;
     if (ctx) {
@@ -360,7 +360,7 @@ export function sonner(t) {
   majVerrou();
 }
 
-export function arreterSonnerie(id) {
+function arreterSonnerie(id) {
   const s = sonneries.get(id);
   if (!s) return;
   clearInterval(s.relance);

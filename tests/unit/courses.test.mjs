@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { RAYONS, RECIPES } from "./donnees.mjs";
 import { state } from "../../js/core/etat.js";
-import { buildCourseList, courseQtyStr, courseTodo, deplacerRayon, elaguerCoches, quantiteTexte, rayonsOrdonnes } from "../../js/core/courses.js";
+import { buildCourseList, courseQtyStr, courseTodo, deplacerRayon, elaguerCoches, quantitesDe, rayonsOrdonnes } from "../../js/core/courses.js";
 import { fmtUnit } from "../../js/core/format.js";
 
 /* Le fond de placard est une donnée globale que donnees.mjs ne charge pas. */
@@ -188,7 +188,7 @@ test("la provenance garde la quantité de chaque recette, deux entrées d'une m�
     state.menu = [entree("t-a", { k: "1" }), entree("t-b", { k: "2" }), entree("t-b", { k: "3" })];
     const it = ligne(buildCourseList(), "farine-t");
     assert.equal(it.qty, 640);
-    assert.deepEqual(it.sources.map(s => [s.titre, quantiteTexte(s)]), [["Focaccia", "500 g"], ["Cake salé", "140 g"]]);
+    assert.deepEqual(it.sources.map(s => [s.titre, quantitesDe(s)]), [["Focaccia", "500 g"], ["Cake salé", "140 g"]]);
   });
 });
 
@@ -197,7 +197,7 @@ test("la provenance suit les portions de chaque entrée", () => {
   const a = recetteFictive("t-a", "A", [ing("sucre-t", 100, "g")], 4);
   avecRecettes([a], () => {
     state.menu = [entree("t-a", { portions: 8 })];
-    assert.equal(quantiteTexte(ligne(buildCourseList(), "sucre-t").sources[0]), "200 g");
+    assert.equal(quantitesDe(ligne(buildCourseList(), "sucre-t").sources[0]), "200 g");
   });
 });
 

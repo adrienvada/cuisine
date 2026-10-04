@@ -56,7 +56,7 @@ export const FILTRES = [
 /* ---------- « J'ai… » ---------- */
 
 /* Un ingrédient se reconnaît à son cid, ou à son nom quand il n'en a pas. */
-export const cleIngredient = i => i.cid || normaliser(i.name);
+const cleIngredient = i => i.cid || normaliser(i.name);
 
 /* Le fond de placard (sel, huile, farine…) est chez tout le monde : il ne dirait
    rien du plat. On l'écarte du choix comme du « 3 / 5 ». */

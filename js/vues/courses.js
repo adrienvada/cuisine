@@ -1,6 +1,6 @@
 /* L'onglet Courses : la liste par rayon, son panier, le placard, l'ordre des rayons, la provenance des quantités, les articles libres et le partage. */
 
-import { buildCourseList, courseQtyStr, deplacerRayon, elaguerCoches, quantiteTexte, rayonsOrdonnes, reinitialiserOrdreRayons } from "../core/courses.js";
+import { buildCourseList, courseQtyStr, deplacerRayon, elaguerCoches, quantitesDe, rayonsOrdonnes, reinitialiserOrdreRayons } from "../core/courses.js";
 import { save, state, surSauvegarde } from "../core/etat.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
@@ -77,7 +77,7 @@ function ligne(it) {
         <span class="cqty">${it.extra ? "" : courseQtyStr(it)}</span>
         ${it.extra ? raw(html`<button class="x" data-remove-extra="${it.key.slice(2)}" aria-label="Supprimer ${it.label}">✕</button>`) : ""}
       </label>
-      ${it.extra ? "" : raw(html`<ul class="origine" ${ouvert ? "" : raw("hidden")}>${it.sources.map(s => raw(html`<li>${s.titre}${quantiteTexte(s) ? ` — ${quantiteTexte(s)}` : ""}</li>`))}</ul>`)}
+      ${it.extra ? "" : raw(html`<ul class="origine" ${ouvert ? "" : raw("hidden")}>${it.sources.map(s => raw(html`<li>${s.titre}${quantitesDe(s) ? ` — ${quantitesDe(s)}` : ""}</li>`))}</ul>`)}
     </li>`;
 }
 
@@ -333,7 +333,7 @@ function surClic(e) {
   }
 }
 
-export function shareList() {
+function shareList() {
   elaguerCoches();
   const liste = composerListe();
   const lines = ["🛒 Liste de courses — Carnet de cuisine", ""];

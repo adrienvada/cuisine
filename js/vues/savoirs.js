@@ -13,7 +13,7 @@ import { app } from "../ui/routeur.js";
    dorée). Le champ `k` le dit explicitement — auparavant on le devinait du titre
    à l'expression régulière, si bien que renommer une astuce changeait son
    apparence en silence. */
-export function tipHtml(tip, savoirs = "") {
+function tipHtml(tip, savoirs = "") {
   const savoir = tip.k === "savoir";
   return `<div class="tip ${savoir ? "beige" : ""}${savoirs ? " a-savoirs" : ""}">
     <span class="tip-ico">${savoir ? ILLO.D.plume : ILLO.D.toque}</span>
@@ -64,7 +64,7 @@ export const astuceHtml = s => {
 /* Corps d'un fondamental — le même dans la feuille et dans la page partagée :
    deux contenants, une seule vérité. `niveau` est celui des intertitres : 4 sous le
    h3 de la feuille, 2 sous le h1 de la page — la hiérarchie ne saute jamais. */
-export function fondBodyHtml(f, niveau = 4) {
+function fondBodyHtml(f, niveau = 4) {
   const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
   const recettes = recettesDuFond(f.id);
   /* L'ordre n'est pas cosmétique : on ouvre cette feuille une casserole sur le
@@ -114,21 +114,6 @@ export function openFondSheet(id) {
       ${fondBodyHtml(f)}
       <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
     </div>`;
-  /* Le clavier reste dans la feuille : Échap la ferme, et Tab tourne entre ses
-     contrôles au lieu de filer vers la page qu'elle recouvre. */
-  const surClavier = e => {
-    if (e.key === "Escape") return fermerFeuille();
-    if (e.key !== "Tab") return;
-    const prises = [...backdrop.querySelectorAll("button, a[href]")];
-    if (!prises.length) return;
-    const feuille = backdrop.querySelector(".sheet");
-    const premiere = prises[0], derniere = prises[prises.length - 1];
-    if (e.shiftKey && (document.activeElement === premiere || document.activeElement === feuille)) { e.preventDefault(); derniere.focus(); }
-    else if (!e.shiftKey && document.activeElement === derniere) { e.preventDefault(); premiere.focus(); }
-  };
-  /* Là d'où l'on vient : on y rend le clavier à la fermeture, pour reprendre
-     la lecture de l'étape là où on l'avait laissée. */
-  const declencheur = document.activeElement;
   /* Un lien vers une recette ne navigue pas tout de suite : on dépile d'abord
      l'entrée de la feuille, sinon les deux gestes se croisent et l'un annule
      l'autre. La navigation se fait donc une fois la feuille retirée. */
@@ -144,15 +129,10 @@ export function openFondSheet(id) {
       fermerFeuille();
     }
   });
-  document.addEventListener("keydown", surClavier);
+  /* Échap, Tab et le retour du focus à la fermeture : js/ui/feuilles.js. */
   ouvrirFeuille(backdrop, () => {
-    document.removeEventListener("keydown", surClavier);
     if (ensuite) { const aller = ensuite; ensuite = null; aller(); }
-    else if (declencheur && declencheur.isConnected) declencheur.focus({ preventScroll: true });
   });
-  const feuille = backdrop.querySelector(".sheet");
-  feuille.tabIndex = -1;
-  feuille.focus({ preventScroll: true });
 }
 
 /* La liste seule : c'est tout ce qui change quand on tape. */

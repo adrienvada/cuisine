@@ -1,5 +1,6 @@
 /* Le journal des recettes cuisinées : date, convives, note et photo du résultat, sur la fiche et à la fin du mode cuisine. */
 
+import { CONVIVES_JOURNAL_MAX } from "../core/adaptation.js";
 import { etatDeSecours, save, state } from "../core/etat.js";
 import { aujourdhui, dateEnClair, entreesDe } from "../core/journal.js";
 import { html, raw } from "../core/html.js";
@@ -80,7 +81,7 @@ if (typeof document !== "undefined") document.addEventListener("carnet-synchro",
 
 /* Réduit la photo avant de la ranger : 1 200 px de grand côté, JPEG. Un cliché de
    téléphone fait plusieurs mégaoctets, et le stockage d'un navigateur est compté. */
-export async function reduirePhoto(fichier) {
+async function reduirePhoto(fichier) {
   let source;
   try {
     source = await createImageBitmap(fichier, { imageOrientation: "from-image" });
@@ -226,15 +227,10 @@ async function voirPhoto(id) {
     <img class="jr-grande" src="${url}" alt="Photo du plat">
     <button type="button" class="btn secondary jr-fermer" id="jr-fermer">Fermer</button>
   </div>`;
-  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
   fond.addEventListener("click", e => {
     if (e.target === fond || e.target.closest("#jr-fermer")) fermerFeuille();
   });
-  document.addEventListener("keydown", surEchap);
-  ouvrirFeuille(fond, () => {
-    document.removeEventListener("keydown", surEchap);
-    URL.revokeObjectURL(url);
-  });
+  ouvrirFeuille(fond, () => URL.revokeObjectURL(url));
 }
 
 /* ---------- La feuille d'ajout ---------- */
@@ -242,7 +238,7 @@ async function voirPhoto(id) {
 export function ouvrirJournal(rid) {
   const r = byId(rid);
   if (!r) return;
-  let convives = Math.max(1, Math.min(99, Math.round((state.repas && state.repas.convives) || (state.portions && state.portions[rid]) || (r.portions && r.portions.base) || 2)));
+  let convives = Math.max(1, Math.min(CONVIVES_JOURNAL_MAX, Math.round((state.repas && state.repas.convives) || (state.portions && state.portions[rid]) || (r.portions && r.portions.base) || 2)));
   let photo = null;          // le blob déjà réduit, prêt à ranger
   let preparation = null;    // la réduction en cours : « Enregistrer » l'attend plutôt que de perdre la photo
   let urlApercu = null;
@@ -283,7 +279,7 @@ export function ouvrirJournal(rid) {
   dessinerConvives();
 
   $("#jr-moins").addEventListener("click", () => { convives = Math.max(1, convives - 1); dessinerConvives(); });
-  $("#jr-plus").addEventListener("click", () => { convives = Math.min(99, convives + 1); dessinerConvives(); });
+  $("#jr-plus").addEventListener("click", () => { convives = Math.min(CONVIVES_JOURNAL_MAX, convives + 1); dessinerConvives(); });
 
   $("#jr-fichier").addEventListener("change", async e => {
     const fichier = e.target.files && e.target.files[0];
@@ -342,13 +338,8 @@ export function ouvrirJournal(rid) {
   });
   $("#jr-non").addEventListener("click", () => fermerFeuille());
   fond.addEventListener("click", e => { if (e.target === fond) fermerFeuille(); });
-  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
-  document.addEventListener("keydown", surEchap);
 
-  ouvrirFeuille(fond, () => {
-    document.removeEventListener("keydown", surEchap);
-    if (urlApercu) URL.revokeObjectURL(urlApercu);
-  });
+  ouvrirFeuille(fond, () => { if (urlApercu) URL.revokeObjectURL(urlApercu); });
 }
 
 export { aujourdhui, dateEnClair, entreesDe };

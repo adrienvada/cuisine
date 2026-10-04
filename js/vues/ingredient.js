@@ -1,16 +1,10 @@
 /* La feuille d'un ingrédient : sa quantité, « j'en ai moins », ses substitutions et ses allergènes. */
 
 import { allergenesDe, lireQuantite, portionsPermises, PORTIONS_MAX, PORTIONS_MIN } from "../core/adaptation.js";
+import { libelleQuantite } from "../core/cuisine.js";
 import { fmtQty, fmtUnit, scaleQty, scaleText } from "../core/format.js";
 import { html, raw } from "../core/html.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
-
-/* La quantité d'un ingrédient aux portions affichées (`f` = portions / base),
-   telle que la liste et la feuille la montrent toutes les deux. */
-export function quantiteTexte(ing, f) {
-  const q = scaleQty(ing.qty, ing.unit, f, ing.entier);
-  return q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "—");
-}
 
 const pluriel = n => (n > 1 ? "s" : "");
 
@@ -29,7 +23,7 @@ export function ouvrirIngredient(r, ing, { portions, regler }) {
     <div class="sheet sheet-ing" role="dialog" aria-modal="true" aria-label="${ing.name}">
       <div class="sheet-grip"></div>
       <h3>${ing.name}</h3>
-      <p class="sheet-sub">${quantiteTexte(ing, f)} pour ${portions} ${r.portions.label}${ing.note ? raw(html` · ${scaleText(ing.note, f)}`) : ""}</p>
+      <p class="sheet-sub">${libelleQuantite(ing, f) || "—"} pour ${portions} ${r.portions.label}${ing.note ? raw(html` · ${scaleText(ing.note, f)}`) : ""}</p>
 
       <p class="ing-allergenes">${allergenes.length
         ? raw(html`Contient : ${raw(allergenes.map(a => html`<span class="alg">${a.emoji} ${a.label.toLowerCase()}</span>`).join(" · "))}`)

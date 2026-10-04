@@ -268,9 +268,7 @@ export function renderCook(r, step) {
       if (!c) return;
       if (c.checked) coches.add(c.dataset.cle); else coches.delete(c.dataset.cle);
     });
-    const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
-    document.addEventListener("keydown", surEchap);
-    ouvrirFeuille(backdrop, () => document.removeEventListener("keydown", surEchap));
+    ouvrirFeuille(backdrop);
   };
 
   /* ---------- Mains libres ---------- */

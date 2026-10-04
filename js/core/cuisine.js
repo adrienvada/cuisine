@@ -64,7 +64,7 @@ export function planPrechauffage(etapes) {
 
 /* ---------- Balayage ---------- */
 
-export const SEUIL_BALAYAGE = 56;
+const SEUIL_BALAYAGE = 56;
 
 /* Un balayage compte quand il est franchement horizontal : assez long, et deux
    fois plus large que haut — sans quoi un défilement vertical un peu de travers
