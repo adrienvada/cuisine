@@ -1,0 +1,150 @@
+/* Onglet Au menu : cartes des recettes retenues et structure d'un repas
+   (apéro, table, dessert, boisson). L'en-tête de page est dans base.css. */
+
+/* ---------- Au menu ---------- */
+
+.menu-order {
+  margin: 6px 0 0;
+  font-family: var(--script);
+  font-size: 16px;
+  color: var(--green);
+}
+
+.menu-list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+
+/* Toute la carte ouvre la recette : elle réagit donc comme une vignette. */
+.menu-card {
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  position: relative;
+  display: flex;
+  gap: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 11px;
+}
+
+/* Le repli visuel ne se déclenche pas si l'on presse une commande de la carte. */
+.menu-card:active:not(:has(a:active, button:active)) { transform: scale(0.985); }
+
+.mc-visual {
+  flex: none;
+  width: 88px;
+  align-self: stretch;
+  min-height: 88px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  text-decoration: none;
+}
+
+.mc-visual img { width: 100%; height: 100%; object-fit: cover; transform: scale(3); }
+.mc-visual svg { width: 82%; height: 88%; }
+
+.mc-body { flex: 1; min-width: 0; }
+
+.mc-title { text-decoration: none; color: inherit; }
+
+.mc-title h3 { font-size: 19px; line-height: 1.14; font-weight: 700; padding-right: 22px; }
+
+.menu-card .meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: 12.5px; color: var(--muted); margin-top: 4px;
+}
+
+.menu-card .meta svg { width: 13px; height: 13px; }
+
+.mc-portions { margin-top: 9px; }
+
+.mc-portions .val { min-width: 0; font-size: 13px; }
+
+.mc-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+.mc-btn {
+  flex: 1;
+  min-height: 44px;               /* on les vise en cuisinant */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+.mc-btn svg { width: 15px; height: 15px; }
+
+.mc-btn:active { background: var(--green-tint); }
+
+/* Discret à dessein — c'est une suppression — mais avec une zone de contact
+   utilisable : le padding l'élargit, la marge négative garde la place d'origine. */
+.mc-x {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 44px; height: 44px;      /* zone de contact */
+  padding: 10px;                  /* la pastille visible reste à 24 px */
+  border-radius: 999px;
+  border: none;
+  background: var(--paper-deep);
+  background-clip: content-box;   /* après le raccourci, qui le réinitialise */
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- La structure d'un repas ----------
+   Toujours présente sur « Au menu », vide ou pas : mêmes quatre moments,
+   cliquables comme un raccourci vers l'accueil filtré. Le pointillé dit
+   « place à prendre », jamais « case à cocher ». */
+
+.sq-label {
+  margin: 20px 2px 8px;
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
+
+.squelette { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 14px; }
+
+.sq-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px dashed var(--line);
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--ink);
+}
+
+.sq-row:active { background: var(--green-tint); border-style: solid; }
+
+.sq-nom { flex: 1; font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); }
+
+.sq-n { font-size: 12.5px; color: var(--muted); }
+
+.sq-row > svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+
+.sq-libre {
+  margin: 0 0 18px;
+  text-align: center;
+  font-family: var(--script);
+  font-size: 18px;
+  color: var(--muted);
+}
+
+/* Carte du menu : rappel de la version composée */
+.mc-version { margin: 2px 0 0; font-family: var(--script); font-size: 15.5px; color: var(--green); }

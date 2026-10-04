@@ -30,7 +30,41 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/accueil.css">
+  <link rel="stylesheet" href="css/fiche.css">
+  <link rel="stylesheet" href="css/cuisine.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/courses.css">
+  <link rel="stylesheet" href="css/minuteurs.css">
+  <link rel="stylesheet" href="css/savoirs.css">
+  <!-- Les modules s'importent les uns les autres : sans ces préchargements, le
+       navigateur ne découvre chaque import qu'après avoir lu le module qui le
+       demande, et les requêtes s'enchaînent une à une. -->
+  <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/core/courses.js">
+  <link rel="modulepreload" href="js/core/etat.js">
+  <link rel="modulepreload" href="js/core/fonds.js">
+  <link rel="modulepreload" href="js/core/format.js">
+  <link rel="modulepreload" href="js/core/html.js">
+  <link rel="modulepreload" href="js/core/icones.js">
+  <link rel="modulepreload" href="js/core/menu.js">
+  <link rel="modulepreload" href="js/core/recettes.js">
+  <link rel="modulepreload" href="js/core/seance.js">
+  <link rel="modulepreload" href="js/ui/feuilles.js">
+  <link rel="modulepreload" href="js/ui/minuteurs.js">
+  <link rel="modulepreload" href="js/ui/partage.js">
+  <link rel="modulepreload" href="js/ui/routeur.js">
+  <link rel="modulepreload" href="js/ui/theme.js">
+  <link rel="modulepreload" href="js/ui/toast.js">
+  <link rel="modulepreload" href="js/ui/visuel.js">
+  <link rel="modulepreload" href="js/vues/accueil.js">
+  <link rel="modulepreload" href="js/vues/courses.js">
+  <link rel="modulepreload" href="js/vues/cuisine.js">
+  <link rel="modulepreload" href="js/vues/fiche.js">
+  <link rel="modulepreload" href="js/vues/menu.js">
+  <link rel="modulepreload" href="js/vues/savoirs.js">
+  <link rel="modulepreload" href="js/sync.js">
   <script>
     (function () {
       var saved = localStorage.getItem("theme");
@@ -92,7 +126,6 @@
   <script src="js/fondamentaux.js"></script>
   <script src="js/illos.js"></script>
   <script src="js/sync-config.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/sync.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

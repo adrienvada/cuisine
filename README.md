@@ -147,16 +147,61 @@ Puis committe les dossiers `r/` et `f/`. Pour un autre domaine : `SITE_URL=https
 Site 100 % statique, sans build ni dépendance : HTML + CSS + JavaScript vanilla.
 
 ```
-index.html            Coquille de l'application
-css/styles.css        Styles (palette carnet : crème, vert, doré)
-js/recipes.js         Les données des recettes
-js/fondamentaux.js    Le catalogue des mécanismes (onglet Savoirs)
-js/app.js             Logique (navigation, menu, courses, partage, mode cuisine)
-r/                    Pages d'aperçu des recettes (générées)
-f/                    Pages d'aperçu des fondamentaux (générées)
-sw.js                 Service worker (hors ligne)
-manifest.webmanifest  Manifeste PWA
+index.html              Coquille de l'application : feuilles de style, puis les données, puis js/main.js
+manifest.webmanifest    Manifeste PWA
+sw.js                   Service worker (hors ligne) — liste tous les fichiers dans CORE, VERSION à monter
+r/  f/                  Pages d'aperçu des recettes et des fondamentaux (générées)
+
+css/base.css            Palette (clair/sombre), mise en page, onglets, boutons, toast, feuilles
+css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
+css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
+css/cuisine.css         Mode cuisine plein écran
+css/menu.css            Onglet Au menu : cartes et structure d'un repas
+css/courses.css         Onglet Courses : liste par rayon, articles libres
+css/minuteurs.css       Plateau des bulles de minuteur
+css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+
+js/recipes.js           Données : les recettes
+js/fondamentaux.js      Données : le catalogue des mécanismes
+js/illos.js             Données : les illustrations dessinées
+js/sync-config.js       Données : l'adresse de la base de synchro
+  (ces quatre fichiers sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
+
+js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs, service worker
+js/sync.js              Synchronisation entre appareils (Supabase)
+
+js/core/etat.js         L'état, save(), abonnés à la sauvegarde, migrations des anciens formats
+js/core/format.js       Durées, quantités à l'échelle, dates, horloge, normaliser()
+js/core/html.js         esc(), html`…`, raw()
+js/core/icones.js       Les icônes SVG
+js/core/recettes.js     Temps, verdicts, séances cuisinées, version composée (ingrédients et étapes effectifs)
+js/core/fonds.js        Les fondamentaux vus des recettes, et inversement
+js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas, basiques oubliés
+js/core/courses.js      La liste de courses calculée depuis le menu
+js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
+
+js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
+js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour
+js/ui/routeur.js        Le routeur (#) et les flèches de retour
+js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
+js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
+js/ui/visuel.js         Photo, illustration ou emoji d'une recette
+js/ui/theme.js          Thème clair/sombre, mouvement réduit
+
+js/vues/accueil.js      Accueil : grille, recherche, filtres
+js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
+js/vues/cuisine.js      Mode cuisine
+js/vues/menu.js         Au menu
+js/vues/courses.js      Courses
+js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
+
+tools/                  Vérificateur de recettes, pages de partage, génération de photos
+tests/                  Tests unitaires (unit/) et de bout en bout (e2e/)
 ```
+
+**Les modules `core/` ne touchent ni `document` ni `window` au chargement** : ils ne lisent les données globales (`RECIPES`, `FONDAMENTAUX`…) qu'à l'appel. Ils s'importent donc tels quels sous Node, et `tests/unit/` les teste sans navigateur — c'est aussi là qu'on met le code pur (calculs, formats, textes) plutôt que dans les vues.
+
+Les modules `ui/` et `vues/` s'importent en cercle (le routeur appelle les vues, qui rappellent le routeur) : aucun ne doit donc exécuter, au chargement, une fonction d'un autre module du cercle. Tout démarre depuis `js/main.js`.
 
 **Après toute modification, dans cet ordre :**
 
@@ -164,6 +209,23 @@ manifest.webmanifest  Manifeste PWA
 node tools/verifier-recettes.mjs      # cohérence des données, code 1 si erreur
 node tools/generer-pages-partage.mjs  # aperçus de partage r/ et f/
 ```
+
+### Tests
+
+L'application reste sans dépendance ; seuls les tests en ont (`npm install`, une fois).
+
+```bash
+npm run verifier   # cohérence des données de recettes
+npm test           # tests unitaires (tests/unit/, node:test)
+npm run test:e2e   # parcours complets dans Chromium au format téléphone (tests/e2e/)
+npm run pages      # régénère les pages de partage r/ et f/
+```
+
+Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, ou `PORT=…`). Ils pilotent l'interface comme un doigt — jamais par les modules de `js/` — après avoir pré-rempli `localStorage`, et simulent Supabase (`tests/e2e/outils.js`). Chromium doit être installé (`npx playwright install chromium`).
+
+`tests/e2e/bugs-connus.spec.js` rassemble les **`test.fixme`** : des bugs connus, B1 à B12, en attente de correction. Chacun est écrit pour le comportement *attendu* et reste ignoré par la suite. Celui qui corrige un bug retire le `fixme` de son test : il passe alors de lui-même, et c'est son critère d'acceptation.
+
+La CI (`.github/workflows/ci.yml`) rejoue tout cela, puis vérifie que `r/` et `f/` sont à jour.
 
 ### Le menu est une liste d'entrées, pas d'identifiants
 

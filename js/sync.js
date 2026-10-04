@@ -3,7 +3,14 @@
    saisit une fois par appareil. Sans dépendance : deux appels REST. La dernière
    modification l'emporte. */
 
-const carnetSync = (function () {
+import { STORE_KEY, state, surSauvegarde } from "./core/etat.js";
+import { route } from "./ui/routeur.js";
+import { toast, updateBadge } from "./ui/toast.js";
+
+/* Appelée une fois par main.js, après le premier rendu : rien ne se connecte au
+   chargement du module. La synchro s'abonne à la sauvegarde au lieu d'être
+   appelée par son nom depuis l'état. */
+export function demarrerSync() {
   const CLE = "carnet-sync-v2";
   const CHAMPS = ["menu", "checked", "extras"];
   const cfg = typeof SYNC_CONFIG !== "undefined" ? SYNC_CONFIG : { url: "", anonKey: "" };
@@ -134,5 +141,5 @@ const carnetSync = (function () {
   majBouton();
   if (dispo && local.mdp) { garder(); (sale ? pousser : tirer)(); }
 
-  return { changed };
-})();
+  surSauvegarde(changed);
+}
