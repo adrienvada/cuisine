@@ -25,6 +25,9 @@
    6. Unités de courses. Un même article doit s'exprimer dans une seule unité
       côté courses, sinon la fusion jette une quantité.
    7. Placard. Chaque produit du fond de placard doit exister dans les recettes.
+   8. Annotations des étapes. `ing` ne cite que des ingrédients de la recette, `four`
+      est une température crédible sur une étape qui parle de four, `moule` a une
+      forme connue et des dimensions positives.
 
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
@@ -244,6 +247,46 @@ const cidsConnus = new Set(RECIPES.flatMap(r => [
 for (const cid of PLACARD) if (!cidsConnus.has(cid)) ko(`PLACARD : « ${cid} » n'est le cid d'aucun ingrédient des recettes`);
 if (new Set(PLACARD).size !== PLACARD.length) ko("PLACARD : un cid figure deux fois");
 
+/* ---------- 8. Annotations des étapes : ing, four, moule ---------- */
+
+/* Ces champs nourrissent le mode cuisine (les ingrédients de l'étape), le
+   préchauffage et les conflits de four au menu, l'adaptation au moule. Une
+   référence qui ne tombe sur rien, ou un four qui ne chauffe pas, s'affichent
+   sans rien dire : on les attrape ici. */
+const FORMES_MOULE = { rond: ["diametre"], rectangle: ["largeur", "longueur"], cake: ["longueur"] };
+const LIEN_FOUR = /four|enfourn/i;
+let etapesSansIng = 0;
+let etapesTotal = 0;
+
+for (const r of RECIPES) {
+  const connus = new Set([
+    ...r.ingredients,
+    ...(r.choices || []).flatMap(c => c.options.flatMap(o => o.ingredients || [])),
+    ...(r.addons || []).flatMap(a => a.ingredients || [])
+  ].map(i => i.cid || i.name));
+  const etapes = [
+    ...r.steps.map((s, i) => [`${r.id}[${i}]`, s]).filter(([, s]) => !s.choice),
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.step]))
+  ];
+  for (const [ref, s] of etapes) {
+    etapesTotal++;
+    if (!s.ing) etapesSansIng++;
+    else if (!Array.isArray(s.ing)) ko(`${ref} : ing doit être une liste`);
+    else for (const k of s.ing) if (!connus.has(k)) ko(`${ref} : ing cite « ${k} », qui n'est ni le cid ni le nom d'un ingrédient de la recette`);
+    if ("four" in s) {
+      if (typeof s.four !== "number" || !(s.four >= 50 && s.four <= 300)) ko(`${ref} : four doit être un nombre de °C entre 50 et 300 (reçu ${JSON.stringify(s.four)})`);
+      if (!LIEN_FOUR.test(s.txt || "")) ko(`${ref} : four est renseigné mais le texte de l'étape ne parle ni de four ni d'enfourner`);
+    }
+  }
+  if (r.moule) {
+    const dims = FORMES_MOULE[r.moule.forme];
+    if (!dims) ko(`${r.id} : forme de moule « ${r.moule.forme} » inconnue (${Object.keys(FORMES_MOULE).join(", ")})`);
+    else for (const d of dims) {
+      if (!(typeof r.moule[d] === "number" && r.moule[d] > 0)) ko(`${r.id} : moule.${d} doit être un nombre positif`);
+    }
+  }
+}
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
@@ -263,3 +306,4 @@ const sansFond = RECIPES.filter(r => ![
 
 if (orphelins.length) console.log(`  · ${orphelins.length} pas encore rattaché(s) : ${orphelins.map(f => f.id).join(", ")}`);
 if (sansFond.length) console.log(`  · ${sansFond.length} recette(s) sans aucun fondamental : ${sansFond.map(r => r.id).join(", ")}`);
+if (etapesSansIng) console.log(`  · ${etapesSansIng} étape(s) sur ${etapesTotal} sans ing (liste des ingrédients de l'étape) : ils n'apparaîtront pas en mode cuisine`);
