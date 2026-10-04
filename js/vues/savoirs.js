@@ -51,6 +51,14 @@ export const savoirsHtml = o => {
 export function basculerSavoirs(porteur) {
   const ouvert = porteur.classList.toggle("ouvert");
   porteur.querySelectorAll(".s-cue").forEach(b => b.setAttribute("aria-expanded", String(ouvert)));
+  /* En mode cuisine, l'étape défile dans sa propre zone, au-dessus du bandeau
+     Précédent / Terminer : dépliée en bas d'une étape, la liste resterait hors de la
+     vue, à moitié coupée. On la fait donc entrer, d'un défilement juste suffisant. */
+  const liste = porteur.querySelector(".s-liste");
+  if (ouvert && liste && porteur.closest(".cook-body")) {
+    const sobre = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    liste.scrollIntoView({ block: "nearest", behavior: sobre ? "auto" : "smooth" });
+  }
 }
 
 /* L'astuce reste ce qu'elle est ; l'appel au savoir se glisse à sa suite, dans
