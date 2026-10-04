@@ -66,7 +66,7 @@ test.fixme("B1b — une coche faite ailleurs n'est pas effacée par une modifica
 
 /* ---------- B2 : les courses fusionnent sans perdre de quantité ---------- */
 
-test.fixme("B2a — la ligne « Ail » additionne les gousses : 5 gousses", async ({ page, context }) => {
+test("B2a — la ligne « Ail » additionne les gousses : 5 gousses", async ({ page, context }) => {
   await preremplir(context, {
     carnet: {
       menu: [
@@ -82,26 +82,26 @@ test.fixme("B2a — la ligne « Ail » additionne les gousses : 5 gousses", asyn
   await expect(ail.locator(".cqty")).toHaveText("5 gousses");
 });
 
-test.fixme("B2b — la ligne du basilic garde le bouquet ET la botte", async ({ page, context }) => {
+test("B2b — la ligne du basilic additionne les deux recettes sans rien perdre", async ({ page, context }) => {
   await preremplir(context, {
     carnet: { menu: [entree("dip-chevre-herbes", { k: "d1" }), entree("pesto-basilic-maison", { k: "p1" })] }
   });
   await page.goto("/#/courses");
   const basilic = page.locator("label", { has: page.locator('input[data-key="basilic"]') });
   await expect(basilic).toContainText("Basilic");
-  await expect(basilic).toContainText(/bouquet/);
-  await expect(basilic).toContainText(/botte/);
+  // Les données n'ont plus qu'une unité par article : les deux recettes s'additionnent.
+  await expect(basilic.locator(".cqty")).toHaveText("2 bouquets");
 });
 
 /* ---------- B3 : les coches ne survivent pas à un menu vidé ---------- */
 
-test.fixme("B3 — vider le menu puis remettre la recette : rien n'est coché", async ({ page, context }) => {
+test("B3 — vider le menu puis remettre la recette : rien n'est coché", async ({ page, context }) => {
   await preremplir(context, { carnet: { menu: [entree("focaccia-romarin", { k: "f1" })] } });
   page.on("dialog", d => d.accept());
   await page.goto("/#/courses");
 
-  await page.locator("label", { has: page.locator('input[data-key="farine"]') }).click();
-  await page.locator("label", { has: page.locator('input[data-key="levure"]') }).click();
+  await page.locator("label", { has: page.locator('input[data-key="farine"]') }).locator(".tick").click();
+  await page.locator("label", { has: page.locator('input[data-key="levure"]') }).locator(".tick").click();
   expect((await cochesAffichees(page)).sort()).toEqual(["farine", "levure"]);
 
   await page.locator('.tabbar a[data-tab="menu"]').click();
