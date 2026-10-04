@@ -114,7 +114,21 @@ export function openFondSheet(id) {
       ${fondBodyHtml(f)}
       <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
     </div>`;
-  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
+  /* Le clavier reste dans la feuille : Échap la ferme, et Tab tourne entre ses
+     contrôles au lieu de filer vers la page qu'elle recouvre. */
+  const surClavier = e => {
+    if (e.key === "Escape") return fermerFeuille();
+    if (e.key !== "Tab") return;
+    const prises = [...backdrop.querySelectorAll("button, a[href]")];
+    if (!prises.length) return;
+    const feuille = backdrop.querySelector(".sheet");
+    const premiere = prises[0], derniere = prises[prises.length - 1];
+    if (e.shiftKey && (document.activeElement === premiere || document.activeElement === feuille)) { e.preventDefault(); derniere.focus(); }
+    else if (!e.shiftKey && document.activeElement === derniere) { e.preventDefault(); premiere.focus(); }
+  };
+  /* Là d'où l'on vient : on y rend le clavier à la fermeture, pour reprendre
+     la lecture de l'étape là où on l'avait laissée. */
+  const declencheur = document.activeElement;
   /* Un lien vers une recette ne navigue pas tout de suite : on dépile d'abord
      l'entrée de la feuille, sinon les deux gestes se croisent et l'un annule
      l'autre. La navigation se fait donc une fois la feuille retirée. */
@@ -130,11 +144,15 @@ export function openFondSheet(id) {
       fermerFeuille();
     }
   });
-  document.addEventListener("keydown", surEchap);
+  document.addEventListener("keydown", surClavier);
   ouvrirFeuille(backdrop, () => {
-    document.removeEventListener("keydown", surEchap);
+    document.removeEventListener("keydown", surClavier);
     if (ensuite) { const aller = ensuite; ensuite = null; aller(); }
+    else if (declencheur && declencheur.isConnected) declencheur.focus({ preventScroll: true });
   });
+  const feuille = backdrop.querySelector(".sheet");
+  feuille.tabIndex = -1;
+  feuille.focus({ preventScroll: true });
 }
 
 /* Le texte où l'on cherche, normalisé une fois pour toutes : le refaire à

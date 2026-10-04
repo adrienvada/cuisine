@@ -123,3 +123,22 @@ test("savoirs : une recherche avec des guillemets et du balisage reste du texte"
   await page.goto("/#/fondamentaux");
   await expect(page.locator("#f-search")).toHaveValue(requete);
 });
+
+test("savoirs : la feuille prend le clavier, Tab y reste, et Échap le rend au lien", async ({ page }) => {
+  await page.goto("/#/recette/quiche-lorraine");
+  const etape = page.locator("#steps-list li", { hasText: "Les lardons" });
+  await etape.locator(".s-cue").first().focus();
+  await page.keyboard.press("Enter");
+  const lien = etape.locator('.s-lien[data-fond="maillard"]').first();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  // Tab n'échappe pas de la feuille, même après plusieurs tours.
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement.closest(".sheet"))).toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(lien).toBeFocused();
+});

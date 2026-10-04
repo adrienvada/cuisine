@@ -42,7 +42,7 @@
 .a-savoirs.ouvert .s-cue { opacity: 0.5; }
 
 /* La ligne garde sa hauteur ; la zone de contact, elle, déborde jusqu'à 44 px. */
-.s-cue::after { content: ""; position: absolute; inset: -14px -10px; }
+.s-cue::after { content: ""; position: absolute; inset: -16px -10px; }
 .s-cue:focus-visible, .s-lien:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
 
 .s-liste { display: none; }
@@ -274,3 +274,6 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .f-fam-tag { margin: 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .f-head h1 { margin: 4px 0 0; font-family: var(--serif); font-size: 32px; color: var(--green-deep); }
 .f-page { margin-top: 10px; }
+
+/* Le cadre de focus de la feuille elle-même n'aide personne : le focus y est posé par le code, pas visé. */
+.fond-sheet .sheet:focus { outline: none; }
