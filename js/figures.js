@@ -1005,7 +1005,7 @@ FIGURES["gluten"] = [
     type: "svg",
     vb: "0 0 320 350",
     titre: "Comment se forme le réseau",
-    legende: "Sèches, les deux protéines n'ont aucun lien. L'eau les déplie et les rend liantes ; le pétrissage les aligne et multiplie les liaisons, jusqu'à un réseau qui retient le gaz.",
+    legende: "Schéma simplifié. Sèches, les deux protéines ne font rien ; l'eau les déplie et les rend liantes ; le pétrissage les aligne et multiplie les liaisons, jusqu'à un réseau qui retient le gaz.",
     alt: "Schéma en trois cases, de haut en bas, reliées par des flèches. Première case, la farine sèche : des gluténines, longues chaînes enroulées, qui donnent l'élasticité, et des gliadines, petites billes vertes, éparpillées sans aucun lien ; sèches, les protéines ne font rien. Deuxième case, l'eau les déplie : des gouttes d'eau bleues se mêlent aux chaînes, qui se déroulent et deviennent liantes. Troisième case, le pétrissage les aligne : les chaînes sont parallèles, reliées entre elles par de petits traits, des ponts disulfure, avec des gliadines qui glissent entre elles ; à droite, le réseau enveloppe une bulle de gaz.",
     corps: `<rect class="fg-f-papier fg-t-doux" x="8" y="8" width="304" height="98" rx="10"/>
 <circle class="fg-f-vert fg-pt" cx="26" cy="27" r="9"/>
@@ -1066,11 +1066,11 @@ FIGURES["gluten"] = [
 <path class="fg-t-terra fg-t-epais" d="M24 305q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q2 -4.8 4 0"/>
 <path class="fg-t-terra fg-t-epais" d="M24 319q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q2 4.8 4 0"/>
 <path class="fg-t-terra fg-t-epais" d="M24 333q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q7 -4.8 14 0q7 4.8 14 0q2 -4.8 4 0"/>
-<path class="fg-t-encre fg-t-fin" d="M58 320L58 332"/>
-<path class="fg-t-encre fg-t-fin" d="M96 292L96 304"/>
-<path class="fg-t-encre fg-t-fin" d="M134 306L134 318"/>
-<path class="fg-t-encre fg-t-fin" d="M172 320L172 332"/>
-<path class="fg-t-encre fg-t-fin" d="M210 292L210 304"/>
+<path class="fg-t-encre" d="M58 320L58 332"/>
+<path class="fg-t-encre" d="M96 292L96 304"/>
+<path class="fg-t-encre" d="M134 306L134 318"/>
+<path class="fg-t-encre" d="M172 320L172 332"/>
+<path class="fg-t-encre" d="M210 292L210 304"/>
 <circle class="fg-f-vert fg-pt" cx="76" cy="298" r="4.6"/>
 <circle class="fg-f-vert fg-pt" cx="118" cy="326" r="4.6"/>
 <circle class="fg-f-vert fg-pt" cx="156" cy="312" r="4.6"/>
@@ -1086,48 +1086,43 @@ FIGURES["gluten"] = [
     type: "etapes",
     titre: "Travailler, puis laisser reposer",
     legende: "Une pâte fraîchement travaillée est sous tension et se rétracte ; dix à vingt minutes de repos suffisent le plus souvent à la détendre.",
-    alt: "Trois étapes reliées par des flèches. Un : pétrir, ou faire des rabats ; les chaînes de protéines s'alignent et la pâte est sous tension. Deux : laisser reposer dix à vingt minutes ; les liaisons se réorganisent. Trois : la pâte détendue, qui s'étire sans se rétracter ni se déchirer.",
+    alt: "Trois étapes reliées par des flèches. Un : pétrir, ou faire des rabats ; les chaînes de protéines s'alignent et la pâte est sous tension. Deux : laisser reposer dix à vingt minutes ; les liaisons se réorganisent. Trois : la pâte détendue, qui s'étire sans se rétracter.",
     etapes: [
       { libelle: "Pétrir", desc: "ou faire des rabats : pâte sous tension", emoji: "🤲", ton: "terra" },
       { libelle: "Reposer", desc: "10 à 20 min : les liaisons se réorganisent", emoji: "⏳", ton: "bleu" },
-      { libelle: "Détendue", desc: "elle s'étire sans se rétracter", emoji: "🥖", ton: "vert" }
+      { libelle: "Détendue", desc: "elle s'étire sans se rétracter", emoji: "🫓", ton: "vert" }
     ] },
 
   { ou: "cas",
     type: "comparaison",
     titre: "Du réseau, ou presque pas",
-    legende: "Un pain veut un réseau fort, qui retient les gaz et dessine des alvéoles. Un cookie ou un beignet n'en veut pas : on mélange le minimum.",
-    alt: "Deux coupes côte à côte. À gauche, un pain ou une focaccia : une mie dorée percée de grandes alvéoles claires, signe d'un réseau de gluten bien développé. À droite, un cookie ou un beignet : une pâte serrée, presque sans alvéoles, parsemée de morceaux de chocolat, mélangée au minimum.",
+    legende: "Illustration : un pain veut un réseau fort, qui retient les gaz et dessine des alvéoles. Un cookie ou un beignet n'en veut pas : on mélange le minimum.",
+    alt: "Deux coupes côte à côte. À gauche, un pain ou une focaccia : une mie dorée percée de grandes alvéoles claires, signe d'un réseau de gluten bien développé. À droite, un cookie ou un beignet : une pâte serrée et compacte, presque sans alvéoles, mélangée au minimum.",
     panneaux: [
       { label: "Pain, focaccia",
         sous: "pétrissage ou rabats : un réseau qui retient les gaz",
         ton: "terra",
         vb: "0 0 120 80",
         corps: `<path class="fg-f-or-l fg-t-terra fg-t-epais" d="M12 40Q12 8 60 8Q108 8 108 40Q108 72 60 72Q12 72 12 40Z"/>
-<ellipse class="fg-f-carte" cx="34" cy="30" rx="8" ry="6"/>
-<ellipse class="fg-f-carte" cx="58" cy="24" rx="10" ry="7"/>
-<ellipse class="fg-f-carte" cx="82" cy="32" rx="9" ry="7"/>
-<ellipse class="fg-f-carte" cx="46" cy="46" rx="11" ry="8"/>
-<ellipse class="fg-f-carte" cx="74" cy="52" rx="8" ry="6"/>
-<ellipse class="fg-f-carte" cx="92" cy="48" rx="6" ry="5"/>
-<ellipse class="fg-f-carte" cx="28" cy="54" rx="6" ry="5"/>
-<ellipse class="fg-f-carte" cx="62" cy="62" rx="6" ry="4"/>` },
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="34" cy="30" rx="8" ry="6"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="58" cy="24" rx="10" ry="7"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="82" cy="32" rx="9" ry="7"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="46" cy="46" rx="11" ry="8"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="74" cy="52" rx="8" ry="6"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="92" cy="48" rx="6" ry="5"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="28" cy="54" rx="6" ry="5"/>
+<ellipse class="fg-f-carte fg-t-terra fg-t-fin" cx="62" cy="62" rx="6" ry="4"/>` },
       { label: "Cookie, beignet",
         sous: "le minimum de mélange : le gras enrobe la farine",
         ton: "or",
         vb: "0 0 120 80",
         corps: `<path class="fg-f-or-l fg-t-or fg-t-epais" d="M12 40Q12 10 60 10Q108 10 108 40Q108 70 60 70Q12 70 12 40Z"/>
-<circle class="fg-f-terra" cx="34" cy="32" r="4.2"/>
-<circle class="fg-f-terra" cx="62" cy="26" r="4.2"/>
-<circle class="fg-f-terra" cx="86" cy="36" r="4.2"/>
-<circle class="fg-f-terra" cx="44" cy="52" r="4.2"/>
-<circle class="fg-f-terra" cx="76" cy="56" r="4.2"/>
-<circle class="fg-f-carte" cx="48" cy="38" r="1.6"/>
-<circle class="fg-f-carte" cx="70" cy="44" r="1.6"/>
-<circle class="fg-f-carte" cx="28" cy="46" r="1.6"/>
-<circle class="fg-f-carte" cx="92" cy="52" r="1.6"/>
-<circle class="fg-f-carte" cx="58" cy="62" r="1.6"/>
-<circle class="fg-f-carte" cx="84" cy="22" r="1.6"/>` }
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="48" cy="38" r="1.6"/>
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="70" cy="44" r="1.6"/>
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="28" cy="46" r="1.6"/>
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="92" cy="52" r="1.6"/>
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="58" cy="62" r="1.6"/>
+<circle class="fg-f-carte fg-t-terra fg-t-fin" cx="84" cy="22" r="1.6"/>` }
     ] },
 
   { ou: "reperes",
@@ -1151,7 +1146,7 @@ FIGURES["amidon"] = [
     type: "svg",
     vb: "0 0 320 360",
     titre: "La vie d'un granule d'amidon",
-    legende: "Trois temps : le granule intact, la gélatinisation qui le gonfle et libère l'amylose, puis la rétrogradation qui la réassocie en refroidissant.",
+    legende: "Chauffé dans l'eau, le granule gonfle et libère son amylose (gélatinisation) ; en refroidissant, l'amylose se réassocie et recristallise (rétrogradation).",
     alt: "Schéma en trois cases, de haut en bas. Première case, à froid : un granule ovale, aux couches concentriques semi-cristallines, intact et insoluble, qui sédimente ; il empile deux polymères de glucose, l'amylose, droite, et l'amylopectine, ramifiée. Une flèche, gélatinisation, mène à la deuxième case, chauffé : le granule est plus gros, sa structure cristalline s'est défaite, l'eau y entre, plusieurs fois son poids, et des filaments d'amylose s'en échappent ; s'il cuit trop ou est trop remué, il éclate. Une flèche, rétrogradation, mène à la troisième case, refroidi : l'amylose libérée se réassocie en doubles hélices, deux brins entrelacés, et recristallise. La sauce fige, le pain rassit.",
     corps: `<rect class="fg-f-papier fg-t-doux" x="8" y="8" width="304" height="100" rx="10"/>
 <text class="fg-txt fg-txt-b" x="112" y="32">À froid</text>
@@ -1171,14 +1166,14 @@ FIGURES["amidon"] = [
 <circle class="fg-f-bleu" cx="92" cy="82" r="2.2"/>
 <circle class="fg-f-bleu" cx="96" cy="32" r="2.2"/>
 <circle class="fg-f-bleu" cx="20" cy="88" r="2.2"/>
-<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="186" r="30"/>
-<circle class="fg-t-or fg-t-fin fg-tirets" cx="46" cy="186" r="20"/>
-<path class="fg-t-bleu fg-t-fin" d="M12 150L22 162" marker-end="url(#fg-fl-bleu)"/>
-<path class="fg-t-bleu fg-t-fin" d="M10 186L20 186" marker-end="url(#fg-fl-bleu)"/>
-<path class="fg-t-bleu fg-t-fin" d="M12 222L22 210" marker-end="url(#fg-fl-bleu)"/>
-<path class="fg-t-terra fg-t-epais" d="M70 170q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2 6.8 4 0" transform="rotate(-24 70 170)"/>
-<path class="fg-t-terra fg-t-epais" d="M76 188q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q1.5 6.8 3 0" transform="rotate(2 76 188)"/>
-<path class="fg-t-terra fg-t-epais" d="M68 206q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q0.5 -6.8 1 0" transform="rotate(26 68 206)"/>
+<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="48" cy="186" r="34"/>
+<circle class="fg-t-or fg-t-fin fg-tirets" cx="48" cy="186" r="23"/>
+<path class="fg-t-bleu fg-t-fin" d="M8 152L17 164" marker-end="url(#fg-fl-bleu)"/>
+<path class="fg-t-bleu fg-t-fin" d="M6 186L14 186" marker-end="url(#fg-fl-bleu)"/>
+<path class="fg-t-bleu fg-t-fin" d="M8 220L17 208" marker-end="url(#fg-fl-bleu)"/>
+<path class="fg-t-terra fg-t-epais" d="M78 170q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2 6.8 4 0" transform="rotate(-24 78 170)"/>
+<path class="fg-t-terra fg-t-epais" d="M82 188q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q1.5 6.8 3 0" transform="rotate(2 82 188)"/>
+<path class="fg-t-terra fg-t-epais" d="M76 206q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q2.5 -6.8 5 0q2.5 6.8 5 0q0.5 -6.8 1 0" transform="rotate(26 76 206)"/>
 <path class="fg-t-terra fg-t-epais" d="M20 287q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3 8.8 6 0"/>
 <path class="fg-t-or fg-t-epais" d="M20 287q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3 -8.8 6 0"/>
 <path class="fg-t-terra fg-t-epais" d="M22 305q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3.5 8.8 7 0q3.5 -8.8 7 0q3 8.8 6 0"/>
@@ -1212,28 +1207,27 @@ FIGURES["amidon"] = [
       { de: 66, a: 100, label: "granules éclatés", ton: "or" }
     ],
     notes: [
-      { x: 58, y: 1, texte: "granules gonflés : le plus épais", dx: -8, dy: 44, largeur: 120, ancre: "end" }
+      { x: 58, y: 1, texte: "granules gonflés : le plus épais", dx: -56, dy: 24, largeur: 120, ancre: "end" }
     ] },
 
   { ou: "cas",
     type: "comparaison",
     titre: "Tièdes ou froides ?",
-    legende: "Illustration qualitative : tièdes, les granules sont encore gonflés et la chair reste ouverte ; froides, l'amylose a rétrogradé et la structure s'est refermée. Le mécanisme est solide, mais ce transfert n'a jamais été mesuré finement.",
-    alt: "Deux coupes de pomme de terre côte à côte, chacune surmontée d'une goutte de liquide. À gauche, les pommes de terre tièdes : des granules gonflés, espacés, la chair reste ouverte, et la goutte s'y enfonce par une flèche. À droite, les pommes de terre froides : des granules plus serrés, reliés par de petites croix d'amylose rétrogradée ; la structure est refermée et la goutte reste dessus.",
+    legende: "Illustration qualitative : tièdes, les granules sont encore gonflés et la chair reste ouverte ; froides, l'amylose a rétrogradé et la structure s'est refermée. La goutte figure le liquide à absorber. Le mécanisme est solide, mais ce transfert n'a jamais été mesuré finement.",
+    alt: "Deux coupes de pomme de terre côte à côte, chacune surmontée d'une goutte, qui figure le liquide à absorber. À gauche, les pommes de terre tièdes : des granules gonflés, espacés, la chair reste ouverte, et la goutte s'y enfonce par une flèche. À droite, les pommes de terre froides : des granules plus serrés, reliés par de petites croix d'amylose rétrogradée ; la structure est refermée et la goutte reste dessus.",
     panneaux: [
       { label: "Tièdes",
-        sous: "granules gonflés, chair ouverte : elles boivent",
+        sous: "granules gonflés, chair ouverte : elles boivent le liquide",
         ton: "vert",
         vb: "0 0 120 80",
         corps: `<rect class="fg-f-papier fg-t-doux fg-t-fin" x="6" y="22" width="108" height="52" rx="8"/>
-<circle class="fg-f-or-l fg-t-or" cx="22" cy="46" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="48" cy="40" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="76" cy="48" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="100" cy="40" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="34" cy="62" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="64" cy="62" r="9.5"/>
-<circle class="fg-f-or-l fg-t-or" cx="92" cy="62" r="9.5"/>
-<path class="fg-t-axe fg-t-fin" d="M24 18q-4 -5 0 -9M60 18q-4 -5 0 -9M96 18q-4 -5 0 -9" opacity="0"/>
+<circle class="fg-f-or-l fg-t-or" cx="22" cy="46" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="48" cy="40" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="76" cy="48" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="100" cy="40" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="34" cy="62" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="64" cy="62" r="10"/>
+<circle class="fg-f-or-l fg-t-or" cx="92" cy="62" r="10"/>
 <path class="fg-f-bleu" d="M60 3q6 8 0 11q-6 -3 0 -11Z"/>
 <path class="fg-t-bleu fg-t-fin" d="M60 15L60 28" marker-end="url(#fg-fl-bleu)"/>` },
       { label: "Froides",
@@ -1262,8 +1256,8 @@ FIGURES["amidon"] = [
     type: "svg",
     vb: "0 0 320 242",
     titre: "Les températures de l'amidon",
-    legende: "Le seuil de gélatinisation dépend de l'amidon. À l'autre bout, la rétrogradation va le plus vite au froid du réfrigérateur ; au-delà de 60 °C, on refond les cristaux d'un pain rassis.",
-    alt: "Quatre barres sur un axe de température en degrés Celsius. La rétrogradation est la plus rapide entre 0 et 4 degrés : le réfrigérateur rassit le pain plus vite que le placard. La gélatinisation de l'amidon de blé se fait entre 52 et 64 degrés ; celle de la pomme de terre, entre 58 et 66 degrés. Enfin, un pain rassis repassé au four au-delà de 60 degrés refond ses cristaux et retrouve sa souplesse, pour quelques heures.",
+    legende: "Seuils approximatifs : celui de la gélatinisation dépend de l'amidon. À l'autre bout, la rétrogradation va le plus vite au froid du réfrigérateur ; au-delà de 60 °C, on refond les cristaux d'un pain rassis.",
+    alt: "Quatre barres sur un axe de température en degrés Celsius. La rétrogradation est la plus rapide entre 0 et 4 degrés : le réfrigérateur rassit le pain plus vite que le placard. La gélatinisation de l'amidon de blé se fait entre 52 et 64 degrés environ ; celle de la pomme de terre, entre 58 et 66 degrés environ. Enfin, un pain rassis repassé au four au-delà de 60 degrés refond ses cristaux et retrouve sa souplesse, pour quelques heures.",
     corps: `<path class="fg-t-doux fg-t-fin fg-tirets" d="M260 54L260 200"/>
 <text class="fg-txt fg-txt-b fg-halo fg-txt-bleu" x="16" y="22" text-anchor="start">Rétrogradation la plus rapide : 0 à 4 °C</text>
 <rect class="fg-f-bleu fg-t-bleu fg-t-fin" x="20" y="30" width="16" height="16" rx="3"/>
@@ -1282,13 +1276,15 @@ FIGURES["amidon"] = [
 <text class="fg-txt fg-txt-s fg-txt-b" x="44" y="233" text-anchor="start">température, en °C</text>` }
 ];
 
+
+
 FIGURES["coagulation-oeuf"] = [
   { ou: "tete",
     type: "svg",
     vb: "0 0 320 348",
     titre: "Ce que fait la chaleur à l'œuf",
-    legende: "Suivez l'eau (en bleu) : libre dans l'œuf cru, elle est emprisonnée par le réseau quand l'œuf prend, puis chassée quand la maille se resserre trop.",
-    alt: "Schéma en quatre cases numérotées. Un, cru : des protéines repliées en pelotes, libres dans l'eau, en bleu. Deux, dépliées : sous l'effet de la chaleur, les protéines se déroulent et exposent des zones, des points dorés, qui s'accrochaient à l'eau. Trois, liées : ces zones s'accrochent entre protéines voisines et forment un réseau qui emprisonne l'eau dans ses mailles ; l'œuf est pris. Quatre, surcuit : la maille se resserre, et l'eau est expulsée en dessous, en une flaque. Le résultat est irréversible.",
+    legende: "Suivez l'eau (en bleu) : libre dans l'œuf cru, elle est emprisonnée par le réseau quand l'œuf prend, puis chassée quand la maille se resserre trop. Les points dorés figurent les zones qui s'accrochaient à l'eau.",
+    alt: "Schéma en quatre cases numérotées. Un, cru : des protéines repliées en pelotes, libres dans l'eau, en bleu. Deux, dépliées : sous l'effet de la chaleur, les protéines se déroulent et exposent des zones, figurées par des points dorés, qui s'accrochaient à l'eau. Trois, liées : ces zones s'accrochent entre protéines voisines et forment un réseau qui emprisonne l'eau dans ses mailles ; l'œuf est pris. Quatre, surcuit : la maille se resserre, et l'eau est expulsée en dessous, en une flaque. Le résultat est irréversible.",
     corps: `<rect class="fg-f-carte fg-t-bleu fg-t-fin" x="8" y="8" width="148" height="162" rx="10"/>
 <circle class="fg-f-bleu fg-pt" cx="24" cy="25" r="9"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-sur" x="24" y="29" text-anchor="middle">1</text>
@@ -1323,10 +1319,10 @@ FIGURES["coagulation-oeuf"] = [
 <circle class="fg-f-bleu" cx="108" cy="42" r="2"/>
 <circle class="fg-f-bleu" cx="28" cy="96" r="2"/>
 <circle class="fg-f-bleu" cx="138" cy="92" r="2"/>
-<path class="fg-t-terra fg-t-epais" d="M178 52q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0q1 10 2 0" transform="rotate(8 178 52)"/>
-<path class="fg-t-terra fg-t-epais" d="M234 46q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q2.5 -10 5 0" transform="rotate(-6 234 46)"/>
-<path class="fg-t-terra fg-t-epais" d="M180 80q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q2.5 10 5 0" transform="rotate(-4 180 80)"/>
-<path class="fg-t-terra fg-t-epais" d="M240 84q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0q1 -10 2 0" transform="rotate(6 240 84)"/>
+<path class="fg-t-terra fg-t-epais" d="M178 52q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0" transform="rotate(8 178 52)"/>
+<path class="fg-t-terra fg-t-epais" d="M234 46q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0" transform="rotate(-6 234 46)"/>
+<path class="fg-t-terra fg-t-epais" d="M180 80q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0q4.3 10 8.5 0q4.3 -10 8.5 0" transform="rotate(-4 180 80)"/>
+<path class="fg-t-terra fg-t-epais" d="M240 84q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0q4 -10 8 0q4 10 8 0" transform="rotate(6 240 84)"/>
 <circle class="fg-f-or fg-pt" cx="194" cy="54" r="2.7"/>
 <circle class="fg-f-or fg-pt" cx="222" cy="52" r="2.7"/>
 <circle class="fg-f-or fg-pt" cx="256" cy="48" r="2.7"/>
@@ -1383,7 +1379,7 @@ FIGURES["coagulation-oeuf"] = [
     type: "courbe",
     qualitative: true,
     titre: "Entre le cru et la surcuisson",
-    legende: "Allure qualitative : la maille retient d'abord de plus en plus d'eau, puis, resserrée par la chaleur, elle la rend. Le chemin du retour n'existe pas.",
+    legende: "Allure qualitative : en chauffant, le réseau se forme et emprisonne l'eau ; resserrée par la chaleur, la maille la rend. Le chemin du retour n'existe pas.",
     alt: "Courbe qualitative, sans valeurs chiffrées. L'axe horizontal est la chaleur et la durée de cuisson, du cru au très cuit ; l'axe vertical est l'eau retenue dans la maille de protéines. Dans l'œuf cru, liquide, la maille n'existe pas. En chauffant, le réseau se forme et l'eau retenue monte jusqu'à un maximum : l'œuf est pris, soyeux. Au-delà, la maille se resserre et expulse l'eau : la courbe retombe, la texture devient grainée. Cette descente est irréversible.",
     x: { label: "Chaleur et durée de cuisson",
       extremites: ["cru", "très cuit"] },
@@ -1403,9 +1399,9 @@ FIGURES["coagulation-oeuf"] = [
       { x: 86,
         y: 0.28,
         texte: "l'eau ressort, sans retour",
-        dx: -20,
-        dy: -44,
-        largeur: 112,
+        dx: 40,
+        dy: -62,
+        largeur: 100,
         ancre: "end",
         ton: "terra" }
     ] },
@@ -1414,9 +1410,9 @@ FIGURES["coagulation-oeuf"] = [
     type: "comparaison",
     titre: "Quand sortir la quiche ?",
     legende: "Illustration qualitative : sortez-la quand le centre tremble encore, la cuisson résiduelle fait le reste pendant le repos ; attendue trop longtemps, elle rend son eau.",
-    alt: "Trois coupes d'un moule, de gauche à droite. À la sortie du four : l'appareil est pris sur les bords et son centre tremble encore, marqué par de petits traits de vibration ; c'est le bon moment. Après 5 à 10 minutes de repos : l'appareil est lisse et pris jusqu'au centre, grâce à la cuisson résiduelle. Si l'on attend trop : l'appareil est grainé, troué de petits vides, et une flaque d'eau claire apparaît en surface ; aucun repos ne le rattrape.",
+    alt: "Trois coupes d'un moule, de gauche à droite. À la sortie du four : la surface de l'appareil ondule, son centre tremble encore, ce que figurent quatre petits traits de vibration au-dessus ; c'est le bon moment. Après 5 à 10 minutes de repos : l'appareil est lisse et pris jusqu'au centre, la chaleur des bords gagnant le centre par la cuisson résiduelle, figurée par deux flèches. Si l'on attend trop : l'appareil est grainé, troué de petits vides, et une flaque d'eau claire apparaît en surface ; aucun repos ne le rattrape.",
     panneaux: [
-      { label: "Au four",
+      { label: "Sortie du four",
         sous: "le centre tremble encore : sortez-la",
         ton: "or",
         vb: "0 0 100 70",
@@ -1428,20 +1424,22 @@ FIGURES["coagulation-oeuf"] = [
         ton: "vert",
         vb: "0 0 100 70",
         corps: `<path class="fg-f-or-l fg-t-or fg-t-epais" d="M10 28H90V56a8 8 0 0 1 -8 8H18a8 8 0 0 1 -8 -8Z"/>
-<path class="fg-t-encre fg-t-epais" d="M8 20V56a10 10 0 0 0 10 10H82a10 10 0 0 0 10 -10V20"/>` },
+<path class="fg-t-encre fg-t-epais" d="M8 20V56a10 10 0 0 0 10 10H82a10 10 0 0 0 10 -10V20"/>
+<path class="fg-t-terra fg-t-fin" d="M15 46H35" marker-end="url(#fg-fl-terra)"/>
+<path class="fg-t-terra fg-t-fin" d="M85 46H65" marker-end="url(#fg-fl-terra)"/>` },
       { label: "Trop tard",
         sous: "grainée, elle rend son eau",
         ton: "terra",
         vb: "0 0 100 70",
         corps: `<path class="fg-f-or-l fg-t-terra fg-t-epais" d="M10 28H90V56a8 8 0 0 1 -8 8H18a8 8 0 0 1 -8 -8Z"/>
-<circle class="fg-f-carte" cx="24" cy="44" r="2.2"/>
-<circle class="fg-f-carte" cx="38" cy="54" r="1.8"/>
-<circle class="fg-f-carte" cx="52" cy="42" r="2.4"/>
-<circle class="fg-f-carte" cx="66" cy="52" r="2"/>
-<circle class="fg-f-carte" cx="78" cy="40" r="1.8"/>
-<circle class="fg-f-carte" cx="30" cy="36" r="1.6"/>
-<circle class="fg-f-carte" cx="60" cy="34" r="1.6"/>
-<circle class="fg-f-carte" cx="46" cy="56" r="1.6"/>
+<circle class="fg-f-terra" opacity=".55" cx="24" cy="44" r="2.2"/>
+<circle class="fg-f-terra" opacity=".55" cx="38" cy="54" r="1.8"/>
+<circle class="fg-f-terra" opacity=".55" cx="52" cy="42" r="2.4"/>
+<circle class="fg-f-terra" opacity=".55" cx="66" cy="52" r="2"/>
+<circle class="fg-f-terra" opacity=".55" cx="78" cy="40" r="1.8"/>
+<circle class="fg-f-terra" opacity=".55" cx="30" cy="36" r="1.6"/>
+<circle class="fg-f-terra" opacity=".55" cx="60" cy="34" r="1.6"/>
+<circle class="fg-f-terra" opacity=".55" cx="46" cy="56" r="1.6"/>
 <path class="fg-f-bleu-l fg-t-bleu fg-t-fin" d="M16 30q34 -7 68 0q-34 6 -68 0Z"/>
 <path class="fg-t-encre fg-t-epais" d="M8 20V56a10 10 0 0 0 10 10H82a10 10 0 0 0 10 -10V20"/>` }
     ] },
@@ -1450,13 +1448,13 @@ FIGURES["coagulation-oeuf"] = [
     type: "svg",
     vb: "0 0 320 250",
     titre: "Où l'œuf prend-il ?",
-    legende: "Le blanc prend progressivement : trouble dès 63 °C, ferme vers 70 °C. Le jaune prend un peu plus haut. Dilué par la crème ou le lait, l'œuf demande bien plus de chaleur.",
+    legende: "Le blanc prend progressivement : trouble dès 63 °C, ferme vers 70 °C. Le jaune prend vers 65-70 °C et reste crémeux au-delà. Dilué par la crème ou le lait, l'œuf demande bien plus de chaleur : 80 à 85 °C.",
     alt: "Trois barres sur un axe de température en degrés Celsius. Le blanc d'œuf prend progressivement entre 60 et 80 degrés : il devient laiteux, trouble, dès 63 degrés, puis ferme vers 70 degrés. Le jaune prend vers 65 à 70 degrés, et reste crémeux au-delà. Un appareil dilué, comme une quiche, un flan ou une crème prise, ne prend qu'entre 80 et 85 degrés.",
     corps: `<path class="fg-t-doux fg-t-fin fg-tirets" d="M60 30L60 192"/>
 <path class="fg-t-doux fg-t-fin fg-tirets" d="M140 30L140 192"/>
 <path class="fg-t-doux fg-t-fin fg-tirets" d="M220 30L220 192"/>
 <text class="fg-txt fg-txt-b fg-halo" x="16" y="22">Blanc : il prend progressivement</text>
-<rect class="fg-f-doux fg-t-doux fg-t-fin" x="60" y="32" width="24" height="18"/>
+<rect class="fg-f-aucun fg-t-doux fg-t-fin fg-tirets" x="60" y="32" width="24" height="18"/>
 <rect class="fg-f-or-l fg-t-or fg-t-fin" x="84" y="32" width="56" height="18"/>
 <rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="140" y="32" width="80" height="18"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-or" x="112" y="45" text-anchor="middle">laiteux</text>
@@ -1465,7 +1463,7 @@ FIGURES["coagulation-oeuf"] = [
 <text class="fg-txt fg-txt-s" x="84" y="66" text-anchor="middle">63</text>
 <text class="fg-txt fg-txt-s" x="140" y="66" text-anchor="middle">70</text>
 <text class="fg-txt fg-txt-s" x="220" y="66" text-anchor="middle">80</text>
-<text class="fg-txt fg-txt-b fg-halo" x="16" y="94">Jaune : un peu plus haut</text>
+<text class="fg-txt fg-txt-b fg-halo" x="16" y="94">Jaune : prend vers 65-70 °C</text>
 <rect class="fg-f-or fg-t-or fg-t-fin" x="100" y="104" width="40" height="18" rx="2"/>
 <text class="fg-txt fg-txt-s fg-halo" x="148" y="117">reste crémeux au-delà</text>
 <text class="fg-txt fg-txt-s" x="100" y="138" text-anchor="middle">65</text>
@@ -1484,8 +1482,8 @@ FIGURES["coagulation-oeuf"] = [
 FIGURES["levure-chimique"] = [
   { ou: "tete", type: "svg", vb: "0 0 320 292",
     titre: "Deux poudres qui attendent l'eau",
-    legende: "À sec, la base et l'acide sont tenus à distance par la fécule. Dès qu'un liquide les dissout, ils réagissent et libèrent des bulles de gaz carbonique dans la pâte.",
-    alt: "Schéma en deux temps. En haut, dans le sachet, à sec : trois poudres côte à côte, le bicarbonate (la base), la fécule de maïs qui sépare les deux et absorbe l'humidité, et un sel acide comme le phosphate acide de calcium. Une flèche descend, avec une goutte et la mention « un liquide ». En bas, dans la pâte : l'acide et la base se dissolvent et réagissent, ce qui libère du gaz carbonique, dessiné en bulles réparties dans la pâte. En dessous : c'est une réaction chimique instantanée, sans pousse ni pétrissage.",
+    legende: "À sec, la base et l'acide sont tenus à distance par la fécule. Au contact d'un liquide, ils se dissolvent et réagissent : une petite part du gaz carbonique part tout de suite, l'essentiel à la chaleur du four.",
+    alt: "Schéma en deux temps. En haut, dans le sachet, à sec : trois poudres côte à côte, le bicarbonate (la base), la fécule de maïs qui sépare les deux et absorbe l'humidité, et un sel acide comme le phosphate acide de calcium. Une flèche descend, avec une goutte et la mention « un liquide ». En bas, dans la pâte : l'acide et la base se dissolvent et réagissent, ce qui libère du gaz carbonique, dessiné en bulles réparties dans la pâte ; une petite part part tout de suite, l'essentiel à la chaleur du four. En dessous : c'est une réaction chimique, sans pousse ni pétrissage.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-doux" x="160" y="16" text-anchor="middle">Dans le sachet, à sec</text>
 <rect class="fg-f-vert-l fg-t-vert" x="8" y="24" width="96" height="76" rx="10"/>
 <circle class="fg-f-vert" cx="40" cy="40" r="3"/><circle class="fg-f-vert" cx="56" cy="37" r="3"/><circle class="fg-f-vert" cx="72" cy="41" r="3"/>
@@ -1517,33 +1515,33 @@ FIGURES["levure-chimique"] = [
 <circle class="fg-f-carte fg-t-axe fg-t-fin" cx="294" cy="214" r="7"/>
 <circle class="fg-f-carte fg-t-axe fg-t-fin" cx="44" cy="202" r="4"/>
 <circle class="fg-f-carte fg-t-axe fg-t-fin" cx="204" cy="196" r="4"/>
-<text class="fg-txt fg-txt-s fg-txt-doux" x="160" y="282" text-anchor="middle">une réaction instantanée : ni pousse ni pétrissage</text>` },
+<text class="fg-txt fg-txt-s fg-txt-doux" x="160" y="282" text-anchor="middle">une réaction chimique : ni pousse ni pétrissage</text>` },
 
   { ou: "cas", type: "comparaison",
     titre: "Bicarbonate seul ou levure chimique ?",
     legende: "Le bicarbonate est une base pure : sans acide dans la recette, il lève mal. La levure chimique embarque le sien et fonctionne dans toute pâte.",
-    alt: "Trois coupes de pâte côte à côte. À gauche, le bicarbonate seul, sans acide : quelques grains de base dans la pâte et une seule bulle ; il lui faut un acide, sinon il laisse un goût métallique et fait moins lever. Au centre, bicarbonate et acide de la recette (yaourt, miel, cacao, jus de citron) : la base et l'acide, séparés dans la pâte, réagissent et font de nombreuses bulles. À droite, la levure chimique : base et acide sont déjà associés grain à grain, donc de nombreuses bulles dans n'importe quelle pâte, acide ou non.",
+    alt: "Trois coupes de pâte côte à côte. À gauche, le bicarbonate seul, sans acide : quelques grains de base dans la pâte et une seule bulle ; il lui faut un acide, sinon il laisse un goût métallique et fait moins lever. Au centre, bicarbonate et acide de la recette (yaourt, miel, cacao, jus de citron) : la base et l'acide, séparés dans la pâte, réagissent et font de nombreuses bulles. À droite, la levure chimique : base, fécule et acide sont déjà mélangés dans la même poudre, donc de nombreuses bulles dans n'importe quelle pâte, acide ou non.",
     panneaux: [
       { label: "Bicarbonate seul", sous: "il lui faut un acide, sinon goût métallique", ton: "or", vb: "0 0 84 70",
         corps: `<path class="fg-f-or-l fg-t-or" d="M6 34h72v18a12 12 0 0 1-12 12H18A12 12 0 0 1 6 52z"/><circle class="fg-f-vert" cx="22" cy="46" r="3"/><circle class="fg-f-vert" cx="40" cy="53" r="3"/><circle class="fg-f-vert" cx="58" cy="45" r="3"/><circle class="fg-f-vert" cx="67" cy="54" r="3"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="44" cy="22" r="4.5"/>` },
       { label: "Bicarbonate + acide", sous: "yaourt, miel, cacao, citron : il lève", ton: "vert", vb: "0 0 84 70",
         corps: `<path class="fg-f-or-l fg-t-or" d="M6 34h72v18a12 12 0 0 1-12 12H18A12 12 0 0 1 6 52z"/><circle class="fg-f-vert" cx="20" cy="44" r="3"/><circle class="fg-f-vert" cx="52" cy="54" r="3"/><circle class="fg-f-vert" cx="68" cy="44" r="3"/><circle class="fg-f-or" cx="34" cy="50" r="3.5"/><circle class="fg-f-or" cx="46" cy="42" r="3.5"/><circle class="fg-f-or" cx="62" cy="54" r="3.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="18" cy="24" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="34" cy="14" r="5.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="52" cy="22" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="68" cy="11" r="4"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="72" cy="26" r="3.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="46" cy="5" r="3"/>` },
       { label: "Levure chimique", sous: "son acide est déjà dedans : toute pâte convient", ton: "vert", vb: "0 0 84 70",
-        corps: `<path class="fg-f-or-l fg-t-or" d="M6 34h72v18a12 12 0 0 1-12 12H18A12 12 0 0 1 6 52z"/><circle class="fg-f-vert" cx="21" cy="44" r="3.4"/><circle class="fg-f-or" cx="27.6" cy="44" r="3.4"/><circle class="fg-f-vert" cx="43" cy="54" r="3.4"/><circle class="fg-f-or" cx="49.6" cy="54" r="3.4"/><circle class="fg-f-vert" cx="60" cy="43" r="3.4"/><circle class="fg-f-or" cx="66.6" cy="43" r="3.4"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="18" cy="24" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="34" cy="14" r="5.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="52" cy="22" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="68" cy="11" r="4"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="72" cy="26" r="3.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="46" cy="5" r="3"/>` }
+        corps: `<path class="fg-f-or-l fg-t-or" d="M6 34h72v18a12 12 0 0 1-12 12H18A12 12 0 0 1 6 52z"/><circle class="fg-f-vert" cx="14" cy="44" r="3.2"/><circle class="fg-f-carte fg-t-doux fg-t-fin" cx="20.4" cy="44" r="2.4"/><circle class="fg-f-or" cx="26.8" cy="44" r="3.2"/><circle class="fg-f-vert" cx="34" cy="54" r="3.2"/><circle class="fg-f-carte fg-t-doux fg-t-fin" cx="40.4" cy="54" r="2.4"/><circle class="fg-f-or" cx="46.8" cy="54" r="3.2"/><circle class="fg-f-vert" cx="54" cy="43" r="3.2"/><circle class="fg-f-carte fg-t-doux fg-t-fin" cx="60.4" cy="43" r="2.4"/><circle class="fg-f-or" cx="66.8" cy="43" r="3.2"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="18" cy="24" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="34" cy="14" r="5.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="52" cy="22" r="4.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="68" cy="11" r="4"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="72" cy="26" r="3.5"/><circle class="fg-f-carte fg-t-axe fg-t-fin" cx="46" cy="5" r="3"/>` }
     ] },
 
   { ou: "pourquoi", apres: 2, type: "courbe", qualitative: true,
     titre: "Le gaz, du mélange au four",
     legende: "Allure qualitative : une petite part du gaz part dès l'hydratation ; l'essentiel, la seconde vague, n'est libéré qu'à la chaleur du four. Plus la pâte attend, plus le premier gaz s'échappe.",
-    alt: "Courbe qualitative, sans valeurs chiffrées. L'axe horizontal suit le temps depuis l'hydratation de la pâte, de la température ambiante au four ; l'axe vertical est le gaz carbonique libéré. Une première petite bosse apparaît dès l'hydratation, à température ambiante, puis la courbe retombe presque à zéro pendant l'attente. Elle repart ensuite franchement quand la pâte chauffe, à partir de 40 à 50 °C environ, et forme une grande seconde vague : c'est elle qui donne l'essentiel du gonflant.",
+    alt: "Courbe qualitative, sans valeurs chiffrées. L'axe horizontal suit le temps depuis l'hydratation de la pâte, de la température ambiante au four ; l'axe vertical est la vitesse à laquelle le gaz carbonique est libéré. Une première petite bosse apparaît dès l'hydratation, à température ambiante, puis la courbe retombe pendant l'attente. Elle repart ensuite franchement quand la pâte chauffe, à partir de 40 à 50 °C environ, et forme une grande seconde vague : c'est elle qui donne l'essentiel du gonflant.",
     x: { label: "Du mélange à la cuisson", extremites: ["hydratation", "four"] },
-    y: { label: "Gaz carbonique libéré" },
+    y: { label: "Vitesse de libération du gaz" },
     series: [ { nom: "Double action", ton: "terra", aire: true,
       points: [[0, 0.02], [6, 0.3], [14, 0.2], [26, 0.05], [40, 0.05], [54, 0.3], [70, 0.82], [84, 1], [100, 0.92]] } ],
     zones: [ { de: 0, a: 42, label: "température ambiante", ton: "bleu" }, { de: 42, a: 100, label: "au four : dès 40-50 °C", ton: "terra" } ],
     notes: [
-      { x: 7, y: 0.3, texte: "une petite part, dès l'hydratation", dx: 8, dy: -4, largeur: 100, ancre: "start" },
-      { x: 84, y: 1, texte: "l'essentiel du gaz", dx: -6, dy: 22, largeur: 80, ancre: "end" }
+      { x: 7, y: 0.3, texte: "une petite part, dès l'hydratation", dx: 8, dy: -4, largeur: 130, ancre: "start" },
+      { x: 84, y: 1, texte: "l'essentiel du gaz", dx: 0, dy: 64, largeur: 90, ancre: "middle" }
     ] },
 
   { ou: "reperes", type: "etapes",
@@ -1558,10 +1556,10 @@ FIGURES["levure-chimique"] = [
 ];
 
 FIGURES["contraste-textures"] = [
-  { ou: "tete", type: "svg", vb: "0 0 320 276",
+  { ou: "tete", type: "svg", vb: "0 0 320 240",
     titre: "Une assiette, plusieurs signaux",
     legende: "Une masse fondante, un éclat de croquant, une touche à une autre température : l'assiette envoie plus d'un signal. C'est un savoir-faire de cuisine, pas un résultat de laboratoire.",
-    alt: "Coupe d'un bol de velouté, vu de côté. La masse du velouté est fondante et crémeuse. Posés dessus, des croûtons, des graines et des éclats de noix forment le croquant, sec et dur, qui casse sous la dent. À droite, une quenelle froide apporte une autre température. En dessous, une note rappelle que choisir un contraste est un savoir-faire de cuisine, pas un résultat de laboratoire.",
+    alt: "Coupe d'un bol de velouté, vu de côté. La masse du velouté est fondante et crémeuse. Posés dessus, des croûtons, des graines et des éclats de noix forment le croquant, sec et dur, qui casse sous la dent. À droite, une touche froide, par exemple une boule de glace, apporte une autre température. Choisir un contraste est un savoir-faire de cuisine, pas un résultat de laboratoire.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-terra" x="10" y="18" text-anchor="start">Croquant</text>
 <text class="fg-txt fg-txt-s" x="10" y="33" text-anchor="start"><tspan x="10">croûtons, graines,</tspan><tspan x="10" dy="13.5">éclats de noix</tspan></text>
 <text class="fg-txt fg-txt-b fg-txt-bleu" x="282" y="18" text-anchor="end">Une touche froide</text>
@@ -1579,8 +1577,7 @@ FIGURES["contraste-textures"] = [
 <path class="fg-f-or fg-t-terra fg-t-fin" d="M176 116L182 104L192 100L199 108L194 117Z"/>
 <ellipse class="fg-f-bleu-l fg-t-bleu" cx="236" cy="108" rx="19" ry="9"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="160" y="158" text-anchor="middle">Velouté</text>
-<text class="fg-txt fg-txt-s" x="160" y="174" text-anchor="middle">fondant, crémeux</text>
-<text class="fg-txt fg-txt-s fg-txt-doux" x="160" y="250" text-anchor="middle"><tspan x="160">le sec contre le mou,</tspan><tspan x="160" dy="13.5">le froid contre le chaud</tspan></text>` },
+<text class="fg-txt fg-txt-s" x="160" y="174" text-anchor="middle">fondant, crémeux</text>` },
 
   { ou: "pourquoi", apres: 1, type: "courbe", qualitative: true,
     titre: "La satiété sensorielle spécifique",
@@ -1593,7 +1590,7 @@ FIGURES["contraste-textures"] = [
       { nom: "Un autre aliment", ton: "vert", points: [[0, 0.92], [50, 0.9], [100, 0.88]] }
     ],
     notes: [
-      { x: 100, y: 0.3, texte: "il s'émousse", dx: -8, dy: -26, largeur: 80, ancre: "end" }
+      { x: 100, y: 0.3, texte: "il s'émousse", dx: -8, dy: -26, largeur: 110, ancre: "end" }
     ] },
 
   { ou: "cas", type: "comparaison",
@@ -1603,24 +1600,30 @@ FIGURES["contraste-textures"] = [
     panneaux: [
       { label: "Noyé dedans", sous: "quelques secondes", ton: "terra", vb: "0 0 84 64",
         corps: `<rect class="fg-f-bleu-l fg-t-bleu" x="6" y="22" width="72" height="38" rx="9"/><rect class="fg-f-terra-l fg-t-terra" x="14" y="32" width="16" height="14" rx="3" transform="rotate(-8 22 39)" opacity=".5"/><rect class="fg-f-terra-l fg-t-terra" x="40" y="38" width="16" height="14" rx="3" transform="rotate(10 48 45)" opacity=".5"/><rect class="fg-f-terra-l fg-t-terra" x="58" y="30" width="14" height="13" rx="3" opacity=".5"/>` },
-      { label: "Posé dessus", sous: "quelques minutes", ton: "vert", vb: "0 0 84 64",
+      { label: "Posé dessus", sous: "quelques minutes", ton: "or", vb: "0 0 84 64",
         corps: `<rect class="fg-f-bleu-l fg-t-bleu" x="6" y="30" width="72" height="30" rx="9"/><rect class="fg-f-terra-l fg-t-terra" x="12" y="15" width="16" height="15" rx="3" transform="rotate(-6 20 22)"/><rect class="fg-f-terra-l fg-t-terra" x="34" y="14" width="16" height="16" rx="3" transform="rotate(5 42 22)"/><rect class="fg-f-terra-l fg-t-terra" x="56" y="16" width="16" height="14" rx="3" transform="rotate(-4 64 23)"/>` },
-      { label: "Sur du gras", sous: "une barrière contre l'eau", ton: "or", vb: "0 0 84 64",
+      { label: "Sur du gras", sous: "une barrière contre l'eau", ton: "vert", vb: "0 0 84 64",
         corps: `<rect class="fg-f-bleu-l fg-t-bleu" x="6" y="34" width="72" height="26" rx="9"/><rect class="fg-f-or" x="6" y="29" width="72" height="6" rx="3"/><rect class="fg-f-terra-l fg-t-terra" x="12" y="14" width="16" height="15" rx="3" transform="rotate(-6 20 21)"/><rect class="fg-f-terra-l fg-t-terra" x="34" y="13" width="16" height="16" rx="3" transform="rotate(5 42 21)"/><rect class="fg-f-terra-l fg-t-terra" x="56" y="15" width="16" height="14" rx="3" transform="rotate(-4 64 22)"/>` }
     ] },
 
-  { ou: "reperes", type: "echelle",
+  { ou: "reperes", type: "svg", vb: "0 0 320 112",
     titre: "Combien de textures dans l'assiette ?",
     legende: "Deux textures franchement différentes suffisent ; passé trois, l'assiette devient un inventaire.",
-    alt: "Règle graduée du nombre de textures franchement différentes dans l'assiette. Avec une seule, un seul signal arrive et il s'émousse. Avec deux ou trois, le contraste fonctionne : deux suffisent. Au-delà de trois, l'assiette devient un inventaire.",
-    min: 1, max: 4, label: "Textures franchement différentes",
-    graduations: [1, 2, 3],
-    zones: [
-      { de: 1, a: 2, label: "un seul signal", ton: "or" },
-      { de: 2, a: 3, label: "deux suffisent", ton: "vert" },
-      { de: 3, a: 4, label: "un inventaire", ton: "terra" }
-    ] }
+    alt: "Quatre cases côte à côte, du nombre de textures franchement différentes dans l'assiette. Une seule : un seul signal, qui s'émousse. Deux : cela suffit. Trois : c'est le plafond. Quatre et plus : l'assiette devient un inventaire.",
+    corps: `<rect class="fg-f-or-l fg-t-or" x="8" y="10" width="70" height="46" rx="10"/>
+<rect class="fg-f-vert-l fg-t-vert" x="86" y="10" width="70" height="46" rx="10"/>
+<rect class="fg-f-vert-l fg-t-vert" x="164" y="10" width="70" height="46" rx="10"/>
+<rect class="fg-f-terra-l fg-t-terra" x="242" y="10" width="70" height="46" rx="10"/>
+<text class="fg-txt fg-txt-xl fg-txt-b fg-txt-or" x="43" y="42" text-anchor="middle">1</text>
+<text class="fg-txt fg-txt-xl fg-txt-b fg-txt-vert" x="121" y="42" text-anchor="middle">2</text>
+<text class="fg-txt fg-txt-xl fg-txt-b fg-txt-vert" x="199" y="42" text-anchor="middle">3</text>
+<text class="fg-txt fg-txt-xl fg-txt-b fg-txt-terra" x="277" y="42" text-anchor="middle">4+</text>
+<text class="fg-txt fg-txt-s" x="43" y="76" text-anchor="middle"><tspan x="43">un seul</tspan><tspan x="43" dy="13.5">signal</tspan></text>
+<text class="fg-txt fg-txt-s fg-txt-b" x="121" y="76" text-anchor="middle"><tspan x="121">cela</tspan><tspan x="121" dy="13.5">suffit</tspan></text>
+<text class="fg-txt fg-txt-s" x="199" y="76" text-anchor="middle"><tspan x="199">c'est</tspan><tspan x="199" dy="13.5">le plafond</tspan></text>
+<text class="fg-txt fg-txt-s" x="277" y="76" text-anchor="middle"><tspan x="277">un</tspan><tspan x="277" dy="13.5">inventaire</tspan></text>` }
 ];
+
 
 FIGURES["pectine-acidite"] = [
   { ou: "tete", type: "svg", vb: "0 0 320 314",
@@ -1642,23 +1645,23 @@ FIGURES["pectine-acidite"] = [
 <text class="fg-txt-script fg-txt-terra" x="58" y="156" text-anchor="start">la chaleur</text>
 <text class="fg-txt fg-txt-s" x="58" y="172" text-anchor="start"><tspan x="58">coupe les chaînes, à un pH</tspan><tspan x="58" dy="13.5">proche de la neutralité</tspan></text>
 <text class="fg-txt fg-txt-b" x="160" y="214" text-anchor="middle">Cuit : les cellules se séparent</text>
-<rect class="fg-f-vert-l fg-t-vert" x="8" y="224" width="98" height="84" rx="16"/>
-<rect class="fg-f-vert-l fg-t-vert" x="214" y="224" width="98" height="84" rx="16"/>
-<text class="fg-txt fg-txt-s" x="57" y="270" text-anchor="middle">cellule</text>
-<text class="fg-txt fg-txt-s" x="263" y="270" text-anchor="middle">cellule</text>
-<rect class="fg-f-doux" x="106" y="224" width="108" height="84"/>
+<rect class="fg-f-vert-l fg-t-vert" x="8" y="224" width="90" height="84" rx="16"/>
+<rect class="fg-f-vert-l fg-t-vert" x="222" y="224" width="90" height="84" rx="16"/>
+<text class="fg-txt fg-txt-s" x="53" y="270" text-anchor="middle">cellule</text>
+<text class="fg-txt fg-txt-s" x="267" y="270" text-anchor="middle">cellule</text>
+<rect class="fg-f-doux" x="98" y="224" width="124" height="84"/>
 <text class="fg-txt fg-txt-s fg-txt-or" x="160" y="240" text-anchor="middle">chaînes coupées</text>
-<path class="fg-t-or fg-t-epais" d="M106 256q9-6 18 0t18 0"/>
-<path class="fg-t-or fg-t-epais" d="M178 256q9-6 18 0t18 0"/>
-<path class="fg-t-or fg-t-epais" d="M106 272q9-6 18 0"/>
-<path class="fg-t-or fg-t-epais" d="M196 272q9-6 18 0"/>
-<path class="fg-t-or fg-t-epais" d="M106 288q9-6 18 0t18 0t18 0"/>
-<path class="fg-t-or fg-t-epais" d="M196 288q9-6 18 0"/>` },
+<path class="fg-t-or fg-t-epais" d="M98 256q9-6 18 0t18 0"/>
+<path class="fg-t-or fg-t-epais" d="M222 256q-9-6 -18 0t-18 0"/>
+<path class="fg-t-or fg-t-epais" d="M98 272q9-6 18 0"/>
+<path class="fg-t-or fg-t-epais" d="M222 272q-9-6 -18 0"/>
+<path class="fg-t-or fg-t-epais" d="M98 288q9-6 18 0t18 0t18 0"/>
+<path class="fg-t-or fg-t-epais" d="M222 288q-9-6 -18 0"/>` },
 
   { ou: "pourquoi", apres: 2, type: "echelle",
     titre: "Où le pH arrête la cuisson",
-    legende: "Sous pH 4 environ, l'attendrissement s'arrête : la pectine tient. C'est une limite de la cuisson, pas du légume.",
-    alt: "Règle graduée du pH du milieu de cuisson, avec un repère à pH 4 environ. À gauche de ce repère, en dessous de pH 4, l'attendrissement s'arrête : c'est le domaine de la tomate, du vin, du vinaigre et du citron. À droite, vers la neutralité, la chaleur peut couper les chaînes de pectine et le légume s'attendrit.",
+    legende: "Sous pH 4 environ, l'attendrissement s'arrête : la pectine tient. Tomate, vin, vinaigre et citron bloquent tous la cuisson. C'est une limite de la cuisson, pas du légume.",
+    alt: "Règle graduée du pH du milieu de cuisson, avec un repère à pH 4 environ. À gauche de ce repère, en dessous de pH 4, l'attendrissement s'arrête : tomate, vin, vinaigre et citron bloquent tous la cuisson. À droite, vers la neutralité, la chaleur peut couper les chaînes de pectine et le légume s'attendrit.",
     min: 3, max: 7, label: "pH du milieu de cuisson",
     graduations: [4],
     zones: [
@@ -1666,12 +1669,13 @@ FIGURES["pectine-acidite"] = [
       { de: 4, a: 7, label: "attendrissement possible", ton: "vert" }
     ],
     marqueurs: [
-      { v: 4, label: "pH 4 environ : tomate, vin, vinaigre, citron", ton: "terra" }
+      { v: 4, label: "pH 4 environ", ton: "terra" },
+      { v: 7, label: "proche de la neutralité", ton: "vert", cote: "bas" }
     ] },
 
   { ou: "pourquoi", apres: 3, type: "comparaison", fleche: true,
     titre: "Calcium et sodium",
-    legende: "Le calcium relie les chaînes de pectine ; le sodium prend sa place et desserre l'édifice. Une eau salée assouplit donc la peau au lieu de la durcir.",
+    legende: "Schéma simplifié. Le calcium relie les chaînes de pectine ; le sodium prend sa place et desserre l'édifice. Une eau salée assouplit donc la peau au lieu de la durcir.",
     alt: "Deux panneaux reliés par une flèche. À gauche, eau calcaire : deux chaînes de pectine sont reliées par trois ions calcium, Ca2+, qui les pontent en pectate insoluble ; la peau reste ferme. À droite, eau salée : des ions sodium, Na+, échangent leur place avec le calcium accroché à la pectine ; le calcium est délogé, les chaînes ne sont plus pontées, l'édifice se desserre et la peau est plus souple.",
     panneaux: [
       { label: "Eau calcaire", sous: "Ca²⁺ ponte les chaînes : peau ferme", ton: "or", vb: "0 0 128 84",
@@ -1682,8 +1686,8 @@ FIGURES["pectine-acidite"] = [
 
   { ou: "cas", type: "etapes",
     titre: "Quand ajouter l'acide",
-    legende: "L'acide va en fin de cuisson : ajouté avant, il bloque l'attendrissement, et aucune prolongation ne le rattrape.",
-    alt: "Trois étapes. Première étape : cuire d'abord dans l'eau, sans acide. Deuxième étape : vérifier que la graine ou le légume est déjà tendre. Troisième étape seulement : ajouter la tomate, le vinaigre, le vin ou le citron.",
+    legende: "Pour attendrir, l'acide va en fin de cuisson : ajouté avant, il bloque l'attendrissement, et aucune prolongation ne le rattrape.",
+    alt: "Trois étapes, pour une graine ou un légume à attendrir. Première étape : cuire d'abord dans l'eau, sans acide. Deuxième étape : vérifier que la graine ou le légume est déjà tendre. Troisième étape seulement : ajouter la tomate, le vinaigre, le vin ou le citron.",
     etapes: [
       { libelle: "Cuire dans l'eau", desc: "sans acide", emoji: "🫘", ton: "bleu" },
       { libelle: "Goûter", desc: "déjà tendre ?", emoji: "🥄" },
@@ -1704,13 +1708,13 @@ FIGURES["osmose-sel"] = [
     vb: "0 0 320 258",
     titre: "L'eau sort d'abord, le sel entre ensuite",
     legende: "Le sel dissous attire l'eau de la cellule (osmose ; le pointillé marque la taille d'origine), puis ses ions diffusent vers l'intérieur. L'une est immédiate, l'autre demande des heures.",
-    alt: "Schéma en deux temps d'une cellule végétale sous un film de solution salée, avec des grains de sel en surface. À gauche, l'eau sort : trois flèches bleues montent de la cellule vers la solution salée et la cellule se vide, sa vacuole se rétracte, le pointillé montrant sa taille d'origine. La sortie d'eau est immédiate. À droite, le sel entre : trois flèches descendent de la solution vers la cellule, et les ions sodium et chlorure diffusent à l'intérieur, ce qui prend plusieurs heures.",
+    alt: "Schéma en deux temps d'une cellule végétale sous un film de solution salée, avec des grains de sel en surface. À gauche, l'eau sort : trois flèches bleues montent de la cellule vers la solution salée et la cellule se vide, son centre se rétracte, le pointillé montrant sa taille d'origine. La sortie d'eau est immédiate. À droite, le sel entre : trois flèches descendent de la solution vers la cellule, et les ions sodium et chlorure diffusent à l'intérieur, ce qui prend plusieurs heures.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-bleu" x="80" y="17" text-anchor="middle">L'eau sort</text>
 <text class="fg-txt fg-txt-s" x="80" y="32" text-anchor="middle">tout de suite</text>
 <text class="fg-txt fg-txt-b" x="240" y="17" text-anchor="middle">Le sel entre</text>
 <text class="fg-txt fg-txt-s" x="240" y="32" text-anchor="middle">en plusieurs heures</text>
-<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="22" y="62" width="116" height="13" rx="6.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="36" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="54" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="72" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="90" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="108" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-vert-l fg-t-vert fg-t-epais" x="34" y="84" width="92" height="104" rx="15"/><rect class="fg-t-bleu fg-t-fin fg-tirets" x="40" y="98" width="80" height="84" rx="16"/><rect class="fg-f-bleu-l fg-t-bleu" x="45" y="120" width="70" height="58" rx="14"/><path class="fg-t-bleu fg-t-epais" d="M56 114L56 80" marker-end="url(#fg-fl-bleu)"/><path class="fg-t-bleu fg-t-epais" d="M80 114L80 80" marker-end="url(#fg-fl-bleu)"/><path class="fg-t-bleu fg-t-epais" d="M104 114L104 80" marker-end="url(#fg-fl-bleu)"/>
-<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="182" y="62" width="116" height="13" rx="6.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="214" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="250" y="52" width="7" height="7" rx="1.5"/><rect class="fg-f-vert-l fg-t-vert fg-t-epais" x="194" y="84" width="92" height="104" rx="15"/><rect class="fg-t-bleu fg-t-fin fg-tirets" x="200" y="98" width="80" height="84" rx="16"/><rect class="fg-f-bleu-l fg-t-bleu" x="205" y="120" width="70" height="58" rx="14"/><path class="fg-t-encre fg-t-epais" d="M216 80L216 118" marker-end="url(#fg-fl-encre)"/><path class="fg-t-encre fg-t-epais" d="M240 80L240 118" marker-end="url(#fg-fl-encre)"/><path class="fg-t-encre fg-t-epais" d="M264 80L264 118" marker-end="url(#fg-fl-encre)"/><circle class="fg-f-encre" cx="218" cy="134" r="2.2"/><circle class="fg-f-encre" cx="236" cy="144" r="2.2"/><circle class="fg-f-encre" cx="256" cy="132" r="2.2"/><circle class="fg-f-encre" cx="226" cy="162" r="2.2"/><circle class="fg-f-encre" cx="250" cy="160" r="2.2"/><circle class="fg-f-encre" cx="266" cy="148" r="2.2"/><circle class="fg-f-encre" cx="214" cy="150" r="2.2"/><circle class="fg-f-encre" cx="242" cy="128" r="2.2"/>
+<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="22" y="56" width="116" height="20" rx="10"/><text class="fg-txt fg-txt-s fg-txt-bleu" x="80" y="70" text-anchor="middle">solution salée</text><rect class="fg-f-carte fg-t-encre fg-t-fin" x="36" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="54" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="72" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="90" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="108" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-vert-l fg-t-vert fg-t-epais" x="34" y="84" width="92" height="104" rx="15"/><rect class="fg-t-bleu fg-t-fin fg-tirets" x="40" y="98" width="80" height="84" rx="16"/><rect class="fg-f-bleu-l fg-t-bleu" x="45" y="120" width="70" height="58" rx="14"/><path class="fg-t-bleu fg-t-epais" d="M56 114L56 79" marker-end="url(#fg-fl-bleu)"/><path class="fg-t-bleu fg-t-epais" d="M80 114L80 79" marker-end="url(#fg-fl-bleu)"/><path class="fg-t-bleu fg-t-epais" d="M104 114L104 79" marker-end="url(#fg-fl-bleu)"/>
+<rect class="fg-f-bleu-l fg-t-bleu fg-t-fin" x="182" y="56" width="116" height="20" rx="10"/><text class="fg-txt fg-txt-s fg-txt-bleu" x="240" y="70" text-anchor="middle">solution salée</text><rect class="fg-f-carte fg-t-encre fg-t-fin" x="214" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="250" y="44" width="7" height="7" rx="1.5"/><rect class="fg-f-vert-l fg-t-vert fg-t-epais" x="194" y="84" width="92" height="104" rx="15"/><rect class="fg-t-bleu fg-t-fin fg-tirets" x="200" y="98" width="80" height="84" rx="16"/><rect class="fg-f-bleu-l fg-t-bleu" x="205" y="120" width="70" height="58" rx="14"/><path class="fg-t-encre fg-t-epais" d="M216 79L216 118" marker-end="url(#fg-fl-encre)"/><path class="fg-t-encre fg-t-epais" d="M240 79L240 118" marker-end="url(#fg-fl-encre)"/><path class="fg-t-encre fg-t-epais" d="M264 79L264 118" marker-end="url(#fg-fl-encre)"/><circle class="fg-f-encre" cx="218" cy="134" r="2.2"/><circle class="fg-f-encre" cx="236" cy="144" r="2.2"/><circle class="fg-f-encre" cx="256" cy="132" r="2.2"/><circle class="fg-f-encre" cx="226" cy="162" r="2.2"/><circle class="fg-f-encre" cx="250" cy="160" r="2.2"/><circle class="fg-f-encre" cx="266" cy="148" r="2.2"/><circle class="fg-f-encre" cx="214" cy="150" r="2.2"/><circle class="fg-f-encre" cx="242" cy="128" r="2.2"/>
 <path class="fg-t-axe" d="M154 130L166 130" marker-end="url(#fg-fl-encre)"/>
 <text class="fg-txt fg-txt-s" x="80" y="208" text-anchor="middle"><tspan x="80">l'eau passe vers la solution</tspan><tspan x="80" dy="13.5">salée : la cellule se vide</tspan></text>
 <text class="fg-txt fg-txt-s" x="240" y="208" text-anchor="middle"><tspan x="240">les ions sodium et chlorure</tspan><tspan x="240" dy="13.5">diffusent vers l'intérieur</tspan></text>
@@ -1766,7 +1770,6 @@ FIGURES["osmose-sel"] = [
       {
         nom: "Eau perlée en surface",
         ton: "bleu",
-        aire: true,
         points: [[0, 0], [7, 0.62], [18, 1], [40, 0.85], [66, 0.4], [100, 0.08]]
       },
       {
@@ -1776,14 +1779,14 @@ FIGURES["osmose-sel"] = [
       }
     ],
     zones: [
-      { de: 10, a: 74, label: "fenêtre mouillée : durée non documentée", ton: "or" }
+      { de: 10, a: 62, label: "fenêtre mouillée : durée non documentée", ton: "or" }
     ]
   },
   {
     ou: "reperes",
     type: "etapes",
     titre: "Dégorger un légume",
-    legende: "Le geste d'un légume qui rend son eau : une bonne cuillère à café de sel fin pour 500 g, une demi-heure à une heure d'attente.",
+    legende: "Pour dégorger un légume : une bonne cuillère à café de sel fin pour 500 g, une demi-heure à une heure d'attente, puis on rince et on éponge.",
     alt: "Trois étapes reliées par des flèches. Un : saler, avec une bonne cuillère à café de sel fin pour 500 g de légume. Deux : attendre de 30 minutes à une heure, l'eau perle et s'écoule. Trois : rincer, puis éponger.",
     etapes: [
       {
@@ -1804,9 +1807,9 @@ FIGURES["assaisonnement-couches"] = [
     type: "svg",
     vb: "0 0 320 282",
     titre: "Où va le sel : dans l'aliment ou sur lui",
-    legende: "Seule l'eau de cuisson peut faire entrer le sel : ce qu'on ajoute ensuite reste en surface. Les points marquent le sel entré dans l'aliment.",
+    legende: "Schéma simplifié. Seule l'eau de cuisson peut faire entrer le sel : ce qu'on ajoute ensuite reste en surface. Les points marquent le sel entré dans l'aliment.",
     alt: "Trois coupes d'aliments. Une pomme de terre dans l'eau salée : après vingt minutes, le sel ne gagne que quelques millimètres sous la peau, on le voit en anneau de points à la périphérie, et le cœur reste peu salé. Des pâtes dans l'eau salée : elles boivent l'eau et donc le sel, les points sont répartis dans toute la pâte, salée de part en part. Une pomme de terre salée à la fin : les grains de sel restent tout autour, en surface, et rien n'est entré ; on obtient des pointes salées et un cœur fade.",
-    corps: `<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="45" r="31"/><circle class="fg-t-or fg-t-fin fg-tirets" cx="46" cy="45" r="23"/><circle class="fg-f-encre" cx="70.6" cy="45" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="61.8" r="1.9"/><circle class="fg-f-encre" cx="48.2" cy="20.1" r="1.9"/><circle class="fg-f-encre" cx="61.4" cy="65" r="1.9"/><circle class="fg-f-encre" cx="21" cy="40.6" r="1.9"/><circle class="fg-f-encre" cx="67.6" cy="31.2" r="1.9"/><circle class="fg-f-encre" cx="39.3" cy="70" r="1.9"/><circle class="fg-f-encre" cx="34" cy="21.9" r="1.9"/><circle class="fg-f-encre" cx="70.6" cy="54" r="1.9"/><circle class="fg-f-encre" cx="21.6" cy="55.1" r="1.9"/><circle class="fg-f-encre" cx="57.3" cy="20.9" r="1.9"/><circle class="fg-f-encre" cx="54" cy="70.6" r="1.9"/><circle class="fg-f-encre" cx="22.6" cy="31.5" r="1.9"/><circle class="fg-f-encre" cx="72.6" cy="39.2" r="1.9"/><circle class="fg-f-encre" cx="30.2" cy="67.4" r="1.9"/><circle class="fg-f-encre" cx="42.5" cy="17.6" r="1.9"/><circle class="fg-f-encre" cx="67.2" cy="62.9" r="1.9"/><circle class="fg-f-encre" cx="18.1" cy="46.2" r="1.9"/><circle class="fg-f-encre" cx="66" cy="25.1" r="1.9"/><circle class="fg-f-encre" cx="44.7" cy="73.3" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="23.1" r="1.9"/><circle class="fg-f-encre" cx="74.4" cy="48.8" r="1.9"/><circle class="fg-f-encre" cx="22.3" cy="61.5" r="1.9"/><circle class="fg-f-encre" cx="52.4" cy="16.7" r="1.9"/><circle class="fg-f-encre" cx="60.5" cy="70.4" r="1.9"/><circle class="fg-f-encre" cx="18" cy="36.1" r="1.9"/><text class="fg-txt-script fg-txt-doux" x="46" y="50" text-anchor="middle">cœur</text><text class="fg-txt fg-txt-b" x="96" y="28" text-anchor="start">Pomme de terre, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="45" text-anchor="start"><tspan x="96">Vingt minutes : le sel ne dépasse pas</tspan><tspan x="96" dy="13.5">quelques millimètres sous la peau ;</tspan><tspan x="96" dy="13.5">le cœur reste peu salé.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="123" r="31"/><circle class="fg-f-encre" cx="58.3" cy="123" r="1.9"/><circle class="fg-f-encre" cx="36.4" cy="131.8" r="1.9"/><circle class="fg-f-encre" cx="47.2" cy="109.4" r="1.9"/><circle class="fg-f-encre" cx="54.7" cy="134.3" r="1.9"/><circle class="fg-f-encre" cx="31.4" cy="120.4" r="1.9"/><circle class="fg-f-encre" cx="59" cy="114.7" r="1.9"/><circle class="fg-f-encre" cx="41.9" cy="138.4" r="1.9"/><circle class="fg-f-encre" cx="38.4" cy="108.4" r="1.9"/><circle class="fg-f-encre" cx="61.9" cy="128.8" r="1.9"/><circle class="fg-f-encre" cx="29.9" cy="129.7" r="1.9"/><circle class="fg-f-encre" cx="53.6" cy="106.8" r="1.9"/><circle class="fg-f-encre" cx="51.5" cy="140.5" r="1.9"/><circle class="fg-f-encre" cx="29.7" cy="113.6" r="1.9"/><circle class="fg-f-encre" cx="64.8" cy="118.9" r="1.9"/><circle class="fg-f-encre" cx="34.7" cy="139.1" r="1.9"/><circle class="fg-f-encre" cx="43.4" cy="103" r="1.9"/><circle class="fg-f-encre" cx="61.7" cy="136.2" r="1.9"/><circle class="fg-f-encre" cx="25.1" cy="123.9" r="1.9"/><circle class="fg-f-encre" cx="61.1" cy="107.9" r="1.9"/><circle class="fg-f-encre" cx="45" cy="144.7" r="1.9"/><circle class="fg-f-encre" cx="31.8" cy="106" r="1.9"/><circle class="fg-f-encre" cx="68.3" cy="126" r="1.9"/><circle class="fg-f-encre" cx="27.2" cy="136.1" r="1.9"/><circle class="fg-f-encre" cx="51.1" cy="100.3" r="1.9"/><circle class="fg-f-encre" cx="57.7" cy="143.5" r="1.9"/><circle class="fg-f-encre" cx="23.2" cy="115.7" r="1.9"/><circle class="fg-f-encre" cx="68.1" cy="112.8" r="1.9"/><circle class="fg-f-encre" cx="36.5" cy="145.7" r="1.9"/><circle class="fg-f-encre" cx="37.5" cy="99.5" r="1.9"/><circle class="fg-f-encre" cx="68.4" cy="134.8" r="1.9"/><circle class="fg-f-encre" cx="21.2" cy="129.5" r="1.9"/><circle class="fg-f-encre" cx="60" cy="101.2" r="1.9"/><circle class="fg-f-encre" cx="50.5" cy="148.9" r="1.9"/><circle class="fg-f-encre" cx="25" cy="106.7" r="1.9"/><circle class="fg-f-encre" cx="72.8" cy="120.8" r="1.9"/><circle class="fg-f-encre" cx="27.5" cy="143" r="1.9"/><circle class="fg-f-encre" cx="46.1" cy="95.5" r="1.9"/><circle class="fg-f-encre" cx="64.7" cy="143.6" r="1.9"/><circle class="fg-f-carte fg-t-or" cx="46" cy="123" r="8"/><text class="fg-txt fg-txt-b" x="96" y="106" text-anchor="start">Pâtes, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="123" text-anchor="start"><tspan x="96">Elles boivent l'eau, donc le sel :</tspan><tspan x="96" dy="13.5">salées de part en part.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="201" r="28"/><text class="fg-txt-script fg-txt-doux" x="46" y="206" text-anchor="middle">fade</text><use href="#fg-sym-grain-sel" transform="rotate(10 80.8 208.1)" x="76.13" y="203.43" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(40 72.6 224.5)" x="67.93" y="219.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(70 57.3 234.7)" x="52.63" y="230.03" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(100 38.9 235.8)" x="34.23" y="231.13" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(130 22.5 227.6)" x="17.83" y="222.93" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(160 12.3 212.3)" x="7.63" y="207.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(190 11.2 193.9)" x="6.53" y="189.23" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(220 19.4 177.5)" x="14.73" y="172.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(250 34.7 167.3)" x="30.03" y="162.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(280 53.1 166.2)" x="48.43" y="161.53" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(310 69.5 174.4)" x="64.83" y="169.73" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(340 79.7 189.7)" x="75.03" y="185.03" width="9.33" height="9.33"/><text class="fg-txt fg-txt-b" x="96" y="184" text-anchor="start">Sel jeté à la fin</text><text class="fg-txt fg-txt-s" x="96" y="201" text-anchor="start"><tspan x="96">Il ne quitte pas la surface :</tspan><tspan x="96" dy="13.5">pointes salées, cœur fade.</tspan></text><path class="fg-t-grille" d="M10 84H310M10 162H310"/><use href="#fg-sym-grain-sel" x="60.83" y="260.83" width="9.33" height="9.33"/>
+    corps: `<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="45" r="31"/><circle class="fg-t-or fg-t-fin fg-tirets" cx="46" cy="45" r="23"/><circle class="fg-f-encre" cx="70.6" cy="45" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="61.8" r="1.9"/><circle class="fg-f-encre" cx="48.2" cy="20.1" r="1.9"/><circle class="fg-f-encre" cx="61.4" cy="65" r="1.9"/><circle class="fg-f-encre" cx="21" cy="40.6" r="1.9"/><circle class="fg-f-encre" cx="67.6" cy="31.2" r="1.9"/><circle class="fg-f-encre" cx="39.3" cy="70" r="1.9"/><circle class="fg-f-encre" cx="34" cy="21.9" r="1.9"/><circle class="fg-f-encre" cx="70.6" cy="54" r="1.9"/><circle class="fg-f-encre" cx="21.6" cy="55.1" r="1.9"/><circle class="fg-f-encre" cx="57.3" cy="20.9" r="1.9"/><circle class="fg-f-encre" cx="54" cy="70.6" r="1.9"/><circle class="fg-f-encre" cx="22.6" cy="31.5" r="1.9"/><circle class="fg-f-encre" cx="72.6" cy="39.2" r="1.9"/><circle class="fg-f-encre" cx="30.2" cy="67.4" r="1.9"/><circle class="fg-f-encre" cx="42.5" cy="17.6" r="1.9"/><circle class="fg-f-encre" cx="67.2" cy="62.9" r="1.9"/><circle class="fg-f-encre" cx="18.1" cy="46.2" r="1.9"/><circle class="fg-f-encre" cx="66" cy="25.1" r="1.9"/><circle class="fg-f-encre" cx="44.7" cy="73.3" r="1.9"/><circle class="fg-f-encre" cx="27.7" cy="23.1" r="1.9"/><circle class="fg-f-encre" cx="74.4" cy="48.8" r="1.9"/><circle class="fg-f-encre" cx="22.3" cy="61.5" r="1.9"/><circle class="fg-f-encre" cx="52.4" cy="16.7" r="1.9"/><circle class="fg-f-encre" cx="60.5" cy="70.4" r="1.9"/><circle class="fg-f-encre" cx="18" cy="36.1" r="1.9"/><text class="fg-txt-script fg-txt-doux" x="46" y="50" text-anchor="middle">cœur</text><text class="fg-txt fg-txt-b" x="96" y="28" text-anchor="start">Pomme de terre, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="45" text-anchor="start"><tspan x="96">Vingt minutes : le sel ne dépasse pas</tspan><tspan x="96" dy="13.5">quelques millimètres sous la peau ;</tspan><tspan x="96" dy="13.5">le cœur reste peu salé.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="123" r="31"/><circle class="fg-f-encre" cx="58.3" cy="123" r="1.9"/><circle class="fg-f-encre" cx="36.4" cy="131.8" r="1.9"/><circle class="fg-f-encre" cx="47.2" cy="109.4" r="1.9"/><circle class="fg-f-encre" cx="54.7" cy="134.3" r="1.9"/><circle class="fg-f-encre" cx="31.4" cy="120.4" r="1.9"/><circle class="fg-f-encre" cx="59" cy="114.7" r="1.9"/><circle class="fg-f-encre" cx="41.9" cy="138.4" r="1.9"/><circle class="fg-f-encre" cx="38.4" cy="108.4" r="1.9"/><circle class="fg-f-encre" cx="61.9" cy="128.8" r="1.9"/><circle class="fg-f-encre" cx="29.9" cy="129.7" r="1.9"/><circle class="fg-f-encre" cx="53.6" cy="106.8" r="1.9"/><circle class="fg-f-encre" cx="51.5" cy="140.5" r="1.9"/><circle class="fg-f-encre" cx="29.7" cy="113.6" r="1.9"/><circle class="fg-f-encre" cx="64.8" cy="118.9" r="1.9"/><circle class="fg-f-encre" cx="34.7" cy="139.1" r="1.9"/><circle class="fg-f-encre" cx="43.4" cy="103" r="1.9"/><circle class="fg-f-encre" cx="61.7" cy="136.2" r="1.9"/><circle class="fg-f-encre" cx="25.1" cy="123.9" r="1.9"/><circle class="fg-f-encre" cx="61.1" cy="107.9" r="1.9"/><circle class="fg-f-encre" cx="45" cy="144.7" r="1.9"/><circle class="fg-f-encre" cx="31.8" cy="106" r="1.9"/><circle class="fg-f-encre" cx="68.3" cy="126" r="1.9"/><circle class="fg-f-encre" cx="27.2" cy="136.1" r="1.9"/><circle class="fg-f-encre" cx="51.1" cy="100.3" r="1.9"/><circle class="fg-f-encre" cx="57.7" cy="143.5" r="1.9"/><circle class="fg-f-encre" cx="23.2" cy="115.7" r="1.9"/><circle class="fg-f-encre" cx="68.1" cy="112.8" r="1.9"/><circle class="fg-f-encre" cx="36.5" cy="145.7" r="1.9"/><circle class="fg-f-encre" cx="37.5" cy="99.5" r="1.9"/><circle class="fg-f-encre" cx="68.4" cy="134.8" r="1.9"/><circle class="fg-f-encre" cx="21.2" cy="129.5" r="1.9"/><circle class="fg-f-encre" cx="60" cy="101.2" r="1.9"/><circle class="fg-f-encre" cx="50.5" cy="148.9" r="1.9"/><circle class="fg-f-encre" cx="25" cy="106.7" r="1.9"/><circle class="fg-f-encre" cx="72.8" cy="120.8" r="1.9"/><circle class="fg-f-encre" cx="27.5" cy="143" r="1.9"/><circle class="fg-f-encre" cx="46.1" cy="95.5" r="1.9"/><circle class="fg-f-encre" cx="64.7" cy="143.6" r="1.9"/><circle class="fg-f-encre" cx="42" cy="119" r="1.9"/><circle class="fg-f-encre" cx="52" cy="124" r="1.9"/><circle class="fg-f-encre" cx="46" cy="130" r="1.9"/><circle class="fg-f-encre" cx="48" cy="114" r="1.9"/><circle class="fg-f-encre" cx="38" cy="127" r="1.9"/><text class="fg-txt fg-txt-b" x="96" y="106" text-anchor="start">Pâtes, eau salée</text><text class="fg-txt fg-txt-s" x="96" y="123" text-anchor="start"><tspan x="96">Elles boivent l'eau, donc le sel :</tspan><tspan x="96" dy="13.5">salées de part en part.</tspan></text><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="46" cy="201" r="28"/><text class="fg-txt-script fg-txt-doux" x="46" y="206" text-anchor="middle">fade</text><use href="#fg-sym-grain-sel" transform="rotate(10 80.8 208.1)" x="76.13" y="203.43" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(40 72.6 224.5)" x="67.93" y="219.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(70 57.3 234.7)" x="52.63" y="230.03" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(100 38.9 235.8)" x="34.23" y="231.13" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(130 22.5 227.6)" x="17.83" y="222.93" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(160 12.3 212.3)" x="7.63" y="207.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(190 11.2 193.9)" x="6.53" y="189.23" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(220 19.4 177.5)" x="14.73" y="172.83" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(250 34.7 167.3)" x="30.03" y="162.63" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(280 53.1 166.2)" x="48.43" y="161.53" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(310 69.5 174.4)" x="64.83" y="169.73" width="9.33" height="9.33"/><use href="#fg-sym-grain-sel" transform="rotate(340 79.7 189.7)" x="75.03" y="185.03" width="9.33" height="9.33"/><text class="fg-txt fg-txt-b" x="96" y="184" text-anchor="start">Sel jeté à la fin</text><text class="fg-txt fg-txt-s" x="96" y="201" text-anchor="start"><tspan x="96">Il ne quitte pas la surface :</tspan><tspan x="96" dy="13.5">pointes salées, cœur fade.</tspan></text><path class="fg-t-grille" d="M10 84H310M10 162H310"/><use href="#fg-sym-grain-sel" x="60.83" y="260.83" width="9.33" height="9.33"/>
 <text class="fg-txt fg-txt-s" x="74" y="269" text-anchor="start">grain de sel</text>
 <circle class="fg-f-encre" cx="162" cy="265.5" r="2.4"/>
 <text class="fg-txt fg-txt-s" x="170" y="269" text-anchor="start">sel entré dans l'aliment</text>`
@@ -1820,19 +1823,19 @@ FIGURES["assaisonnement-couches"] = [
     etapes: [
       {
         libelle: "Au début",
-        desc: "eau de cuisson, marinade : le sel entre dans l'aliment",
+        desc: "eau de cuisson, marinade : le sel entre",
         emoji: "🍝",
         ton: "bleu"
       },
       {
         libelle: "Après la couleur",
-        desc: "champignons, courge à saisir : salez une fois dorés",
+        desc: "champignons, courge : salez une fois dorés",
         emoji: "🍄",
         ton: "terra"
       },
       {
         libelle: "À la fin",
-        desc: "fleur de sel sur surface sèche : une pointe qui craque",
+        desc: "fleur de sel : une pointe qui craque",
         emoji: "🧂",
         ton: "or"
       }
@@ -1856,7 +1859,7 @@ FIGURES["assaisonnement-couches"] = [
       {
         nom: "Salé à cœur",
         ton: "vert",
-        points: [[0, 0.55], [100, 0.55]]
+        points: [[0, 0.35], [100, 0.35]]
       },
       {
         nom: "Salé en surface",
@@ -1881,7 +1884,7 @@ FIGURES["assaisonnement-couches"] = [
 <rect class="fg-f-carte fg-t-encre fg-t-fin" x="76" y="20" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="88" y="14" width="8" height="8" rx="1.5" transform="rotate(14 92 18)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="100" y="20" width="8" height="8" rx="1.5"/>
 <text class="fg-txt fg-txt-b" x="90" y="178" text-anchor="middle">environ 10 g de sel</text>
 <path class="fg-t-or" d="M150 86L186 66" marker-end="url(#fg-fl-or)"/>
-<path class="fg-t-axe fg-t-tres-epais" d="M150 120L184 148" marker-end="url(#fg-fl-encre)"/>
+<path class="fg-f-doux fg-t-axe fg-t-fin" transform="translate(150 120) rotate(40)" d="M0 -5H28V-11L46 0L28 11V5H0Z"/>
 <rect class="fg-f-or-l fg-t-or" x="192" y="40" width="120" height="50" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="252" y="60" text-anchor="middle">Dans l'aliment</text>
 <text class="fg-txt fg-txt-s" x="252" y="76" text-anchor="middle">une petite part</text>
@@ -1895,10 +1898,10 @@ FIGURES["sel-patisserie"] = [
   {
     ou: "tete",
     type: "svg",
-    vb: "0 0 320 322",
+    vb: "0 0 320 336",
     titre: "Le sel ne sucre pas : il lève un masque",
-    legende: "Illustration qualitative, sans valeurs : l'amertume masque le sucré ; le sodium l'atténue, et le sucré se détache.",
-    alt: "Deux petits diagrammes en barres, sans valeurs chiffrées. Sans sel : une grande barre pour l'amer et une petite barre pâle pour le sucré, qui est masqué. Avec du sel : la barre de l'amer est plus basse et la barre du sucré est haute et nette. Le sodium atténue l'amertume, qui masquait le sucré : c'est une levée d'inhibition, montrée par Breslin et Beauchamp en 1997. Un cadre signale ce qui est discuté : que le sel agisse directement sur le récepteur du sucré est mal établi, et l'endroit exact où se joue l'effet n'est pas tranché.",
+    legende: "Illustration qualitative, sans valeurs : la hauteur des barres figure l'intensité perçue. L'amertume masque le sucré ; le sodium l'atténue, et le sucré se détache.",
+    alt: "Deux petits diagrammes en barres, sans valeurs chiffrées. Sans sel : une grande barre pour l'amer et une petite barre pâle pour le sucré, qui est masqué. Avec du sel : la barre de l'amer est plus basse et la barre du sucré est haute et nette. Le sodium atténue l'amertume, qui masquait le sucré : c'est une levée d'inhibition, montrée par Breslin et Beauchamp en 1997. Un cadre signale deux points non tranchés : que le sel rende le sucré plus sucré en agissant directement sur son récepteur est mal établi, et l'endroit exact où se joue la levée d'inhibition n'est pas établi.",
     corps: `<rect class="fg-f-carte fg-t-doux" x="8" y="8" width="140" height="170" rx="12"/>
 <rect class="fg-f-carte fg-t-doux" x="172" y="8" width="140" height="170" rx="12"/>
 <text class="fg-txt fg-txt-b" x="78" y="30" text-anchor="middle">Sans sel</text>
@@ -1915,8 +1918,8 @@ FIGURES["sel-patisserie"] = [
 <path class="fg-t-axe" d="M151 92L169 92" marker-end="url(#fg-fl-encre)"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="160" y="204" text-anchor="middle"><tspan x="160">Le sodium atténue l'amertume ;</tspan><tspan x="160" dy="13.5">libéré, le sucré paraît plus net.</tspan></text>
 <text class="fg-txt fg-txt-s" x="160" y="238" text-anchor="middle"><tspan x="160">Breslin et Beauchamp, 1997 : la levée d'inhibition</tspan></text>
-<rect class="fg-f-or-l fg-t-or fg-t-fin fg-tirets" x="8" y="250" width="304" height="62" rx="10"/>
-<text class="fg-txt fg-txt-s" x="160" y="269" text-anchor="middle"><tspan class="fg-txt-b fg-txt-or" x="160">Mal établi, discuté</tspan><tspan x="160" dy="13.5">que le sel agisse directement sur le récepteur</tspan><tspan x="160" dy="13.5">du sucré, ou plus haut, dans le mélange des goûts</tspan></text>`
+<rect class="fg-f-or-l fg-t-or fg-t-fin fg-tirets" x="8" y="250" width="304" height="76" rx="10"/>
+<text class="fg-txt fg-txt-s" x="160" y="269" text-anchor="middle"><tspan class="fg-txt-b fg-txt-or" x="160">Mal établi, discuté</tspan><tspan x="160" dy="13.5">que le sel rende le sucré plus sucré en agissant</tspan><tspan x="160" dy="13.5">directement sur son récepteur. Pas tranché non plus :</tspan><tspan x="160" dy="13.5">où se joue la levée d'inhibition.</tspan></text>`
   },
   {
     ou: "cas",
@@ -1948,14 +1951,14 @@ FIGURES["sel-patisserie"] = [
         sous: "réparti partout, jamais en pointes",
         ton: "vert",
         vb: "20 6 80 72",
-        corps: `<circle class="fg-f-terra" cx="60" cy="42" r="33" opacity=".6"/><circle class="fg-t-terra" cx="60" cy="42" r="33"/><circle class="fg-f-terra" cx="46" cy="32" r="3.6"/><circle class="fg-f-terra" cx="72" cy="38" r="3.6"/><circle class="fg-f-terra" cx="56" cy="58" r="3.6"/><circle class="fg-f-terra" cx="78" cy="56" r="3.6"/><circle class="fg-f-terra" cx="38" cy="52" r="3.6"/><circle class="fg-f-encre" cx="40" cy="40" r="1.7"/><circle class="fg-f-encre" cx="55" cy="30" r="1.7"/><circle class="fg-f-encre" cx="70" cy="32" r="1.7"/><circle class="fg-f-encre" cx="62" cy="47" r="1.7"/><circle class="fg-f-encre" cx="48" cy="46" r="1.7"/><circle class="fg-f-encre" cx="74" cy="49" r="1.7"/><circle class="fg-f-encre" cx="36" cy="60" r="1.7"/><circle class="fg-f-encre" cx="60" cy="66" r="1.7"/><circle class="fg-f-encre" cx="84" cy="40" r="1.7"/><circle class="fg-f-encre" cx="50" cy="62" r="1.7"/><circle class="fg-f-encre" cx="68" cy="24" r="1.7"/><circle class="fg-f-encre" cx="82" cy="62" r="1.7"/>`
+        corps: `<circle class="fg-f-terra" cx="60" cy="42" r="33" opacity=".6"/><circle class="fg-t-terra" cx="60" cy="42" r="33"/><circle class="fg-f-encre" cx="40" cy="40" r="1.7"/><circle class="fg-f-encre" cx="55" cy="30" r="1.7"/><circle class="fg-f-encre" cx="70" cy="32" r="1.7"/><circle class="fg-f-encre" cx="62" cy="47" r="1.7"/><circle class="fg-f-encre" cx="48" cy="46" r="1.7"/><circle class="fg-f-encre" cx="74" cy="49" r="1.7"/><circle class="fg-f-encre" cx="36" cy="60" r="1.7"/><circle class="fg-f-encre" cx="60" cy="66" r="1.7"/><circle class="fg-f-encre" cx="84" cy="40" r="1.7"/><circle class="fg-f-encre" cx="50" cy="62" r="1.7"/><circle class="fg-f-encre" cx="68" cy="24" r="1.7"/><circle class="fg-f-encre" cx="82" cy="62" r="1.7"/>`
       },
       {
         label: "Fleur de sel dessus",
         sous: "des pointes salées qui alternent avec le sucré",
         ton: "or",
         vb: "20 6 80 72",
-        corps: `<circle class="fg-f-terra" cx="60" cy="42" r="33" opacity=".6"/><circle class="fg-t-terra" cx="60" cy="42" r="33"/><circle class="fg-f-terra" cx="46" cy="32" r="3.6"/><circle class="fg-f-terra" cx="72" cy="38" r="3.6"/><circle class="fg-f-terra" cx="56" cy="58" r="3.6"/><circle class="fg-f-terra" cx="78" cy="56" r="3.6"/><circle class="fg-f-terra" cx="38" cy="52" r="3.6"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="42" y="26" width="9" height="9" rx="1.5" transform="rotate(126 46.5 30.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="64" y="28" width="9" height="9" rx="1.5" transform="rotate(192 68.5 32.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="50" y="46" width="9" height="9" rx="1.5" transform="rotate(150 54.5 50.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="74" y="46" width="9" height="9" rx="1.5" transform="rotate(222 78.5 50.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="58" y="62" width="8" height="8" rx="1.5" transform="rotate(174 62 66)"/>`
+        corps: `<circle class="fg-f-terra" cx="60" cy="42" r="33" opacity=".6"/><circle class="fg-t-terra" cx="60" cy="42" r="33"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="42" y="26" width="9" height="9" rx="1.5" transform="rotate(126 46.5 30.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="64" y="28" width="9" height="9" rx="1.5" transform="rotate(192 68.5 32.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="50" y="46" width="9" height="9" rx="1.5" transform="rotate(150 54.5 50.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="74" y="46" width="9" height="9" rx="1.5" transform="rotate(222 78.5 50.5)"/><rect class="fg-f-carte fg-t-encre fg-t-fin" x="58" y="62" width="8" height="8" rx="1.5" transform="rotate(174 62 66)"/>`
       }
     ]
   },
@@ -1963,13 +1966,13 @@ FIGURES["sel-patisserie"] = [
     ou: "reperes",
     type: "echelle",
     titre: "Quelle dose de sel ?",
-    legende: "Pâte sucrée : 2 à 3 g de sel pour 160 g de farine. Le plafond d'environ 2 % est une limite de goût, tenue par l'usage plus que par la mesure.",
+    legende: "Pâte sucrée : 2 à 3 g de sel pour 160 g de farine. Le plafond d'environ 2 % est une limite de goût, tenue par l'usage plus que par la mesure ; une pâte levée se sale elle aussi à environ 2 %, mais pour le réseau et la levure.",
     alt: "Règle graduée du sel en pourcentage du poids de farine, avec des repères à 1 % et 2 %. Une pâte sucrée, un sablé, un cookie : de 1 à 2 %, soit environ 2 à 3 grammes pour 160 grammes de farine. Une pâte levée, une brioche, une focaccia : environ 2 %. Entre 1 et 2 %, le sucré prend du relief ; au-delà d'environ 2 %, on goûte le sel lui-même et la pâte bascule dans le salé.",
     min: 0,
     max: 3,
     unite: "%",
     label: "Sel, en % du poids de farine",
-    graduations: [1, 2],
+    graduations: [1],
     zones: [
       { de: 1, a: 2, label: "relief du sucré", ton: "vert" },
       { de: 2, a: 3, label: "on goûte le sel", ton: "terra" }
