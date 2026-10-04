@@ -640,7 +640,7 @@ test("figures.js : les symboles servent vraiment (emulsion, salaison, coagulatio
   assert.ok(usage("coagulation-oeuf").length >= 6);
   assert.ok(usage("assaisonnement-couches").length >= 10);
   assert.ok(usage("gluten").length >= 10);
-  assert.ok(lire("js/figures.js").length < 292000, "js/figures.js reste léger");
+  assert.ok(lire("js/figures.js").length < 310000, "js/figures.js reste léger");
 });
 
 /* ---------- Flèches ---------- */

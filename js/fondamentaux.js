@@ -90,13 +90,13 @@ const FONDAMENTAUX = [
       { q: "Que faire quand on a trop de quantité ?",
         r: "Trois issues. Plusieurs fournées, une poêle plus large, ou le four : une plaque à 220 °C offre une grande surface et un air sec. Si la poêle a déjà rendu son eau, égouttez-la, remontez le feu et attendez que l'eau soit partie." },
       { q: "Pourquoi la friture obéit-elle à la même règle ?",
-        r: "Même arithmétique. Chaque pièce froide et humide prélève de la chaleur au bain, et trop de pièces d'un coup font tomber l'huile sous 160 °C. L'aliment ressort alors plus gras, mais pas pour la raison qu'on croit : l'huile n'entre presque pas pendant la cuisson, elle est aspirée à la sortie du bain, quand la vapeur se condense à l'intérieur et crée une dépression. Une croûte formée trop lentement, restée poreuse, boit d'autant plus à cet instant précis." }
+        r: "Même arithmétique. Chaque pièce froide et humide prélève de la chaleur au bain, et trop de pièces d'un coup font tomber l'huile sous 150 °C. L'aliment ressort alors plus gras, mais pas pour la raison qu'on croit : l'huile n'entre presque pas pendant la cuisson, elle est aspirée à la sortie du bain, quand la vapeur se condense à l'intérieur et crée une dépression. Une croûte formée trop lentement, restée poreuse, boit d'autant plus à cet instant précis." }
     ],
     reperes: [
       "Gardez environ un tiers de la surface de la poêle libre entre les morceaux.",
       "Vaporiser 1 g d'eau coûte 2 260 J, près de sept fois plus que de la chauffer de 20 à 100 °C.",
       "Surface mouillée : 100 °C au maximum. Coloration : 140 à 180 °C. Les deux ne coexistent pas.",
-      "Friture : jamais sous 160 °C ; laissez remonter à 170-180 °C entre deux fournées."
+      "Friture : jamais sous 150 °C ; laissez remonter à 170-180 °C entre deux fournées."
     ],
     piege: "Remuer sans cesse une poêle chargée. La coloration demande qu'une même face reste posée sur le fond assez longtemps pour s'y assécher, puis brunir ; chaque tour de spatule interrompt ce contact avant qu'il ait rien produit, et les morceaux serrés se refroidissent mutuellement. Les champignons finissent gris et flasques dans leur jus.",
     source: ""
@@ -182,7 +182,7 @@ const FONDAMENTAUX = [
     reperes: [
       "Poêle à feu moyen : 2 à 4 minutes pour des graines, 4 à 6 pour des cerneaux, en remuant.",
       "Four : 150 à 160 °C, 8 à 12 minutes pour des fruits secs entiers.",
-      "Épices moulues dans le gras : 30 à 60 secondes à feu moyen, pas davantage.",
+      "Épices moulues dans le gras : 10 à 20 secondes à feu moyen, pas davantage ; 30 à 60 secondes pour des graines entières.",
       "Coupez le feu au premier parfum net : la chaleur résiduelle finit le travail."
     ],
     piege: "Laisser refroidir dans la poêle. Le métal restitue sa chaleur pendant plusieurs minutes : les graines ressortent amères alors qu'elles étaient parfaites à l'instant où le feu a été coupé.",

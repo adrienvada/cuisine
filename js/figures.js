@@ -241,7 +241,7 @@ FIGURES["maillard"] = [
 <text class="fg-txt fg-txt-xl fg-txt-doux" x="160" y="46" text-anchor="middle">+</text>
 <rect class="fg-f-vert-l fg-t-vert" x="170" y="8" width="140" height="58" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-vert" x="240" y="29" text-anchor="middle">Fonction amine</text>
-<text class="fg-txt fg-txt-s" x="240" y="45" text-anchor="middle"><tspan x="240">celle de la lysine,</tspan><tspan x="240" dy="13.5">dans une protéine</tspan></text>
+<text class="fg-txt fg-txt-s" x="240" y="45" text-anchor="middle"><tspan x="240">le plus souvent la</tspan><tspan x="240" dy="13.5">lysine d'une protéine</tspan></text>
 <path class="fg-t-axe" d="M80 69L122 97" marker-end="url(#fg-fl-encre)"/>
 <path class="fg-t-axe" d="M240 69L198 97" marker-end="url(#fg-fl-encre)"/>
 <rect class="fg-f-terra-l fg-t-terra" x="50" y="100" width="220" height="56" rx="10"/>
@@ -267,10 +267,10 @@ FIGURES["maillard"] = [
 
   { ou: "cas", type: "echelle",
     titre: "Quelle température de surface ?",
-    legende: "Des ordres de grandeur, pas des seuils nets : lente vers 100 °C, visible à partir de 140 °C, franche entre 150 et 180 °C. Au-delà de 200 °C, la pyrolyse prend le dessus.",
-    alt: "Règle graduée de 90 à 230 °C. La réaction est lente de 100 à 140 °C, visible de 140 à 150 °C, franche de 150 à 180 °C. Entre 180 et 200 °C, rien n'est annoncé. Au-delà de 200 °C, la pyrolyse prend le dessus et l'amertume arrive avant les arômes. Un marqueur rappelle qu'une pellicule d'eau liquide plafonne la surface à 100 °C.",
+    legende: "Des ordres de grandeur, pas des seuils nets : lente vers 100 °C, visible à partir de 140 °C environ, franche entre 150 et 180 °C. Au-delà de 200 °C, la pyrolyse prend le dessus.",
+    alt: "Règle graduée de 90 à 230 °C. La réaction est lente de 100 à 140 °C, visible de 140 à 150 °C, franche de 150 à 180 °C. De 180 à 200 °C, la fiche ne donne aucun repère. Au-delà de 200 °C, la pyrolyse prend le dessus et l'amertume arrive avant les arômes. Un marqueur rappelle qu'une pellicule d'eau liquide plafonne la surface à 100 °C.",
     min: 90, max: 230, unite: "°C", label: "Température de surface",
-    graduations: [100, 150, 200],
+    graduations: [100, 140, 150, 180, 200],
     zones: [
       { de: 100, a: 140, label: "lente", ton: "bleu" },
       { de: 140, a: 150, label: "visible", ton: "or" },
@@ -297,14 +297,14 @@ FIGURES["maillard"] = [
 
   { ou: "reperes", type: "comparaison",
     titre: "Le pH et la dorure",
-    legende: "Illustration qualitative : plus le milieu est alcalin, plus la coloration vient vite ; une marinade acide la retarde.",
-    alt: "Trois biscuits côte à côte, de plus en plus colorés. En milieu acide, par exemple une marinade, le biscuit est à peine coloré : la coloration est retardée. En milieu neutre, il est moyennement doré : c'est la référence. En milieu alcalin, avec une pointe de bicarbonate, il est franchement foncé : la dorure vient bien plus vite. Illustration qualitative.",
+    legende: "Illustration qualitative : un milieu alcalin accélère nettement la coloration ; une marinade acide la retarde.",
+    alt: "Trois biscuits côte à côte, de plus en plus colorés. En milieu acide, par exemple une marinade, le biscuit est à peine coloré : la coloration est retardée. En milieu neutre, il est moyennement doré : c'est la référence. En milieu alcalin, avec une pointe de bicarbonate, il est franchement foncé : la dorure s'accélère nettement. Illustration qualitative.",
     panneaux: [
       { label: "Acide", sous: "marinade : coloration retardée", ton: "or", vb: "0 0 100 64",
         corps: `<circle class="fg-f-terra" cx="50" cy="32" r="25" opacity=".22"/><circle class="fg-t-terra" cx="50" cy="32" r="25"/><circle class="fg-f-carte" cx="40" cy="26" r="2.6"/><circle class="fg-f-carte" cx="58" cy="30" r="2.6"/><circle class="fg-f-carte" cx="47" cy="42" r="2.6"/>` },
       { label: "Neutre", sous: "la référence", ton: "doux", vb: "0 0 100 64",
         corps: `<circle class="fg-f-terra" cx="50" cy="32" r="25" opacity=".6"/><circle class="fg-t-terra" cx="50" cy="32" r="25"/><circle class="fg-f-carte" cx="40" cy="26" r="2.6"/><circle class="fg-f-carte" cx="58" cy="30" r="2.6"/><circle class="fg-f-carte" cx="47" cy="42" r="2.6"/>` },
-      { label: "Alcalin", sous: "pointe de bicarbonate : dore bien plus vite", ton: "terra", vb: "0 0 100 64",
+      { label: "Alcalin", sous: "bicarbonate : dore nettement plus vite", ton: "terra", vb: "0 0 100 64",
         corps: `<circle class="fg-f-terra" cx="50" cy="32" r="25"/><circle class="fg-t-terra" cx="50" cy="32" r="25"/><circle class="fg-f-carte" cx="40" cy="26" r="2.6"/><circle class="fg-f-carte" cx="58" cy="30" r="2.6"/><circle class="fg-f-carte" cx="47" cy="42" r="2.6"/>` }
     ] }
 ];
@@ -345,21 +345,21 @@ FIGURES["eau-coloration"] = [
 
   { ou: "cas", type: "comparaison",
     titre: "Ce qui reste sur la surface",
-    legende: "Seule la surface sèche peut monter au-delà de 100 °C : l'eau, ou la saumure d'un sel posé trop tôt, la maintient en dessous.",
-    alt: "Trois morceaux posés sur le fond d'une poêle. Le premier, mouillé, porte un film d'eau : sa surface reste à 100 °C au plus, l'eau doit d'abord partir. Le deuxième, épongé au papier absorbant en dix secondes, a une surface sèche qui peut atteindre 140 à 180 °C et brunit. Le troisième, salé trop tôt, retient en surface une saumure qui maintient le morceau sous les 100 °C.",
+    legende: "Seule la surface sèche peut monter au-delà de 100 °C : l'eau la maintient en dessous, la saumure d'un sel posé trop tôt aussi, mais l'effet est modeste.",
+    alt: "Trois morceaux posés sur le fond d'une poêle. Le premier, mouillé, porte un film d'eau : sa surface reste à 100 °C au plus, l'eau doit d'abord partir. Le deuxième, épongé au papier absorbant en dix secondes, a une surface sèche qui peut atteindre 140 à 180 °C et brunit. Le troisième, salé trop tôt, retient en surface une saumure qui maintient le morceau sous les 100 °C, mais l'effet est modeste.",
     panneaux: [
       { label: "Mouillé", sous: "l'eau doit d'abord partir", ton: "bleu", vb: "10 10 80 52",
         corps: `<rect class="fg-f-doux fg-t-encre fg-t-fin" x="11" y="54" width="78" height="6" rx="2"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="22" y="32" width="56" height="22" rx="5"/><path class="fg-f-bleu-l fg-t-bleu" d="M23 32Q50 16 77 32Z"/><circle class="fg-f-bleu" cx="38" cy="29" r="1.8"/><circle class="fg-f-bleu" cx="58" cy="26" r="1.8"/>` },
       { label: "Épongé", sous: "dix secondes au papier", ton: "vert", vb: "10 10 80 52",
         corps: `<rect class="fg-f-doux fg-t-encre fg-t-fin" x="11" y="54" width="78" height="6" rx="2"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="22" y="32" width="56" height="22" rx="5"/><path class="fg-t-terra fg-t-tres-epais" d="M27 31H73"/>` },
-      { label: "Salé trop tôt", sous: "la saumure retient la surface", ton: "or", vb: "10 10 80 52",
-        corps: `<rect class="fg-f-doux fg-t-encre fg-t-fin" x="11" y="54" width="78" height="6" rx="2"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="22" y="32" width="56" height="22" rx="5"/><path class="fg-f-bleu-l fg-t-bleu" d="M23 32Q50 20 77 32Z"/><rect class="fg-f-or" x="35" y="25" width="4" height="4" rx="1"/><rect class="fg-f-or" x="48" y="23" width="4" height="4" rx="1"/><rect class="fg-f-or" x="61" y="26" width="4" height="4" rx="1"/>` }
+      { label: "Salé trop tôt", sous: "la saumure retient la surface (effet modeste)", ton: "or", vb: "10 10 80 52",
+        corps: `<rect class="fg-f-doux fg-t-encre fg-t-fin" x="11" y="54" width="78" height="6" rx="2"/><rect class="fg-f-terra-l fg-t-terra fg-t-fin" x="22" y="32" width="56" height="22" rx="5"/><path class="fg-f-bleu-l fg-t-bleu" d="M23 32Q50 20 77 32Z"/><use href="#fg-sym-grain-sel" x="33" y="23" width="7" height="7"/><use href="#fg-sym-grain-sel" x="47" y="20" width="7" height="7"/><use href="#fg-sym-grain-sel" x="61" y="24" width="7" height="7"/>` }
     ] },
 
   { ou: "pourquoi", apres: 2, type: "barres",
     titre: "Faire partir l'eau coûte cher",
     legende: "Pour un même gramme d'eau, la vaporisation consomme près de sept fois la chaleur qu'il faut pour le porter de 20 à 100 °C. Barres à l'échelle de ce rapport.",
-    alt: "Deux barres comparées, pour un gramme d'eau. Vaporiser ce gramme consomme environ 2 260 joules : c'est la barre la plus longue. Le chauffer de 20 à 100 °C coûte près de sept fois moins : la barre est environ sept fois plus courte.",
+    alt: "Deux barres comparées, pour un gramme d'eau. Vaporiser ce gramme consomme environ 2 260 joules : c'est la barre la plus longue. Le chauffer de 20 à 100 °C coûte près de sept fois moins : la barre est près de sept fois plus courte.",
     unite: "J",
     barres: [
       { label: "Vaporiser 1 g d'eau", valeur: 2260, texte: "2 260 J", ton: "terra", note: "La chaleur reçue part en évaporation, la température ne monte pas." },
@@ -377,14 +377,14 @@ FIGURES["eau-coloration"] = [
       { nom: "Poêle espacée", ton: "terra", points: [[0, 22], [6, 75], [12, 100], [22, 100], [34, 128], [50, 160], [100, 172]] }
     ],
     reperes: [ { y: 100, ton: "bleu" }, { y: 140, ton: "terra" }, { y: 180, label: "coloration : 140 à 180 °C", ton: "terra" } ],
-    notes: [ { x: 40, y: 100, texte: "l'eau s'évapore, la température stagne", dx: 0, dy: 38, largeur: 150, ancre: "middle" } ] }
+    notes: [ { x: 40, y: 100, texte: "l'eau s'évapore, la température stagne", dx: 0, dy: 38, largeur: 150, ancre: "middle", ton: "bleu" } ] }
 ];
 
 FIGURES["deglacage"] = [
-  { ou: "tete", type: "svg", vb: "0 0 320 362",
+  { ou: "tete", type: "svg", vb: "0 0 320 378",
     titre: "Des sucs collés à la sauce",
-    legende: "En haut, la pellicule brune, sèche et collée au métal ; en bas, la même poêle après le liquide chaud et la spatule : ce que la pellicule contenait est passé dans la sauce.",
-    alt: "Schéma en deux temps, la poêle vue en coupe. Premier temps : la poêle est encore brûlante, sans liquide, et une pellicule brune, sèche et collée, les sucs, recouvre le fond. Une flèche descend vers le second temps, avec un liquide chaud et un coup de spatule. Second temps : le fond est couvert de liquide qui siffle et bout, une spatule gratte le fond et les sucs sont dispersés dans le liquide, dissous dans la sauce : leurs arômes de grillé y sont passés.",
+    legende: "Schéma simplifié. En haut, la pellicule brune, sèche et collée au métal ; en bas, la même poêle après le liquide chaud et la spatule : ce que la pellicule contenait de soluble est passé dans la sauce.",
+    alt: "Schéma en deux temps, la poêle vue en coupe. Premier temps : la poêle est encore brûlante, sans liquide, et une pellicule brune, sèche et collée, les sucs, recouvre le fond. Une flèche descend vers le second temps, avec un liquide chaud et un coup de spatule. Second temps : le fond est couvert de liquide qui siffle et bout, une spatule gratte le fond et les sucs sont dispersés dans le liquide : leurs composés solubles sont passés en solution, avec leurs arômes de grillé.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-terra" x="10" y="18">1. Les sucs, collés au fond</text>
 <path class="fg-t-encre fg-t-epais" d="M24 44V104M296 44V104M297 52H311"/>
 <rect class="fg-f-doux fg-t-encre" x="22" y="104" width="276" height="9" rx="3"/>
@@ -404,7 +404,7 @@ FIGURES["deglacage"] = [
 <g class="fg-f-carte fg-t-bleu fg-t-fin"><circle cx="90" cy="275" r="3"/><circle cx="152" cy="276" r="2.5"/><circle cx="250" cy="274" r="3"/></g>
 <g transform="translate(205 300) rotate(35)"><path class="fg-t-encre fg-t-tres-epais" d="M0 -34V-100"/><rect class="fg-f-doux fg-t-encre" x="-9" y="-34" width="18" height="34" rx="3"/></g>
 <text class="fg-txt-script fg-txt-bleu" x="36" y="260">ça siffle, ça bout</text>
-<text class="fg-txt fg-txt-vert" x="160" y="336" text-anchor="middle"><tspan x="160">Les sucs se dissolvent : leurs arômes</tspan><tspan x="160" dy="15">de grillé passent dans la sauce</tspan></text>` },
+<text class="fg-txt fg-txt-vert" x="160" y="336" text-anchor="middle"><tspan x="160">Les composés solubles passent en</tspan><tspan x="160" dy="15">solution : les arômes de grillé</tspan><tspan x="160" dy="15">gagnent la sauce</tspan></text>` },
 
   { ou: "cas", type: "comparaison",
     titre: "À déglacer, ou à laver ?",
@@ -414,16 +414,16 @@ FIGURES["deglacage"] = [
       { label: "Brun foncé", sous: "odeur de grillé : se déglace très bien", ton: "vert", vb: "0 4 100 60",
         corps: `<path class="fg-t-vert" d="M30 40q-5-6 0-12t0-12M50 38q-5-6 0-12t0-12M70 40q-5-6 0-12t0-12"/><path class="fg-f-terra" d="M12 54C14 46 24 46 32 49S52 45 64 48S84 46 88 54Z"/><rect class="fg-f-doux fg-t-encre fg-t-fin" x="6" y="54" width="88" height="6" rx="2"/>` },
       { label: "Noir", sous: "odeur âcre : à laver, pas à déglacer", ton: "terra", vb: "0 4 100 60",
-        corps: `<path class="fg-t-terra" d="M30 42l-5-6l6-6l-5-6l5-6M50 40l-5-6l6-6l-5-6l5-6M70 42l-5-6l6-6l-5-6l5-6"/><path class="fg-f-encre" d="M12 54C14 46 24 46 32 49S52 45 64 48S84 46 88 54Z"/><rect class="fg-f-doux fg-t-encre fg-t-fin" x="6" y="54" width="88" height="6" rx="2"/>` }
+        corps: `<path class="fg-t-terra" d="M30 42l-5-6l6-6l-5-6l5-6M50 40l-5-6l6-6l-5-6l5-6M70 42l-5-6l6-6l-5-6l5-6"/><path class="fg-f-suie" d="M12 54C14 46 24 46 32 49S52 45 64 48S84 46 88 54Z"/><rect class="fg-f-doux fg-t-encre fg-t-fin" x="6" y="54" width="88" height="6" rx="2"/>` }
     ] },
 
   { ou: "cas", type: "barres",
     titre: "Combien d'alcool reste-t-il ?",
-    legende: "Part de l'alcool qui reste dans le plat, selon la cuisson : bien plus qu'on ne le croit, à savoir si des enfants passent à table.",
+    legende: "Ordres de grandeur de la part d'alcool qui reste dans le plat, selon la cuisson : bien plus qu'on ne le croit, à savoir si des enfants passent à table.",
     alt: "Trois barres : la part de l'alcool qui reste dans le plat selon la cuisson. Après un flambage, il en reste près des trois quarts. Après un quart d'heure de mijotage, environ 40 %. Après plus de deux heures à découvert, on tombe vers 5 %.",
     unite: "%", max: 100,
     barres: [
-      { label: "Après un flambage", valeur: 75, texte: "trois quarts", ton: "terra" },
+      { label: "Après un flambage", valeur: 75, texte: "près des trois quarts", ton: "terra" },
       { label: "Après un quart d'heure de mijotage", valeur: 40, texte: "environ 40 %", ton: "or" },
       { label: "Après plus de deux heures à découvert", valeur: 5, texte: "vers 5 %", ton: "vert" }
     ] },
@@ -431,7 +431,7 @@ FIGURES["deglacage"] = [
   { ou: "pourquoi", apres: 3, type: "echelle",
     titre: "Où le beurre monté se brise-t-il ?",
     legende: "La limite varie d'un livre à l'autre, d'une soixantaine à quatre-vingts degrés : en dessous de cette plage, la sauce reste onctueuse ; au-dessus, les gouttelettes fusionnent. La conduite ne change pas : hors du feu.",
-    alt: "Règle graduée en degrés, de 60 à 80 °C. Sous 60 °C, l'émulsion de beurre reste onctueuse. Entre 60 et 80 °C se trouve la limite, que les sources situent différemment : une soixantaine de degrés pour certaines, quatre-vingts pour d'autres. Au-delà de 80 °C, les gouttelettes de gras fusionnent et la sauce devient grasse. Dans tous les cas, on monte le beurre hors du feu, sans jamais bouillir.",
+    alt: "Règle graduée en degrés, de 50 à 90 °C, avec deux repères à 60 et 80 °C. Sous 60 °C, l'émulsion de beurre reste onctueuse. Entre 60 et 80 °C se trouve la limite, que les sources situent différemment : une soixantaine de degrés pour certaines, quatre-vingts pour d'autres. Au-delà de 80 °C, les gouttelettes de gras fusionnent et la sauce devient grasse. Dans tous les cas, on monte le beurre hors du feu, sans jamais bouillir.",
     min: 50, max: 90, unite: "°C", label: "Température de la sauce",
     graduations: [60, 80],
     zones: [
@@ -448,7 +448,7 @@ FIGURES["deglacage"] = [
 FIGURES["friture"] = [
   { ou: "tete", type: "svg", vb: "0 0 320 270",
     titre: "Coupe d'un beignet dans le bain",
-    legende: "Les flèches bleues, c'est l'eau du beignet qui sort en vapeur : elle tient l'huile à distance et laisse derrière elle une croûte sèche, qui brunit. L'huile, elle, ne fait que transporter la chaleur.",
+    legende: "Schéma simplifié. Les flèches bleues, c'est l'eau du beignet qui sort en vapeur : elle tient l'huile à distance et laisse derrière elle une croûte sèche, qui brunit. L'huile, elle, ne fait que transporter la chaleur.",
     alt: "Coupe d'un beignet plongé dans un bain d'huile à 170-180 °C. Au centre, un cœur humide, entouré d'une pâte tendre, puis d'une croûte sèche et brunie. Des flèches bleues partent du cœur vers l'extérieur : c'est l'eau qui se vaporise et sort, en formant des bulles qui montent dans l'huile. Cette vapeur crée une surpression qui repousse l'huile, figurée par un anneau en pointillés à distance de la croûte. Privée d'eau, la surface dépasse 100 °C et brunit.",
     corps: `<text class="fg-txt fg-txt-b fg-txt-or" x="10" y="20">Bain d'huile : 170 à 180 °C</text>
 <rect class="fg-f-or-l fg-t-or" x="8" y="30" width="304" height="232" rx="14"/>
@@ -465,6 +465,9 @@ FIGURES["friture"] = [
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="14" y="214">Cœur humide</text>
 <path class="fg-t-axe fg-t-fin" d="M50 204L136 160"/>
 <circle class="fg-pt fg-f-bleu" cx="136" cy="160" r="3.5"/>
+<text class="fg-txt fg-txt-s fg-txt-b" x="306" y="212" text-anchor="end">Pâte tendre</text>
+<path class="fg-t-axe fg-t-fin" d="M258 206L200 162"/>
+<circle class="fg-pt fg-f-encre" cx="200" cy="162" r="3.5"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="306" y="62" text-anchor="end"><tspan x="306">Bulles :</tspan><tspan x="306" dy="13.5">l'eau part</tspan><tspan x="306" dy="13.5">en vapeur</tspan></text>
 <path class="fg-t-axe fg-t-fin" d="M244 56L222 48"/>
 <text class="fg-txt fg-txt-s fg-txt-b fg-txt-bleu" x="306" y="146" text-anchor="end"><tspan x="306">Vapeur qui</tspan><tspan x="306" dy="13.5">repousse</tspan><tspan x="306" dy="13.5">l'huile</tspan></text>
@@ -473,17 +476,17 @@ FIGURES["friture"] = [
   { ou: "cas", type: "echelle",
     titre: "Quelle température pour le bain ?",
     legende: "La fenêtre est étroite : en dessous de 150 °C l'huile imbibe la pâte, au-delà de 190 °C elle s'oxyde et la croûte fonce avant que le cœur soit chaud.",
-    alt: "Règle graduée de 150 à 190 °C. Sous 150 °C, la vapeur ne repousse plus l'huile : le beignet s'imbibe. Entre 170 et 180 °C se trouve la fenêtre idéale, où la vapeur sort assez fort sans que l'huile se dégrade trop vite. Au-delà de 190 °C, l'huile s'oxyde et la croûte fonce avant que le cœur soit chaud.",
+    alt: "Règle graduée de 150 à 190 °C. Sous 150 °C, la vapeur ne repousse plus l'huile : le beignet s'imbibe. Entre 170 et 180 °C se trouve la fenêtre usuelle, où la vapeur sort assez fort sans que l'huile se dégrade trop vite : la température usuelle des beignets. Au-delà de 190 °C, l'huile s'oxyde et la croûte fonce avant que le cœur soit chaud.",
     min: 140, max: 200, unite: "°C", label: "Température de l'huile",
     graduations: [150, 170, 180, 190],
     zones: [
       { de: 140, a: 150, ton: "or" },
-      { de: 170, a: 180, label: "idéal", ton: "vert" },
+      { de: 170, a: 180, label: "usuel", ton: "vert" },
       { de: 190, a: 200, ton: "terra" }
     ],
     marqueurs: [
       { v: 150, label: "Sous 150 °C : l'huile entre dans la pâte", ton: "or" },
-      { v: 190, label: "Au-delà : l'huile s'oxyde, la croûte fonce avant le cœur", ton: "terra" }
+      { v: 190, label: "Au-delà : l'huile s'oxyde, croûte brunie avant le cœur", ton: "terra" }
     ] },
 
   { ou: "pourquoi", apres: 2, type: "etapes",
@@ -491,9 +494,9 @@ FIGURES["friture"] = [
     legende: "L'aspiration se joue à la sortie du bain, pas dans la poêle : une croûte formée trop lentement, restée poreuse, boit d'autant plus.",
     alt: "Trois étapes qui se suivent. D'abord l'immersion : l'eau de l'aliment se vaporise, ce sont les bulles, et la surpression tient l'huile à distance. Ensuite la sortie du bain : l'aliment refroidit et la vapeur emprisonnée se condense. Enfin l'aspiration : la pression tombe et l'huile restée en surface est aspirée dans les pores de la croûte.",
     etapes: [
-      { libelle: "Immersion", desc: "l'eau se vaporise, la surpression tient l'huile à distance", emoji: "💨", ton: "terra" },
+      { libelle: "Immersion", desc: "l'eau se vaporise, la surpression tient l'huile à distance", emoji: "♨️", ton: "terra" },
       { libelle: "Sortie", desc: "l'aliment refroidit, la vapeur se condense", emoji: "❄️", ton: "bleu" },
-      { libelle: "Aspiration", desc: "la pression tombe, l'huile entre dans les pores", emoji: "🫗", ton: "or" }
+      { libelle: "Aspiration", desc: "la pression tombe, l'huile entre dans les pores", emoji: "🛢️", ton: "or" }
     ] },
 
   { ou: "pourquoi", apres: 4, type: "barres",
@@ -513,10 +516,10 @@ FIGURES["friture"] = [
 /* ===== Arômes & épices ===== */
 
 FIGURES["torrefaction"] = [
-  { ou: "tete", type: "svg", vb: "0 0 320 296",
+  { ou: "tete", type: "svg", vb: "0 0 320 318",
     titre: "Ce que la chaleur sèche fait à une graine",
-    legende: "Trois choses se passent en même temps dans la graine : l'eau part, les sucres et les acides aminés brunissent, les huiles volatiles s'échappent. Le parfum qui monte de la poêle est celui que le plat ne retrouvera pas.",
-    alt: "Coupe d'une graine, faite de cellules rangées et chauffée par en dessous, à sec. Trois flèches partent de la graine vers trois encadrés. En haut, en bleu : l'eau résiduelle est chassée d'abord, elle sort en vapeur. Au milieu, en brun : vers 140 à 160 degrés, les sucres et les acides aminés réagissent, c'est la réaction de Maillard, qui produit notamment des pyrazines, la note grillée. En bas, en or : les huiles essentielles des épices se volatilisent et partent dans l'air. Une dernière note, en bas à droite, rappelle que la chaleur fragilise les parois cellulaires : la graine devient cassante et se moud plus finement.",
+    legende: "Schéma simplifié. L'eau part d'abord ; puis, vers 140 à 160 °C, les sucres et les acides aminés brunissent, pendant que les huiles volatiles s'échappent. Le parfum qui monte de la poêle est celui que le plat ne retrouvera pas.",
+    alt: "Coupe d'une graine, faite de cellules rangées et chauffée par en dessous, à sec. Trois flèches relient la graine à trois encadrés, pour dire ce qui s'y passe. En haut, en bleu : l'eau résiduelle est chassée d'abord, elle sort en vapeur. Au milieu, en brun : vers 140 à 160 degrés, les sucres et les acides aminés réagissent, c'est la réaction de Maillard, qui produit notamment des pyrazines, la note grillée. En bas, en or : les huiles essentielles des épices se volatilisent et partent dans l'air. Une dernière note, en bas à droite, rappelle que la chaleur fragilise les parois cellulaires : la graine devient cassante et se moud plus finement.",
     corps: `<path class="fg-t-bleu" d="M52 26C44 20 60 14 52 6"/>
 <path class="fg-t-bleu" d="M80 26C72 20 88 14 80 6"/>
 <path class="fg-t-bleu" d="M108 26C100 20 116 14 108 6"/>
@@ -544,29 +547,31 @@ FIGURES["torrefaction"] = [
 <rect class="fg-f-terra" x="72" y="128" width="6" height="6" rx="1.5" transform="rotate(20 75 131)"/>
 <rect class="fg-f-terra" x="80" y="156" width="6" height="6" rx="1.5" transform="rotate(20 83 159)"/>
 <rect class="fg-f-terra" x="62" y="182" width="6" height="6" rx="1.5" transform="rotate(20 65 185)"/>
-<path class="fg-t-terra fg-t-epais" d="M34 262L34 232" marker-end="url(#fg-fl-terra)"/>
-<path class="fg-t-terra fg-t-epais" d="M80 262L80 232" marker-end="url(#fg-fl-terra)"/>
-<path class="fg-t-terra fg-t-epais" d="M126 262L126 232" marker-end="url(#fg-fl-terra)"/>
-<text class="fg-txt-script fg-txt-terra" x="80" y="286" text-anchor="middle">chaleur sèche, sans gras</text>
+<path class="fg-t-terra fg-t-epais" d="M34 282L34 252" marker-end="url(#fg-fl-terra)"/>
+<path class="fg-t-terra fg-t-epais" d="M80 282L80 252" marker-end="url(#fg-fl-terra)"/>
+<path class="fg-t-terra fg-t-epais" d="M126 282L126 252" marker-end="url(#fg-fl-terra)"/>
+<circle class="fg-f-or" cx="16" cy="228" r="3.4"/><text class="fg-txt fg-txt-s" x="24" y="232" text-anchor="start">sucres</text>
+<rect class="fg-f-terra" x="68" y="225" width="6" height="6" rx="1.5" transform="rotate(20 71 228)"/><text class="fg-txt fg-txt-s" x="80" y="232" text-anchor="start">acides aminés</text>
+<text class="fg-txt-script fg-txt-terra" x="80" y="306" text-anchor="middle">chaleur sèche, sans gras</text>
 <rect class="fg-f-bleu-l fg-t-bleu" x="168" y="6" width="116" height="58" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-bleu" x="178" y="26" text-anchor="start">D'abord, l'eau</text>
 <text class="fg-txt fg-txt-s" x="178" y="42" text-anchor="start"><tspan x="178">l'eau résiduelle</tspan><tspan x="178" dy="13.5">part en vapeur</tspan></text>
-<path class="fg-t-bleu" d="M166 34L116 30" marker-end="url(#fg-fl-bleu)"/>
+<path class="fg-t-bleu" d="M112 32L164 34" marker-end="url(#fg-fl-bleu)"/>
 <rect class="fg-f-terra-l fg-t-terra" x="168" y="76" width="144" height="76" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-terra" x="178" y="96" text-anchor="start">Maillard</text>
-<text class="fg-txt fg-txt-s" x="178" y="112" text-anchor="start"><tspan x="178">dès 140 à 160 °C :</tspan><tspan x="178" dy="13.5">des pyrazines, la</tspan><tspan x="178" dy="13.5">note grillée</tspan></text>
-<path class="fg-t-terra" d="M166 114L134 120" marker-end="url(#fg-fl-terra)"/>
+<text class="fg-txt fg-txt-s" x="178" y="112" text-anchor="start"><tspan x="178">vers 140 à 160 °C :</tspan><tspan x="178" dy="13.5">des pyrazines, la</tspan><tspan x="178" dy="13.5">note grillée</tspan></text>
+<path class="fg-t-terra" d="M132 120L164 114" marker-end="url(#fg-fl-terra)"/>
 <rect class="fg-f-or-l fg-t-or" x="168" y="164" width="144" height="76" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="178" y="184" text-anchor="start">Parfum volatil</text>
 <text class="fg-txt fg-txt-s" x="178" y="200" text-anchor="start"><tspan x="178">les huiles</tspan><tspan x="178" dy="13.5">essentielles partent</tspan><tspan x="178" dy="13.5">dans l'air</tspan></text>
-<path class="fg-t-or" d="M166 204L134 176" marker-end="url(#fg-fl-or)"/>
+<path class="fg-t-or" d="M134 176L164 204" marker-end="url(#fg-fl-or)"/>
 <rect class="fg-f-doux fg-t-doux" x="168" y="252" width="144" height="38" rx="10"/>
 <text class="fg-txt fg-txt-s" x="240" y="268" text-anchor="middle"><tspan x="240">parois fragilisées :</tspan><tspan x="240" dy="13.5">la graine devient cassante</tspan></text>` },
 
   { ou: "pourquoi", apres: 2, type: "courbe", qualitative: true,
     titre: "La fenêtre avant l'amertume",
     legende: "Allure qualitative, sans durée chiffrée : les arômes grillés montent et culminent, les arômes volatils de l'épice s'en vont, et l'amertume, qui n'arrive qu'à la fin, ne se rattrape plus. On s'arrête dans la fenêtre.",
-    alt: "Courbes qualitatives, sans valeurs chiffrées, selon la durée de chauffe, de courte à longue. Les notes grillées, en vert, montent, culminent vers le milieu puis retombent. Les arômes volatils de l'épice, en or, diminuent régulièrement : ils partent dans l'air. L'amertume, en brun, reste presque nulle puis grimpe en fin de chauffe. Une zone centrale marque la fenêtre idéale, où le grillé est à son maximum avant que l'amertume n'apparaisse ; un repère indique de couper le feu au premier parfum net.",
+    alt: "Courbes qualitatives, sans valeurs chiffrées, selon la durée de chauffe, de courte à longue. Les notes grillées, en vert, montent, culminent vers le milieu puis retombent. Les arômes volatils de l'épice, en or, diminuent régulièrement : ils partent dans l'air. L'amertume, en brun, reste presque nulle puis grimpe en fin de chauffe. Une zone centrale marque la fenêtre, où le grillé approche son maximum avant que l'amertume n'apparaisse ; un repère y indique de couper le feu au premier parfum net.",
     x: { label: "Durée de chauffe", extremites: ["courte", "longue"] },
     y: { label: "Intensité perçue" },
     series: [
@@ -574,8 +579,8 @@ FIGURES["torrefaction"] = [
       { nom: "Arômes volatils", ton: "or", tirets: true, points: [[0, 0.78], [34, 0.62], [64, 0.36], [100, 0.1]] },
       { nom: "Amertume", ton: "terra", points: [[0, 0], [56, 0.03], [72, 0.2], [86, 0.62], [100, 1]] }
     ],
-    zones: [ { de: 42, a: 68, label: "la fenêtre", ton: "vert" } ],
-    reperes: [ { x: 52, label: "coupez le feu", ton: "vert" } ] },
+    zones: [ { de: 42, a: 68, ton: "vert" } ],
+    reperes: [ { x: 52, label: "la fenêtre : coupez le feu", ton: "vert" } ] },
 
   { ou: "cas", type: "comparaison",
     titre: "Dans la poêle ou sur l'assiette ?",
@@ -588,7 +593,7 @@ FIGURES["torrefaction"] = [
 <path class="fg-t-terra fg-t-epais" d="M76 44L96 38"/>
 <ellipse class="fg-f-terra" cx="26" cy="36" rx="6" ry="3.6"/><ellipse class="fg-f-terra" cx="40" cy="35" rx="6" ry="3.6" transform="rotate(-8 40 35)"/><ellipse class="fg-f-terra" cx="54" cy="36" rx="6" ry="3.6"/><ellipse class="fg-f-terra" cx="66" cy="35" rx="5" ry="3.4" transform="rotate(8 66 35)"/>` },
       { label: "Sur une assiette froide", sous: "la cuisson s'arrête net", ton: "vert", vb: "0 0 100 64",
-        corps: `<path class="fg-t-bleu fg-t-fin" d="M30 20L30 12M50 20L50 8M70 20L70 12"/>
+        corps: `<path class="fg-t-axe" d="M30 4V20" marker-end="url(#fg-fl-encre)"/><path class="fg-t-axe" d="M50 4V20" marker-end="url(#fg-fl-encre)"/><path class="fg-t-axe" d="M70 4V20" marker-end="url(#fg-fl-encre)"/>
 <ellipse class="fg-f-bleu-l fg-t-bleu fg-t-epais" cx="50" cy="48" rx="40" ry="9"/>
 <ellipse class="fg-f-terra" cx="30" cy="42" rx="6" ry="3.6"/><ellipse class="fg-f-terra" cx="42" cy="44" rx="6" ry="3.6" transform="rotate(-8 42 44)"/><ellipse class="fg-f-terra" cx="55" cy="43" rx="6" ry="3.6"/><ellipse class="fg-f-terra" cx="68" cy="42" rx="5" ry="3.4" transform="rotate(8 68 42)"/>` }
     ] },
@@ -596,22 +601,23 @@ FIGURES["torrefaction"] = [
   { ou: "reperes", type: "barres",
     titre: "Combien de temps, selon la méthode",
     legende: "La barre marque la durée la plus longue conseillée : au-delà, la chaleur résiduelle finit le travail. À sec, des minutes ; dans le gras, des secondes.",
-    alt: "Quatre barres comparent les durées conseillées. Graines à la poêle, à feu moyen et en remuant : 2 à 4 minutes. Cerneaux à la poêle : 4 à 6 minutes. Fruits secs entiers au four à 150-160 degrés : 8 à 12 minutes. Épices moulues dans le gras, à feu moyen : 30 à 60 secondes, pas davantage. La barre des épices moulues est de loin la plus courte.",
+    alt: "Cinq barres comparent les durées conseillées. Graines à la poêle, à feu moyen et en remuant : 2 à 4 minutes. Cerneaux à la poêle : 4 à 6 minutes. Fruits secs entiers au four à 150-160 degrés : 8 à 12 minutes. Épices moulues dans le gras, à feu moyen : 10 à 20 secondes, pas davantage. Graines entières dans le gras : 30 à 60 secondes. Les barres dans le gras sont de loin les plus courtes.",
     unite: "min",
     barres: [
       { label: "Graines, à la poêle", valeur: 4, texte: "2 à 4 min", ton: "terra", note: "feu moyen, en remuant" },
       { label: "Cerneaux, à la poêle", valeur: 6, texte: "4 à 6 min", ton: "terra", note: "feu moyen, en remuant" },
       { label: "Fruits secs entiers, au four", valeur: 12, texte: "8 à 12 min", ton: "terra", note: "150 à 160 °C, plaque secouée à mi-parcours" },
-      { label: "Épices moulues, dans le gras", valeur: 1, texte: "30 à 60 s", ton: "or", note: "feu moyen, pas davantage" }
+      { label: "Graines entières, dans le gras", valeur: 1, texte: "30 à 60 s", ton: "or", note: "feu moyen" },
+      { label: "Épices moulues, dans le gras", valeur: 0.33, texte: "10 à 20 s", ton: "or", note: "feu moyen, pas davantage" }
     ] }
 ];
 
 FIGURES["epices-gras"] = [
   { ou: "tete", type: "svg", vb: "0 0 320 298",
     titre: "Où vont les molécules d'une épice ?",
-    legende: "Même épice, même poudre : dans l'eau, ses molécules d'arôme ne passent presque pas ; dans le gras chaud, elles se dissolvent puis se répartissent dans tout le plat.",
-    alt: "Deux bols vus en coupe, côte à côte, avec chacun un petit tas de poudre d'épice au fond. À gauche, le bol d'eau : les molécules d'arôme, de petits points bruns, restent presque toutes dans la poudre, car l'eau les dissout très mal. À droite, le bol de gras chaud : les mêmes molécules se sont dissoutes et se répartissent dans tout le liquide, jusqu'en haut du bol. En dessous, une légende précise que ces points figurent des molécules d'arôme liposolubles : la capsaïcine du piment, la pipérine du poivre et le cuminaldéhyde du cumin.",
-    corps: `<text class="fg-txt fg-txt-b fg-txt-bleu" x="80" y="26" text-anchor="middle">Eau</text>
+    legende: "Schéma simplifié. Même épice, même poudre, même chaleur : dans l'eau, ses molécules de goût ne passent presque pas ; dans le gras, elles se dissolvent puis se répartissent dans tout le plat.",
+    alt: "Deux bols chauffés vus en coupe, côte à côte, avec chacun un petit tas de poudre d'épice au fond. À gauche, le bol d'eau chaude : les molécules de goût, de petits points bruns, restent presque toutes dans la poudre, car l'eau les dissout très mal. À droite, le bol de gras chaud : les mêmes molécules se sont dissoutes et se répartissent dans tout le liquide, jusqu'en haut du bol. En dessous, une légende précise que ces points figurent des molécules de goût liposolubles : la capsaïcine du piment, la pipérine du poivre et le cuminaldéhyde du cumin.",
+    corps: `<text class="fg-txt fg-txt-b fg-txt-bleu" x="80" y="26" text-anchor="middle">Eau chaude</text>
 <text class="fg-txt fg-txt-b fg-txt-or" x="240" y="26" text-anchor="middle">Gras chaud</text>
 <path class="fg-f-bleu-l fg-t-bleu fg-t-epais" d="M14 44L146 44C146 110 118 150 80 150C42 150 14 110 14 44Z"/>
 <path class="fg-f-or-l fg-t-or fg-t-epais" d="M174 44L306 44C306 110 278 150 240 150C202 150 174 110 174 44Z"/>
@@ -626,38 +632,40 @@ FIGURES["epices-gras"] = [
 <circle class="fg-f-terra" cx="216" cy="122" r="2.8"/><circle class="fg-f-terra" cx="244" cy="120" r="2.8"/><circle class="fg-f-terra" cx="268" cy="124" r="2.8"/>
 <circle class="fg-f-terra" cx="226" cy="134" r="2.8"/><circle class="fg-f-terra" cx="256" cy="134" r="2.8"/>
 <path class="fg-t-terra fg-t-fin" d="M214 166C210 162 218 160 214 156M240 168C236 164 244 162 240 158M266 166C262 162 270 160 266 156"/>
-<text class="fg-txt fg-txt-s" x="80" y="190" text-anchor="middle"><tspan x="80">l'eau les dissout</tspan><tspan x="80" dy="13.5">très mal : la poudre</tspan><tspan x="80" dy="13.5">garde ses arômes</tspan></text>
+<path class="fg-t-terra fg-t-fin" d="M54 166C50 162 58 160 54 156M80 168C76 164 84 162 80 158M106 166C102 162 110 160 106 156"/>
+<text class="fg-txt fg-txt-s" x="80" y="190" text-anchor="middle"><tspan x="80">l'eau les dissout</tspan><tspan x="80" dy="13.5">très mal : la poudre</tspan><tspan x="80" dy="13.5">garde son goût</tspan></text>
 <text class="fg-txt fg-txt-s" x="240" y="190" text-anchor="middle"><tspan x="240">le gras chaud les</tspan><tspan x="240" dy="13.5">extrait, puis les</tspan><tspan x="240" dy="13.5">répartit partout</tspan></text>
 <rect class="fg-f-or-l fg-t-or" x="10" y="238" width="300" height="52" rx="10"/>
 <circle class="fg-f-terra" cx="26" cy="254" r="3.2"/>
-<text class="fg-txt fg-txt-b fg-txt-or" x="36" y="258" text-anchor="start">molécule d'arôme liposoluble</text>
+<text class="fg-txt fg-txt-b fg-txt-or" x="36" y="258" text-anchor="start">molécule de goût liposoluble</text>
 <text class="fg-txt fg-txt-s" x="20" y="274" text-anchor="start"><tspan x="20">capsaïcine, pipérine, cuminaldéhyde</tspan></text>` },
 
   { ou: "cas", type: "etapes",
     titre: "Verser le paprika sans le brûler",
-    legende: "Le paprika est un fruit séché et sucré : ses sucres brunissent bien avant le seuil de caramélisation. On baisse donc la chaleur avant de verser, pas après.",
-    alt: "Trois étapes reliées par des flèches. Première étape : retirer la casserole du feu. Deuxième étape : compter cinq secondes. Troisième étape : verser la poudre dans le gras encore chaud, où elle infuse sans roussir.",
+    legende: "Le paprika est un fruit séché et sucré : ses sucres brunissent bien avant le seuil de caramélisation. On baisse donc la chaleur avant de verser, pas après : sous 150 °C, dix secondes au plus.",
+    alt: "Trois étapes reliées par des flèches. Première étape : retirer la casserole du feu, le gras doit rester sous 150 °C. Deuxième étape : compter cinq secondes. Troisième étape : verser la poudre dans le gras encore chaud, dix secondes au plus : elle infuse sans roussir.",
     etapes: [
-      { libelle: "Hors du feu", desc: "retirez la casserole", emoji: "🍳", ton: "terra" },
+      { libelle: "Hors du feu", desc: "retirez la casserole : le gras doit rester sous 150 °C", emoji: "♨️", ton: "terra" },
       { libelle: "Cinq secondes", desc: "le temps de compter", emoji: "⏱️", ton: "or" },
-      { libelle: "Versez la poudre", desc: "dans le gras encore chaud : elle infuse sans roussir", emoji: "🌶️", ton: "vert" }
+      { libelle: "Versez la poudre", desc: "dans le gras encore chaud, 10 secondes au plus", emoji: "🌶️", ton: "vert" }
     ] },
 
   { ou: "cas", type: "comparaison",
     titre: "Le safran fait l'inverse",
-    legende: "Ses pigments, les crocines, se dissolvent dans l'eau et non dans l'huile. On infuse dans un liquide vers 60 °C, et plus chaud ou plus long ne donne pas davantage.",
-    alt: "Trois verres côte à côte contenant des pistils de safran. Dans l'huile, le liquide reste pâle : les crocines n'y passent pas. Dans l'eau vers 60 degrés, au bout d'une vingtaine de minutes, le liquide se teinte d'un jaune doré : les pigments sont passés. Dans un liquide plus chaud ou plus longtemps infusé, la couleur ne progresse plus : la crocine se dégrade plus vite qu'elle ne passe.",
+    legende: "Ses pigments, les crocines, se dissolvent dans l'eau et non dans l'huile. On infuse dans un liquide vers 60 °C ; plus chaud ou plus long ne donne pas davantage de couleur, la crocine se dégrade.",
+    alt: "Trois verres côte à côte contenant des pistils de safran. Dans l'huile, le liquide reste pâle : les crocines n'y passent pas. Dans l'eau vers 60 degrés, au bout d'une vingtaine de minutes, le liquide se teinte d'un jaune doré : les pigments sont passés. Dans un liquide plus chaud ou plus longtemps infusé, la couleur est aussi soutenue que dans le verre précédent, sans l'être davantage : la crocine se dégrade plus vite qu'elle ne passe.",
     panneaux: [
       { label: "Huile", sous: "les crocines n'y passent pas", ton: "or", vb: "0 0 100 64",
-        corps: `<path class="fg-f-or-l" opacity=".7" d="M32.8 22L32.8 52Q32.8 57 38 57L62 57Q67.2 57 67.2 52L67.2 22Z"/>
+        corps: `<path class="fg-f-or-l" d="M32.8 22L32.8 52Q32.8 57 38 57L62 57Q67.2 57 67.2 52L67.2 22Z"/>
+<path class="fg-t-or" d="M33 22H67"/><circle class="fg-f-or" cx="38" cy="30" r="2.2"/><circle class="fg-f-or" cx="58" cy="38" r="2.2"/><circle class="fg-f-or" cx="45" cy="47" r="2.2"/>
 <path class="fg-t-axe fg-t-epais" d="M32 8L32 52Q32 58 38 58L62 58Q68 58 68 52L68 8"/>
 <path class="fg-t-terra fg-t-epais" d="M42 55L47 44M51 55L50 42M58 55L63 46"/>` },
       { label: "Eau vers 60 °C", sous: "20 min : les pigments passent", ton: "bleu", vb: "0 0 100 64",
         corps: `<path class="fg-f-or" opacity=".75" d="M32.8 22L32.8 52Q32.8 57 38 57L62 57Q67.2 57 67.2 52L67.2 22Z"/>
 <path class="fg-t-axe fg-t-epais" d="M32 8L32 52Q32 58 38 58L62 58Q68 58 68 52L68 8"/>
 <path class="fg-t-terra fg-t-epais" d="M42 55L47 44M51 55L50 42M58 55L63 46"/>` },
-      { label: "Plus chaud, plus long", sous: "la crocine se dégrade", ton: "terra", vb: "0 0 100 64",
-        corps: `<path class="fg-f-or" opacity=".4" d="M32.8 22L32.8 52Q32.8 57 38 57L62 57Q67.2 57 67.2 52L67.2 22Z"/>
+      { label: "Plus chaud, plus long", sous: "pas plus de couleur : la crocine se dégrade", ton: "terra", vb: "0 0 100 64",
+        corps: `<path class="fg-f-or" opacity=".75" d="M32.8 22L32.8 52Q32.8 57 38 57L62 57Q67.2 57 67.2 52L67.2 22Z"/>
 <path class="fg-t-axe fg-t-epais" d="M32 8L32 52Q32 58 38 58L62 58Q68 58 68 52L68 8"/>
 <path class="fg-t-terra fg-t-fin" d="M40 6C36 2 44 0 40 -4M50 6C46 2 54 0 50 -4M60 6C56 2 64 0 60 -4" transform="translate(0 4)"/>
 <path class="fg-t-terra fg-t-epais" d="M42 55L47 44M51 55L50 42M58 55L63 46"/>` }
@@ -665,18 +673,18 @@ FIGURES["epices-gras"] = [
 
   { ou: "reperes", type: "echelle",
     titre: "Quelle chaleur pour quelle épice ?",
-    legende: "Moulues, les épices veulent un gras à 140-160 °C ; paprika et piment en poudre, sous 150 °C ; le safran, un liquide vers 60 °C. À 200 °C, tout noircit.",
-    alt: "Règle de température de 50 à 220 degrés Celsius. Un marqueur à 60 degrés : le safran s'infuse environ 20 minutes dans un liquide, jamais dans l'huile seule. Une zone verte de 140 à 160 degrés : le gras des épices moulues. Un marqueur à 150 degrés : paprika et piment en poudre, sous 150 degrés. Une zone brune à partir de 200 degrés : les épices noircissent et l'amertume ne se rattrape pas.",
+    legende: "Moulues, les épices veulent un gras à 140-160 °C ; paprika et piment en poudre, sous 150 °C ; le safran, un liquide vers 60 °C. À 200 °C, les épices moulues noircissent.",
+    alt: "Règle de température de 50 à 220 degrés Celsius. Un marqueur à 60 degrés : le safran s'infuse environ 20 minutes dans un liquide, jamais dans l'huile seule. Une zone verte de 140 à 160 degrés : le gras des autres épices moulues. Un marqueur à 150 degrés : paprika et piment en poudre, en dessous de 150 degrés. Une zone brune à partir de 200 degrés : les épices moulues noircissent et l'amertume ne se rattrape pas.",
     min: 50, max: 220, unite: "°C", label: "Température du gras ou du liquide",
-    graduations: [60, 100, 150, 200],
+    graduations: [60, 150, 200],
     zones: [
-      { de: 140, a: 160, label: "épices moulues", ton: "vert" },
-      { de: 200, a: 220, label: "noircissent", ton: "terra" }
+      { de: 140, a: 160, label: "autres épices moulues", ton: "vert", cote: "bas" },
+      { de: 200, a: 220, label: "noircissent", ton: "terra", cote: "bas" }
     ],
     marqueurs: [
-      { v: 60, label: "Safran : 20 min dans un liquide, pas d'huile", ton: "bleu" },
-      { v: 150, label: "Paprika, piment : sous 150 °C", ton: "or" },
-      { v: 200, label: "À 200 °C, l'amertume est définitive", ton: "terra" }
+      { v: 60, label: "Safran : 20 min dans un liquide, pas d'huile", ton: "bleu", cote: "haut" },
+      { v: 150, label: "Paprika, piment : en dessous de 150 °C", ton: "or", cote: "haut" },
+      { v: 200, label: "À 200 °C : amer pour de bon", ton: "terra", cote: "haut" }
     ] }
 ];
 
@@ -692,7 +700,7 @@ FIGURES["huiles-essentielles"] = [
 <circle class="fg-f-carte fg-t-or" cx="66" cy="54" r="9"/><circle class="fg-f-or" cx="66" cy="54" r="4.2"/>
 <circle class="fg-f-carte fg-t-or" cx="102" cy="54" r="9"/><circle class="fg-f-or" cx="102" cy="54" r="4.2"/>
 <circle class="fg-f-carte fg-t-or" cx="138" cy="54" r="9"/><circle class="fg-f-or" cx="138" cy="54" r="4.2"/>
-<rect class="fg-f-doux fg-t-doux" x="10" y="72" width="156" height="70"/>
+<rect class="fg-f-papier fg-t-doux" x="10" y="72" width="156" height="70"/>
 <circle class="fg-f-carte fg-t-doux" cx="24" cy="86" r="5"/><circle class="fg-f-carte fg-t-doux" cx="48" cy="82" r="3.6"/><circle class="fg-f-carte fg-t-doux" cx="140" cy="84" r="5.4"/><circle class="fg-f-carte fg-t-doux" cx="158" cy="94" r="3.4"/>
 <circle class="fg-f-carte fg-t-doux" cx="22" cy="108" r="4"/><circle class="fg-f-carte fg-t-doux" cx="44" cy="116" r="5.4"/><circle class="fg-f-carte fg-t-doux" cx="72" cy="124" r="3.8"/><circle class="fg-f-carte fg-t-doux" cx="104" cy="120" r="5"/>
 <circle class="fg-f-carte fg-t-doux" cx="134" cy="112" r="4.4"/><circle class="fg-f-carte fg-t-doux" cx="152" cy="126" r="5"/><circle class="fg-f-carte fg-t-doux" cx="26" cy="132" r="3.4"/><circle class="fg-f-carte fg-t-doux" cx="124" cy="134" r="3.4"/>
@@ -719,32 +727,40 @@ FIGURES["huiles-essentielles"] = [
 <text class="fg-txt fg-txt-b fg-txt-bleu" x="184" y="184" text-anchor="start">Pulpe et jus</text>
 <text class="fg-txt fg-txt-s" x="184" y="198" text-anchor="start"><tspan x="184">acide, environ 5 %</tspan><tspan x="184" dy="13.5">d'acide citrique,</tspan><tspan x="184" dy="13.5">presque muet au nez</tspan></text>` },
 
-  { ou: "cas", type: "etapes",
+  { ou: "cas", type: "comparaison", colonnes: 2,
     titre: "Zester d'abord, presser ensuite",
     legende: "Le fruit entier est ferme et se laisse zester proprement ; pressé, il devient mou et déchiré, et la lame n'emporte plus que du blanc amer.",
-    alt: "Deux étapes reliées par une flèche. Première étape : zester le fruit entier, encore ferme, la lame glisse sur le flavédo. Deuxième étape : presser ensuite seulement, car le fruit pressé devient mou, humide et déchiré, la lame accroche l'albédo et l'ordre ne se rattrape pas.",
-    etapes: [
-      { libelle: "Zester", desc: "le fruit entier, encore ferme : la lame ne prend que le flavédo", emoji: "🍋", ton: "or" },
-      { libelle: "Presser", desc: "ensuite seulement : mou et déchiré, il ne se zeste plus sans amertume", emoji: "💧", ton: "bleu" }
+    alt: "Deux panneaux côte à côte. À gauche, le fruit entier, encore ferme : la lame glisse sur la peau et ne prend que le flavédo, une fine pelure se détache. À droite, le fruit pressé, mou, humide et déchiré, sur lequel coulent des gouttes de jus : la lame s'enfonce dans la partie blanche, l'albédo, et n'emporte plus que du blanc amer. L'ordre ne se rattrape pas.",
+    panneaux: [
+      { label: "Zester d'abord", sous: "fruit entier, ferme : la lame ne prend que le flavédo", ton: "vert", vb: "0 0 134 70",
+        corps: `<ellipse class="fg-f-or-l fg-t-or fg-t-epais" cx="62" cy="46" rx="40" ry="22"/>
+<path class="fg-t-or fg-t-fin" d="M30 44C44 36 80 36 94 44"/>
+<g transform="rotate(-10 62 22)"><rect class="fg-f-doux fg-t-encre" x="22" y="14" width="80" height="9" rx="3"/></g>
+<path class="fg-t-vert fg-t-epais" d="M100 30C112 28 120 34 118 46"/>` },
+      { label: "Presser ensuite", sous: "mou et déchiré : la lame accroche le blanc amer", ton: "terra", vb: "0 0 134 70",
+        corps: `<path class="fg-f-or-l fg-t-or fg-t-epais fg-tirets" d="M16 54C14 40 32 36 50 40C66 34 92 38 108 44C122 52 104 62 70 60C46 64 22 62 16 54Z"/>
+<path class="fg-f-papier fg-t-doux" d="M32 52C46 46 80 46 96 52C84 58 48 58 32 52Z"/>
+<g transform="rotate(-10 62 24)"><rect class="fg-f-doux fg-t-encre" x="26" y="26" width="76" height="9" rx="3"/></g>
+<use href="#fg-sym-goutte" class="fg-sy-bleu" x="6" y="6" width="9" height="12"/><use href="#fg-sym-goutte" class="fg-sy-bleu" x="118" y="12" width="9" height="12"/>` }
     ] },
 
   { ou: "pourquoi", apres: 3, type: "comparaison",
     titre: "Où va le parfum d'un zeste ?",
     legende: "Un zeste nu perd son parfum en s'évaporant, sans arrêt. Dans l'huile ou dans le sucre, il est retenu : zestez donc directement au-dessus de la préparation.",
-    alt: "Trois panneaux. À gauche, un zeste nu posé sur une planche : des vapeurs montent, l'huile s'évapore sans cesse. Au centre, un zeste dans l'huile : les composés liposolubles s'y dissolvent aussitôt, le parfum ne s'échappe plus. À droite, un zeste dans le sucre : les cristaux crèvent les poches d'huile et retiennent l'huile libérée, le parfum cesse là aussi de s'évaporer.",
+    alt: "Trois panneaux. À gauche, un zeste nu posé sur une planche : des vapeurs montent, le parfum s'évapore sans cesse. Au centre, un zeste dans l'huile : les composés liposolubles s'y dissolvent aussitôt, le parfum ne s'échappe plus. À droite, un zeste dans le sucre : les cristaux crèvent les poches d'huile et retiennent l'huile libérée, le parfum cesse là aussi de s'évaporer.",
     panneaux: [
-      { label: "Zeste nu", sous: "l'huile s'évapore sans arrêt", ton: "terra", vb: "0 0 100 64",
+      { label: "Zeste nu", sous: "le parfum s'évapore sans arrêt", ton: "terra", vb: "0 0 100 64",
         corps: `<path class="fg-t-or fg-t-fin" d="M30 30C26 24 34 20 30 14M50 28C46 22 54 18 50 10M70 30C66 24 74 20 70 14"/>
 <rect class="fg-f-doux fg-t-doux" x="8" y="48" width="84" height="10" rx="3"/>
-<path class="fg-f-or-l fg-t-or fg-t-epais" d="M24 46C34 36 50 36 60 42C66 46 70 46 78 42"/>` },
-      { label: "Dans l'huile", sous: "les composés s'y dissolvent", ton: "or", vb: "0 0 100 64",
+<path class="fg-f-vert-l fg-t-vert fg-t-epais" d="M24 46C34 36 50 36 60 42C66 46 70 46 78 42"/>` },
+      { label: "Dans l'huile", sous: "le parfum se dissout dans le gras", ton: "or", vb: "0 0 100 64",
         corps: `<path class="fg-f-or-l fg-t-or fg-t-epais" d="M10 26L90 26C90 50 74 58 50 58C26 58 10 50 10 26Z"/>
-<path class="fg-f-or-l fg-t-or fg-t-epais" d="M28 34C36 28 46 28 54 32"/>
+<path class="fg-f-vert-l fg-t-vert fg-t-epais" d="M24 36C34 28 50 28 62 34C54 38 38 40 24 36Z"/>
 <circle class="fg-f-or" cx="26" cy="46" r="2.2"/><circle class="fg-f-or" cx="40" cy="42" r="2.2"/><circle class="fg-f-or" cx="52" cy="50" r="2.2"/><circle class="fg-f-or" cx="64" cy="40" r="2.2"/><circle class="fg-f-or" cx="74" cy="46" r="2.2"/><circle class="fg-f-or" cx="62" cy="52" r="2.2"/><circle class="fg-f-or" cx="36" cy="52" r="2.2"/>` },
-      { label: "Dans le sucre", sous: "poches crevées, huile retenue", ton: "or", vb: "0 0 100 64",
+      { label: "Dans le sucre", sous: "poches crevées, parfum retenu", ton: "or", vb: "0 0 100 64",
         corps: `<rect class="fg-f-carte fg-t-doux" x="18" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="27" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="36" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="45" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="54" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="63" y="50" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="72" y="50" width="8" height="8" rx="1.5"/>
 <rect class="fg-f-carte fg-t-doux" x="22" y="41" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="31" y="41" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="58" y="41" width="8" height="8" rx="1.5"/><rect class="fg-f-carte fg-t-doux" x="67" y="41" width="8" height="8" rx="1.5"/>
-<path class="fg-f-or-l fg-t-or fg-t-epais" d="M34 38C42 28 56 28 64 38"/>
+<path class="fg-f-vert-l fg-t-vert fg-t-epais" d="M34 38C42 28 56 28 64 38"/>
 <circle class="fg-f-or" cx="41" cy="46" r="2.2"/><circle class="fg-f-or" cx="50" cy="42" r="2.2"/><circle class="fg-f-or" cx="55" cy="48" r="2.2"/><circle class="fg-f-or" cx="48" cy="54" r="2.2"/>` }
     ] },
 
@@ -760,7 +776,7 @@ FIGURES["huiles-essentielles"] = [
 ];
 
 FIGURES["mordant-oignon"] = [
-  { ou: "tete", type: "svg", vb: "0 0 320 346",
+  { ou: "tete", type: "svg", vb: "0 0 320 352",
     titre: "Ce que le couteau déclenche dans l'oignon",
     legende: "Intacte, la cellule range à part son précurseur soufré et son enzyme. Le couteau les met en présence : la cascade qui suit fabrique les larmes, puis l'odeur et le goût qui s'attardent.",
     alt: "Schéma en deux temps. En haut à gauche, une cellule d'oignon intacte, avec deux compartiments séparés : l'un contient l'isoalliine, un dérivé soufré de la cystéine, l'autre l'alliinase, une enzyme. À droite, la même cellule tranchée par un couteau : les deux compartiments se sont ouverts et leur contenu se mélange. Une flèche descend vers un encadré : l'enzyme coupe la molécule et libère des acides sulféniques, instables. De cet encadré partent deux flèches. À gauche, une seconde enzyme en tire le propanethial-S-oxyde, qui fait pleurer. À droite, le reste se recombine en thiosulfinates puis en disulfures, d'où l'odeur et l'arrière-goût qui remontent longtemps après.",
@@ -786,24 +802,12 @@ FIGURES["mordant-oignon"] = [
 <text class="fg-txt fg-txt-s" x="160" y="210" text-anchor="middle"><tspan x="160">instables : l'enzyme a coupé</tspan><tspan x="160" dy="13.5">l'isoalliine</tspan></text>
 <path class="fg-t-bleu" d="M96 236L80 266" marker-end="url(#fg-fl-bleu)"/>
 <path class="fg-t-or" d="M224 236L240 266" marker-end="url(#fg-fl-or)"/>
-<rect class="fg-f-bleu-l fg-t-bleu" x="6" y="270" width="152" height="68" rx="10"/>
+<rect class="fg-f-bleu-l fg-t-bleu" x="6" y="270" width="152" height="74" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-bleu" x="82" y="290" text-anchor="middle">Les larmes</text>
-<text class="fg-txt fg-txt-s" x="82" y="306" text-anchor="middle"><tspan x="82">propanethial-S-oxyde</tspan><tspan x="82" dy="13.5">(seconde enzyme)</tspan></text>
-<rect class="fg-f-or-l fg-t-or" x="162" y="270" width="152" height="68" rx="10"/>
+<text class="fg-txt fg-txt-s" x="82" y="306" text-anchor="middle"><tspan x="82">propanethial-S-oxyde,</tspan><tspan x="82" dy="13.5">formé par une</tspan><tspan x="82" dy="13.5">seconde enzyme</tspan></text>
+<rect class="fg-f-or-l fg-t-or" x="162" y="270" width="152" height="74" rx="10"/>
 <text class="fg-txt fg-txt-b fg-txt-or" x="238" y="290" text-anchor="middle">Arrière-goût</text>
 <text class="fg-txt fg-txt-s" x="238" y="306" text-anchor="middle"><tspan x="238">thiosulfinates, puis</tspan><tspan x="238" dy="13.5">disulfures</tspan></text>` },
-
-  { ou: "pourquoi", apres: 1, type: "courbe", qualitative: true,
-    titre: "Le piquant se forme tout de suite",
-    legende: "Allure qualitative : l'essentiel du piquant se forme dans la minute qui suit la coupe. Un acide versé ensuite ne l'empêche plus ; il n'en extrait qu'une part et couvre le reste en bouche.",
-    alt: "Courbe qualitative, sans valeurs chiffrées : la quantité de composés piquants formés, selon le temps écoulé depuis la coupe. Elle monte très vite dans la première minute, puis se stabilise à un haut niveau. Un repère vertical, bien plus tard, marque le moment où l'on ajoute le vinaigre ou le citron : le piquant est déjà formé, l'acide n'empêche plus rien.",
-    x: { label: "Temps depuis la coupe", extremites: ["coupe", "plus tard"] },
-    y: { label: "Composés piquants formés" },
-    series: [ { nom: "Piquant formé", ton: "terra", aire: true,
-      points: [[0, 0], [5, 0.5], [12, 0.88], [22, 1], [100, 1]] } ],
-    zones: [ { de: 0, a: 22, label: "1re minute", ton: "terra" } ],
-    reperes: [ { x: 64, label: "vinaigre ajouté ici", ton: "or" } ],
-    notes: [ { x: 64, y: 1, texte: "trop tard pour l'empêcher", dx: 0, dy: 50, largeur: 120, ancre: "middle" } ] },
 
   { ou: "cas", type: "etapes",
     titre: "Adoucir un oignon cru",
@@ -815,10 +819,22 @@ FIGURES["mordant-oignon"] = [
       { libelle: "Essorer", desc: "égoutter, presser dans un linge", emoji: "🥣", ton: "or" }
     ] },
 
+  { ou: "cas", type: "courbe", qualitative: true,
+    titre: "Le piquant se forme tout de suite",
+    legende: "Allure qualitative : l'essentiel du piquant se forme dans la minute qui suit la coupe. Un acide versé ensuite ne l'empêche plus ; il n'en extrait qu'une part et couvre le reste en bouche.",
+    alt: "Courbe qualitative, sans valeurs chiffrées : la quantité de composés piquants formés, selon le temps écoulé depuis la coupe. Elle monte très vite dans la première minute, puis se stabilise à un haut niveau, sans s'arrêter tout à fait. Un repère vertical, bien plus tard, marque le moment où l'on ajoute le vinaigre ou le citron : le piquant est déjà formé, l'acide n'empêche plus rien.",
+    x: { label: "Temps depuis la coupe", extremites: ["coupe", "plus tard"] },
+    y: { label: "Composés piquants formés" },
+    series: [ { nom: "Piquant formé", ton: "terra", aire: true,
+      points: [[0, 0], [5, 0.5], [12, 0.88], [22, 0.97], [100, 1]] } ],
+    zones: [ { de: 0, a: 22, label: "première minute", ton: "terra" } ],
+    reperes: [ { x: 64, label: "vinaigre ajouté ici", ton: "or" } ],
+    notes: [ { x: 64, y: 1, texte: "trop tard pour l'empêcher", dx: -12, dy: 50, largeur: 110, ancre: "end" } ] },
+
   { ou: "pourquoi", apres: 3, type: "comparaison",
     titre: "Eau claire, sel ou acide",
     legende: "Moins concentrée que la sève, l'eau claire entre dans les cellules et raffermit les lamelles ; le sel en tire l'eau sans ôter le mordant ; l'acide assouplit au bout d'un quart d'heure.",
-    alt: "Trois cellules d'oignon côte à côte. Dans l'eau claire, la cellule est bien tendue : des flèches bleues montrent l'eau qui y entre, l'oignon ressort plus ferme. Dans le sel, la cellule est ridée et plus petite : des flèches montrent l'eau qui en sort, les lamelles deviennent molles et translucides, et le mordant reste entier. Dans l'acide, le contour de la cellule est en pointillés : passé un quart d'heure, l'oignon s'assouplit, et une partie des composés soufrés est extraite.",
+    alt: "Trois cellules d'oignon côte à côte. Dans l'eau claire, la cellule est bien tendue : des flèches bleues montrent l'eau qui y entre, l'oignon ressort plus ferme. Dans le sel, la cellule est ridée et plus petite : des flèches montrent l'eau qui en sort, les lamelles deviennent molles et translucides, et le mordant reste entier. Dans l'acide, le contour de la cellule est en pointillés et des flèches en font sortir des points, les composés soufrés extraits : passé un quart d'heure, l'oignon s'assouplit.",
     panneaux: [
       { label: "Eau claire", sous: "l'eau entre : plus ferme", ton: "bleu", vb: "0 0 100 64",
         corps: `<ellipse class="fg-f-vert-l fg-t-vert fg-t-epais" cx="50" cy="32" rx="26" ry="22"/>
@@ -838,10 +854,11 @@ FIGURES["mordant-oignon"] = [
 <path class="fg-t-or fg-t-epais" d="M68 20L78 12" marker-end="url(#fg-fl-or)"/>
 <path class="fg-t-or fg-t-epais" d="M32 48L22 56" marker-end="url(#fg-fl-or)"/>
 <path class="fg-t-or fg-t-epais" d="M68 48L78 56" marker-end="url(#fg-fl-or)"/>` },
-      { label: "Acide", sous: "assouplit après un quart d'heure", ton: "terra", vb: "0 0 100 64",
+      { label: "Acide", sous: "extrait du soufré, assouplit après un quart d'heure", ton: "terra", vb: "0 0 100 64",
         corps: `<ellipse class="fg-f-vert-l fg-t-vert fg-t-epais fg-tirets" cx="44" cy="32" rx="26" ry="20"/>
 <circle class="fg-f-vert" cx="44" cy="32" r="3.4" opacity=".5"/>
-<circle class="fg-f-terra" cx="78" cy="22" r="2.4"/><circle class="fg-f-terra" cx="86" cy="34" r="2.4"/><circle class="fg-f-terra" cx="76" cy="44" r="2.4"/><circle class="fg-f-terra" cx="92" cy="48" r="2.4"/>` }
+<path class="fg-t-terra fg-t-fin" d="M68 26L80 20" marker-end="url(#fg-fl-terra)"/><path class="fg-t-terra fg-t-fin" d="M70 34L82 34" marker-end="url(#fg-fl-terra)"/><path class="fg-t-terra fg-t-fin" d="M66 44L78 50" marker-end="url(#fg-fl-terra)"/>
+<circle class="fg-f-terra" cx="86" cy="18" r="2.4"/><circle class="fg-f-terra" cx="88" cy="34" r="2.4"/><circle class="fg-f-terra" cx="84" cy="53" r="2.4"/>` }
     ] }
 ];
 
@@ -894,7 +911,7 @@ FIGURES["emulsion"] = [
     qualitative: true,
     titre: "Une émulsion est retardée, jamais éternelle",
     legende: "Allure qualitative : sans émulsifiant, les gouttelettes fusionnent vite ; avec lui, la séparation est freinée longtemps, sans jamais être exclue.",
-    alt: "Courbe qualitative, sans valeurs chiffrées. L'axe horizontal est le temps, depuis l'instant du fouet jusqu'à bien plus tard ; l'axe vertical est la part de l'huile restée dispersée en fines gouttelettes. Sans émulsifiant, la courbe terracotta s'effondre presque aussitôt. Avec un émulsifiant, la courbe verte reste haute longtemps puis décline lentement : l'émulsion n'est jamais stable au sens strict, elle est retardée.",
+    alt: "Courbe qualitative, sans valeurs chiffrées. L'axe horizontal est le temps, depuis l'instant du fouet jusqu'à bien plus tard ; l'axe vertical est la part de l'huile restée dispersée en fines gouttelettes. Sans émulsifiant, la courbe terre cuite s'effondre presque aussitôt. Avec un émulsifiant, la courbe verte reste haute longtemps puis décline lentement : l'émulsion n'est jamais stable au sens strict, elle est retardée.",
     x: { label: "Temps",
       extremites: ["à l'instant du fouet", "bien plus tard"] },
     y: { label: "Huile restée en fines gouttelettes" },
@@ -956,17 +973,30 @@ FIGURES["emulsion"] = [
 
   { ou: "reperes",
     type: "barres",
-    titre: "Combien d'huile monte une base ?",
-    legende: "Une base seule ne dit pas tout : le jaune plafonne parce que son eau sature, pas parce que ses émulsifiants s'épuisent.",
-    alt: "Deux barres horizontales. Une cuillerée à café de moutarde monte sans peine 5 cl d'huile. Un jaune d'œuf seul en monte environ 20 cl, quatre fois plus. Sous la barre du jaune, une note : c'est son eau qui limite, pas son pouvoir émulsifiant ; en ajoutant de l'eau au fil de l'huile, il en tient bien davantage.",
+    titre: "Combien d'huile se monte, selon la base ?",
+    legende: "Une base seule ne dit pas tout : la moutarde monte 5 cl sans peine, ce n'est pas un plafond ; le jaune plafonne vers 20 cl parce que son eau sature, pas parce que ses émulsifiants s'épuisent.",
+    alt: "Deux barres horizontales. Une cuillerée à café de moutarde monte sans peine 5 cl d'huile. Un jaune d'œuf seul en monte environ 20 cl, mais c'est un plafond, non la quantité facile de la moutarde : les deux barres ne mesurent pas la même chose. Sous la barre du jaune, une note : c'est son eau qui limite, pas son pouvoir émulsifiant ; en ajoutant de l'eau au fil de l'huile, il en tient bien davantage.",
     unite: "cl",
     barres: [
-      { label: "Une cuillerée à café de moutarde", valeur: 5, texte: "5 cl", ton: "vert" },
-      { label: "Un jaune d'œuf seul",
+      { label: "Une cuillerée à café de moutarde", valeur: 5, texte: "5 cl", ton: "vert", note: "Ce qui se monte sans peine : pas un plafond." },
+      { label: "Un jaune d'œuf seul : le plafond",
         valeur: 20,
         texte: "environ 20 cl",
         ton: "or",
         note: "Son eau sature : ajoutez de l'eau ou du vinaigre au fil de l'huile, et il en tient bien davantage." }
+    ] },
+
+  { ou: "pourquoi", apres: 2, type: "comparaison", colonnes: 2,
+    titre: "Un liquide épais ralentit les rencontres",
+    legende: "Schéma simplifié. La viscosité de la phase aqueuse est le troisième levier : les mucilages de la moutarde l'épaississent et ralentissent les rencontres entre gouttelettes. La part de chacun des mécanismes reste discutée.",
+    alt: "Deux panneaux côte à côte. À gauche, une phase aqueuse fluide : quatre gouttelettes d'huile se déplacent librement, des flèches montrent qu'elles se rejoignent. À droite, une phase aqueuse épaissie par les mucilages de la moutarde, figurés par des lignes ondulées bleues : les mêmes gouttelettes sont retenues à distance les unes des autres et se rencontrent plus lentement. Schéma simplifié, la part respective des mécanismes reste discutée.",
+    panneaux: [
+      { label: "Phase fluide", sous: "les gouttelettes se rejoignent", ton: "terra", vb: "0 0 134 70",
+        corps: `<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="26" cy="24" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="62" cy="46" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="102" cy="22" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="110" cy="54" r="9"/>
+<path class="fg-t-terra fg-t-epais" d="M38 32L46 38" marker-end="url(#fg-fl-terra)"/><path class="fg-t-terra fg-t-epais" d="M90 28L74 40" marker-end="url(#fg-fl-terra)"/><path class="fg-t-terra fg-t-epais" d="M100 48L90 51" marker-end="url(#fg-fl-terra)"/>` },
+      { label: "Phase épaissie", sous: "mucilages : les rencontres ralentissent", ton: "vert", vb: "0 0 134 70",
+        corps: `<path class="fg-t-bleu fg-t-fin" d="M4 12q8-6 16 0t16 0t16 0t16 0t16 0t16 0t16 0"/><path class="fg-t-bleu fg-t-fin" d="M4 36q8-6 16 0t16 0t16 0t16 0t16 0t16 0t16 0"/><path class="fg-t-bleu fg-t-fin" d="M4 60q8-6 16 0t16 0t16 0t16 0t16 0t16 0t16 0"/>
+<circle class="fg-f-or-l fg-t-or fg-t-epais" cx="26" cy="24" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="62" cy="48" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="102" cy="22" r="13"/><circle class="fg-f-or-l fg-t-or fg-t-epais" cx="110" cy="54" r="9"/>` }
     ] }
 ];
 
@@ -2997,7 +3027,7 @@ const THERMOMETRE = [
   { de: 150, a: 160, label: "Fruits secs au four : 8 à 12 minutes", fond: "torrefaction", ton: "terra" },
   { de: 150, label: "Friture : en dessous, le beignet s'imbibe", fond: "friture", ton: "or" },
   { de: 150, label: "Paprika, piment : hors du feu, sous cette limite", fond: "epices-gras", ton: "or" },
-  { de: 160, label: "Friture : jamais en dessous", fond: "eau-coloration", ton: "or" },
+  { de: 150, label: "Friture : jamais en dessous", fond: "eau-coloration", ton: "or" },
   { de: 160, label: "Four : en dessous, la croûte reste pâle", fond: "maillard", ton: "terra" },
   { de: 170, a: 180, label: "Friture : la bonne fenêtre", fond: "friture", ton: "or" },
   { de: 190, label: "Friture : au-delà, l'huile s'oxyde", fond: "friture", ton: "or" },
