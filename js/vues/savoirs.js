@@ -91,7 +91,7 @@ export function fondBodyHtml(f, niveau = 4) {
       <h${niveau}>Dans le carnet</h${niveau}>
       <div class="f-recettes">${recettes.map(r =>
         `<a class="f-rec" href="#/recette/${r.id}"><span>${r.emoji}</span>${r.title}</a>`).join("")}</div>
-    </div>` : `<p class="f-orphelin">Pas encore rattaché à une recette du carnet.</p>`}
+    </div>` : `<p class="f-orphelin">Dans aucune recette pour l'instant.</p>`}
     ${f.source ? `<p class="f-source">${f.source}</p>` : ""}`;
 }
 
@@ -172,14 +172,14 @@ function listeFondamentaux(q) {
               <span class="f-item-txt">
                 <b>${f.t}</b>
                 <small>${f.accroche}</small>
-                <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Pas encore rattaché"}</span>
+                <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Dans aucune recette pour l'instant"}</span>
               </span>
               ${raw(ICON.chev)}
             </a>`);
           })}
         </div>
       </section>`)) : raw(html`<p class="empty">Aucun savoir ne correspond à « ${q} ».</p>`)}
-    <p class="f-compte">${fondsTous().length} fondamental${fondsTous().length > 1 ? "aux" : ""} dans le carnet.</p>`;
+    <p class="f-compte">${fondsTous().length} ${fondsTous().length > 1 ? "fondamentaux" : "fondamental"} dans le carnet.</p>`;
 }
 
 export function renderFondamentaux() {

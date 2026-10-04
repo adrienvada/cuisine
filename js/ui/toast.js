@@ -2,6 +2,7 @@
 
 import { courseTodo } from "../core/courses.js";
 import { state } from "../core/etat.js";
+import { typo } from "../core/format.js";
 import { annoncer } from "./annonces.js";
 
 /* Un message qui propose un geste (« Annuler »…) détruit souvent des données, et
@@ -32,6 +33,8 @@ function armer(ms) {
    le temps de le lire et d'y viser, et tant qu'on le survole ou qu'il a le focus.
    Quand le geste qui l'a fait naître vient du clavier, le bouton prend le focus. */
 export function toast(msg, { action, surAction, duree } = {}) {
+  /* Une seule règle pour tous les messages : pas de point final (un « ! » ou un « ? » reste). */
+  msg = typo(String(msg).replace(/\.\s*$/, ""));
   const t = document.getElementById("toast");
   delaiCourant = duree ?? (action ? 5000 : 2200);
   const id = ++compteur;

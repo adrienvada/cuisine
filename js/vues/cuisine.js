@@ -5,7 +5,7 @@ import {
   planPrechauffage, secondesRestantes, sensBalayage, texteALire
 } from "../core/cuisine.js";
 import { save, state } from "../core/etat.js";
-import { fmtClock, fmtTime, scaleText } from "../core/format.js";
+import { fmtClock, fmtTime, libellePortions, scaleText } from "../core/format.js";
 import { esc } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { entreeCourante, portionsOf } from "../core/menu.js";
@@ -255,7 +255,7 @@ export function renderCook(r, step) {
       <div class="sheet ing-sheet" role="dialog" aria-modal="true" aria-label="Ingrédients de ${esc(r.title)}">
         <div class="sheet-grip"></div>
         <h3>Ingrédients</h3>
-        <p class="sheet-sub">Pour ${portionsOf(r)} ${r.portions.label}. Coche au fil de la mise en place.</p>
+        <p class="sheet-sub">Pour ${libellePortions(portionsOf(r), r.portions.label)}. Coche au fil de la mise en place.</p>
         ${note ? noteHtml() : ""}
         <ul class="ing-liste">${lignes}</ul>
         <button type="button" class="btn secondary ing-fermer" id="ing-fermer">Fermer</button>
@@ -309,9 +309,9 @@ export function renderCook(r, step) {
       repeter: lireEtape,
       minuteur: lancerMinuteurEtape,
       ingredients: ouvrirIngredients,
-      terminer: () => { if (cookIdx === steps.length - 1) terminer(); else toast("Ce n'est pas encore la dernière étape."); }
+      terminer: () => { if (cookIdx === steps.length - 1) terminer(); else toast("Ce n'est pas encore la dernière étape"); }
     }, {
-      onErreur: () => { arreterMicro(); toast("Le micro ne répond pas."); }
+      onErreur: () => { arreterMicro(); toast("Le micro ne répond pas"); }
     });
     majMicro();
     lireEtape();

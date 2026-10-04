@@ -46,7 +46,7 @@ test("ajout au menu : la feuille « Des envies en plus ? » puis « Ajouter tel 
   await feuille.getByRole("button", { name: "Ajouter tel quel" }).click();
   await expect(feuille).toBeHidden();
   await expect(page.locator("#menu-badge")).toHaveText("1");
-  await expect(page.locator("#toast")).toHaveText("Au menu — ingrédients ajoutés aux courses");
+  await expect(page.locator("#toast")).toHaveText("Au menu — courses à jour");
   await expect(page.locator("#add-list")).toContainText("Ajouter une autre version");
 
   const carnet = await lireCarnet(page);

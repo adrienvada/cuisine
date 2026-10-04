@@ -130,7 +130,7 @@ test("conflit de four : focaccia à 220 °C et quiche à 180 °C, la plus chaude
   assert.ok(q.fin <= TABLE && f.fin < TABLE);
   assert.equal(plan.retard, 0);
   assert.ok(c.decale > 0);
-  assert.match(phraseConflit(c), /^Focaccia à 220 °C ; Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord : départ avancé de (?:\d+ h(?: \d+)?|\d+ min), l'heure est tenue/);
+  assert.match(phraseConflit(c), /^À 220 °C pour Focaccia, 180 °C pour Quiche lorraine : enfourne Focaccia en premier\. Le départ est avancé de (?:\d+ h(?: \d+)?|\d+ min), l'heure est tenue/);
   // Le four se règle entre les deux fournées.
   const types = plan.evenements.map(e => e.type);
   assert.ok(types.includes("regler") || types.filter(t => t === "prechauffage").length === 2);
@@ -143,7 +143,7 @@ test("conflit de four : plusieurs plats à la même température contre le même
   ajouter("cake-sale", { k: "c" });
   const plan = planifier({ table: TABLE, taches: menu.tachesDuMenu() });
   assert.equal(plan.conflits.length, 1);
-  assert.match(phraseConflit(plan.conflits[0]), /^Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C en même temps/);
+  assert.match(phraseConflit(plan.conflits[0]), /^À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé : enfourne Focaccia en premier/);
   assert.equal(plan.retard, 0);
 });
 
@@ -224,18 +224,18 @@ test("icsRepas : fuseau Europe/Paris, un événement par recette, des rappels, l
   assert.ok(ics.includes("TZID:Europe/Paris"));
   assert.ok(ics.includes("BEGIN:VTIMEZONE"));
   assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, (ics.match(/END:VEVENT/g) || []).length);
-  assert.ok(ics.includes("SUMMARY:Cuisiner : Focaccia"));
-  assert.ok(ics.includes("SUMMARY:Cuisiner : Quiche lorraine"));
-  assert.ok(ics.includes("SUMMARY:À table !"));
+  assert.ok(ics.includes("SUMMARY:Cuisiner\u00a0: Focaccia"));
+  assert.ok(ics.includes("SUMMARY:Cuisiner\u00a0: Quiche lorraine"));
+  assert.ok(ics.includes("SUMMARY:À table\u202f!"));
   assert.ok(ics.includes("DTSTART;TZID=Europe/Paris:20300615T200000"));
   assert.ok(ics.includes("DESCRIPTION:6 convives"));
   assert.ok(/TRIGGER:-PT30M/.test(ics));
   assert.ok((ics.match(/BEGIN:VALARM/g) || []).length >= 4);
-  assert.ok(/SUMMARY:Préchauffe le four à 220 °C/.test(ics));
+  assert.ok(/SUMMARY:Préchauffe le four à 220\u00a0°C/.test(ics));
   for (const ligne of ics.split("\r\n")) assert.ok(Buffer.byteLength(ligne) <= 75, ligne);
   // Les virgules et les points-virgules du texte sont échappés.
   const avecVirgule = icsRepas({ ...plan, recettes: [{ ...plan.recettes[0], titre: "Pâtes, sauce; tomate" }] }, { horodatage: "20300101T000000Z" });
-  assert.ok(avecVirgule.includes("SUMMARY:Cuisiner : Pâtes\\, sauce\\; tomate") || avecVirgule.includes("SUMMARY:Cuisiner : Pâtes"));
+  assert.ok(avecVirgule.includes("SUMMARY:Cuisiner\u00a0: Pâtes\\, sauce\\; tomate") || avecVirgule.includes("SUMMARY:Cuisiner\u00a0: Pâtes"));
 });
 
 test("icsRepas : un titre accentué long se plie à 75 octets, pas à 75 caractères", () => {

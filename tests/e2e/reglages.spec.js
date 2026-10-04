@@ -295,9 +295,9 @@ test("import : annuler la confirmation ne change rien ; un fichier invalide est 
   expect((await lireCarnet(page)).menu).toHaveLength(1);
 
   await feuille.locator("#reg-fichier").setInputFiles(fichierJson("mauvais.json", "ceci n'est pas du JSON"));
-  await expect(page.locator("#toast")).toHaveText("Ce fichier n'est pas un fichier JSON lisible.");
+  await expect(page.locator("#toast")).toHaveText("Ce fichier n'est pas un fichier JSON lisible");
   await feuille.locator("#reg-fichier").setInputFiles(fichierJson("liste.json", [1, 2, 3]));
-  await expect(page.locator("#toast")).toHaveText("Ce fichier ne ressemble pas à un carnet de cuisine.");
+  await expect(page.locator("#toast")).toHaveText("Ce fichier ne ressemble pas à un carnet de cuisine");
   await expect(page.getByRole("alertdialog")).toHaveCount(0);
   expect((await lireCarnet(page)).menu).toHaveLength(1);
 });

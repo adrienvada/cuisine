@@ -82,7 +82,7 @@ export function renderHome() {
     <div class="search-row">
       <div class="searchbar">
         ${ICON.search}
-        <input id="search" type="search" placeholder="Recette, ingrédient…" value="${esc(requete)}" autocomplete="off" aria-label="Chercher une recette">
+        <input id="search" type="search" placeholder="Plat, ingrédient" value="${esc(requete)}" autocomplete="off" aria-label="Chercher une recette">
       </div>
       <button type="button" class="jai-btn" id="jai-ouvrir" aria-haspopup="dialog"></button>
     </div>

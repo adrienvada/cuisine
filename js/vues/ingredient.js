@@ -1,7 +1,7 @@
 /* La feuille d'un ingrédient : sa quantité, « j'en ai moins », ses substitutions et ses allergènes. */
 
 import { allergenesDe, lireQuantite, portionsPermises, PORTIONS_MAX, PORTIONS_MIN } from "../core/adaptation.js";
-import { fmtQty, fmtUnit, scaleQty, scaleText } from "../core/format.js";
+import { fmtQty, fmtUnit, libellePortions, scaleQty, scaleText } from "../core/format.js";
 import { html, raw } from "../core/html.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 
@@ -29,7 +29,7 @@ export function ouvrirIngredient(r, ing, { portions, regler }) {
     <div class="sheet sheet-ing" role="dialog" aria-modal="true" aria-label="${ing.name}">
       <div class="sheet-grip"></div>
       <h3>${ing.name}</h3>
-      <p class="sheet-sub">${quantiteTexte(ing, f)} pour ${portions} ${r.portions.label}${ing.note ? raw(html` · ${scaleText(ing.note, f)}`) : ""}</p>
+      <p class="sheet-sub">${quantiteTexte(ing, f)} pour ${libellePortions(portions, r.portions.label)}${ing.note ? raw(html` · ${scaleText(ing.note, f)}`) : ""}</p>
 
       <p class="ing-allergenes">${allergenes.length
         ? raw(html`Contient : ${raw(allergenes.map(a => html`<span class="alg">${a.emoji} ${a.label.toLowerCase()}</span>`).join(" · "))}`)
@@ -70,12 +70,12 @@ export function ouvrirIngredient(r, ing, { portions, regler }) {
     if (n < PORTIONS_MIN) {
       resultat.textContent = "Ça ne suffit pas pour une portion entière.";
     } else if (n >= portions) {
-      resultat.textContent = `Ça suffit déjà : la recette est prête pour ${portions} ${r.portions.label}.`;
+      resultat.textContent = `Ça suffit déjà : la recette est prête pour ${libellePortions(portions, r.portions.label)}.`;
     } else {
       choix = Math.min(n, PORTIONS_MAX);
-      resultat.textContent = `Avec ça, tu peux faire ${choix} ${r.portions.label}.`;
+      resultat.textContent = `Avec ça, tu peux faire ${libellePortions(choix, r.portions.label)}.`;
       valider.disabled = false;
-      valider.textContent = `Régler sur ${choix} ${r.portions.label}`;
+      valider.textContent = `Régler sur ${libellePortions(choix, r.portions.label)}`;
     }
   };
 

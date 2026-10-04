@@ -2,6 +2,7 @@
 
 import { courseTodo } from "../core/courses.js";
 import { save, state } from "../core/etat.js";
+import { libellePortions } from "../core/format.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import {
@@ -211,7 +212,7 @@ function carteHtml({ e, r }, repas) {
       ${alertes.map(a => raw(html`<p class="mc-alerte" role="note"><span aria-hidden="true">⚠️</span><span>Contient ${a.phrase} : ${a.ingredients.join(", ")}</span></p>`))}
       <span class="portions mc-portions">
         <button data-minus="${e.k}" aria-label="Moins de portions">−</button>
-        <span class="val">${portionsOf(r, e)} ${r.portions.label}</span>
+        <span class="val">${libellePortions(portionsOf(r, e), r.portions.label)}</span>
         <button data-plus="${e.k}" aria-label="Plus de portions">+</button>
       </span>
       <div class="mc-actions">
@@ -320,7 +321,7 @@ function brancher() {
       if (p < 1 || p > 24) return;
       ent.portions = p;
       save(); updateBadge(); redessiner();
-      annoncer(`${r.title} : ${p} ${r.portions.label}`);
+      annoncer(`${r.title} : ${libellePortions(p, r.portions.label)}`);
       return;
     }
     /* Toute la carte ouvre la recette : les mains dans la farine, on ne vise pas

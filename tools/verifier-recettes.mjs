@@ -31,6 +31,8 @@
    9. Logique culinaire. Un même `cid` porte un seul libellé de courses (la liste
       n'en affiche qu'un, celui de la première recette du menu), et se marque
       `entier: true` partout ou nulle part.
+  10. Portions. Le label de portions d'une recette (« personnes », « verres »…) a son
+      singulier dans SINGULIERS_PORTIONS (js/core/format.js) : sans lui, « 1 personnes ».
 
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
@@ -43,6 +45,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { SINGULIERS_PORTIONS } from "../js/core/format.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -82,6 +85,12 @@ function quantitesNues(txt) {
 }
 const erreurs = [];
 const ko = m => erreurs.push(m);
+
+/* 10. Portions. Le label est au pluriel dans les données ; « 1 personnes » se lit
+   mal, donc libellePortions() (js/core/format.js) a besoin du singulier de chacun. */
+for (const r of RECIPES) {
+  if (!SINGULIERS_PORTIONS[r.portions.label]) ko(`${r.id} : le label de portions « ${r.portions.label} » n'a pas de singulier dans SINGULIERS_PORTIONS (js/core/format.js)`);
+}
 
 for (const r of RECIPES) {
   /* 1. Ancrage des suppléments */

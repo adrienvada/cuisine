@@ -6,7 +6,7 @@
    commune, lues sur l'horloge du mur, sans fuseau — la table à 20 h est à 20 h
    partout, et le calendrier la recevra en Europe/Paris. */
 
-import { fmtTime } from "./format.js";
+import { fmtTime, typo } from "./format.js";
 
 /* Un four se préchauffe en un quart d'heure environ… */
 export const PRECHAUFFAGE = 15;
@@ -292,20 +292,18 @@ export function texteEvenement(e) {
   }
 }
 
-/* « Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C en même temps :
-   enfourne « Focaccia » d'abord. » Un point-virgule sépare les deux températures
-   pour que chaque plat se lise avec la sienne. Les titres restent entre
-   guillemets : le genre d'un nom de plat ne se devine pas, et un article faux
-   serait pire qu'aucun. Le retard n'est pas redit ici : le message de retard,
-   juste dessous, l'annonce une fois pour tout le repas. */
+/* « À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé : enfourne
+   Focaccia en premier. » Chaque plat se lit avec sa température, sans point-virgule
+   ni guillemets imbriqués ; la tournure évite tout accord, car le genre et le nombre
+   d'un nom de plat ne se devinent pas. Le retard n'est pas redit ici : le message
+   de retard, juste dessous, l'annonce une fois pour tout le repas. */
 export function phraseConflit(c) {
   const a = nomCourt(c.premier.titre);
   const noms = [c.second, ...(c.autres || [])].map(x => nomCourt(x.titre));
   const b = noms.length > 1 ? `${noms.slice(0, -1).join(", ")} et ${noms[noms.length - 1]}` : noms[0];
-  const base = `${a} à ${c.premier.temp} °C ; ${b} à ${c.second.temp} °C en même temps : enfourne « ${a} » d'abord`;
-  if (c.retard > 0) return `${base}.`;
-  if (c.decale > 0) return `${base} : départ avancé de ${fmtTime(c.decale)}, l'heure est tenue.`;
-  return `${base}.`;
+  const base = `À ${c.premier.temp} °C pour ${a}, ${c.second.temp} °C pour ${b} : enfourne ${a} en premier.`;
+  if (c.retard > 0 || !(c.decale > 0)) return base;
+  return `${base} Le départ est avancé de ${fmtTime(c.decale)}, l'heure est tenue.`;
 }
 
 export function phraseRetard(plan) {
@@ -316,7 +314,7 @@ export function phraseRetard(plan) {
 /* ---------- Le calendrier (.ics) ---------- */
 
 /* RFC 5545 : le texte s'échappe, et les lignes se plient à 75 caractères. */
-const ics = t => String(t ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+const ics = t => typo(String(t ?? "")).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
 function plier(ligne) {
   /* RFC 5545 compte en octets : un « é » en pèse deux. */

@@ -11,7 +11,7 @@ import {
   tailleEquivalente
 } from "../core/adaptation.js";
 import { save, state } from "../core/etat.js";
-import { scaleText, timeText } from "../core/format.js";
+import { libellePortions, scaleText, timeText } from "../core/format.js";
 import { esc, html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import {
@@ -241,12 +241,11 @@ export function renderRecipe(r) {
   /* Les portions de CETTE version : celles de l'entrée du menu quand on en édite
      une, celles du brouillon sinon — portionsOf / compo tranchent. */
   const portionsCourantes = () => portionsOf(r);
-  const unite = r.portions.label;
 
   const drawIngredients = () => {
     const p = portionsCourantes();
     const f = p / r.portions.base;
-    document.getElementById("p-val").textContent = `${p} ${unite}`;
+    document.getElementById("p-val").textContent = libellePortions(p, r.portions.label);
     document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map((ing, i) => html`<li>
       <button type="button" class="ing-ligne" data-i="${i}" aria-haspopup="dialog">
         <span class="qty">${quantiteTexte(ing, f)}</span>
@@ -347,7 +346,7 @@ export function renderRecipe(r) {
     if (taille < 8 || taille > 60) return;
     (state.moules ??= {})[r.id] = taille;
     const p = portionsPourMoule(r.moule, r.portions.base, taille);
-    setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${p} ${unite}. ${remarqueCuissonMoule(r.moule, taille)}`.trim());
+    setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${libellePortions(p, r.portions.label)}. ${remarqueCuissonMoule(r.moule, taille)}`.trim());
   });
 
   /* Toucher une ligne : la feuille de l'ingrédient. */
@@ -361,7 +360,7 @@ export function renderRecipe(r) {
       regler: n => {
         const avant = portionsCourantes();
         setPortions(n);
-        toast(`Recette réglée pour ${n} ${unite}`, {
+        toast(`Recette réglée pour ${libellePortions(n, r.portions.label)}`, {
           action: "Annuler",
           /* Le message survit quelques secondes à un changement de page : on
              défait alors la version d'origine sans redessiner une fiche absente. */
@@ -404,7 +403,7 @@ export function renderRecipe(r) {
     if (x) x.addEventListener("click", () => {
       retirerDuMenu(entreeCourante());
       updateBadge();
-      toast("Retirée du menu");
+      toast("Retiré du menu");
       allerEnRemplacant(`#/recette/${r.id}`);
     });
   };
@@ -424,7 +423,7 @@ export function renderRecipe(r) {
     toast(combien > 1
       ? `Deuxième version au menu — courses à jour`
       : n ? `Au menu avec ${n} supplément${n > 1 ? "s" : ""} — courses à jour`
-          : "Au menu — ingrédients ajoutés aux courses");
+          : "Au menu — courses à jour");
   };
 
   drawAddBtn();
