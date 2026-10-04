@@ -111,9 +111,12 @@ test("journal : l'entrée et sa photo survivent au rechargement", async ({ page,
 });
 
 test("journal : plus récente d'abord, « Aujourd'hui » et « Hier » en clair", async ({ page, context }) => {
+  /* Le navigateur de test vit à Paris (playwright.config.mjs) et Node en UTC : entre
+     minuit et deux heures à Paris, `new Date()` de Node dit encore la veille. Le
+     jour se lit donc à Paris, comme l'appli. */
   const jour = decalage => {
-    const d = new Date(); d.setDate(d.getDate() - decalage);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const [a, m, j] = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" }).split("-").map(Number);
+    return new Date(Date.UTC(a, m - 1, j - decalage)).toISOString().slice(0, 10);
   };
   await preremplir(context, { carnet: { journal: [
     { id: "j1", rid: RID, date: jour(1), convives: 2, note: "hier", photo: false },

@@ -34,6 +34,13 @@
   10. Portions. Le label de portions d'une recette (« personnes », « verres »…) a son
       singulier dans SINGULIERS_PORTIONS (js/core/format.js) : sans lui, « 1 personnes ».
 
+  11. Repos. Les étapes marquées `repos: true` (qui bloquent la suite) ont un
+      minuteur, ne chauffent pas, et leur somme (version par défaut) est
+      `times.repos` : la frise du rétroplanning et la carte annoncent la même
+      attente. Une attente `repos: "pendant"` (qui court pendant qu'on fait la
+      suite) a un minuteur, ne chauffe pas, n'entre pas dans `times.repos`, tient
+      dans le temps de la recette et laisse une étape derrière elle.
+
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
    orphelin est un problème — le carnet sert aussi de boîte de réception aux
@@ -114,9 +121,10 @@ for (const r of RECIPES) {
     if (s.timer && !m) ko(`${ref} a un minuteur de ${s.timer} min alors que son texte n'annonce aucune durée`);
   }
   /* Un supplément minuté doit dire à quel poste son temps s'ajoute, sinon il
-     gonfle le total sans apparaître dans aucune des fourchettes affichées. */
+     gonfle le total sans apparaître dans aucune des fourchettes affichées — sauf
+     une attente « pendant », qui court en parallèle et n’ajoute rien. */
   for (const a of r.addons || []) {
-    if (a.step && a.step.timer && !POSTES.includes(a.step.adds)) {
+    if (a.step && a.step.timer && a.step.repos !== "pendant" && !POSTES.includes(a.step.adds)) {
       ko(`${r.id} / +${a.id} a un minuteur mais pas de \`adds\` valide (${POSTES.join(", ")})`);
     }
   }
@@ -129,7 +137,11 @@ for (const r of RECIPES) {
   const total = (r.times.prep || 0) + (r.times.repos || 0) + (r.times.cuisson || 0);
   for (const c of r.choices || []) {
     const i = r.steps.findIndex(s => s.choice === c.id);
-    const minuteurs = (o) => r.steps.reduce((n, s, j) => n + ((j === i ? o.step : s).timer || 0), 0);
+    /* Une attente « pendant » court en parallèle : elle n'ajoute rien au temps. */
+    const minuteurs = (o) => r.steps.reduce((n, s, j) => {
+      const e = j === i ? o.step : s;
+      return n + (e.repos === "pendant" ? 0 : e.timer || 0);
+    }, 0);
     for (const o of c.options) {
       const ref = `${r.id}[${i}] version ${o.id}`;
       if (o.step.adds && !POSTES.includes(o.step.adds)) ko(`${ref} : \`adds\` invalide (${POSTES.join(", ")})`);
@@ -362,6 +374,78 @@ for (const [cid, liste] of Object.entries(SUBSTITUTIONS)) {
     if (!s.par || !String(s.par).trim()) ko(`substitutions.js : « ${cid} » a une substitution sans « par »`);
     if (/[{}]/.test(`${s.par || ""} ${s.note || ""}`)) ko(`substitutions.js : « ${cid} » contient une accolade — réservée aux quantités mises à l'échelle`);
   }
+}
+
+/* ---------- 11. Repos ---------- */
+
+/* Un repos, c'est un minuteur sans les mains et sans chauffer (levée, marinade,
+   trempage, refroidissement, congélateur). La frise du rétroplanning le montre à
+   part et libère les mains pendant qu'il court ; la carte et la fiche annoncent
+   `times.repos`. Les deux doivent dire la même chose, sinon la carte promet un
+   repos que la frise ne montre pas, ou l'inverse. Ce que la règle attrape :
+   - la somme des minuteurs de repos de la version par défaut (première option de
+     chaque choix, aucun supplément) est `times.repos` : une étape oubliée, un
+     temps de carte qui ne dit pas la même chose que les étapes ;
+   - `times.repos` non nul sans aucune étape de repos, ou l'inverse ;
+   - un repos a un minuteur, ne porte jamais `four`, et ne dit pas `adds` d'un
+     autre poste ; `reposLabel` n'a de sens que sur un repos ;
+   - une option qui repose sans `adds` n'est lisible que si c'est la version par
+     défaut : sinon `times` ne compterait son repos nulle part ;
+   - un minuteur hors repos dont le texte parle de congélateur, de marinade, de
+     trempage, de levée… est presque toujours un repos oublié (un four, lui, ne
+     se soupçonne pas : il a sa propre annotation). */
+const estRepos = s => !!s && (s.repos === true || s.adds === "repos");
+const estPendant = s => !!s && s.repos === "pendant";
+const MOTS_DE_REPOS = /réfrigérateur|congélateur|\bau frais\b|\blever\b|reposer|tremper|macérer|refroidir|marinade/i;
+
+for (const r of RECIPES) {
+  const porteurs = [
+    ...r.steps.map((s, i) => [`${r.id}[${i}]`, s, "etape"]).filter(([, s]) => !s.choice),
+    ...(r.choices || []).flatMap(c => c.options.map((o, j) => [`${r.id} / ${o.id}`, o.step, j === 0 ? "defaut" : "option"])),
+    ...(r.addons || []).filter(a => a.step).map(a => [`${r.id} / +${a.id}`, a.step, "supplement"])
+  ];
+  const defaut = r.steps.map(s => s.choice ? r.choices.find(c => c.id === s.choice).options[0].step : s);
+  for (const [ref, s, nature] of porteurs) {
+    if ("repos" in s && s.repos !== true && s.repos !== "pendant") ko(`${ref} : repos vaut true, "pendant" ou n'existe pas (reçu ${JSON.stringify(s.repos)})`);
+    if (estPendant(s)) {
+      /* Une attente « pendant » court pendant qu'on travaille à la suite : sans
+         minuteur elle n'a ni début ni fin, avec four ou adds elle se confond avec
+         une cuisson ou un poste de la carte, sans étape derrière elle il n'y a
+         rien à faire pendant ce temps (c'est alors un repos qui bloque) — et elle
+         doit tenir dans la recette : au plus tôt, après les minuteurs qui la
+         précèdent, il doit rester son minuteur. */
+      if (!s.timer) ko(`${ref} : une attente « pendant » sans minuteur n'a ni début ni fin dans la frise`);
+      if ("four" in s) ko(`${ref} : une attente « pendant » ne porte pas four — le four a sa propre annotation`);
+      if (s.adds) ko(`${ref} : une attente « pendant » n'a pas de adds : times compte déjà le travail qu'elle recouvre`);
+      /* Le rang de l'étape où elle démarre : l'étape elle-même, l'emplacement du
+         choix, l'étape qu'enrichit le supplément. */
+      const rang = nature === "etape" ? +/\[(\d+)\]$/.exec(ref)[1]
+        : nature === "supplement" ? Math.min(s.i, r.steps.length - 1)
+        : r.steps.findIndex(e => e.choice && r.choices.find(c => c.id === e.choice).options.some(o => o.step === s));
+      if (nature === "etape" && rang === r.steps.length - 1) ko(`${ref} : une attente « pendant » en dernière étape ne recouvre aucun travail — c'est un repos qui bloque (repos: true)`);
+      const avant = defaut.slice(0, rang).reduce((n, e) => n + (estPendant(e) ? 0 : e.timer || 0), 0);
+      const place = (r.times.prep || 0) + (r.times.repos || 0) + (r.times.cuisson || 0) - avant;
+      if (s.timer > place) ko(`${ref} : l'attente « pendant » dure ${s.timer} min, mais il ne reste que ${place} min de recette après les minuteurs qui la précèdent — elle dépasse la recette : allonge times, ou c'est un repos qui bloque`);
+    } else if (estRepos(s)) {
+      if (!s.timer) ko(`${ref} : un repos sans minuteur n'a ni début ni fin dans la frise — retire repos, ou donne-lui sa durée`);
+      if ("four" in s) ko(`${ref} : un repos ne porte pas four — le four a sa propre annotation, la frise le montre autrement`);
+      if (s.repos === true && s.adds && s.adds !== "repos") ko(`${ref} : repos: true mais adds: "${s.adds}" — son temps s'ajoute à un autre poste que le repos`);
+      if (s.repos === true && !s.adds && nature === "option") ko(`${ref} : une option qui repose sans adds: "repos" n'est lisible que comme version par défaut — sinon times.repos ne compterait son temps nulle part`);
+    } else {
+      if ("reposLabel" in s) ko(`${ref} : reposLabel sur une étape qui n'est pas un repos`);
+      if (s.timer && !s.four && MOTS_DE_REPOS.test(s.txt || "")) {
+        ko(`${ref} : le minuteur de ${s.timer} min accompagne un texte qui parle d'attente (« ${MOTS_DE_REPOS.exec(s.txt)[0]} ») sans que l'étape soit un repos — si le minuteur est l'attente, ajoute repos: true`);
+      }
+    }
+  }
+  const somme = defaut.filter(estRepos).reduce((n, s) => n + (s.timer || 0), 0);
+  const annonce = r.times.repos || 0;
+  if (somme !== annonce) {
+    ko(annonce && !somme
+      ? `${r.id} : times.repos annonce ${annonce} min mais aucune étape n'est un repos — marque repos: true celles où l'on attend sans rien faire`
+      : `${r.id} : les repos de la version par défaut durent ${somme} min, times.repos en annonce ${annonce} — la carte et la frise ne disent pas la même chose`);
+  }
+  if (annonce && !r.reposLabel) ko(`${r.id} : times.repos sans reposLabel — la carte et la fiche diraient « Repos » faute de mieux`);
 }
 
 /* ---------- 9. Logique culinaire ---------- */
