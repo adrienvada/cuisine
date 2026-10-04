@@ -1578,6 +1578,81 @@ const RECIPES = [
         ingredients: [{ name: "Fleur de sel", qty: null, qtyText: "quelques pincées", rayon: "Assaisonnements", cid: "fleur-de-sel" }],
         step: { i: 3, txt: "Parsemez le dessus de la pâte de quelques pincées de fleur de sel juste avant d'enfourner : le contraste sucré-salé réveille le chocolat." } }
     ]
+  },
+
+  {
+    id: "tartines-figues-chevre-miel",
+    image: "img/tartines-figues-chevre-miel.jpg",
+    title: "Tartines de figues, chèvre et miel",
+    subtitle: "Croustillantes ou fondantes, selon l'envie",
+    category: "Apéro",
+    tags: ["rapide", "convivial", "végétarien"],
+    emoji: "🍯",
+    color: "#9B5B4C",
+    times: { prep: 15 },
+    portions: { base: 8, label: "tartines" },
+    note: "À servir immédiatement, tant que le pain est encore chaud et croustillant.",
+    ingredients: [
+      { name: "Pain de campagne au levain", qty: 8, unit: "tranches", rayon: "Épicerie", cid: "pain",
+        shop: { label: "Pain de campagne au levain", note: "ou un pain aux céréales" } },
+      { name: "Figues noires", qty: null, qtyText: "6 à 8", note: "bien mûres", rayon: "Fruits, légumes & herbes", cid: "figues",
+        shop: { label: "Figues noires", note: "bien mûres" } },
+      { name: "Miel liquide", qty: 2, unit: "c. à s.", rayon: "Épicerie", cid: "miel",
+        shop: { label: "Miel liquide", note: "thym, châtaignier ou toutes fleurs" } },
+      { name: "Romarin frais", qty: 2, unit: "brins", rayon: "Fruits, légumes & herbes", cid: "romarin",
+        shop: { label: "Romarin frais", note: "ou thym frais" } },
+      { name: "Cerneaux de noix", qty: 1, unit: "poignée", note: "concassés", rayon: "Épicerie", cid: "noix" },
+      { name: "Huile d'olive vierge extra", qty: null, qtyText: "un filet", rayon: "Épicerie", cid: "huile-olive" },
+      { name: "Fleur de sel et poivre du moulin", qty: null, rayon: "Assaisonnements", cid: "sel-poivre",
+        shop: { label: "Fleur de sel, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "chevre", label: "La préparation du chèvre",
+      options: [
+        { id: "frais", label: "Chèvre frais", emoji: "🥛",
+          ingredients: [
+            { name: "Chèvre frais", qty: 200, unit: "g", rayon: "Produits frais", cid: "chevre-frais",
+              shop: { label: "Chèvre frais", note: "type Petit Billy, Chavroux ou de producteur" } }
+          ],
+          step: { t: "Chèvre frais",
+            txt: "Faites légèrement griller les tranches de pain, tartinez-les généreusement de chèvre frais, puis disposez par-dessus les figues coupées en quartiers ou en lamelles épaisses.",
+            tip: { t: "Astuce du chef", txt: "Version la plus rapide et la plus fraîche : rien ne cuit à part le pain, les figues gardent tout leur croquant et leur jus ne s'échappe pas." } } },
+        { id: "chaud", label: "Chèvre chaud gratiné", emoji: "🔥",
+          ingredients: [
+            { name: "Bûche ou crottin de chèvre affiné", qty: 200, unit: "g", rayon: "Produits frais", cid: "chevre-buche",
+              shop: { label: "Bûche ou crottin de chèvre affiné" } }
+          ],
+          step: { t: "Chèvre chaud gratiné",
+            txt: "Préchauffez le four à 200 °C (chaleur tournante ou gril doux). Déposez sur le pain cru de belles rondelles de bûche ou de crottin, intercalez les quartiers de figues par-dessus, puis enfournez 5 à 7 minutes : le pain doit devenir croustillant, le chèvre commencer à fondre et les figues légèrement compoter sans s'affaisser complètement.",
+            timer: 6, fond: "maillard",
+            tip: { t: "Astuce du chef", txt: "Surveillez plutôt que de régler une minuterie absolue : selon l'affinage du chèvre et la puissance du four, le basculement entre « fondant » et « liquide qui s'étale » peut se jouer en une minute." } } }
+      ]
+    }],
+    steps: [
+      {
+        t: "La base",
+        txt: "Coupez les figues en quartiers ou en lamelles épaisses. Badigeonnez légèrement chaque tranche de pain de campagne d'un filet d'huile d'olive.",
+        tip: { t: "Astuce du chef", txt: "Choisissez des figues qui cèdent légèrement sous le doigt : trop fermes, elles resteront fades ; trop molles, elles s'écraseront à la découpe." }
+      },
+      { choice: "chevre" },
+      {
+        t: "Assaisonnement minute",
+        txt: "Dès la sortie du four — ou juste avant de servir pour la version fraîche —, arrosez d'un filet de miel, parsemez de romarin très finement ciselé et de noix concassées. Terminez par un tour généreux de moulin à poivre et une pincée de fleur de sel. Servez immédiatement.",
+        tip: { t: "Geste technique", txt: "Ciselez le romarin au tout dernier moment : ses huiles essentielles s'évaporent vite une fois la feuille coupée, et une tartine assaisonnée à l'avance perd beaucoup de son parfum." }
+      }
+    ],
+    addons: [
+      { id: "jambon-cru", label: "Jambon cru", emoji: "🥓",
+        ingredients: [{ name: "Jambon cru", qty: 4, unit: "tranches", note: "type prosciutto", rayon: "Produits frais", cid: "jambon-cru" }],
+        step: { i: 2, txt: "Drapez une fine tranche de jambon cru sur chaque tartine juste avant de servir : sa note salée tranche avec le sucré du miel et des figues." } },
+      { id: "balsamique", label: "Réduction de balsamique", emoji: "🍇",
+        ingredients: [{ name: "Réduction de vinaigre balsamique", qty: null, qtyText: "quelques traits", rayon: "Épicerie", cid: "balsamique-reduction",
+          shop: { label: "Crème ou réduction de vinaigre balsamique" } }],
+        step: { i: 2, txt: "Zébrez chaque tartine de quelques traits de réduction de vinaigre balsamique : son acidité répond au sucre du miel et des figues.", fond: "acidite-finale" } },
+      { id: "piment-espelette", label: "Piment d'Espelette", emoji: "🌶️",
+        ingredients: [{ name: "Piment d'Espelette", qty: null, qtyText: "1 pincée", rayon: "Assaisonnements", cid: "piment-espelette" }],
+        step: { i: 2, txt: "Terminez d'une pincée de piment d'Espelette, pour une chaleur discrète qui relève le sucré sans jamais piquer." } }
+    ]
   }
 ];
 
