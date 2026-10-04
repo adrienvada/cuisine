@@ -8,6 +8,7 @@ import { ICON } from "../core/icones.js";
 import { entreeCourante } from "../core/menu.js";
 import { byId } from "../core/recettes.js";
 import { annoncer } from "./annonces.js";
+import { REDUCE_MOTION } from "./theme.js";
 import { toast } from "./toast.js";
 
 /* ---------- Minuteurs multiples ----------
@@ -41,14 +42,16 @@ export const findTimer = (cle, step, slot = null) =>
 /* Fini, c'est « plus rien à attendre » : un minuteur en pause n'est jamais fini. */
 export const estFini = t => t.reste == null && secondesRestantes(t) === 0;
 
-export function startTimer(r, stepIdx, { timer, label, emoji }, slot = null) {
+export function startTimer(r, stepIdx, { timer, label, emoji, repos }, slot = null) {
   // Le toucher qui lance le minuteur est le seul moment où le son est permis.
   debloquerAudio();
   state.timers.push({
     id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
     rid: r.id, mk: entreeCourante() || null, step: stepIdx, slot,
     label, emoji: emoji || r.emoji,
-    end: Date.now() + timer * 60000, total: timer, fired: false
+    end: Date.now() + timer * 60000, total: timer, fired: false,
+    // Un repos se reconnaît dans le plateau (icône, respiration) sans relire la recette.
+    ...(repos ? { repos: true } : {})
   });
   save(); drawTray(); ensureTick(); majVerrou();
 }
@@ -84,12 +87,32 @@ export function ajouterMinute(id) {
   const t = trouver(id);
   if (!t) return;
   debloquerAudio();
+  // Le temps roule : on garde ce qui était affiché, pour le rendre aux compteurs redessinés.
+  const avant = relever(id);
   if (t.reste != null) t.reste += 60000;
   else if (estFini(t)) { t.end = Date.now() + 60000; t.fired = false; arreterSonnerie(id); }
   else t.end += 60000;
   t.total = (t.total || 0) + 1;
   save(); drawTray(); ensureTick(); majVerrou();
   if (refreshZone) refreshZone();
+  sauter(id, avant);
+}
+
+/* « +1 » saute et le temps roule. Les compteurs sont redessinés par le geste : on
+   leur remet l'ancien texte, puis on le fait rouler vers le nouveau. Les aides du
+   mouvement se chargent à la demande (ce module est sur le chemin de l'accueil). */
+const relever = id => [...document.querySelectorAll(`[data-clock="${id}"]`)].map(el => el.textContent);
+
+function sauter(id, avant) {
+  if (REDUCE_MOTION.matches) return;
+  const horloges = [...document.querySelectorAll(`[data-clock="${id}"]`)];
+  const boutons = [...document.querySelectorAll(`[data-plus="${id}"], .timer-pill[data-timer="${id}"] [data-act="plus"]`)];
+  const apres = horloges.map(el => el.textContent);
+  horloges.forEach((el, i) => { if (avant[i] != null) el.textContent = avant[i]; });
+  import("./mouvement.js").then(m => {
+    boutons.forEach(b => m.rebondir(b));
+    horloges.forEach((el, i) => m.rouler(el, apres[i]));
+  }).catch(() => horloges.forEach((el, i) => { el.textContent = apres[i]; }));
 }
 
 export function basculerPause(id) {
@@ -117,8 +140,11 @@ export function tick() {
     const left = secondesRestantes(t);
     const fini = t.reste == null && left === 0;
     document.querySelectorAll(`[data-clock="${t.id}"]`).forEach(el => {
+      // Un chiffre en train de rouler (+1 min) garde la main jusqu'au bout.
+      if (el.querySelector(".rouler")) return;
       el.textContent = fini && el.classList.contains("t-clock") ? "Prêt !" : fmtClock(left);
     });
+    majEtat(t, left, fini);
     if (fini && !t.fired) {
       t.fired = true; save();
       const retard = Date.now() - t.end;
@@ -126,9 +152,10 @@ export function tick() {
       else if (retard > 5000) annoncerPrets([t]);
       // Seule la voix prévient qui ne regarde pas l'écran (la bulle passe, elle, en « Prêt ! »).
       else prets.push(t);
-      sonner(t);
       drawTray();
       if (refreshZone) refreshZone();
+      // Après le redessin : la secousse porte sur la bulle et l'anneau tels qu'ils restent.
+      sonner(t);
       if (!document.title.startsWith("⏰")) {
         const titreAvant = document.title;
         document.title = "⏰ C'est prêt !";
@@ -139,6 +166,21 @@ export function tick() {
   }
   if (prets.length === 1) annoncer(`Minuteur « ${prets[0].label} » prêt`);
   else if (prets.length) annoncer(`${prets.length} minuteurs prêts : ${prets.map(t => `« ${t.label} »`).join(", ")}`);
+}
+
+/* Ce que le compte à rebours dit à l'œil : les dix dernières secondes battent
+   (classe .derniers) ; en mouvement réduit, où l'anneau ne tourne pas tout seul,
+   c'est ici qu'on le fait avancer. */
+function majEtat(t, left, fini) {
+  const battent = !fini && t.reste == null && left <= 10;
+  const reduit = REDUCE_MOTION.matches;
+  const reste = t.reste ?? Math.max(0, t.end - Date.now());
+  const total = Math.max(1, (t.total || 0) * 60000, reste);
+  for (const el of document.querySelectorAll(`[data-sonne="${t.id}"]`)) {
+    el.classList.toggle("derniers", battent);
+    const anneau = reduit && (el.matches(".anneau") ? el : el.querySelector(".anneau"));
+    if (anneau) anneau.style.setProperty("--debut", (1 - Math.min(1, reste / total)).toFixed(4));
+  }
 }
 
 /* « Prêt depuis 3 min » : le minuteur a fini pendant qu'on regardait ailleurs. */
@@ -187,25 +229,38 @@ function rendreLeFocus(tray, repere) {
   if (cible) cible.focus({ preventScroll: true });
 }
 
-export function drawTray() {
-  const tray = document.getElementById("timer-tray");
-  if (!tray) return;
-  const repere = repereFocus || reperer(tray);
-  repereFocus = null;
-  placerPlateau(tray);
-  tray.hidden = !state.timers.length;
-  // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
-  const ordre = [...state.timers].sort((a, b) => estFini(b) - estFini(a));
-  tray.innerHTML = ordre.map(t => {
-    const left = secondesRestantes(t);
-    const done = estFini(t);
-    const pause = t.reste != null;
-    const masquee = etapeAffichee && (t.mk || t.rid) === etapeAffichee.cle && t.step === etapeAffichee.step;
-    const r = byId(t.rid);
-    return `<div class="timer-pill ${done ? "done" : ""} ${pause ? "en-pause" : ""} ${masquee ? "masquee" : ""}" data-timer="${t.id}">
+/* L'anneau d'un minuteur : un cercle qui se vide, en continu, sur le temps qui reste.
+   Aucun redessin par seconde : une seule animation CSS (stroke-dashoffset, linéaire)
+   dont la durée est le temps restant ; elle est recalculée à chaque dessin du plateau
+   ou de la zone, ce qui la resynchronise. En pause elle est suspendue (.en-pause), en
+   mouvement réduit elle ne tourne pas et c'est tick() qui la fait avancer. `fond` : ce
+   qui se loge au centre (l'icône du minuteur, la coche de « Prêt ! »). */
+export function anneauHtml(t, fond = ICON.timer, maintenant = Date.now()) {
+  const reste = t.reste != null ? t.reste : Math.max(0, t.end - maintenant);
+  const total = Math.max(1, (t.total || 0) * 60000, reste);
+  const fraction = Math.min(1, reste / total);
+  return `<span class="anneau${t.reste != null ? " en-pause" : ""}" aria-hidden="true" style="--debut:${(1 - fraction).toFixed(4)};--duree:${(reste / 1000).toFixed(1)}s"><svg class="cercle" viewBox="0 0 36 36"><circle class="piste" cx="18" cy="18" r="16"/><circle class="jauge" cx="18" cy="18" r="16" pathLength="1"/></svg>${fond}</span>`;
+}
+
+/* La coche de « Prêt ! », tracée à l'encre quand la bulle passe à l'état « sonne ». */
+export const COCHE_PRET = '<svg class="coche trace" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+const estMasquee = t => !!etapeAffichee && (t.mk || t.rid) === etapeAffichee.cle && t.step === etapeAffichee.step;
+
+/* Ce qui, d'une bulle, change son dessin : une bulle dont la signature ne bouge pas
+   n'est pas touchée (son anneau continue, son arrivée n'est pas rejouée). */
+const signature = t => JSON.stringify([t.label, t.emoji, t.end, t.reste ?? null, t.total, !!t.repos, estFini(t), estMasquee(t)]);
+
+function bulleHtml(t) {
+  const left = secondesRestantes(t);
+  const done = estFini(t);
+  const pause = t.reste != null;
+  const r = byId(t.rid);
+  const fond = done ? COCHE_PRET : t.repos ? ICON.zzz : ICON.timer;
+  return `
       <button type="button" class="t-go"
         aria-label="Minuteur « ${esc(t.label)} »${r ? ` — revenir à l'étape de ${esc(r.title)}` : ""}">
-        ${ICON.timer}
+        ${anneauHtml(t, fond)}
         <span class="t-label">${t.emoji} ${esc(t.label)}</span>
         <span class="t-clock" data-clock="${t.id}">${done ? "Prêt !" : fmtClock(left)}</span>
       </button>
@@ -213,11 +268,95 @@ export function drawTray() {
       ${done ? "" : `<button type="button" class="t-act t-pause" data-act="pause"
         aria-label="${pause ? "Reprendre le minuteur" : "Mettre le minuteur en pause"}">${pause ? ICON.play : ICONE_PAUSE}</button>`}
       <button type="button" class="t-act t-x" data-act="stop"
-        aria-label="${done ? "OK, couper la sonnerie" : "Arrêter le minuteur"}">${done ? "OK" : "✕"}</button>
-    </div>`;
-  }).join("");
+        aria-label="${done ? "OK, couper la sonnerie" : "Arrêter le minuteur"}">${done ? "OK" : "✕"}</button>`;
+}
+
+const classesBulle = t => {
+  const left = secondesRestantes(t);
+  return ["timer-pill", estFini(t) && "done", t.reste != null && "en-pause", t.repos && "repos", estMasquee(t) && "masquee",
+    t.reste == null && !estFini(t) && left <= 10 && "derniers"].filter(Boolean).join(" ");
+};
+
+/* FLIP sans dépendance : les bulles qui restent glissent de leur ancienne place à la
+   nouvelle (translate, ressort vif). Écrit ici, avec Element.animate, parce que
+   js/ui/mouvement.js n'est pas sur le chemin de l'accueil, où ce module se charge. */
+function avecFlip(tray, muter) {
+  const lire = () => [...tray.children].filter(e => !e.dataset.sortie && !e.classList.contains("masquee"));
+  if (REDUCE_MOTION.matches || tray.hidden) return muter();
+  const avant = new Map(lire().map(e => [e, e.getBoundingClientRect()]));
+  muter();
+  for (const e of lire()) {
+    const p = avant.get(e);
+    if (!p) continue;
+    const d = e.getBoundingClientRect();
+    const dx = p.left - d.left, dy = p.top - d.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
+    e.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], {
+      duration: 320, easing: getComputedStyle(document.documentElement).getPropertyValue("--ressort-vif").trim() || "ease-out"
+    });
+  }
+}
+
+/* Une bulle qui s'en va : elle est inerte et muette pour les lecteurs d'écran dès le
+   début, s'efface, puis ses voisines viennent combler la place. */
+function retirerBulle(tray, el) {
+  if (el.dataset.sortie) return;
+  if (REDUCE_MOTION.matches || el.classList.contains("masquee") || tray.hidden) { el.remove(); return; }
+  el.dataset.sortie = "1";
+  el.inert = true;
+  el.setAttribute("aria-hidden", "true");
+  el.classList.add("sort");
+  const fin = () => { if (el.isConnected) avecFlip(tray, () => el.remove()); };
+  el.addEventListener("animationend", fin, { once: true });
+  setTimeout(fin, 400);
+}
+
+let dernierEmplacement = null;
+
+export function drawTray() {
+  const tray = document.getElementById("timer-tray");
+  if (!tray) return;
+  const repere = repereFocus || reperer(tray);
+  repereFocus = null;
+  // Déplacé, le plateau voit ses animations CSS repartir de zéro : on redessine tout,
+  // ce qui recale les anneaux sur le temps réellement restant.
+  const deplace = placerPlateau(tray) || dernierEmplacement !== tray.parentNode;
+  dernierEmplacement = tray.parentNode;
+  const premier = !tray.children.length;
+  tray.hidden = !state.timers.length;
+  // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
+  const ordre = [...state.timers].sort((a, b) => estFini(b) - estFini(a));
+  const presentes = new Map([...tray.children].filter(e => !e.dataset.sortie).map(e => [e.dataset.timer, e]));
+  avecFlip(tray, () => {
+    let precedent = null;
+    const suivant = e => { let n = e ? e.nextElementSibling : tray.firstElementChild; while (n && n.dataset.sortie) n = n.nextElementSibling; return n; };
+    for (const t of ordre) {
+      let el = presentes.get(t.id);
+      presentes.delete(t.id);
+      const sig = signature(t);
+      if (!el) {
+        el = document.createElement("div");
+        el.dataset.timer = t.id;
+        el.dataset.sonne = t.id;
+        // Au premier affichage (page ouverte avec des minuteurs) rien ne part de rien.
+        if (!premier) {
+          el.classList.add("arrive-pill");
+          el.addEventListener("animationend", e => { if (e.animationName === "pill-arrive") el.classList.remove("arrive-pill"); });
+        }
+      }
+      if (el.dataset.sig !== sig || deplace) {
+        el.dataset.sig = sig;
+        const arrive = el.classList.contains("arrive-pill");
+        el.className = classesBulle(t) + (arrive ? " arrive-pill" : "");
+        el.innerHTML = bulleHtml(t);
+      }
+      if (el !== suivant(precedent)) tray.insertBefore(el, suivant(precedent));
+      precedent = el;
+    }
+    for (const el of presentes.values()) retirerBulle(tray, el);
+  });
   // Un plateau dont toutes les bulles sont masquées ne réserve aucune place.
-  const visibles = state.timers.some(t => !(etapeAffichee && (t.mk || t.rid) === etapeAffichee.cle && t.step === etapeAffichee.step));
+  const visibles = state.timers.some(t => !estMasquee(t));
   document.body.classList.toggle("avec-minuteurs", visibles);
   rendreLeFocus(tray, repere);
 }
@@ -228,7 +367,10 @@ export function drawTray() {
 function placerPlateau(tray) {
   const zone = document.getElementById("plateau-cuisine");
   const cible = zone || document.body;
-  if (tray.parentNode !== cible) { repereFocus = repereFocus || reperer(tray); cible.appendChild(tray); }
+  if (tray.parentNode === cible) return false;
+  repereFocus = repereFocus || reperer(tray);
+  cible.appendChild(tray);
+  return true;
 }
 
 /* Avant de redessiner l'écran de cuisine (ou d'en sortir), le plateau retourne
@@ -324,7 +466,7 @@ function debloquerAudio() {
   } catch (e) {}
 }
 
-function beep() {
+function beep(premiere = false) {
   try {
     const ctx = gestePermis() ? contexteAudio() : null;
     if (ctx) {
@@ -339,7 +481,22 @@ function beep() {
       });
     }
   } catch (e) {}
-  if (navigator.vibrate && gestePermis()) navigator.vibrate([300, 120, 300, 120, 500]);
+  // Une seule vibration, à l'échéance : la sonnerie répétée ne doit pas devenir un bourdonnement.
+  if (premiere && gestePermis()) import("./geste.js").then(g => g.vibrer("alerte")).catch(() => {});
+}
+
+/* La sonnerie secoue la bulle (ou, dans l'étape affichée, l'anneau) : une secousse
+   brève à chaque reprise du son, jamais une agitation continue. Rien en mouvement
+   réduit : l'état « sonne » se lit à la couleur et au texte. */
+function secouerBulle(id) {
+  if (REDUCE_MOTION.matches) return;
+  const cibles = [...document.querySelectorAll(`.timer-pill[data-timer="${id}"], .cook-anneau[data-sonne="${id}"]`)]
+    .filter(el => el.getClientRects().length);
+  if (!cibles.length) return;
+  import("./mouvement.js").then(m => cibles.forEach(el => m.animer(el, [
+    { rotate: "0deg" }, { rotate: "-3.5deg", offset: 0.18 }, { rotate: "3deg", offset: 0.38 },
+    { rotate: "-2deg", offset: 0.58 }, { rotate: "1deg", offset: 0.78 }, { rotate: "0deg" }
+  ], { cle: "sonne", duree: 520, easing: "standard", reprise: false }))).catch(() => {});
 }
 
 /* ---------- Sonnerie ----------
@@ -352,9 +509,10 @@ const sonneries = new Map();
 
 export function sonner(t) {
   if (sonneries.has(t.id)) return;
-  beep();
+  beep(true);
+  secouerBulle(t.id);
   sonneries.set(t.id, {
-    relance: setInterval(beep, 2000),
+    relance: setInterval(() => { beep(); secouerBulle(t.id); }, 2000),
     fin: setTimeout(() => arreterSonnerie(t.id), DUREE_SONNERIE)
   });
   majVerrou();

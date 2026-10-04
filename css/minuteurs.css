@@ -126,13 +126,67 @@ html[data-theme="dark"] .timer-pill:not(.done) {
 .timer-pill.done {
   background: var(--gold);
   color: #33270D;
-  animation: flash 1s infinite;
 }
 
 .timer-pill.done svg, .timer-pill.done .t-clock { color: #33270D; }
 
-@media (prefers-reduced-motion: reduce) {
-  .timer-pill.done, .cook-timer .clock.flash, .addon-timer .clock.flash, .timer-pill .t-clock.flash { animation: none; }
+/* ---------- L'anneau qui se vide ----------
+   Un cercle à tracé de longueur 1 (pathLength) : le décalage va de « ce qui reste »
+   à 1 en autant de secondes qu'il reste. Une seule animation, linéaire, que le
+   dessin du plateau recale (voir anneauHtml, js/ui/minuteurs.js). Il part du haut
+   et se vide dans le sens des aiguilles d'une montre. */
+.anneau { position: relative; flex: none; display: inline-grid; place-items: center; width: 26px; height: 26px; color: var(--gold); }
+
+.anneau > .cercle { position: absolute; inset: 0; width: 100%; height: 100%; rotate: 90deg; scale: -1 1; }
+
+.anneau circle { fill: none; stroke: currentColor; stroke-width: 2.8; }
+
+.anneau .piste { opacity: 0.24; }
+
+.anneau .jauge { stroke-dasharray: 1; stroke-dashoffset: var(--debut, 0); }
+
+.timer-pill .anneau > svg:not(.cercle) { position: relative; width: 12px; height: 12px; color: inherit; }
+
+.timer-pill .anneau > svg.cercle { width: 100%; height: 100%; color: inherit; }
+
+.timer-pill.done .anneau .jauge { stroke-dashoffset: 1; }
+
+.timer-pill .anneau > svg.coche { width: 14px; height: 14px; }
+
+.timer-pill.done .anneau .piste { opacity: 0.3; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .anneau .jauge { animation: anneau var(--duree, 0s) linear forwards; }
+  .anneau.en-pause .jauge { animation-play-state: paused; }
+
+  /* Arrivée et départ d'une bulle : elle se pose sur le plateau, elle s'efface. */
+  .timer-pill.arrive-pill { animation: pill-arrive var(--ressort-vif-duree) var(--ressort-vif) both; }
+  .timer-pill.sort { animation: pill-sort var(--d-courte) var(--e-entree) forwards; }
+
+  /* Les dix dernières secondes : un battement doux, comme un pouls qui s'accélère à peine. */
+  .timer-pill.derniers, .cook-anneau.derniers { animation: battement 1s var(--e-standard) infinite; }
+
+  /* « Prêt ! » : un halo doré qui respire autour de la bulle ; la secousse vient de la sonnerie. */
+  .timer-pill.done { animation: sonne-halo 1.6s var(--e-standard) infinite; }
+
+  /* Un repos respire lentement : rien à faire, rien ne presse. */
+  .timer-pill.repos:not(.done):not(.en-pause) .anneau > svg:not(.cercle) { animation: respire 4.4s ease-in-out infinite; }
 }
 
-@keyframes flash { 50% { opacity: 0.25; } }
+@keyframes anneau { to { stroke-dashoffset: 1; } }
+
+@keyframes pill-arrive { from { opacity: 0; translate: 0 14px; scale: 0.9; } }
+
+@keyframes pill-sort { to { opacity: 0; translate: 0 8px; scale: 0.9; } }
+
+@keyframes battement { 50% { scale: 1.045; } }
+
+@keyframes respire { 50% { scale: 1.22; opacity: 0.8; } }
+
+@keyframes sonne-halo {
+  0%, 100% { box-shadow: 0 6px 18px rgba(44, 51, 38, 0.35), 0 0 0 0 rgb(193 145 63 / 0); }
+  50% { box-shadow: 0 6px 18px rgba(44, 51, 38, 0.35), 0 0 0 7px rgb(193 145 63 / 0.3); }
+}
+
+/* Le chiffre qui sonne, dans l'étape : il se retire à moitié puis revient, sans clignoter. */
+@keyframes souffle { 50% { opacity: 0.55; } }
