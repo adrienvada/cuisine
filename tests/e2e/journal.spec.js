@@ -184,7 +184,11 @@ test("journal : sans photo, l'entrée s'enregistre ; la feuille tient à 375 px,
   await expect(feuille).toBeVisible();
   const trop = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
   expect(trop).toBe(false);
-  // Les zones de contact font au moins 44 px.
+  // Les zones de contact font au moins 44 px, mesurées une fois la feuille arrivée : en plein
+  // glissement, la boîte sort à 43,99997 px.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter(a => a.effect?.getComputedTiming().endTime !== Infinity)
+    .map(a => a.finished.catch(() => {}))));
   for (const sel of ["#jr-moins", "#jr-plus", "#jr-ok", "#jr-non", ".jr-fichier"]) {
     const boite = await feuille.locator(sel).boundingBox();
     expect(boite.height, sel).toBeGreaterThanOrEqual(44);
