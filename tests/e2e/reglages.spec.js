@@ -4,6 +4,7 @@
 import { readFile } from "node:fs/promises";
 import { test, expect, entree, lireCarnet, preremplir } from "./outils.js";
 import { espionnerPersistance, simulerCarnetSync, themeAffiche } from "./outils-reglages.js";
+import { animationsFinies } from "./outils-mesure.js";
 
 const ouvrirReglages = async page => {
   await page.getByRole("button", { name: /^Réglages/ }).click();
@@ -21,6 +22,7 @@ test("accueil : plus de bouton flottant, « Réglages » défile avec la page", 
   const bouton = page.getByRole("button", { name: /^Réglages/ });
   await expect(bouton).toBeVisible();
   expect(await bouton.evaluate(el => getComputedStyle(el).position)).toBe("absolute");
+  await animationsFinies(page);
   const boite = await bouton.boundingBox();
   expect(boite.width).toBeGreaterThanOrEqual(44);
   expect(boite.height).toBeGreaterThanOrEqual(44);

@@ -2,6 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import { test, expect, preremplir, entree, lireCarnet } from "./outils.js";
+import { animationsFinies } from "./outils-mesure.js";
 
 /* Une date lointaine : la frise ne dépend alors pas de l'horloge du test. */
 const REPAS = { convives: 6, heure: "20:00", date: "2099-06-15", exclus: [] };
@@ -281,6 +282,7 @@ test("annuler : retirer une carte se fait tout de suite, « Annuler » la remet 
   await expect(page.locator(".menu-card")).toHaveCount(1);
   await expect(page.locator("#toast")).toContainText("Retiré du menu");
   await expect(annuler(page)).toBeVisible();
+  await animationsFinies(page);
   const boite = await annuler(page).boundingBox();
   expect(boite.height).toBeGreaterThanOrEqual(44);
 

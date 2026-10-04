@@ -1,6 +1,7 @@
 /* L'accueil : critères cumulables, « De saison », « J'ai… », recherche gardée le temps d'une visite, partage depuis la vignette. */
 
 import { test, expect, lireCarnet } from "./outils.js";
+import { animationsFinies } from "./outils-mesure.js";
 
 /* Les cartes écartées gardent « card-leave » le temps de s'estomper : seules
    celles-ci sont, tout de suite, l'ensemble que le filtre vient de décider. */
@@ -191,14 +192,9 @@ test("téléphone : rien ne déborde à 375 px, la feuille « J'ai… » compris
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
   const deborde = () => page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-  // Une boîte mesurée en plein glissement (entrée de page, feuille qui monte) sort à 43,99997 px :
-  // on mesure une fois les animations finies (les infinies, s'il y en a, ne finissent jamais).
-  const animationsFinies = () => page.evaluate(() => Promise.all(document.getAnimations()
-    .filter(a => a.effect?.getComputedTiming().endTime !== Infinity)
-    .map(a => a.finished.catch(() => {}))));
   expect(await deborde()).toBe(false);
 
-  await animationsFinies();
+  await animationsFinies(page);
   const boite = await page.getByRole("button", { name: /^J'ai…/ }).boundingBox();
   expect(boite.height).toBeGreaterThanOrEqual(44);
   expect(boite.width).toBeGreaterThanOrEqual(44);
@@ -206,7 +202,7 @@ test("téléphone : rien ne déborde à 375 px, la feuille « J'ai… » compris
   await page.getByRole("button", { name: /^J'ai…/ }).click();
   expect(await deborde()).toBe(false);
   await expect(page.locator(".jai-chip").first()).toBeVisible();
-  await animationsFinies();
+  await animationsFinies(page);
   const chip = await page.locator(".jai-chip").first().boundingBox();
   expect(chip.height).toBeGreaterThanOrEqual(44);
 });

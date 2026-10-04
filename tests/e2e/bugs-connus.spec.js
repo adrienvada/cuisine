@@ -3,6 +3,7 @@
    critère d'acceptation. Tant qu'il reste, la suite l'ignore. */
 
 import { test, expect, preremplir, entree, simulerSupabase, lireCarnet, cochesAffichees, reseau } from "./outils.js";
+import { animationsFinies } from "./outils-mesure.js";
 
 const VIDE = { menu: [], checked: {}, extras: [] };
 const CARTES = ".card:not(.gone):not(.card-leave)";
@@ -272,9 +273,13 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
   await page.addInitScript(() => { history.scrollRestoration = "manual"; });
   await page.goto("/#/");
   await expect(page.locator(CARTES)).toHaveCount(20);
+  /* Polices chargées et entrée de page finie avant de défiler : un texte qui se recompose
+     au-dessus de l'écran déplace la page (ancrage du défilement), et une position lue trop
+     tôt serait périmée. */
+  await page.evaluate(() => document.fonts.ready);
+  await animationsFinies(page);
   await page.evaluate(() => window.scrollTo(0, 1300));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(1200);
-  const avant = await page.evaluate(() => window.scrollY);
 
   // Une carte entièrement visible à cet endroit de la page.
   const id = await page.evaluate(() => {
@@ -284,8 +289,17 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
     });
     return carte.dataset.id;
   });
+  /* La position de référence est celle du moment du toucher : tap() fait encore défiler la
+     page s'il faut dégager la carte des barres fixes, et c'est cette place-là qu'on doit
+     retrouver au retour. */
+  await page.evaluate(() => {
+    const noter = () => { window.__avant ??= window.scrollY; };
+    for (const type of ["pointerdown", "touchstart"]) document.addEventListener(type, noter, { capture: true, once: true });
+  });
   await page.locator(`.card[data-id="${id}"] .body`).tap();
   await expect(page).toHaveURL(new RegExp(`#/recette/${id}$`));
+  const avant = await page.evaluate(() => window.__avant);
+  expect(avant).toBeGreaterThanOrEqual(1200);
 
   await page.goBack();
   await expect(page.locator(CARTES)).toHaveCount(20);
