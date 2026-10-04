@@ -227,24 +227,52 @@ FIGURES["maillard"] = [
 
 
 /* ===== Arômes & épices ===== */
+
+/* (figures de la famille) */
+
 /* ===== fin Arômes & épices ===== */
 
 
 
 /* ===== Textures & liaisons ===== */
+
+/* --- Textures, partie 1 : émulsion, gluten, amidon, coagulation de l'œuf --- */
+
+
+
+
+/* --- Textures, partie 2 : levure chimique, contraste de textures, pectine --- */
+
 /* ===== fin Textures & liaisons ===== */
 
 
 
 /* ===== Sel, acide & goût ===== */
+
+/* (figures de la famille) */
+
 /* ===== fin Sel, acide & goût ===== */
 
 
 
 /* ===== Végétal & couleur ===== */
+
+/* (figures de la famille) */
+
 /* ===== fin Végétal & couleur ===== */
 
 
 
 /* ===== Froid, gras & sécurité ===== */
+
+/* (figures de la famille) */
+
 /* ===== fin Froid, gras & sécurité ===== */
+
+
+
+/* ===== Vue d'ensemble ===== */
+
+/* (figures transversales de l'onglet Savoirs) */
+
+/* ===== fin Vue d'ensemble ===== */
