@@ -139,7 +139,10 @@ export function deplacerRayon(nom, sens, visibles) {
   return true;
 }
 
+/* Un tableau vide plutôt qu'un champ supprimé : « aucune préférence » est une
+   valeur comme une autre, qui se synchronise ; un champ absent, la synchro le
+   confondrait avec « jamais renseigné » et rendrait l'ancien ordre. */
 export function reinitialiserOrdreRayons() {
-  delete state.ordreRayons;
+  state.ordreRayons = [];
   save();
 }

@@ -27,11 +27,34 @@ function celuiQuiAChange(base, local, serveur) {
   return local;                               // changé des deux côtés : le local
 }
 
+/* Ensemble de chaînes (exclusions d'allergènes, suppléments d'une entrée) : un
+   élément est gardé s'il est des deux côtés, ou si un seul côté l'a ajouté (absent
+   de la base) ; il est retiré dès qu'un côté qui l'avait en base l'a retiré. Deux
+   appareils qui cochent chacun leur allergène en même temps les gardent donc tous
+   les deux. L'ordre est celui d'ici, les ajouts de l'autre côté suivent. */
+export function fusionnerEnsemble(base, local, serveur) {
+  const tab = v => (Array.isArray(v) ? v : []);
+  const b = new Set(tab(base)), l = new Set(tab(local)), s = new Set(tab(serveur));
+  const garde = x => (l.has(x) && s.has(x)) || (l.has(x) && !b.has(x)) || (s.has(x) && !b.has(x));
+  return [...new Set([...tab(local), ...tab(serveur)])].filter(garde);
+}
+
+/* Valeur modifiée des deux côtés dans un dictionnaire : un tableau de chaînes se
+   fusionne comme un ensemble, un sous-dictionnaire clé par clé, le reste est
+   départagé par le local (une valeur seule ne se coupe pas en deux). */
+function departagerProfond(vl, vs, vb) {
+  if (Array.isArray(vl) && Array.isArray(vs) && [...vl, ...vs].every(x => typeof x === "string")) return fusionnerEnsemble(vb, vl, vs);
+  if (estDico(vl) && estDico(vs)) return fusionnerDico(vb, vl, vs, departagerProfond);
+  return vl;
+}
+
 /* Liste à clé : un ajout ou un retrait fait d'un côté se retrouve dans le
    résultat. Une entrée retirée d'un côté et modifiée de l'autre est retirée : un
-   retrait est un geste net, la modification peut se refaire. L'ordre est celui
-   d'ici, les ajouts de l'autre appareil viennent à la suite. */
-export function fusionnerListe(base, local, serveur, cle) {
+   retrait est un geste net, la modification peut se refaire. Modifiée des deux
+   côtés, elle se fusionne champ par champ quand `champParChamp` (le menu : l'un
+   change les portions, l'autre la composition, et les deux restent). L'ordre est
+   celui d'ici, les ajouts de l'autre appareil viennent à la suite. */
+export function fusionnerListe(base, local, serveur, cle, champParChamp = false) {
   const cleDe = e => (e && typeof e === "object" && e[cle] != null) ? String(e[cle]) : JSON.stringify(e);
   const indexer = liste => new Map((Array.isArray(liste) ? liste : []).map(e => [cleDe(e), e]));
   const b = indexer(base), l = indexer(local), s = indexer(serveur);
@@ -41,6 +64,7 @@ export function fusionnerListe(base, local, serveur, cle) {
       const es = s.get(k);
       if (egal(el, es)) sortie.push(el);
       else if (b.has(k) && egal(el, b.get(k))) sortie.push(es);   // seul le serveur l'a modifiée
+      else if (champParChamp && estDico(el) && estDico(es)) sortie.push(fusionnerDico(b.get(k), el, es, departagerProfond));
       else sortie.push(el);                                       // modifiée ici, ou des deux côtés
     } else if (!b.has(k)) sortie.push(el);                        // ajout local ; sinon retirée côté serveur
   }
@@ -50,7 +74,7 @@ export function fusionnerListe(base, local, serveur, cle) {
 
 /* Dictionnaire : clé par clé. Une clé changée d'un côté seulement suit ce côté
    (y compris sa disparition) ; changée des deux côtés, `departager` choisit, et
-   à défaut le local. */
+   à défaut le local. Il reçoit aussi la valeur de la base, pour fusionner à trois voies. */
 export function fusionnerDico(base, local, serveur, departager) {
   const b = estDico(base) ? base : {}, l = estDico(local) ? local : {}, s = estDico(serveur) ? serveur : {};
   const sortie = {};
@@ -60,7 +84,7 @@ export function fusionnerDico(base, local, serveur, departager) {
     if (egal(vl, vs)) v = vl;
     else if (egal(vl, vb)) v = vs;
     else if (egal(vs, vb)) v = vl;
-    else v = departager && vl !== undefined && vs !== undefined ? departager(vl, vs) : vl;
+    else v = departager && vl !== undefined && vs !== undefined ? departager(vl, vs, vb) : vl;
     if (v !== undefined) sortie[k] = v;
   }
   return sortie;
@@ -77,17 +101,19 @@ const departagerCuisine = (a, b) => {
 const departagerNote = (a, b) => ((b?.at ?? 0) > (a?.at ?? 0) ? b : a);
 
 function fusionnerChamp(nom, base, local, serveur) {
-  // Un côté qui n'a jamais eu le champ n'a rien à dire.
-  if (local === undefined) return serveur;
-  if (serveur === undefined) return local;
+  /* Un côté sans le champ : s'il n'a jamais existé dans la base, il n'a rien à
+     dire ; s'il y était, ce côté l'a supprimé, et sa suppression tient sauf si
+     l'autre l'a modifié depuis. */
+  if (local === undefined) return base !== undefined && egal(serveur, base) ? undefined : serveur;
+  if (serveur === undefined) return base !== undefined && egal(local, base) ? undefined : local;
   if (nom in CLES_LISTES) {
     if (!Array.isArray(local) || !Array.isArray(serveur)) return celuiQuiAChange(base, local, serveur);
-    return fusionnerListe(base, local, serveur, CLES_LISTES[nom]);
+    return fusionnerListe(base, local, serveur, CLES_LISTES[nom], nom === "menu");
   }
   if (nom === "ordreRayons" || !estDico(local) || !estDico(serveur)) return celuiQuiAChange(base, local, serveur);
   if (nom === "cooked") return fusionnerDico(base, local, serveur, departagerCuisine);
   if (nom === "notesPerso") return fusionnerDico(base, local, serveur, departagerNote);
-  return fusionnerDico(base, local, serveur);       // checked, notes, repas (champ par champ)
+  return fusionnerDico(base, local, serveur, departagerProfond);   // checked, notes, repas (champ par champ, exclusions en ensemble)
 }
 
 /* base : la dernière version serveur connue de cet appareil ; local : l'état

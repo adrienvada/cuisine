@@ -155,7 +155,7 @@ test("ranger les rayons : « Remettre l'ordre d'origine »", async ({ page, cont
   await page.getByRole("button", { name: "Remettre l'ordre d'origine" }).click();
   await page.getByRole("button", { name: "Terminé" }).click();
   expect(await titresRayons(page)).toEqual(avant);
-  expect((await lireCarnet(page)).ordreRayons).toBeUndefined();
+  expect((await lireCarnet(page)).ordreRayons).toEqual([]);   // « aucune préférence » : un tableau vide, qui se synchronise
 });
 
 test("un rayon absent de l'ordre enregistré se place selon l'ordre d'origine", async ({ page, context }) => {

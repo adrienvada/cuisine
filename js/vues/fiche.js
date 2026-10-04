@@ -458,20 +458,29 @@ export function renderRecipe(r) {
     teteNote.innerHTML = txt ? html`<b>Ma note</b><p>${txt}</p>` : "";
   };
 
+  /* Seule une frappe réelle écrit la note. Le champ peut être resté sur une
+     version périmée (une note arrivée d'un autre appareil pendant que la fiche
+     était ouverte, ou une fiche quittée dont les écouteurs vivent encore) : le
+     comparer à l'état reviendrait à effacer la note de l'autre. */
+  const zoneJournal = document.getElementById("journal-zone");
+  let journalDessine = null;
+  let modifiee = false;
   let delaiNote = null;
   const enregistrerNote = ({ afficher = false } = {}) => {
     clearTimeout(delaiNote);
     const txt = saisie.value.trim();
-    if (txt !== noteEnregistree()) {
+    if (modifiee && txt !== noteEnregistree()) {
       if (txt) (state.notesPerso ??= {})[r.id] = { txt, at: Date.now() };
       else delete state.notesPerso[r.id];
       save();
       etatNote.textContent = "Enregistré";
     }
+    modifiee = false;
     if (afficher) drawNoteTete();
   };
   saisie.value = noteEnregistree();
   saisie.addEventListener("input", () => {
+    modifiee = true;
     etatNote.textContent = "";
     clearTimeout(delaiNote);
     delaiNote = setTimeout(enregistrerNote, DELAI_NOTE);
@@ -479,6 +488,18 @@ export function renderRecipe(r) {
   saisie.addEventListener("blur", () => enregistrerNote({ afficher: true }));
   enregistrerMaintenant = enregistrerNote;
   drawNoteTete();
+
+  /* Une version venue d'un autre appareil vient d'être appliquée : la note et le
+     journal de la fiche ouverte se rafraîchissent sur place. La zone de saisie
+     n'est jamais touchée pendant qu'on y tape ou tant qu'elle porte une frappe
+     pas encore enregistrée. */
+  const auSynchro = () => {
+    if (!saisie.isConnected) { document.removeEventListener("carnet-synchro", auSynchro); return; }
+    if (!modifiee && document.activeElement !== saisie) saisie.value = noteEnregistree();
+    drawNoteTete();
+    if (journalDessine && !zoneJournal.contains(document.activeElement)) journalDessine(zoneJournal, r);
+  };
+  document.addEventListener("carnet-synchro", auSynchro);
 
   const drawVerdict = () => {
     const cur = verdictOf(r);
@@ -512,9 +533,9 @@ export function renderRecipe(r) {
 
   /* Le journal est l'affaire d'un autre module, facultatif : sans lui la section
      reste cachée, comme si elle n'existait pas. */
-  const zoneJournal = document.getElementById("journal-zone");
   import("./journal.js").then(m => {
     if (!zoneJournal.isConnected || typeof m.dessinerJournal !== "function") return;
+    journalDessine = m.dessinerJournal;
     m.dessinerJournal(zoneJournal, r);
     zoneJournal.hidden = false;
   }).catch(() => {});

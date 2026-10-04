@@ -17,6 +17,10 @@ import { allerEnRemplacant, route } from "./ui/routeur.js";
 import { toast, updateBadge } from "./ui/toast.js";
 
 const CLE = "carnet-sync-v2";
+/* Au-delà, une requête (ou l'ouverture du canal) est tenue pour perdue : réseau
+   captif, lie-fi… Sans cette limite, une promesse suspendue garderait `enCours`
+   ou `releve` vrais, et plus rien ne partirait. */
+const DELAI_RESEAU = 15000;
 const cfg = typeof SYNC_CONFIG !== "undefined" ? SYNC_CONFIG : { url: "", anonKey: "" };
 const dispo = !!(cfg.url && cfg.anonKey);
 
@@ -57,14 +61,20 @@ async function rpc(nom, corps, mdp = local.mdp) {
      « publishable » (sb_publishable_…) : en-tête apikey seul. */
   const headers = { apikey: cfg.anonKey, "Content-Type": "application/json" };
   if (cfg.anonKey.startsWith("eyJ")) headers.Authorization = `Bearer ${cfg.anonKey}`;
-  const res = await fetch(`${cfg.url}/rest/v1/rpc/${nom}`, { method: "POST", headers, body: JSON.stringify({ p_mdp: mdp, ...corps }) });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    if (txt.includes("mot de passe incorrect")) throw new MdpRefuse();
-    // PostgREST répond 404 quand aucune fonction ne porte ce nom et ces arguments.
-    throw res.status === 404 ? new FonctionAbsente(nom) : new Error(nom + " " + res.status);
+  const ctl = new AbortController();
+  const limite = setTimeout(() => ctl.abort(), DELAI_RESEAU);   // l'abandon tombe dans les catch comme une panne : hors ligne, nouvel essai
+  try {
+    const res = await fetch(`${cfg.url}/rest/v1/rpc/${nom}`, { method: "POST", headers, body: JSON.stringify({ p_mdp: mdp, ...corps }), signal: ctl.signal });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      if (txt.includes("mot de passe incorrect")) throw new MdpRefuse();
+      // PostgREST répond 404 quand aucune fonction ne porte ce nom et ces arguments.
+      throw res.status === 404 ? new FonctionAbsente(nom) : new Error(nom + " " + res.status);
+    }
+    return await res.json();                                    // la limite couvre aussi la lecture du corps
+  } finally {
+    clearTimeout(limite);
   }
-  return res.json();
 }
 
 const instantane = () => {
@@ -278,7 +288,11 @@ async function ouvrirCanal() {
     if (socket.readyState === 1) socket.send(JSON.stringify({ topic, event, payload, ref }));
     return ref;
   };
+  /* Une ouverture qui n'aboutit pas ne doit pas laisser `ws` occupé : on ferme,
+     et canalPerdu() programme le nouvel essai. */
+  const limiteOuverture = setTimeout(() => { try { socket.close(); } catch {} canalPerdu(socket); }, DELAI_RESEAU);
   socket.onopen = () => {
+    clearTimeout(limiteOuverture);
     const config = { broadcast: { self: false, ack: false }, presence: { key: "" }, postgres_changes: [], private: false };
     refJoin = envoyer(sujet, "phx_join", cfg.anonKey.startsWith("eyJ") ? { config, access_token: cfg.anonKey } : { config });
     battementSansReponse = false;
@@ -299,7 +313,7 @@ async function ouvrirCanal() {
     } else if (m.event === "broadcast" && m.payload?.event === "change") tirer();
     else if (m.event === "phx_error" || m.event === "phx_close") socket.close();
   };
-  socket.onclose = socket.onerror = () => canalPerdu(socket);
+  socket.onclose = socket.onerror = () => { clearTimeout(limiteOuverture); canalPerdu(socket); };
 }
 
 function canalPerdu(socket) {
