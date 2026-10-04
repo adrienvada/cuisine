@@ -39,6 +39,36 @@
   --script: "Caveat", "Bradley Hand", cursive;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* ---------- Jetons de mouvement ----------
+     Durées : l'appui d'un doigt, un état (couleur), un élément qui bouge, une vue
+     ou une feuille, le tracé d'un trait. JS les lit dans js/core/ressort.js
+     (DUREES, COURBES) : un test vérifie qu'on y dit la même chose. */
+  --d-appui: 90ms;
+  --d-courte: 160ms;
+  --d-moyenne: 260ms;
+  --d-longue: 420ms;
+  --d-trace: 380ms;
+  /* Ce qui arrive décélère, ce qui part accélère, ce qui va d'un point à un autre
+     fait les deux. Les ressorts (--ressort, --ressort-vif, --ressort-rebond et leur
+     -duree) sont écrits plus bas par tools/ressorts-css.mjs. */
+  --e-sortie: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-entree: cubic-bezier(0.5, 0, 0.9, 0.45);
+  --e-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ombres d'élévation, de la feuille posée (0) à la feuille soulevée (3). Teintées
+     d'encre, jamais de noir pur ; en sombre elles sont plus denses (une ombre pâle
+     ne se voit plus sur un fond sombre) et d'un brun-vert très profond. */
+  --ombre-0: 0 1px 1px rgb(44 51 38 / 0.06);
+  --ombre-1: 0 1px 2px rgb(44 51 38 / 0.08), 0 3px 10px rgb(44 51 38 / 0.08);
+  --ombre-2: 0 2px 4px rgb(44 51 38 / 0.1), 0 8px 22px rgb(44 51 38 / 0.16);
+  --ombre-3: 0 4px 8px rgb(44 51 38 / 0.12), 0 18px 42px rgb(44 51 38 / 0.26);
+  /* Couleurs des effets (js/ui/effets.js) : l'encre des traits et des tampons, la
+     lueur dorée d'une réussite, les trois verts et or des feuilles. */
+  --encre-effet: var(--green-deep);
+  --lueur: rgb(193 145 63 / 0.4);
+  --feuille-a: var(--green);
+  --feuille-b: var(--gold-deco);
+  --feuille-c: #6F8F5F;
 }
 
 html[data-theme="dark"] {
@@ -60,7 +90,32 @@ html[data-theme="dark"] {
   --line: #383E31;
   --line-soft: #2E3327;
   --champ-bord: #7C8070;
+  --ombre-0: 0 1px 1px rgb(8 10 5 / 0.35);
+  --ombre-1: 0 1px 2px rgb(8 10 5 / 0.4), 0 3px 10px rgb(8 10 5 / 0.32);
+  --ombre-2: 0 2px 4px rgb(8 10 5 / 0.45), 0 8px 22px rgb(8 10 5 / 0.45);
+  --ombre-3: 0 4px 8px rgb(8 10 5 / 0.5), 0 18px 42px rgb(8 10 5 / 0.6);
+  --lueur: rgb(217 174 99 / 0.34);
+  --feuille-c: var(--green-deep);
 }
+
+/* >>> ressorts générés par tools/ressorts-css.mjs — ne pas modifier à la main */
+:root {
+  --ressort: cubic-bezier(0.22, 1.1, 0.36, 1);
+  --ressort-duree: 568ms;
+  --ressort-vif: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --ressort-vif-duree: 320ms;
+  --ressort-rebond: cubic-bezier(0.34, 1.5, 0.64, 1);
+  --ressort-rebond-duree: 584ms;
+}
+
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ressort: linear(0, 0.036, 0.123, 0.236, 0.358, 0.477, 0.586, 0.682, 0.763, 0.83, 0.883, 0.924, 0.955, 0.977, 0.992, 1.002, 1.009, 1.012, 1.013, 1.013, 1.012, 1.011, 1.009, 1.008, 1.006, 1.005, 1.004, 1.003, 1.002, 1);
+    --ressort-vif: linear(0, 0.032, 0.111, 0.218, 0.337, 0.456, 0.569, 0.671, 0.759, 0.832, 0.892, 0.939, 0.973, 0.999, 1.015, 1.026, 1.031, 1.033, 1.032, 1.03, 1.027, 1.023, 1.019, 1.015, 1.011, 1.008, 1.006, 1.004, 1.002, 1);
+    --ressort-rebond: linear(0, 0.052, 0.178, 0.339, 0.506, 0.662, 0.795, 0.9, 0.977, 1.029, 1.06, 1.073, 1.075, 1.069, 1.058, 1.046, 1.033, 1.022, 1.013, 1.005, 1, 0.997, 0.995, 0.994, 0.994, 0.995, 0.996, 0.997, 0.998, 1);
+  }
+}
+/* <<< fin du bloc généré */
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -423,6 +478,91 @@ html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
 
 .cook :focus-visible, .timer-pill :focus-visible { outline-color: var(--or-sur-fond-vert); }
 
+/* ---------- Mouvement : retour d'appui et utilitaires ----------
+   Tout ce qui s'appuie s'enfonce un instant et revient avec un ressort. On passe par
+   la propriété individuelle `scale`, qui se compose avec `transform` : le toast centré
+   en translate(-50%), une carte animée par FLIP ou par @keyframes gardent leur
+   transform. Les éléments qui ont déjà leur propre retour d'appui (.card, .menu-card,
+   .verdict-btn, .card-share) ne sont pas dans la liste : ce serait deux fois le même
+   geste. Un nouvel élément s'y joint par la classe .appui.
+   Le ressort du retour est réglé sur la transition de base, l'enfoncement sur
+   :active : l'appui est rapide et sec, le retour vif et amorti. */
+.btn, .btn-icon, .chip, .tabbar a, .link-danger, .toast-action, .portions button,
+.mc-btn, .r-btn, .t-btn, .cook-close, .cook-outil, .reglages-btn, .jai-btn, .btn-lib,
+.appui {
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif);
+}
+
+/* Les pastilles de choix de fiche.css ont déjà des transitions de couleur : on les garde. */
+html .chip.pick { transition: scale var(--ressort-vif-duree) var(--ressort-vif), background 0.15s ease, border-color 0.15s ease; }
+
+.btn:active:not(:disabled), .btn-icon:active:not(:disabled), .chip:active:not(:disabled),
+.tabbar a:active, .link-danger:active:not(:disabled), .toast-action:active,
+.portions button:active:not(:disabled), .mc-btn:active:not(:disabled), .r-btn:active:not(:disabled),
+.t-btn:active:not(:disabled), .cook-close:active, .cook-outil:active:not(:disabled),
+.reglages-btn:active, .jai-btn:active:not(:disabled), .btn-lib:active:not(:disabled),
+.appui:active {
+  scale: 0.965;
+  transition-duration: var(--d-appui);
+  transition-timing-function: var(--e-sortie);
+}
+
+/* Élévation : une surface qu'on soulève (appui, glisser) gagne de l'ombre. La classe
+   .en-main est posée par l'appelant de glisser() le temps du geste. */
+.souleve { box-shadow: var(--ombre-1); transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif); }
+.souleve:active, .souleve.en-main { box-shadow: var(--ombre-3); }
+
+/* Arrivée douce : un élément qui se pose (retour, filtre, action, défilement), jamais
+   le premier écran. --i échelonne (35 ms par rang, au plus 7 rangs : le reste arrive
+   ensemble). */
+.arrive { animation: arrivee var(--d-moyenne) var(--e-sortie) both; animation-delay: calc(min(var(--i, 0), 7) * 35ms); }
+
+@keyframes arrivee { from { opacity: 0; translate: 0 10px; scale: 0.985; } }
+
+/* Le tracé à l'encre : sur un SVG (ou son conteneur) portant .trace, chaque forme dont
+   pathLength="1" se dessine d'un trait, à la vitesse d'une main. Sans JavaScript, la
+   classe posée au rendu suffit ; tracer(el) le rejoue. --i décale le départ d'une forme
+   (60 ms par rang). Un instant d'opacité nulle évite le point que laisse un bout rond
+   à dashoffset 1. */
+.trace [pathLength="1"] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: trace var(--d-trace) var(--e-sortie) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes trace {
+  from { stroke-dashoffset: 1; opacity: 0; }
+  2% { opacity: 1; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* Chiffres qui roulent (rouler() dans js/ui/mouvement.js) : chaque chiffre est une
+   colonne dont l'ancienne et la nouvelle valeur sont deux pseudo-éléments dans la même
+   case (la largeur est celle du plus large, chiffres tabulaires) ; le texte réel reste
+   dans .r-vrai, masqué à la vue mais lu et copiable. */
+.rouler { position: relative; display: inline-flex; font-variant-numeric: tabular-nums; }
+.r-vrai { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.r-c { display: inline-grid; overflow: clip; padding-block: 0.12em; margin-block: -0.12em; }
+.r-c::before, .r-c::after { grid-area: 1 / 1; white-space: pre; }
+.r-c::before { content: attr(data-a); }
+.r-c::after { content: attr(data-n); }
+
+/* Transitions de vue (View Transitions API) : seulement leur rythme. Le routeur les
+   déclenche (lot navigation) ; ici, la durée et la courbe des éléments partagés, et
+   un fondu plus court pour ce qui part (70 % de ce qui arrive). Une règle par
+   pseudo-élément : un navigateur qui ne les connaît pas jetterait toute la règle d'une
+   liste de sélecteurs. */
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) { animation-duration: var(--d-longue); animation-timing-function: var(--e-standard); }
+}
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*) { animation-duration: calc(var(--d-moyenne) * 0.7); animation-timing-function: var(--e-entree); }
+}
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-new(*) { animation-duration: var(--d-moyenne); animation-timing-function: var(--e-sortie); }
+}
+
 /* ---------- Mouvement réduit ----------
    Un filet pour tout le carnet, plutôt que des exceptions écran par écran :
    plus d'entrée de page, de rebond ni de fondu. Durées ramenées à presque rien
@@ -437,4 +577,26 @@ html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
+
+  /* Rien ne se déplace, ne rebondit ni ne se dessine : l'appui ne change plus la
+     taille, l'arrivée est instantanée et le trait
+     est déjà tracé (js/ui/mouvement.js en fait autant pour les animations JS). */
+  .btn, .btn-icon, .chip, .tabbar a, .link-danger, .toast-action, .portions button,
+  .mc-btn, .r-btn, .t-btn, .cook-close, .cook-outil, .reglages-btn, .jai-btn, .btn-lib,
+  .appui { scale: none !important; }
+  .arrive { animation: none; }
+  .trace [pathLength="1"] { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Les transitions de vue sont sautées : le nouvel écran remplace l'ancien d'un coup.
+   Une règle par pseudo-élément (cf. plus haut : un navigateur qui ne les connaît pas
+   jetterait toute une liste). */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) { animation: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*) { animation: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(*) { animation: none !important; }
 }
