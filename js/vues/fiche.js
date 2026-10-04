@@ -17,6 +17,7 @@ import {
   ajouterAuMenu,
   compo,
   entreeCourante,
+  entreeDe,
   entreesDe,
   portionsOf,
   retirerDuMenu,
@@ -342,12 +343,24 @@ export function renderRecipe(r) {
     const ligne = e.target.closest("[data-i]");
     const ing = ligne && effectiveIngredients(r)[Number(ligne.dataset.i)];
     if (!ing) return;
+    const cle = entreeCourante();
     ouvrirIngredient(r, ing, {
       portions: portionsCourantes(),
       regler: n => {
         const avant = portionsCourantes();
         setPortions(n);
-        toast(`Recette réglée pour ${n} ${unite}`, { action: "Annuler", surAction: () => setPortions(avant) });
+        toast(`Recette réglée pour ${n} ${unite}`, {
+          action: "Annuler",
+          /* Le message survit quelques secondes à un changement de page : on
+             défait alors la version d'origine sans redessiner une fiche absente. */
+          surAction: () => {
+            if (document.getElementById("p-val") && entreeCourante() === cle) return setPortions(avant);
+            const cible = cle ? entreeDe(cle) : null;
+            if (cle && !cible) return;       // l'entrée a été retirée entre-temps
+            if (cible) cible.portions = avant; else state.portions[r.id] = avant;
+            save(); updateBadge();
+          }
+        });
       }
     });
   });

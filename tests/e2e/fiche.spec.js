@@ -266,3 +266,19 @@ test("journal : avec un module, la section est remplie par dessinerJournal(zone,
   await page.goto(QUICHE);
   await expect(page.locator("#journal-zone")).toContainText("Journal de quiche-lorraine");
 });
+
+test("J'en ai moins : « 1/2 » se lit comme une demie, et « Annuler » après avoir quitté la fiche défait sans erreur", async ({ page }) => {
+  const erreurs = [];
+  page.on("pageerror", e => erreurs.push(e.message));
+  await page.goto(QUICHE);
+  await page.locator("#ing-list li", { hasText: "Œufs" }).click();
+  const feuille = page.getByRole("dialog");
+  await feuille.getByLabel("Ce que tu as").fill("1/2");
+  await expect(feuille.locator("#ing-resultat")).toContainText("Ça ne suffit pas");
+  await feuille.getByLabel("Ce que tu as").fill("3");
+  await feuille.getByRole("button", { name: /Régler sur/ }).click();
+  await page.evaluate(() => { location.hash = "#/courses"; });
+  await page.locator("#toast .toast-action").click();
+  expect(erreurs).toEqual([]);
+  expect((await lireCarnet(page)).portions["quiche-lorraine"]).toBe(6);
+});

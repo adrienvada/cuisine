@@ -65,6 +65,14 @@ test("lireQuantite : virgule décimale, unité ignorée, texte vide ou absurde",
   assert.equal(lireQuantite("-2"), null);
 });
 
+test("lireQuantite : fractions « 1/2 », « 1 1/2 », « ½ », « 2½ »", () => {
+  assert.equal(lireQuantite("1/2"), 0.5);
+  assert.equal(lireQuantite("1 1/2"), 1.5);
+  assert.equal(lireQuantite("½"), 0.5);
+  assert.equal(lireQuantite("2½"), 2.5);
+  assert.equal(lireQuantite("3/0"), null);
+});
+
 test("moule rond : les portions suivent le rapport des surfaces, arrondi au plus proche", () => {
   const rond = { forme: "rond", diametre: 26 };
   assert.equal(portionsPourMoule(rond, 6, 26), 6);

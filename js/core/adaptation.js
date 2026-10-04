@@ -24,10 +24,17 @@ export function portionsPermises(ing, portionsBase, possede) {
   return Math.floor(possede / (ing.qty / portionsBase) + 1e-9);
 }
 
-/* Ce que l'utilisateur a tapé : « 3 », « 1,5 », « 250 g » (l'unité est ignorée,
-   la feuille la montre déjà à côté du champ). */
+/* Ce que l'utilisateur a tapé : « 3 », « 1,5 », « 1/2 », « 1 1/2 », « ½ »,
+   « 250 g » (l'unité est ignorée, la feuille la montre déjà à côté du champ). */
+const FRACTIONS = { "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3 };
+
 export function lireQuantite(texte) {
-  const m = String(texte ?? "").trim().replace(",", ".").match(/^(\d+(?:\.\d+)?|\.\d+)/);
+  const t = String(texte ?? "").trim().replace(",", ".");
+  let m = t.match(/^(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)/);
+  if (m) return m[3] === "0" ? null : (m[1] ? Number(m[1]) : 0) + Number(m[2]) / Number(m[3]);
+  m = t.match(/^(?:(\d+)\s*)?([½¼¾⅓⅔])/);
+  if (m) return (m[1] ? Number(m[1]) : 0) + FRACTIONS[m[2]];
+  m = t.match(/^(\d+(?:\.\d+)?|\.\d+)/);
   return m ? parseFloat(m[1]) : null;
 }
 
