@@ -1,7 +1,7 @@
 /* Carnet de cuisine — socle commun à tous les écrans.
    Palette carnet (crème, vert, doré) et son mode sombre, mise en page de base,
-   boutons de bascule (thème, synchro), barre d'onglets, boutons et en-têtes de
-   page partagés, message (toast), feuilles qui montent du bas.
+   barre d'onglets, boutons et en-têtes de page partagés, message (toast),
+   feuilles qui montent du bas.
    Les autres feuilles (accueil, fiche, cuisine, menu, courses, minuteurs,
    savoirs) viennent après et ne portent que ce qui est propre à leur écran. */
 
@@ -11,14 +11,24 @@
   --card: #FFFDF7;
   --ink: #2C3326;
   --ink-soft: #5A6150;
-  --muted: #8B8874;
+  --muted: #66644F;
   --green: #42603A;
   --green-deep: #31492B;
   --green-tint: #E4EADD;
-  --gold: #C1913F;
+  /* Le doré du texte est assez foncé pour se lire sur la crème (4,5:1 au moins,
+     sur le fond le plus sombre où il se pose) ; --gold-deco garde le doré clair
+     du carnet pour ce qui ne se lit pas : filets, fleurons, pastilles. */
+  --gold: #7A5A1C;
+  --gold-deco: #C1913F;
   --gold-tint: #F4EAD5;
-  --gold-deep: #8A6420;
-  --terra: #BC6B3D;
+  --gold-deep: #6E5018;
+  --terra: #A0532A;
+  /* Texte posé sur un fond --green : crème en clair, encre en sombre (le vert
+     clair du mode sombre ne porte pas du crème : 2,8:1). */
+  --sur-vert: #FDFBF3;
+  /* Doré des petits textes posés sur le vert profond fixe (mode cuisine, bulles
+     de minuteur) : --gold, foncé pour la crème, n'y tient plus. */
+  --or-sur-fond-vert: #E8C889;
   --line: #E2DAC5;
   --line-soft: #ECE5D2;
   --radius: 16px;
@@ -34,14 +44,16 @@ html[data-theme="dark"] {
   --card: #242920;
   --ink: #EDE9DC;
   --ink-soft: #C4C2B4;
-  --muted: #8F9384;
+  --muted: #A3A697;
   --green: #7BA36C;
   --green-deep: #9AC28A;
   --green-tint: #2A3324;
   --gold: #D9AE63;
+  --gold-deco: #D9AE63;
   --gold-tint: #362E1D;
   --gold-deep: #E8C889;
   --terra: #D68E5F;
+  --sur-vert: #15180F;
   --line: #383E31;
   --line-soft: #2E3327;
 }
@@ -62,47 +74,6 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ---------- Bascule mode sombre ---------- */
-
-.theme-toggle {
-  position: fixed;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  right: 14px;
-  z-index: 60;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink-soft);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.theme-toggle svg { width: 20px; height: 20px; }
-
-.sync-btn { right: auto; left: 14px; }
-.sync-btn[hidden] { display: none; }
-.sync-btn svg { display: none; }
-.sync-btn[data-etat="off"] .ic-off,
-.sync-btn[data-etat="attente"] .ic-attente,
-.sync-btn[data-etat="ok"] .ic-ok,
-.sync-btn[data-etat="hors"] .ic-hors { display: block; }
-.sync-btn[data-etat="off"] { color: var(--muted); }
-.sync-btn[data-etat="ok"] { color: var(--green); border-color: var(--green); }
-.sync-btn[data-etat="hors"] { color: var(--gold-deep); border-color: var(--gold); }
-html[data-theme="dark"] .sync-btn[data-etat="hors"] { color: var(--gold); }
-.sync-btn[data-etat="attente"] .ic-attente { animation: sync-tourne 1.2s linear infinite; }
-@keyframes sync-tourne { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .sync-btn[data-etat="attente"] .ic-attente { animation: none; } }
-
-.theme-toggle .icon-moon { display: none; }
-
-html[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
-html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
-
 /* Grain papier, comme une page de carnet */
 body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.42 0 0 0 0 0.3 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -115,6 +86,12 @@ body {
 }
 
 h1, h2, h3 { font-family: var(--serif); font-weight: 600; color: var(--ink); margin: 0; }
+
+/* Cormorant en 700 : le rendu « hinté » de Chromium sous Linux (et sans doute
+   d'Android) y espace les lettres de façon irrégulière (« Fo caccia »,
+   « ro marin »). Le 600 est net ; en 700 il faut demander la géométrie exacte
+   des glyphes. Une règle commune, pour tout titre qui passe en 700. */
+.card h3, .mc-title h3, .steps h3, .steps .num, .f-item-txt b { text-rendering: geometricPrecision; }
 
 button { font-family: var(--sans); cursor: pointer; }
 
@@ -185,7 +162,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
 
 .empty-illo { display: flex; justify-content: center; padding-top: 26px; margin-bottom: -30px; }
 .empty-illo svg { width: 110px; height: 36px; opacity: 0.9; }
-.empty-illo.cheers svg { width: 54px; height: 48px; color: var(--gold); }
+.empty-illo.cheers svg { width: 54px; height: 48px; color: var(--gold-deco); }
 
 .topbar {
   display: flex;
@@ -227,7 +204,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
 
 .btn svg { width: 18px; height: 18px; }
 
-.btn.primary { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.28); }
+.btn.primary { background: var(--green); border-color: var(--green); color: var(--sur-vert); box-shadow: 0 6px 18px rgba(49, 73, 43, 0.28); }
 
 .btn.secondary { background: var(--card); color: var(--green-deep); }
 
@@ -245,7 +222,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
 .courses-head h1 {
   font-family: var(--sans);
   background: var(--green);
-  color: #F6F2E2;
+  color: var(--sur-vert);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -352,3 +329,32 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
     animation: none !important;
   }
 }
+
+/* Texte posé sur le vert : ces règles vivent dans d'autres feuilles, avec leur
+   crème en dur. En sombre le vert s'éclaircit et le crème n'y tient plus
+   (2,6 à 2,8:1) : on repasse au texte --sur-vert, qui est de l'encre. */
+html[data-theme="dark"] .chip.on,
+html[data-theme="dark"] .steps .num,
+html[data-theme="dark"] .add-extra button,
+html[data-theme="dark"] .verdict-btn.on.v-encore,
+html[data-theme="dark"] .course-list input:checked + .tick { color: var(--sur-vert); }
+
+/* Les surfaces au vert profond fixe gardent leurs couleurs dans les deux
+   thèmes : leur doré vient donc de --or-sur-fond-vert, pas de --gold (qui
+   suit le thème et, en clair, est devenu brun foncé : 1,6:1 sur le vert). */
+html .cook { --gold: var(--or-sur-fond-vert); }
+html .timer-pill { --gold: var(--or-sur-fond-vert); background: #31492B; }
+html .timer-pill.done { background: #D9AE63; }
+
+/* Pastille du nombre de recettes au menu : crème sur terre cuite claire, 2,7:1 en sombre. */
+html[data-theme="dark"] .badge { color: var(--sur-vert); }
+
+/* L'astuce « à savoir » garde son fond beige en sombre (hors mode cuisine, qui
+   a le sien) : son texte doré suit, sinon doré clair sur beige, 1,4:1. */
+html[data-theme="dark"] .tip.beige:not(.cook .tip) b,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .tip-ico,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-cue,
+html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
+
+/* La feuille reçoit le focus à l'ouverture (feuilles.js) pour que Tab parte d'elle : sans anneau, ce n'est pas une zone à désigner. */
+.sheet:focus { outline: none; }

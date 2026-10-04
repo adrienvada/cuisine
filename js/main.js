@@ -11,6 +11,7 @@ import { acquireWakeLock, cancelTimer, drawTray, ensureTick } from "./ui/minuteu
 import { retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
 import { demarrerSync } from "./sync.js";
+import { initialiserReglages } from "./vues/reglages.js";
 
 /* Les anciens formats d'abord : tout ce qui suit lit un état à jour. */
 migrer();
@@ -91,6 +92,7 @@ if ("serviceWorker" in navigator) {
 }
 
 initialiserTheme();
+initialiserReglages();
 
 /* La synchro démarre en dernier, comme avant : son premier échange ne doit
    rien trouver à moitié construit. */

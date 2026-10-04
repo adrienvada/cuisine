@@ -206,7 +206,7 @@ manifest.webmanifest    Manifeste PWA
 sw.js                   Service worker (hors ligne) — CORE et VERSION y sont écrits par `npm run sw`
 r/  f/                  Pages d'aperçu des recettes et des fondamentaux (générées)
 
-css/base.css            Palette (clair/sombre), mise en page, onglets, boutons, toast, feuilles
+css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), mise en page, onglets, boutons, toast, feuilles
 css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/cuisine.css         Mode cuisine plein écran
@@ -214,6 +214,7 @@ css/menu.css            Onglet Au menu : cartes et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/minuteurs.css       Plateau des bulles de minuteur
 css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
 
 js/recipes.js           Données : les recettes
 js/placard.js           Données : le fond de placard (cid des produits « à vérifier » en courses)
@@ -235,15 +236,16 @@ js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas
 js/core/courses.js      La liste de courses calculée depuis le menu
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
+js/core/sauvegarde.js   Export du carnet, lecture prudente d'un fichier importé, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
-js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour
+js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour (focus, Tab, Échap) et confirmer()
 js/ui/routeur.js        Le routeur (#) et les flèches de retour
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
 js/ui/miseajour.js      Enregistrement du service worker, « Nouvelle version — Recharger »
-js/ui/theme.js          Thème clair/sombre, mouvement réduit
+js/ui/theme.js          Thème automatique/clair/sombre, mouvement réduit
 js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome)
 js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js (MIT)
 
@@ -255,6 +257,7 @@ js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
+js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import
 
 tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker
 tests/                  Tests unitaires (unit/) et de bout en bout (e2e/)
@@ -336,6 +339,20 @@ Le menu, les cases cochées, les articles libres, les verdicts, les compteurs de
 - **Ne pas déranger** : une mise à jour redessine Menu ou Courses sur place (`route({ garderDefilement: true })`), mais attend la fin d'une saisie et la fermeture d'une feuille.
 - `localStorage` reste la source hors ligne. Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
 - Les tests simulent Supabase (`page.route`) et le canal (`page.routeWebSocket`) — `tests/e2e/outils-synchro.js` — et ne touchent jamais au vrai serveur.
+- **Un mot de passe**, saisi une fois par navigateur (feuille « Réglages », bouton en haut de l'accueil : un point vert = connecté, doré = connecté mais hors réseau, rien = pas connecté).
+  Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans
+  `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe,
+  on ne lit ni n'écrit rien.
+- Mise en place, une fois : exécuter [`supabase/carnet.sql`](supabase/carnet.sql) dans le
+  SQL Editor (en remplaçant `MON_MOT_DE_PASSE`), puis renseigner l'URL et la clé
+  publique dans [`js/sync-config.js`](js/sync-config.js). Vide, la synchro est désactivée
+  et le bouton caché. Changer le mot de passe : relancer l'`insert … on conflict`.
+- La première connexion sur une base vide en fait le carnet partagé ; les suivantes
+  remplacent le menu et la liste du navigateur par ceux de la base (avec confirmation).
+- `localStorage` reste la source hors ligne ; les changements partent 0,8 s après
+  la modification, et l'appareil relit le serveur toutes les 10 s et au retour sur l'app.
+- En cas de modifications simultanées, la dernière écriture l'emporte.
+- Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
 
 Pour tester en local :
 

@@ -119,7 +119,7 @@ test("B3 — vider le menu puis remettre la recette : rien n'est coché", async 
 /* ---------- B4 : la barre du haut est recouverte par les boutons flottants ---------- */
 
 for (const largeur of [375, 390, 430]) {
-  test.fixme(`B4 — barre du haut libre de tout bouton flottant (${largeur} px)`, async ({ page }) => {
+  test(`B4 — barre du haut libre de tout bouton flottant (${largeur} px)`, async ({ page }) => {
     await page.setViewportSize({ width: largeur, height: 844 });
     await page.goto("/#/recette/quiche-lorraine");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
