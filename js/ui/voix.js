@@ -74,6 +74,7 @@ export function commandeDepuis(texte) {
 
 let voixChoisie = null;
 let lectureNo = 0;           // numéro de la lecture en cours : une plus ancienne ne reprend rien
+let enCours = null;          // énoncé en train d'être dit : Chrome le ramasse sinon et n'envoie jamais onend
 let lectureFin = null;       // termine la lecture en cours (résout sa promesse)
 const ecoutes = new Set();   // écoutes ouvertes, à suspendre pendant qu'on parle
 
@@ -122,7 +123,7 @@ export function lire(texte) {
       if (fini) return;
       fini = true;
       clearTimeout(garde);
-      if (lectureFin === finir) lectureFin = null;
+      if (lectureFin === finir) { lectureFin = null; enCours = null; }
       resolve();
       // Seule la dernière lecture rend le micro : si une autre l'a remplacée, elle parle encore.
       if (no === lectureNo) suspendre(false);
@@ -137,6 +138,7 @@ export function lire(texte) {
       const v = voixFrancaise(synth);
       if (v) u.voice = v;
       u.onend = u.onerror = finir;
+      enCours = u;
       // Chrome laisse parfois une lecture sans fin (onend jamais envoyé) : sans garde,
       // le micro resterait coupé et la promesse en suspens pour toujours.
       garde = setTimeout(() => { try { synth.cancel(); } catch {} finir(); }, 4000 + phrase.length * 150);
