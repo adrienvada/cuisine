@@ -73,7 +73,7 @@ export function renderHome() {
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   calculerFoins();
   app.innerHTML = `
-    <header class="masthead fade-in">
+    <header class="masthead masthead-accueil fade-in">
       ${boutonReglages()}
       <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
