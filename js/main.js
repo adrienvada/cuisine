@@ -9,7 +9,7 @@
 import { migrer, state, surEchecSauvegarde } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
 import { drawTray, ensureTick } from "./ui/minuteurs.js";
-import { retourVers, route } from "./ui/routeur.js";
+import { moduleCharge, retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
 import { toast } from "./ui/toast.js";
 import { initialiserReglages } from "./vues/reglages.js";
@@ -85,7 +85,13 @@ document.getElementById("timer-tray").addEventListener("click", e => {
 
 /* Le module des savoirs vient à la demande (une fiche l'a déjà chargé si l'appel
    en fait partie) ; l'écouteur ci-dessous le sollicite à chaque geste. */
-const savoirs = () => import("./vues/savoirs.js");
+/* Les Savoirs viennent à la demande. Chargés (le routeur les charge avec la fiche et
+   le mode cuisine), ils répondent dans le même tour que le geste : la touche suivante
+   (Tab après Entrée) trouve la liste déjà dépliée. */
+const avecSavoirs = fn => {
+  const m = moduleCharge("savoirs");
+  return m ? fn(m) : import("./vues/savoirs.js").then(fn);
+};
 
 /* Un appel au savoir peut être n'importe où — fiche, mode cuisine, note de
    supplément. Un seul écouteur délégué plutôt qu'un par rendu.
@@ -95,14 +101,14 @@ document.body.addEventListener("click", e => {
   const fleche = e.target.closest("[data-retour]");
   if (fleche) { e.preventDefault(); return retourVers(fleche.dataset.retour); }
   const lien = e.target.closest("[data-fond]");
-  if (lien) { e.preventDefault(); return savoirs().then(m => m.openFondSheet(lien.dataset.fond)); }
+  if (lien) { e.preventDefault(); return avecSavoirs(m => m.openFondSheet(lien.dataset.fond)); }
   // L'appel est lui-même un bouton : c'est lui qui déplie, au doigt comme au clavier.
   const appel = e.target.closest(".s-cue");
-  if (appel) return savoirs().then(m => m.basculerSavoirs(appel.closest(".a-savoirs")));
+  if (appel) return avecSavoirs(m => m.basculerSavoirs(appel.closest(".a-savoirs")));
   // Un autre bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
   if (e.target.closest("button")) return;
   const porteur = e.target.closest(".a-savoirs");
-  if (porteur) savoirs().then(m => m.basculerSavoirs(porteur));
+  if (porteur) avecSavoirs(m => m.basculerSavoirs(porteur));
 });
 
 /* Le service worker s'enregistre au repos, après le premier affichage : dès son

@@ -32,6 +32,9 @@ const modules = {};
    l'échec) : « Réessayer » doit donc demander une adresse neuve. Le service
    worker, lui, ignore la requête pour retrouver le module en cache. */
 const echecs = {};
+/* Un module de vue déjà chargé, ou null : qui le trouve peut répondre dans le même
+   tour que le geste, sans attendre une promesse. */
+export const moduleCharge = nom => modules[nom] || null;
 const charger = nom => (modules[nom]
   ? Promise.resolve(modules[nom])
   : chargeurs[nom](echecs[nom] ? `?essai=${echecs[nom]}` : "")
