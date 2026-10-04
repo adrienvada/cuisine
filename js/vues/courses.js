@@ -159,7 +159,8 @@ export function renderCourses() {
       <div class="avance-bloc">
         <div class="avance" role="progressbar" aria-label="Avancement des courses" aria-valuemin="0" aria-valuemax="${liste.total}" aria-valuenow="${faits}"><span style="width:${pct}%"></span></div>
         <p class="avance-txt"><strong>${faits} / ${liste.total}</strong></p>
-      </div>
+      </div>`) : ""}
+      ${liste.total || liste.placard.length ? raw(html`
       <div class="outils">
         ${rangeable ? raw(`<button type="button" class="lien-outil" data-ranger>Ranger les rayons</button>`) : ""}
         ${nbCoches ? raw(`<button type="button" class="lien-outil" data-decocher>Tout décocher</button>`) : ""}

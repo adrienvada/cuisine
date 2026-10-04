@@ -321,3 +321,13 @@ for (const theme of ["clair", "sombre"]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }
+
+test("la case se coche au clavier (elle reste dans la page, invisible)", async ({ page, context }) => {
+  await preremplir(context, { carnet: { menu: [entree("focaccia-romarin", { k: "f1" })], checked: { farine: true } } });
+  await page.goto("/#/courses");
+  // La case est dans la page (focalisable), pas retirée de l'affichage.
+  const caseHuile = page.locator('input[data-key="huile-olive"]');
+  await caseHuile.focus();
+  await page.keyboard.press("Space");
+  expect((await lireCarnet(page)).checked["huile-olive"]).toBe(true);
+});

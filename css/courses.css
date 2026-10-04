@@ -58,7 +58,13 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   font-size: 15.5px;
 }
 
-.course-list input { display: none; }
+.course-list label { position: relative; }
+
+/* La vraie case reste dans la page, invisible : le clavier et les lecteurs
+   d'écran la trouvent, et le rond dessiné à côté porte le focus. */
+.course-list input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+
+.course-list input:focus-visible + .tick { outline: 3px solid var(--gold); outline-offset: 2px; }
 
 .tick {
   flex: none;
