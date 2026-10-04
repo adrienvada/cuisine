@@ -4,6 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { FIGURES, FAMILLES, FONDAMENTAUX } from "./donnees.mjs";
 import {
   EMPLACEMENTS, TONS, TYPES, balisesEquilibrees, cheminLisse, enrouler, figureHtml, figuresA,
@@ -640,7 +641,10 @@ test("figures.js : les symboles servent vraiment (emulsion, salaison, coagulatio
   assert.ok(usage("coagulation-oeuf").length >= 6);
   assert.ok(usage("assaisonnement-couches").length >= 10);
   assert.ok(usage("gluten").length >= 10);
-  assert.ok(lire("js/figures.js").length < 310000, "js/figures.js reste léger");
+  /* Le poids qui compte est celui qui voyage : le fichier part compressé, et il
+     n'est demandé qu'à l'ouverture des Savoirs. Un plafond en caractères bruts
+     poussait à rogner les dessins pour quelques octets que gzip efface. */
+  assert.ok(gzipSync(lire("js/figures.js")).length < 90000, "js/figures.js reste léger une fois compressé");
 });
 
 /* ---------- Flèches ---------- */
