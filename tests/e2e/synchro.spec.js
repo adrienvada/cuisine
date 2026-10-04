@@ -179,7 +179,9 @@ test("synchro : canal tenu, heartbeat toutes les 25 s et relevé de secours tout
   await page.goto("/#/");
   await etat(page, "ok");
   await expect.poll(() => canal.joints.length).toBe(1);
-  await expect.poll(() => serveur.lectures).toBeGreaterThan(0);
+  /* Le premier relevé suit le premier affichage, le second la réponse du join :
+     la référence ne se fixe qu'après les deux, sinon le second tombe dans la mesure. */
+  await expect.poll(() => serveur.lectures).toBeGreaterThanOrEqual(2);
 
   // Heartbeat toutes les 25 s ; un relevé de secours seulement après 2 min.
   const avant = serveur.lectures;
