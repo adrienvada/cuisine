@@ -184,13 +184,14 @@ test("menu : les convives réglés ici et un supplément ajouté là-bas à la m
 
   await reseau(context, serveur, false);
   await reseau(second.context, serveur, false);
+  /* L'autre appareil, revenu en ligne, peut écrire le premier : on attend l'écriture de
+     celui-ci par son contenu, pas par le nombre d'écritures. */
   await revenir(page);
-  await expect.poll(() => serveur.ecritures.length).toBeGreaterThan(0);
+  await expect.poll(() => serveur.data.repas?.convives).toBe(8);
   await revenir(second.page);
   await expect.poll(() => serveur.data.menu.find(e => e.k === "c1").addons.join()).toBe("tomates-sechees");
 
-  const c1 = serveur.data.menu.find(e => e.k === "c1");
-  expect(c1.portions).toBe(8);
+  await expect.poll(() => serveur.data.menu.find(e => e.k === "c1").portions).toBe(8);
   expect(serveur.data.menu.find(e => e.k === "q1").portions).toBe(8);
   expect(serveur.data.repas.convives).toBe(8);
   await second.context.close();
