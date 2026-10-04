@@ -4,6 +4,9 @@
      l'installation d'une nouvelle version du service worker.
    · Les images : « stale-while-revalidate » — le cache répond tout de suite, le réseau
      rafraîchit la copie pour la fois suivante.
+   · Les héros WebP des fiches (HEROS) sont récupérés au repos, à la demande de la
+     page (message « heros »), une fois l'appli affichée : ils pèsent 1,3 Mo, trop
+     pour l'installation, mais une fiche jamais ouverte doit s'afficher hors ligne.
    · Les pages d'aperçu r/ et f/ : réseau d'abord, mais 3 s au plus, puis le cache.
 
    VERSION et CORE sont écrits par tools/version-sw.mjs (npm run sw) : ne pas les
@@ -11,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "e3562f010f";
+const VERSION = "88736bfb3b";
 
 const CORE = [
   "./",
@@ -128,6 +131,30 @@ const CORE = [
   "js/vues/savoirs.js",
   "manifest.webmanifest"
 ];
+
+/* Au repos, dans un second temps : les héros des fiches. */
+const HEROS = [
+  "img/h/beignets-brebis-menthe.webp",
+  "img/h/cake-sale.webp",
+  "img/h/cocktail-concombre-menthe.webp",
+  "img/h/dip-chevre-herbes.webp",
+  "img/h/focaccia-romarin.webp",
+  "img/h/gravlax-saumon-yaourt-bulgare.webp",
+  "img/h/houmous-petits-pois-menthe.webp",
+  "img/h/mayonnaise-maison.webp",
+  "img/h/mi-cuit-chocolat-suzy-palatin.webp",
+  "img/h/pesto-basilic-maison.webp",
+  "img/h/quiche-lorraine.webp",
+  "img/h/salade-champetre.webp",
+  "img/h/salade-kale-pomme-oeuf.webp",
+  "img/h/salade-lentilles-feta.webp",
+  "img/h/salade-mediterraneenne.webp",
+  "img/h/scoopable-cookies.webp",
+  "img/h/tagliatelles-carotte-carbonara.webp",
+  "img/h/tartines-figues-chevre-miel.webp",
+  "img/h/torsades-pesto.webp",
+  "img/h/veloute-butternut-shiitakes.webp"
+];
 /* <<< fin du bloc généré */
 
 const CACHE = `carnet-cuisine-${VERSION}`;
@@ -153,8 +180,27 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("message", e => {
-  if (e.data && e.data.type === "activer") self.skipWaiting();
+  if (!e.data) return;
+  if (e.data.type === "activer") self.skipWaiting();
+  if (e.data.type === "heros") e.waitUntil(precacherHeros().catch(() => {}));
 });
+
+/* Les héros, deux à la fois, dans le cache d'exécution (là où cachePuisReseau les
+   cherche). Un héros déjà en cache n'est pas redemandé ; un échec (réseau perdu en
+   route) laisse le reste à la visite suivante. */
+async function precacherHeros() {
+  const cache = await caches.open(EXECUTION);
+  const manquants = [];
+  for (const f of HEROS) if (!(await cache.match(f))) manquants.push(f);
+  async function enfiler() {
+    while (manquants.length) {
+      const f = manquants.shift();
+      const res = await fetch(f);
+      if (res.ok) await cache.put(f, res);
+    }
+  }
+  await Promise.all([enfiler(), enfiler()]);
+}
 
 self.addEventListener("fetch", e => {
   const req = e.request;
