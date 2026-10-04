@@ -108,3 +108,193 @@ test("données : ce que le cuisinier tient pour un repos, et ce qu'il refuse d'y
   }
   for (const r of RECIPES) for (const s of r.steps) if (s.four) assert.ok(!s.repos, `${r.id} : ${s.t}`);
 });
+
+/* ---------- Le calcul : des repos qui ont leur place dans la frise ---------- */
+
+const JOUR = "2030-06-15";
+const TABLE = minutesMurales(JOUR, 20 * 60);
+const vide = () => {
+  Object.assign(state, { menu: [], checked: {}, extras: [], portions: {}, choices: {}, addons: {}, hintCoursesOff: false });
+  delete state.repas;
+  delete state.historique;
+};
+const ajouter = (rid, { k = rid, choices = {}, addons = [] } = {}) => state.menu.push({ k, rid, choices, addons, portions: null });
+const plan = (table = TABLE) => planifier({ table, taches: menu.tachesDuMenu() });
+const reposDeLaFrise = p => p.evenements.filter(e => e.type === "repos");
+const heure = n => planning.heureFr(n);
+
+test("tachesDuMenu : chaque étape dit son genre, options et suppléments compris", () => {
+  vide();
+  ajouter("focaccia-romarin");
+  assert.deepEqual(menu.tachesDuMenu()[0].etapes.map(e => e.genre), ["repos", "repos", "repos", "travail", "four"]);
+  assert.equal(menu.tachesDuMenu()[0].etapes[0].libelle, "Levée");
+  assert.equal(menu.tachesDuMenu()[0].etapes[4].libelle, "");
+
+  // L'option « pâte maison » dit adds: "repos" et un libellé qui est le sien.
+  vide();
+  ajouter("quiche-lorraine", { choices: { pate: "maison" } });
+  const quiche = menu.tachesDuMenu()[0].etapes;
+  assert.equal(quiche[0].genre, "repos");
+  assert.equal(quiche[0].libelle, "Pâte au frais");
+  assert.deepEqual(quiche.slice(1).map(e => e.genre), ["four", "travail", "travail", "four"]);
+  // Sans l'option, la pâte du commerce ne repose pas.
+  vide();
+  ajouter("quiche-lorraine");
+  assert.ok(menu.tachesDuMenu()[0].etapes.every(e => e.genre !== "repos"));
+});
+
+test("tachesDuMenu : un supplément minuté a sa propre étape, repos (l'oignon qui trempe) ou travail (les graines qu'on dore)", () => {
+  vide();
+  ajouter("salade-lentilles-feta", { addons: ["oignon-rouge"] });
+  const etapes = menu.tachesDuMenu()[0].etapes;
+  const oignon = etapes.find(e => e.titre === "Oignon rouge");
+  assert.deepEqual([oignon.genre, oignon.duree, oignon.libelle], ["repos", 10, "Oignon dans l'eau glacée"]);
+  assert.equal(etapes.indexOf(oignon), 2, "juste après la découpe qu'il enrichit");
+
+  vide();
+  ajouter("houmous-petits-pois-menthe", { addons: ["sesame"] });
+  const sesame = menu.tachesDuMenu()[0].etapes.find(e => e.duree === 2);
+  assert.equal(sesame.genre, "travail");
+  assert.equal(sesame.libelle, "");
+  // Le temps de la recette ne change pas : seule la répartition par étape.
+  assert.equal(menu.tachesDuMenu()[0].etapes.reduce((n, e) => n + e.duree, 0), 3 + 2);
+});
+
+test("focaccia : une seule levée de 2 h 50, du départ au quart d'heure de l'étape suivante", () => {
+  vide();
+  ajouter("focaccia-romarin");
+  const p = plan();
+  const [levee, ...autres] = reposDeLaFrise(p);
+  assert.equal(autres.length, 0, "les trois attentes qui se suivent ne font qu'un repos");
+  assert.equal(levee.t, TABLE - 210);
+  assert.equal(levee.duree, 170);
+  assert.equal(levee.fin, TABLE - 40);
+  assert.equal(levee.libelle, "Levée");
+  assert.equal(texteEvenement(levee), "Repos : Focaccia");
+  assert.deepEqual(detailRepos(levee), ["Levée : 2 h 50, jusqu'à 19 h 20", "Temps libre : tu peux t'absenter."]);
+  // Les étapes du plan portent leur genre, et les mains sont libres pendant la levée comme au four.
+  const etapes = p.recettes[0].etapes;
+  assert.deepEqual(etapes.map(e => e.genre), ["repos", "repos", "repos", "travail", "four"]);
+  assert.deepEqual(etapes.map(e => e.libre), [true, true, true, false, true]);
+});
+
+test("quiche à la pâte maison : le repos de la pâte ouvre la recette ; au commerce, aucun", () => {
+  vide();
+  ajouter("quiche-lorraine", { choices: { pate: "maison" } });
+  const p = plan();
+  const [pate] = reposDeLaFrise(p);
+  assert.equal(reposDeLaFrise(p).length, 1);
+  assert.equal(pate.t, p.recettes[0].debut);
+  assert.equal(pate.duree, 30);
+  assert.equal(pate.libelle, "Pâte au frais");
+  assert.equal(p.recettes[0].duree, 15 + 52 + 30);
+  vide();
+  ajouter("quiche-lorraine");
+  assert.equal(reposDeLaFrise(plan()).length, 0);
+});
+
+test("gravlax : la marinade de 12 h commence la veille, et la frise le sait", () => {
+  vide();
+  ajouter("gravlax-saumon-yaourt-bulgare");
+  const midi = minutesMurales(JOUR, 12 * 60);
+  const p = plan(midi);
+  const [marinade, congelo] = reposDeLaFrise(p);
+  assert.equal(p.recettes[0].duree, 30 + 735 + 2);
+  assert.equal(marinade.duree, 720);
+  assert.equal(marinade.jour, -1);
+  assert.equal(marinade.jourFin, 0);
+  assert.equal(heure(marinade.t), "23 h 20");
+  assert.equal(heure(marinade.fin), "11 h 20");
+  assert.deepEqual(detailRepos(marinade), ["Marinade : 12 h, jusqu'à 11 h 20, le lendemain", "Temps libre : tu peux t'absenter."]);
+  assert.equal(congelo.libelle, "Au congélateur");
+  assert.equal(congelo.duree, 15);
+  assert.equal(congelo.jour, 0);
+  // Tout ce qui précède le jour J le dit : le départ aussi.
+  assert.deepEqual(p.evenements.map(e => e.jour), [-1, -1, 0, 0]);
+  assert.equal(planning.jourRelatif(-1), "la veille");
+  assert.equal(planning.jourRelatif(-2), "l'avant-veille");
+  assert.equal(planning.jourRelatif(-4), "4 jours avant");
+  assert.equal(planning.jourRelatif(0), "");
+});
+
+test("salade méditerranéenne : deux repos distincts, le trempage et le repos de l'assemblage", () => {
+  vide();
+  ajouter("salade-mediterraneenne");
+  const [trempage, assemblage] = reposDeLaFrise(plan());
+  assert.deepEqual([trempage.duree, trempage.libelle], [10, "Oignon dans l'eau glacée"]);
+  assert.deepEqual([assemblage.duree, assemblage.libelle], [15, "Repos"]);
+  assert.equal(assemblage.fin, TABLE);
+  // Un libellé qui ne dit que « Repos » ne se répète pas dans le détail.
+  assert.equal(detailRepos(assemblage)[0], "15 min, jusqu'à 20 h");
+  // Moins d'un quart d'heure : les mains sont libres, mais on reste à côté.
+  assert.equal(detailRepos(trempage)[1], "Mains libres : reste à côté.");
+});
+
+test("mi-cuit : le refroidissement avant démoulage vient après le four, pas dedans", () => {
+  vide();
+  ajouter("mi-cuit-chocolat-suzy-palatin");
+  const p = plan();
+  const [froid] = reposDeLaFrise(p);
+  assert.deepEqual([froid.duree, froid.libelle], [10, "Refroidissement"]);
+  assert.equal(froid.t, p.recettes[0].four.sortie, "il commence à la sortie du four");
+  assert.equal(froid.fin, TABLE);
+  // Le four garde sa plage : le repos ne la rallonge pas.
+  assert.equal(p.recettes[0].four.sortie, TABLE - 10);
+  assert.ok(p.recettes[0].etapes.at(-1).libre);
+});
+
+test("un menu où un repos croise un autre plat : celui qui démarre pendant la marinade le sait", () => {
+  vide();
+  ajouter("gravlax-saumon-yaourt-bulgare");
+  ajouter("salade-mediterraneenne");
+  ajouter("mi-cuit-chocolat-suzy-palatin");
+  const p = plan();
+  const debut = k => p.evenements.find(e => e.type === "debut" && e.k === k);
+  assert.ok(debut("mi-cuit-chocolat-suzy-palatin").parallele.some(t => t.startsWith("Gravlax")));
+  // Les repos des trois plats se croisent à la frise, chacun avec sa recette.
+  const repos = reposDeLaFrise(p);
+  assert.deepEqual(repos.map(e => e.k).sort(), [
+    "gravlax-saumon-yaourt-bulgare", "gravlax-saumon-yaourt-bulgare",
+    "mi-cuit-chocolat-suzy-palatin", "salade-mediterraneenne", "salade-mediterraneenne"
+  ]);
+  // Dans l'ordre du temps, et un repos qui commence en même temps qu'un départ passe après lui.
+  assert.deepEqual(p.evenements.map(e => e.t), [...p.evenements.map(e => e.t)].sort((a, b) => a - b));
+  const iDebut = p.evenements.findIndex(e => e.type === "debut" && e.k === "gravlax-saumon-yaourt-bulgare");
+  assert.ok(p.evenements.findIndex(e => e.type === "repos" && e.k === "gravlax-saumon-yaourt-bulgare") > iDebut);
+});
+
+test("libre : la cuisson sur le feu d'un quart d'heure et plus libère les mains, pas un petit geste minuté", () => {
+  vide();
+  ajouter("salade-lentilles-feta");
+  const [lentilles] = plan().recettes[0].etapes;
+  assert.equal(lentilles.genre, "travail", "des lentilles qui mijotent ne sont pas un repos : on reste dans la cuisine");
+  assert.equal(lentilles.libre, true);
+  vide();
+  ajouter("tagliatelles-carotte-carbonara");
+  const lardons = plan().recettes[0].etapes.find(e => e.fin - e.debut === 5);
+  assert.deepEqual([lardons.genre, lardons.libre], ["travail", false]);
+});
+
+test("un menu sans repos : aucun événement de repos, aucun jour de la veille", () => {
+  vide();
+  ajouter("dip-chevre-herbes");
+  ajouter("scoopable-cookies");
+  const p = plan();
+  assert.equal(reposDeLaFrise(p).length, 0);
+  assert.ok(p.evenements.every(e => e.jour === 0));
+});
+
+test("des tâches faites à la main, sans genre, ne produisent pas de repos (compatibilité)", () => {
+  const p = planifier({ table: TABLE, taches: [{ k: "a", titre: "Pain", temps: { prep: 10, cuisson: 30 }, etapes: [{ titre: "Cuire", duree: 30, four: 200 }] }] });
+  assert.equal(reposDeLaFrise(p).length, 0);
+  assert.deepEqual(p.recettes[0].etapes.map(e => e.genre), ["four"]);
+});
+
+test("calendrier : les repos se lisent dans la description de la recette, sans événement de plus", () => {
+  vide();
+  ajouter("focaccia-romarin");
+  const ics = icsRepas(plan(), { horodatage: "20300601T000000Z" }).replace(/\r\n /g, "");
+  // Une recette, le préchauffage, la table : comme avant.
+  assert.equal(ics.match(/BEGIN:VEVENT/g).length, 3);
+  assert.match(ics, /\(repos\\, jusqu.à 19\sh\s20\)/);
+});

@@ -37,7 +37,9 @@ const au5 = n => Math.floor(n / PAS) * PAS;
 const sur5 = n => Math.ceil(n / PAS) * PAS;
 
 /* Un temps mort dont on profite pour faire autre chose : une levée, un repos,
-   un passage au four. En dessous d'un quart d'heure, on reste à côté. */
+   un passage au four, une cuisson qui mijote. En dessous d'un quart d'heure, on
+   reste à côté — sauf un repos, qui libère les mains par nature (voir
+   chronologie) ; au-delà du quart d'heure, il libère aussi la personne. */
 const SEUIL_LIBRE = 15;
 
 /* ---------- Heures ---------- */
@@ -114,14 +116,18 @@ export function nomCourt(titre) {
 
 /* ---------- Le déroulé d'une recette ---------- */
 
-/* Une tâche : { k, titre, temps: { prep, repos, cuisson }, supplement, etapes: [{ titre, duree, four }] }
+/* Une tâche : { k, titre, temps: { prep, repos, cuisson }, supplement, etapes: [{ titre, duree, four, genre, libelle }] }
    `duree` est le minuteur de l'étape (0 sans minuteur), `four` la température
-   où elle enfourne. Les temps de la recette disent combien dure le tout ; les
-   minuteurs disent où se logent les attentes ; le reste, c'est du travail des
-   mains, qu'on répartit sur les étapes sans minuteur. */
+   où elle enfourne. `genre` dit ce que l'étape demande : « repos » (rien à faire :
+   levée, marinade, trempage, congélateur), « four » (il chauffe), « travail » (le
+   reste : les gestes, le feu qu'on surveille) — sans genre, il se déduit de `four`.
+   `libelle` nomme un repos (« Levée »). Les temps de la recette disent combien
+   dure le tout ; les minuteurs disent où se logent les attentes ; le reste,
+   c'est du travail des mains, qu'on répartit sur les étapes sans minuteur. */
 function chronologie(tache) {
   const etapes = (tache.etapes || []).map(s => ({
-    titre: s.titre || "", duree: Math.max(0, Math.round(s.duree || 0)), four: s.four || null, prechauffe: s.prechauffe || null
+    titre: s.titre || "", duree: Math.max(0, Math.round(s.duree || 0)), four: s.four || null, prechauffe: s.prechauffe || null,
+    genre: s.four ? "four" : s.genre === "repos" ? "repos" : "travail", libelle: s.libelle || ""
   }));
   for (const e of etapes) e.fixe = e.duree > 0;
   const temps = tache.temps || {};
@@ -139,13 +145,17 @@ function chronologie(tache) {
   } else if (reste && etapes.length) {
     etapes[0].duree += reste;                  // tout minuté : le surplus ouvre la recette
   } else if (reste) {
-    etapes.push({ titre: tache.titre, duree: reste, four: null, fixe: false });
+    etapes.push({ titre: tache.titre, duree: reste, four: null, genre: "travail", libelle: "", fixe: false });
   }
 
   let t = 0;
   for (const e of etapes) {
     e.debut = t; t += e.duree; e.fin = t;
-    e.libre = !!e.four || (e.fixe && e.duree >= SEUIL_LIBRE);
+    /* Libres : le four et un repos (les mains n'y sont pour rien), et une cuisson
+       sur le feu de plus d'un quart d'heure — des lentilles qui mijotent ne
+       demandent pas les mains, seulement de rester dans la cuisine. C'est ce
+       qui distingue le « Temps libre » d'un repos (on peut s'absenter) du feu. */
+    e.libre = e.genre !== "travail" || (e.fixe && e.duree >= SEUIL_LIBRE);
   }
   /* Le four n'est occupé que pendant les étapes qui chauffent : des étapes qui
      s'enchaînent font une seule plage, mais une quiche qui sort après la cuisson
@@ -248,7 +258,7 @@ export function planifier({ table, maintenant = null, taches }) {
       retard: l.retard, avance: l.avance, four: l.four ? { temp: l.four.temp, entree: l.debut + l.four.entree, sortie: l.debut + l.four.sortie } : null,
       /* Les passages au four, un par plage : c'est là, et là seulement, qu'il est occupé. */
       plagesFour: (l.four?.plages || []).map(p => ({ temp: p.temp, entree: l.debut + p.entree, sortie: l.debut + p.sortie })),
-      etapes: l.etapes.map(e => ({ titre: e.titre, debut: l.debut + e.debut, fin: l.debut + e.fin, libre: e.libre }))
+      etapes: l.etapes.map(e => ({ titre: e.titre, debut: l.debut + e.debut, fin: l.debut + e.fin, libre: e.libre, genre: e.genre, libelle: e.libelle }))
     })),
     evenements: evenements(lignes, table + retard)
   };
@@ -267,6 +277,20 @@ function evenements(lignes, table) {
       }
     }
     if (l.fin <= table - 10 && !(l.four && l.fin === l.debut + l.four.sortie)) ev.push({ t: l.fin, type: "pret", k, titre });
+
+    /* Les repos d'une recette, d'un seul tenant : trois attentes qui se suivent
+       et portent le même nom (la levée de la focaccia : 120 + 20 + 30 min) ne
+       font qu'un repos à la frise. Un geste entre deux les sépare, et un autre
+       nom aussi — l'oignon qui trempe puis la vinaigrette qui macère sont deux
+       attentes, pas une. */
+    let courant = null;
+    for (const e of l.etapes) {
+      if (e.duree <= 0) continue;
+      if (e.genre !== "repos") { courant = null; continue; }
+      if (courant && courant.fin === l.debut + e.debut && courant.libelle === e.libelle) { courant.fin = l.debut + e.fin; courant.duree = courant.fin - courant.t; continue; }
+      courant = { t: l.debut + e.debut, type: "repos", k, titre, fin: l.debut + e.fin, duree: e.duree, libelle: e.libelle };
+      ev.push(courant);
+    }
   }
 
   /* Le four : allumé avant la première fournée, réglé à chaque changement de
@@ -285,6 +309,14 @@ function evenements(lignes, table) {
   }
   ev.push({ t: table, type: "table" });
 
+  /* Le jour, relatif à celui de la table (0 : le jour même, -1 : la veille) : une
+     marinade de 12 h fait commencer la veille, et l'heure seule ne le dirait pas. */
+  const jourTable = jourDe(table);
+  for (const e of ev) {
+    e.jour = jourDe(e.t) - jourTable;
+    if (e.fin != null) e.jourFin = jourDe(e.fin) - jourTable;
+  }
+
   /* Qui a les mains libres au moment où une recette démarre. */
   for (const e of ev) {
     if (e.type !== "debut") continue;
@@ -292,15 +324,31 @@ function evenements(lignes, table) {
       .filter(l => l.t.k !== e.k && l.etapes.some(s => s.libre && l.debut + s.debut <= e.t && e.t < l.debut + s.fin))
       .map(l => l.t.titre);
   }
-  const ordre = { prechauffage: 0, regler: 1, sortir: 2, debut: 3, enfourner: 4, pret: 5, table: 6 };
+  const ordre = { prechauffage: 0, regler: 1, sortir: 2, debut: 3, repos: 3.5, enfourner: 4, pret: 5, table: 6 };
   return ev.sort((a, b) => a.t - b.t || ordre[a.type] - ordre[b.type]);
 }
 
 /* ---------- Phrases ---------- */
 
+/* Le numéro du jour d'une minute murale : deux instants du même jour ont le même. */
+const jourDe = murales => Math.floor(murales / 1440);
+
+/* « la veille », « l'avant-veille », « 3 jours avant » : où tombe un jour relatif
+   à celui de la table (0 : le jour même, rien à dire). */
+export function jourRelatif(jour) {
+  if (!jour) return "";
+  if (jour === 1) return "le lendemain";
+  if (jour === -1) return "la veille";
+  if (jour === -2) return "l'avant-veille";
+  return jour < 0 ? `${-jour} jours avant` : `${jour} jours après`;
+}
+
+/* Un repos n'est pas un geste : la ligne le dit en deux mots, le détail
+   (detailRepos) dit combien de temps et jusqu'à quand. */
 export function texteEvenement(e) {
   const nom = nomCourt(e.titre);
   switch (e.type) {
+    case "repos": return `Repos : ${nom}`;
     case "debut": return `Démarre : ${nom}`;
     case "prechauffage": return `Préchauffe le four à ${e.temp} °C`;
     case "regler": return `Règle le four à ${e.temp} °C`;
@@ -309,6 +357,20 @@ export function texteEvenement(e) {
     case "pret": return `Terminé en avance : ${nom}`;
     default: return "À table !";
   }
+}
+
+/* Les lignes qui suivent un repos : « Levée : 2 h 50, jusqu'à 17 h 30 », puis ce
+   qu'il libère. Passé un quart d'heure, on peut s'absenter ; en deçà, on reste à
+   côté mais les mains sont libres. Quand le repos finit un autre jour que celui
+   où il commence (la marinade du soir), on le dit. */
+export function detailRepos(e) {
+  const libelle = e.libelle && e.libelle.trim().toLowerCase() !== "repos" ? `${e.libelle} : ` : "";
+  const autreJour = (e.jourFin ?? 0) - (e.jour ?? 0);
+  const quand = autreJour ? `, ${jourRelatif(autreJour)}` : "";
+  return [
+    `${libelle}${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`,
+    e.duree >= SEUIL_LIBRE ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."
+  ];
 }
 
 /* « À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé : enfourne
@@ -394,7 +456,13 @@ export function icsRepas(plan, { horodatage, convives = null } = {}) {
   for (const r of plan.recettes) {
     evenement({
       debut: r.debut, fin: r.fin, titre: `Cuisiner : ${nomCourt(r.titre)}`, rappel: 10,
-      description: r.etapes.filter(e => e.titre).map(e => `${heureFr(e.debut)} · ${e.titre}`).join("\n")
+      /* Les repos ne sont pas des rendez-vous : le calendrier montre à quelle heure
+         démarrer et la table, pas une alarme par attente. Ils se lisent dans la
+         description, avec leur fin — c'est ce qu'on regarde pour savoir si l'on
+         peut sortir. */
+      description: r.etapes.filter(e => e.titre).map(e => e.genre === "repos"
+        ? `${heureFr(e.debut)} · ${e.titre} (repos, jusqu'à ${heureFr(e.fin)})`
+        : `${heureFr(e.debut)} · ${e.titre}`).join("\n")
     });
   }
   for (const e of plan.evenements.filter(x => x.type === "prechauffage" || x.type === "regler")) {

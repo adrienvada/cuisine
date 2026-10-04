@@ -90,7 +90,8 @@ test("focaccia seule : départ, entrée au four, sortie à l'heure, préchauffag
   assert.equal(pre.t, TABLE - 20 - planning.dureePrechauffage(220));
   assert.equal(pre.temp, 220);
   assert.equal(texteEvenement(pre), "Préchauffe le four à 220 °C");
-  assert.deepEqual(plan.evenements.map(e => e.type), ["debut", "prechauffage", "enfourner", "sortir", "table"]);
+  // La levée (120 + 20 + 30 min de repos) fait désormais sa propre ligne de frise.
+  assert.deepEqual(plan.evenements.map(e => e.type), ["debut", "repos", "prechauffage", "enfourner", "sortir", "table"]);
 });
 
 test("les départs tombent sur des multiples de cinq minutes, jamais après l'heure", () => {
