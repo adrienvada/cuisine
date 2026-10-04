@@ -84,7 +84,7 @@ document.body.addEventListener("click", e => {
 });
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  window.addEventListener("load", () => import("./ui/miseajour.js").then(m => m.surveillerMiseAJour()).catch(() => {}));
 }
 
 initialiserTheme();

@@ -227,7 +227,7 @@ test.fixme("B6 — l'AudioContext est créé ou repris pendant le toucher sur «
 test.describe("B7", () => {
   test.use({ serviceWorkers: "allow" });
 
-  test.fixme("B7 — appli en cache, réseau muet : elle s'affiche en moins de 3 s au rechargement", async ({ page, baseURL }) => {
+  test("B7 — appli en cache, réseau muet : elle s'affiche en moins de 3 s au rechargement", async ({ page, baseURL }) => {
     try {
       await page.goto("/");
       await page.evaluate(() => navigator.serviceWorker.ready);

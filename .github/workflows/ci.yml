@@ -25,6 +25,12 @@ jobs:
         run: |
           npm run pages
           git diff --exit-code -- r f
+      - name: Vignettes à jour
+        run: npm run vignettes -- --verifier
+      - name: Service worker à jour
+        run: |
+          npm run sw
+          git diff --exit-code sw.js
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

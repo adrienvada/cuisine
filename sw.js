@@ -1,25 +1,81 @@
-/* Service worker — cache l'application pour un usage hors ligne */
+/* Service worker — l'appli s'ouvre depuis le cache, sans attendre le réseau.
 
-const VERSION = "v25";
-const CACHE = `carnet-cuisine-${VERSION}`;
+   · Les fichiers de l'appli (CORE) sont servis depuis le cache et renouvelés à
+     l'installation d'une nouvelle version du service worker.
+   · Les images : « stale-while-revalidate » — le cache répond tout de suite, le réseau
+     rafraîchit la copie pour la fois suivante.
+   · Les pages d'aperçu r/ et f/ : réseau d'abord, mais 3 s au plus, puis le cache.
+
+   VERSION et CORE sont écrits par tools/version-sw.mjs (npm run sw) : ne pas les
+   modifier à la main. La version dérive du contenu des fichiers, elle change donc
+   toute seule quand l'un d'eux change. */
+
+/* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
+const VERSION = "c03742f11d";
 
 const CORE = [
   "./",
-  "index.html",
-  "css/polices.css",
-  "css/base.css",
   "css/accueil.css",
-  "css/fiche.css",
-  "css/cuisine.css",
-  "css/menu.css",
+  "css/base.css",
   "css/courses.css",
+  "css/cuisine.css",
+  "css/fiche.css",
+  "css/menu.css",
   "css/minuteurs.css",
+  "css/polices.css",
   "css/savoirs.css",
+  "favicon.ico",
+  "fonts/LICENCE.txt",
   "fonts/caveat.woff2",
-  "fonts/cormorant.woff2",
   "fonts/cormorant-italique.woff2",
-  "js/sync-config.js",
-  "js/main.js",
+  "fonts/cormorant.woff2",
+  "icons/apple-touch-icon.png",
+  "icons/favicon-32.png",
+  "icons/icon-192.png",
+  "icons/icon-512.png",
+  "icons/icon.svg",
+  "img/c/beignets-brebis-menthe.webp",
+  "img/c/cake-sale.webp",
+  "img/c/cocktail-concombre-menthe.webp",
+  "img/c/dip-chevre-herbes.webp",
+  "img/c/focaccia-romarin.webp",
+  "img/c/gravlax-saumon-yaourt-bulgare.webp",
+  "img/c/houmous-petits-pois-menthe.webp",
+  "img/c/mayonnaise-maison.webp",
+  "img/c/mi-cuit-chocolat-suzy-palatin.webp",
+  "img/c/pesto-basilic-maison.webp",
+  "img/c/quiche-lorraine.webp",
+  "img/c/salade-champetre.webp",
+  "img/c/salade-kale-pomme-oeuf.webp",
+  "img/c/salade-lentilles-feta.webp",
+  "img/c/salade-mediterraneenne.webp",
+  "img/c/scoopable-cookies.webp",
+  "img/c/tagliatelles-carotte-carbonara.webp",
+  "img/c/tartines-figues-chevre-miel.webp",
+  "img/c/torsades-pesto.webp",
+  "img/c/veloute-butternut-shiitakes.webp",
+  "img/v/beignets-brebis-menthe.webp",
+  "img/v/cake-sale.webp",
+  "img/v/cocktail-concombre-menthe.webp",
+  "img/v/dip-chevre-herbes.webp",
+  "img/v/focaccia-romarin.webp",
+  "img/v/gravlax-saumon-yaourt-bulgare.webp",
+  "img/v/houmous-petits-pois-menthe.webp",
+  "img/v/mayonnaise-maison.webp",
+  "img/v/mi-cuit-chocolat-suzy-palatin.webp",
+  "img/v/pesto-basilic-maison.webp",
+  "img/v/quiche-lorraine.webp",
+  "img/v/salade-champetre.webp",
+  "img/v/salade-kale-pomme-oeuf.webp",
+  "img/v/salade-lentilles-feta.webp",
+  "img/v/salade-mediterraneenne.webp",
+  "img/v/scoopable-cookies.webp",
+  "img/v/tagliatelles-carotte-carbonara.webp",
+  "img/v/tartines-figues-chevre-miel.webp",
+  "img/v/torsades-pesto.webp",
+  "img/v/veloute-butternut-shiitakes.webp",
+  "index.html",
+  "js/allergenes.js",
   "js/core/courses.js",
   "js/core/etat.js",
   "js/core/fonds.js",
@@ -29,8 +85,18 @@ const CORE = [
   "js/core/menu.js",
   "js/core/recettes.js",
   "js/core/seance.js",
+  "js/fondamentaux.js",
+  "js/illos.js",
+  "js/main.js",
+  "js/placard.js",
+  "js/recipes.js",
+  "js/saisons.js",
+  "js/substitutions.js",
+  "js/sync-config.js",
+  "js/sync.js",
   "js/ui/feuilles.js",
   "js/ui/minuteurs.js",
+  "js/ui/miseajour.js",
   "js/ui/partage.js",
   "js/ui/routeur.js",
   "js/ui/theme.js",
@@ -42,46 +108,98 @@ const CORE = [
   "js/vues/fiche.js",
   "js/vues/menu.js",
   "js/vues/savoirs.js",
-  "js/sync.js",
-  "js/recipes.js",
-  "js/placard.js",
-  "js/allergenes.js",
-  "js/saisons.js",
-  "js/substitutions.js",
-  "js/fondamentaux.js",
-  "js/illos.js",
-  "manifest.webmanifest",
-  "icons/icon.svg",
-  "icons/icon-192.png",
-  "icons/icon-512.png"
+  "manifest.webmanifest"
 ];
+/* <<< fin du bloc généré */
 
+const CACHE = `carnet-cuisine-${VERSION}`;
+/* Images et pages d'aperçu : un cache qui survit aux changements de version. */
+const EXECUTION = "carnet-execution";
+const DELAI_RESEAU = 3000;
+
+/* Pas de skipWaiting ici : une nouvelle version attend que l'appli, qui affiche
+   « Nouvelle version — Recharger », le demande (message « activer »). Elle ne
+   remplace donc jamais en silence le code d'une page ouverte. */
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // « reload » contourne le cache HTTP du navigateur (GitHub Pages en garde dix
+  // minutes) : sans lui, une version neuve pourrait mettre en cache les fichiers d'hier.
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(f => new Request(f, { cache: "reload" })))));
 });
 
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(cles => Promise.all(cles.filter(k => k.startsWith("carnet-cuisine-") && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("fetch", e => {
-  const url = new URL(e.request.url);
-  if (e.request.method !== "GET") return;
+self.addEventListener("message", e => {
+  if (e.data && e.data.type === "activer") self.skipWaiting();
+});
 
+self.addEventListener("fetch", e => {
+  const req = e.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  // Supabase et le reste du monde : le service worker n'y touche pas.
   if (url.origin !== location.origin) return;
 
-  /* Fichiers du site : réseau d'abord (pour recevoir les mises à jour), cache en secours */
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(e.request).then(hit => hit || caches.match("index.html")))
-  );
+  const chemin = url.pathname.slice(new URL("./", location).pathname.length);
+  if (/^(r|f)\//.test(chemin)) return e.respondWith(reseauPuisCache(req));
+  if (/^img\/.+\.(jpg|webp)$/.test(chemin)) return e.respondWith(cachePuisReseau(e, req));
+  e.respondWith(depuisLeCache(req));
 });
+
+/* Fichiers de l'appli : le cache de la version, sans regarder la requête d'adresse
+   (« ?utm… »). Hors du cache (fichier inconnu, ou navigation hors ligne), le réseau ;
+   une navigation sans réseau retombe sur l'appli. */
+async function depuisLeCache(req) {
+  const cache = await caches.open(CACHE);
+  const hit = await cache.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try {
+    return await fetch(req);
+  } catch (err) {
+    if (req.mode === "navigate") {
+      const accueil = await cache.match("index.html");
+      if (accueil) return accueil;
+    }
+    throw err;
+  }
+}
+
+/* Images : la copie en cache (celle de l'exécution, sinon celle de l'installation)
+   répond tout de suite ; le réseau la rafraîchit en coulisse. Seules les réponses
+   « ok » entrent en cache : un 404 y serait resservi pour toujours. */
+async function cachePuisReseau(e, req) {
+  const cache = await caches.open(EXECUTION);
+  const hit = (await cache.match(req)) || (await caches.match(req));
+  const maj = fetch(req)
+    .then(res => {
+      if (res.ok) cache.put(req, res.clone());
+      return res;
+    })
+    .catch(() => null);
+  e.waitUntil(maj);
+  return hit || (await maj) || Response.error();
+}
+
+/* Pages d'aperçu : à jour si le réseau répond vite, sinon la copie en cache. Sans
+   copie, on attend le réseau jusqu'au bout. */
+async function reseauPuisCache(req) {
+  const cache = await caches.open(EXECUTION);
+  const reseau = fetch(req).then(res => {
+    if (res.ok) cache.put(req, res.clone());
+    return res;
+  });
+  reseau.catch(() => {});
+  const delai = new Promise(r => setTimeout(() => r(null), DELAI_RESEAU));
+  try {
+    const res = await Promise.race([reseau, delai]);
+    if (res) return res;
+  } catch {
+    // Réseau en échec franc : la copie en cache, si elle existe.
+  }
+  return (await cache.match(req)) || reseau;
+}
