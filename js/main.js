@@ -10,7 +10,8 @@ import { migrer, state, surEchecSauvegarde } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
 import { drawTray, ensureTick } from "./ui/minuteurs.js";
 import { moduleCharge, retourVers, route } from "./ui/routeur.js";
-import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
+import { initialiserTheme } from "./ui/theme.js";
+import { mouvementReduit } from "./ui/mouvement.js";
 import { toast } from "./ui/toast.js";
 import { installerTypo } from "./ui/typo.js";
 import { initialiserReglages } from "./vues/reglages.js";
@@ -44,7 +45,7 @@ tenter("typographie", installerTypo);
    partage du carnet (vignette, page recette, mode cuisine, menu, savoirs,
    liste de courses). Purement décoratif — l'action suit son cours normal. */
 document.addEventListener("pointerdown", e => {
-  if (REDUCE_MOTION.matches) return;
+  if (mouvementReduit()) return;
   const b = e.target.closest('[data-share], #share-recipe, #cook-share, #share-menu, #f-share, #f-share-page, #share');
   if (!b) return;
   const icon = b.querySelector("svg");
@@ -59,7 +60,7 @@ document.addEventListener("input", e => {
   const input = e.target;
   if (!(input instanceof HTMLInputElement) || input.type !== "search") return;
   const bar = input.closest(".searchbar");
-  if (!bar || REDUCE_MOTION.matches) return;
+  if (!bar || mouvementReduit()) return;
   bar.classList.add("typing");
   clearTimeout(bar._typingTimer);
   bar._typingTimer = setTimeout(() => bar.classList.remove("typing"), 500);

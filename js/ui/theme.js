@@ -1,6 +1,5 @@
-/* Thème automatique, clair ou sombre, et préférence de mouvement réduit. */
-
-export const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)");
+/* Thème automatique, clair ou sombre. (La préférence de mouvement réduit vit dans
+   js/ui/mouvement.js : mouvementReduit(), un seul mécanisme pour toute l'appli.) */
 
 const SYSTEME_SOMBRE = matchMedia("(prefers-color-scheme: dark)");
 

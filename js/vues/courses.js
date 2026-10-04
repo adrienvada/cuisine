@@ -8,7 +8,7 @@ import { basiquesManquants, menuEntrees, resetHints } from "../core/menu.js";
 import { garderFocus } from "../ui/focus.js";
 import { shareOrCopy } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
-import { REDUCE_MOTION } from "../ui/theme.js";
+import { mouvementReduit } from "../ui/mouvement.js";
 import { toast, updateBadge } from "../ui/toast.js";
 
 /* L'élagage des coches doit tourner même quand l'onglet n'est pas affiché
@@ -281,7 +281,7 @@ function surCoche(e) {
   else delete state.checked[cb.dataset.key];
   save(); updateBadge();
   clearTimeout(delaiPanier);
-  if (REDUCE_MOTION.matches) { redessiner(); return; }
+  if (mouvementReduit()) { redessiner(); return; }
   cb.closest("li.art").classList.add("part");
   delaiPanier = setTimeout(rendreSiAffichee, 260);
 }
