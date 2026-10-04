@@ -1,0 +1,338 @@
+/* Onglet Courses : le menu en une ligne, la liste par rayon cochable, le panier,
+   le placard, l'ordre des rayons, la provenance des quantités, la suggestion de
+   basiques et les articles libres. L'en-tête de page est dans base.css. */
+
+/* Contour des cases : au moins 3:1 sur la carte comme sur le papier, dans les
+   deux thèmes (l'ancien trait, --line, n'en offrait que 1,4). La coche reste
+   lisible sur le vert, plus clair en sombre. */
+:root { --case-bord: #7D7A68; --case-coche: #fff; }
+html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
+
+/* Le menu en une ligne : le détail vit dans l'onglet Au menu. */
+.menu-ligne { margin: 14px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+
+.menu-ligne a {
+  display: inline-block;
+  padding: 12px 6px;
+  margin: -12px 0;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+/* Supprimer un article libre de la liste de courses : une croix de 40 px dont
+   les marges négatives rendent la place empruntée à la ligne. */
+.course-list .x {
+  flex: none;
+  width: 44px; height: 44px;
+  margin: -10px -8px -10px 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.rayon { margin-top: 20px; }
+
+.rayon > h2 {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 7px;
+}
+
+.course-list { list-style: none; margin: 0; padding: 0; }
+
+.course-list > li { border-bottom: 1px dashed var(--line-soft); }
+
+.course-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 9px 2px;
+  font-size: 15.5px;
+}
+
+.course-list label { position: relative; }
+
+/* La vraie case reste dans la page, invisible : le clavier et les lecteurs
+   d'écran la trouvent, et le rond dessiné à côté porte le focus. */
+.course-list input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+
+.course-list input:focus-visible + .tick { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.tick {
+  flex: none;
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  border: 2px solid var(--case-bord);
+  background: var(--card);
+  display: flex; align-items: center; justify-content: center;
+  color: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tick svg { width: 16px; height: 16px; }
+
+.course-list input:checked + .tick { background: var(--green); border-color: var(--green); color: var(--case-coche); }
+
+.course-list .lbl { flex: 1; min-width: 0; }
+
+/* Le nom ouvre la provenance : un bouton qui a l'air de texte, dont la zone de
+   contact (44 px de haut) est prise sur les marges de la ligne. */
+.course-list .nom {
+  display: inline-block;
+  padding: 12px 6px 12px 0;
+  min-width: 44px;
+  margin: -12px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline dotted var(--line);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+
+.course-list .nom[aria-expanded="true"] { text-decoration-color: var(--gold); }
+
+.course-list span.nom { text-decoration: none; padding: 0; margin: 0; }
+
+.course-list .opt { font-size: 11.5px; color: var(--gold-deep); }
+
+.course-list input:checked ~ .lbl { color: var(--muted); }
+
+.course-list input:checked ~ .lbl .nom { text-decoration: line-through; }
+
+.course-list .cqty { font-weight: 600; color: var(--green-deep); text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; max-width: 42%; }
+
+.course-list input:checked ~ .cqty { color: var(--muted); font-weight: 400; }
+
+.course-list .cnote { display: block; font-size: 12.5px; color: var(--muted); }
+
+/* D'où vient la quantité : recette par recette, sous l'article. */
+.origine {
+  list-style: none;
+  margin: -2px 0 10px 38px;
+  padding: 8px 12px;
+  background: var(--paper-deep);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+.origine[hidden] { display: none; }
+
+.course-list .origine li { padding: 2px 0; border: 0; }
+
+/* L'article qui part au panier (ou qui en revient) s'efface avant d'être redessiné. */
+.art.part { animation: art-part 0.24s ease forwards; }
+
+@keyframes art-part { to { opacity: 0; transform: translateX(14px); } }
+
+/* ---------- Avancement et outils ---------- */
+
+.avance-bloc { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+
+.avance { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-deep); border: 1px solid var(--line); overflow: hidden; }
+
+.avance span { display: block; height: 100%; background: var(--green); border-radius: 999px; transition: width 0.3s ease; }
+
+.avance-txt { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--green-deep); white-space: nowrap; }
+
+.outils { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px; margin-top: 2px; }
+
+.lien-outil {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--green-deep);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.outils .lien-outil:only-child { margin-left: auto; }
+
+.fini { text-align: center; color: var(--muted); margin: 26px 0 6px; font-family: var(--script); font-size: 22px; }
+
+/* ---------- Placard et panier ---------- */
+
+.placard-aide { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
+.rayon.placard > h2 { color: var(--terra); }
+
+.panier { margin-top: 24px; border-top: 1px solid var(--line); }
+
+.panier > summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green-deep);
+}
+
+.panier > summary::-webkit-details-marker { display: none; }
+
+.panier > summary::after {
+  content: "";
+  width: 8px; height: 8px;
+  margin: -4px 6px 0 auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.panier[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+
+/* ---------- Ranger les rayons ---------- */
+
+.ranger { margin-top: 18px; }
+
+.ranger > h2 { font-family: var(--serif); font-size: 26px; color: var(--green-deep); margin: 0; }
+
+.ranger-aide { margin: 4px 0 12px; font-size: 14px; color: var(--muted); }
+
+.ranger-liste { list-style: none; margin: 0; padding: 0; }
+
+.ranger-liste li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+.r-nom { flex: 1; min-width: 0; font-size: 15.5px; }
+
+.r-nom small { display: block; font-size: 12.5px; color: var(--muted); }
+
+.r-btn {
+  flex: none;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--green-deep);
+}
+
+.r-btn svg { width: 20px; height: 20px; }
+
+.r-btn:disabled { opacity: 0.35; cursor: default; }
+
+.r-btn:active:not(:disabled) { background: var(--green-tint); }
+
+.ranger-liste .r-fixe { padding: 12px 0; }
+
+/* ---------- Ce qui manque au repas (liste de courses : le pain) ----------
+   Un mot glissé en bas de page, jamais un encadré : la suggestion doit peser
+   moins que ce qu'elle signale. Le pointillé dit « pas encore là » sans avoir
+   à l'écrire. */
+
+.menu-hint {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 7px;
+  margin: 8px 2px 0;
+  color: var(--muted);
+}
+
+.menu-hint .mh-txt { font-family: var(--script); font-size: 18px; }
+
+.mh-chip {
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--green-deep);
+  border-radius: 999px;
+  padding: 4px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  /* La pastille garde son allure ; le doigt, lui, a 44 px. La marge empêche deux
+     rangées de se disputer le même halo. */
+  position: relative;
+  margin: 10px 0;
+}
+
+.mh-chip::before { content: ""; position: absolute; inset: -11px -2px; }
+
+.mh-chip:active { background: var(--green-tint); border-style: solid; }
+
+/* Au fil de la ligne, jamais poussé à droite : collé au bord, il retombait
+   seul sur une deuxième ligne et la suggestion pesait le double. */
+.mh-x {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+
+.add-extra {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.add-extra input {
+  flex: 1;
+  border: 1px solid var(--champ-bord);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 15px;
+  color: var(--ink);
+  min-width: 0;
+  min-height: 44px;
+}
+
+.add-extra input::placeholder { color: var(--muted); }
+
+.add-extra button {
+  border: none;
+  background: var(--green);
+  color: #FDFBF3;
+  border-radius: 12px;
+  width: 46px;
+  min-height: 44px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* Côte à côte quand la place le permet, empilés sur les petits écrans */
+.course-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+.course-actions .btn { flex: 1 1 210px; }
+
+/* Badge « supplément » dans la liste de courses */
+.sup-tag {
+  font-size: 11.5px;
+  color: var(--terra);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .art.part { animation: none; }
+  .avance span, .tick, .panier > summary::after { transition: none; }
+}

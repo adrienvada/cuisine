@@ -1,0 +1,138 @@
+/* Minuteurs : le plateau de bulles en bas d'écran, qui reste affiché sur tous
+   les écrans. Le compte à rebours du mode cuisine est dans cuisine.css. */
+
+/* ---------- Minuteurs multiples ---------- */
+
+.timer-tray[hidden] { display: none; }
+
+.timer-tray {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(86px + var(--safe-b));
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 6px 14px;
+  z-index: 160;                   /* au-dessus des feuilles (150) : un minuteur qui sonne reste atteignable */
+  scrollbar-width: none;
+  pointer-events: none;
+}
+
+.timer-tray::-webkit-scrollbar { display: none; }
+
+/* Un plateau dont toutes les bulles sont masquées ne tient aucune place */
+.timer-tray:not(:has(.timer-pill:not(.masquee))) { display: none; }
+
+/* Hors mode cuisine, le plateau flotte au-dessus de la barre d'onglets : la page
+   se réserve sa hauteur (--plateau-h), et la barre d'actions collante de la
+   fiche monte d'autant au lieu de passer dessous. */
+body.avec-minuteurs:not(.cooking) { --plateau-h: 56px; }
+
+body.avec-minuteurs:not(.cooking) #app { padding-bottom: calc(84px + var(--plateau-h) + var(--safe-b)); }
+
+body.avec-minuteurs:not(.cooking) .actions { bottom: calc(78px + var(--plateau-h) + var(--safe-b)); }
+
+/* En mode cuisine il a sa place dans la mise en page, entre l'étape et les
+   boutons : il ne recouvre plus rien. */
+body.cooking .timer-tray {
+  position: static;
+  flex: none;
+  padding: 8px 0 0;
+  z-index: auto;
+  /* À la ligne plutôt qu'à défiler : une bulle qui sonne ne doit jamais rester
+     cachée hors de l'écran. Au-delà de deux rangées, le plateau défile en hauteur. */
+  flex-wrap: wrap;
+  overflow-x: visible;
+  overflow-y: auto;
+  max-height: 124px;
+}
+
+body.cooking .timer-tray .timer-pill { max-width: 100%; }
+
+body.cooking .timer-pill:not(.done) {
+  background: rgba(244, 239, 224, 0.14);
+  box-shadow: none;
+  border: 1px solid rgba(244, 239, 224, 0.28);
+}
+
+.timer-pill {
+  pointer-events: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  background: var(--green-deep);
+  color: #F4EFE0;
+  border-radius: 999px;
+  min-height: 44px;
+  padding-right: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(44, 51, 38, 0.35);
+}
+
+/* Les boutons de la bulle : la bulle ramène à l'étape, le reste agit sur le
+   minuteur. Chacun garde une zone de contact d'un pouce. */
+.timer-pill button {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-pill .t-go { gap: 8px; min-height: 44px; padding: 0 6px 0 14px; text-align: left; }
+
+/* Étroite (320 px), la bulle d'un libellé long dépassait de l'écran et la croix
+   d'arrêt n'était plus atteignable : c'est le libellé qui cède, jamais les boutons. */
+.timer-pill { max-width: calc(100vw - 28px); }
+.timer-pill .t-go { min-width: 0; flex: 1 1 auto; }
+.timer-pill .t-act { flex: none; }
+
+.timer-pill .t-act { min-width: 44px; min-height: 44px; padding: 0; border-radius: 999px; font-size: 13px; font-weight: 700; }
+
+.timer-pill .t-act svg { width: 14px; height: 14px; color: inherit; }
+
+.timer-pill.masquee { display: none; }
+
+/* En mode sombre --green-deep devient un vert clair : la bulle garde son vert
+   profond, sur lequel l'encre crème reste lisible. */
+html[data-theme="dark"] .timer-pill:not(.done) {
+  background: #31492B;
+  border: 1px solid rgba(244, 239, 224, 0.2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.timer-pill.en-pause .t-clock { opacity: 0.6; }
+
+.timer-pill svg { width: 15px; height: 15px; color: var(--gold); }
+
+.timer-pill .t-label {
+  max-width: 110px;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timer-pill .t-clock { font-variant-numeric: tabular-nums; color: var(--gold); }
+
+.timer-pill .t-x { opacity: 0.75; font-size: 14px; }
+
+.timer-pill.done .t-x { opacity: 1; background: rgba(51, 39, 13, 0.16); }
+
+.timer-pill.done {
+  background: var(--gold);
+  color: #33270D;
+  animation: flash 1s infinite;
+}
+
+.timer-pill.done svg, .timer-pill.done .t-clock { color: #33270D; }
+
+@media (prefers-reduced-motion: reduce) {
+  .timer-pill.done, .cook-timer .clock.flash, .addon-timer .clock.flash, .timer-pill .t-clock.flash { animation: none; }
+}
+
+@keyframes flash { 50% { opacity: 0.25; } }

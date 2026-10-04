@@ -1,0 +1,17 @@
+{
+  "name": "carnet-cuisine",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verifier": "node tools/verifier-recettes.mjs",
+    "pages": "node tools/generer-pages-partage.mjs",
+    "sw": "node tools/version-sw.mjs",
+    "vignettes": "node tools/generer-vignettes.mjs",
+    "test": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "sharp": "^0.35.5"
+  }
+}

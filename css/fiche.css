@@ -1,0 +1,540 @@
+/* Fiche d'une recette : héro, temps, ingrédients à l'échelle, composition de la
+   version (choix et suppléments), étapes et astuces, coups de cœur, actions.
+   Les boutons « Partager » et les flèches de retour sont dans base.css. */
+
+.hero {
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+}
+
+.hero .visual { height: 240px; display: flex; align-items: center; justify-content: center; font-size: 84px; position: relative; }
+
+.hero .visual picture { display: block; width: 100%; height: 100%; }
+
+.hero .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero .visual > svg { width: 56%; height: 82%; }
+
+.hero .corner { position: absolute; width: 54px; height: 54px; opacity: 0.9; pointer-events: none; }
+.hero .corner svg { width: 100%; height: 100%; }
+.hero .corner.tl { top: 6px; left: 8px; transform: scaleY(-1); }
+.hero .corner.tr { top: 6px; right: 8px; transform: scale(-1, -1); }
+.hero .corner.bl { bottom: 6px; left: 8px; }
+.hero .corner.br { bottom: 6px; right: 8px; transform: scaleX(-1); }
+
+.r-head { padding: 4px 2px; }
+
+.r-head h1 { font-size: 32px; line-height: 1.08; margin-top: 14px; }
+
+.r-head .subtitle { font-family: var(--script); font-size: 20px; font-weight: 500; color: var(--ink-soft); margin: 4px 0 0; }
+
+/* Pastille « Découverte à… » : d'où vient la recette */
+.disc-row { margin: 12px 0 0; }
+
+.discovered {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--gold-tint);
+  border: 1px solid var(--gold-deco);
+  border-radius: 999px;
+  padding: 7px 15px 7px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--gold-deep);
+}
+
+.discovered svg { width: 15px; height: 15px; flex: none; align-self: flex-start; margin-top: 2px; color: var(--gold-deco); }
+
+.timerow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 14px 0 4px;
+}
+
+.timechip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.timechip svg { width: 14px; height: 14px; color: var(--gold-deco); }
+
+.section { margin-top: 22px; }
+
+.section > h2 {
+  font-size: 23px;
+  display: flex;
+  flex-wrap: wrap;                /* à 320 px, les portions passent sous le titre plutôt que de déborder */
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h-deco { display: inline-flex; align-self: center; color: var(--green); margin-right: 2px; }
+.h-deco svg { width: 19px; height: 18px; }
+.h-title { flex: 1; display: inline-flex; align-items: baseline; gap: 8px; }
+
+.portions {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+/* 44 px : on ajuste les portions en cuisinant, souvent d'un pouce approximatif. */
+.portions button {
+  width: 44px; height: 44px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  font-size: 17px;
+  color: var(--green);
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.portions button:active { background: var(--green-tint); }
+
+.portions .val { font-size: 13.5px; font-weight: 600; padding: 0 6px; min-width: 74px; text-align: center; font-variant-numeric: tabular-nums; }
+
+.ing-list { list-style: none; margin: 12px 0 0; padding: 0; }
+
+.ing-list li { border-bottom: 1px dashed var(--line); font-size: 15.5px; }
+
+/* Toute la ligne se touche (44 px au moins) : elle ouvre la feuille de l'ingrédient. */
+.ing-ligne {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.ing-ligne:active { background: var(--green-tint); }
+
+.ing-nom { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.ing-chev { flex: none; align-self: center; color: var(--muted); opacity: 0.55; }
+.ing-chev svg { width: 14px; height: 14px; display: block; }
+
+.ing-list li:last-child { border-bottom: none; }
+
+.ing-list .qty { font-weight: 600; color: var(--green-deep); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 64px; }
+
+.ing-list .note { color: var(--muted); font-size: 13px; }
+
+.ing-list .opt { font-size: 11.5px; color: var(--gold); border: 1px solid currentColor; border-radius: 999px; padding: 1px 7px; margin-left: 4px; white-space: nowrap; }
+
+.steps { list-style: none; margin: 14px 0 0; padding: 0; counter-reset: step; }
+
+.steps > li { display: flex; gap: 14px; padding: 12px 0; }
+
+.steps .num {
+  flex: none;
+  width: 30px; height: 30px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #FDFBF3;
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+
+.steps h3 { font-size: 19px; font-weight: 700; margin-bottom: 3px; }
+
+.steps p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+
+.tip {
+  margin-top: 10px;
+  background: var(--green-tint);
+  border-left: 3px solid var(--green);
+  border-radius: 4px 12px 12px 4px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--green-deep);
+  display: flex;
+  gap: 10px;
+}
+
+.tip-ico { flex: none; color: var(--green); margin-top: 1px; }
+.tip-ico svg { width: 20px; height: 20px; }
+.tip-body { flex: 1; font-family: var(--serif); font-style: italic; font-size: 15.5px; line-height: 1.45; }
+
+.tip b { display: block; font-family: var(--sans); font-style: normal; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; color: var(--green); }
+
+.tip.beige { background: #F1EBDB; border-left-color: var(--gold); color: #6B5C3A; }
+.tip.beige b, .tip.beige .tip-ico { color: var(--gold); }
+
+.recipe-note {
+  margin: 22px 0 8px;
+  font-family: var(--script);
+  font-size: 22px;
+  font-weight: 500;
+  text-align: center;
+  color: var(--green-deep);
+  transform: rotate(-1.2deg);
+}
+
+.recipe-note .n-heart { display: inline-block; width: 16px; height: 14px; color: var(--terra); margin-left: 4px; }
+.recipe-note .n-flourish { display: block; width: 110px; margin: 2px auto 0; color: var(--gold-deco); }
+
+.actions {
+  position: sticky;
+  bottom: calc(78px + var(--safe-b));
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  z-index: 10;
+}
+
+/* « Reprendre » porte l'étape en second registre */
+.btn.resume span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.12; }
+
+.btn.resume small { font-size: 11.5px; font-weight: 500; opacity: 0.85; }
+
+.link-restart {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 10px 0 0;
+  margin: 0 auto;
+  display: block;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+/* ---------- Verdict & coups de cœur ---------- */
+
+.verdict-row { display: flex; gap: 8px; margin-top: 12px; }
+
+.verdict-btn {
+  position: relative;
+  overflow: visible;
+  flex: 1;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  border-radius: 12px;
+  padding: 12px 8px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.verdict-btn:active { transform: scale(0.96); }
+
+.verdict-btn.on.v-encore { background: var(--green); border-color: var(--green); color: #FDFBF3; box-shadow: 0 6px 18px rgba(49, 73, 43, 0.22); }
+
+/* Le cœur du bouton bat à l'activation, façon double-tap. */
+.vb-heart { display: inline-block; transform-box: fill-box; transform-origin: center; }
+.vb-heart.pop { animation: heart-pop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.5); }
+  55% { transform: scale(0.85); }
+  75% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Petits cœurs qui s'échappent du bouton et se dissipent vers le haut. */
+.heart-particle {
+  position: absolute;
+  bottom: 55%;
+  color: var(--terra);
+  font-size: 14px;
+  pointer-events: none;
+  animation: heart-float 0.9s ease-out forwards;
+}
+@keyframes heart-float {
+  0% { opacity: 1; transform: translate(0, 0) scale(0.8); }
+  100% { opacity: 0; transform: translate(var(--dx, 0), -46px) scale(1.1); }
+}
+
+.cooked-line {
+  margin: 12px 0 0;
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
+
+/* Pastille de verdict sur les vignettes */
+
+.tagrow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+
+.verdict-tag { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; }
+
+.verdict-tag.v-encore { background: var(--green-tint); color: var(--green-deep); }
+
+.cook-count { font-size: 11.5px; color: var(--muted); }
+
+/* ---------- Composer sa version : choix & suppléments ---------- */
+
+.pick-label {
+  margin: 16px 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.pick-label:first-child { margin-top: 4px; }
+
+/* Dans la sheet, les chips sont enveloppées pour pouvoir être redessinées
+   seules : le premier libellé y redevient un premier enfant, on lui rend
+   l'espace qu'il avait sous le sous-titre. */
+.sheet-picks > .pick-label:first-child { margin-top: 16px; }
+
+/* L'écart entre rangées (12 px) est celui des deux halos de contact des puces : elles ne se disputent pas le même doigt. */
+.pick-row { display: flex; flex-wrap: wrap; gap: 12px 8px; }
+
+.chip.pick { padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }
+
+/* La puce fait 34 px : son halo la porte à 44 px de contact sans l'agrandir à l'œil. */
+.chip.pick::before { content: ""; position: absolute; inset: -7px 0; }
+
+.ing-list .opt.sup { color: var(--terra); }
+
+/* Le geste d'un supplément, glissé dans son étape */
+.addon-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px dashed var(--gold-deco);
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.addon-note .a-emoji { flex: none; font-size: 17px; }
+
+.addon-note b {
+  display: block;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+/* Une recette peut être au menu en plusieurs versions : la fiche dit lesquelles
+   sont déjà retenues, et l'entrée que l'on est en train de composer se retire
+   d'ici plutôt que par une bascule du bouton d'ajout. */
+/* 12 px de part et d'autre : la zone de contact du lien « La retirer » (44 px) empiète dessus sans passer sous le bouton ni sous la barre d'onglets. */
+.menu-info {
+  margin: 12px 0;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.menu-info:empty { display: none; }
+.menu-info a { color: var(--green); font-weight: 600; }
+
+/* Un lien dans une phrase fait 20 px de haut : le padding lui donne 44 px de contact,
+   et les marges négatives lui rendent la place empruntée (la ligne ne grandit pas). */
+.lien-nu {
+  background: none;
+  border: none;
+  padding: 12px 6px;
+  margin: -12px -6px;
+  font: inherit;
+  color: var(--terra);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (min-width: 480px) {
+  .hero .visual { height: 280px; }
+}
+
+/* ---------- Barre du haut, allergènes, notes perso ---------- */
+
+.topbar { gap: 8px; }
+.topbar-actions { display: flex; gap: 8px; }
+.topbar .btn-icon { padding: 8px 12px; }
+
+/* Étroit, la barre garde ses trois gestes : « Imprimer » ne montre plus que son icône. */
+@media (max-width: 420px) {
+  .topbar .btn-lib { display: none; }
+  #print-recipe { min-width: 44px; justify-content: center; }
+}
+
+.allergenes { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.allergenes .alg { white-space: nowrap; }
+.allergenes small { color: var(--muted); font-size: 12px; font-style: italic; white-space: nowrap; }
+
+.note-perso {
+  margin-top: 16px;
+  padding: 10px 14px 12px;
+  background: var(--gold-tint);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px 12px 12px 4px;
+}
+
+.note-perso b { font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold-deep); }
+.note-perso p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+
+.note-saisie {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--champ-bord);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;            /* 16 px : en dessous, iOS zoome la page à la saisie */
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.note-saisie:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+
+.note-etat { font-family: var(--sans); font-size: 12.5px; font-weight: 500; color: var(--muted); }
+
+/* ---------- Le moule ---------- */
+
+.moule { margin-top: 10px; }
+.moule-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.moule-lib { font-size: 15px; color: var(--ink-soft); }
+.moule-lib b { color: var(--ink); }
+.moule-dit { margin: 4px 2px 0; font-size: 13px; color: var(--muted); }
+
+/* ---------- Feuille d'un ingrédient ---------- */
+
+.sheet-ing h4 {
+  margin: 20px 0 8px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.ing-allergenes { margin: 12px 0 0; font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
+.ing-allergenes .alg { white-space: nowrap; }
+.ing-allergenes small { display: block; color: var(--muted); font-size: 12px; font-style: italic; }
+
+.ing-moins-champ { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-soft); }
+
+.ing-moins-champ input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--champ-bord);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.ing-moins-champ input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+.ing-unite { color: var(--muted); }
+
+.ing-resultat { margin: 8px 2px 0; min-height: 1.4em; font-size: 13.5px; color: var(--ink-soft); }
+
+.sheet-ing .btn { width: 100%; margin-top: 8px; min-height: 48px; }
+.sheet-ing .btn:disabled { opacity: 0.45; box-shadow: none; }
+
+.ing-subs ul { list-style: none; margin: 0; padding: 0; }
+.ing-subs li { padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 14.5px; line-height: 1.45; }
+.ing-subs li:last-child { border-bottom: none; }
+.ing-subs b { display: block; font-weight: 600; color: var(--ink); }
+.ing-subs li span { display: block; margin-top: 2px; color: var(--muted); font-size: 13.5px; }
+
+/* ---------- Barre d'actions compacte ---------- */
+
+/* Deux boutons de 48 px sur une ligne : la barre colle au bas de l'écran sans
+   manger davantage de liste. Le libellé complet reste pour les lecteurs d'écran. */
+.actions { gap: 8px; }
+.actions .btn { min-height: 48px; padding: 10px 12px; font-size: 15px; white-space: nowrap; }
+.actions .btn.primary { box-shadow: 0 4px 12px rgba(49, 73, 43, 0.25); }
+
+.fiche-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Impression ---------- */
+
+/* Une fiche sur papier : ni barres ni boutons, la photo en bandeau, les
+   ingrédients et les étapes en gros caractères noirs sur blanc (A4 comme A5),
+   la note perso en tête. Le thème sombre ne doit jamais encrer une page. */
+@page { margin: 12mm; }
+
+@media print {
+  :root, html[data-theme="dark"] {
+    --paper: #fff; --paper-deep: #fff; --card: #fff;
+    --ink: #111; --ink-soft: #222; --muted: #444;
+    --green: #222; --green-deep: #111; --green-tint: #eee;
+    --gold: #555; --gold-tint: #f2f2f2; --gold-deep: #333;
+    --terra: #333; --line: #bbb; --line-soft: #ddd;
+  }
+
+  html, body { background: #fff !important; background-image: none !important; color: #111; }
+  #app { max-width: none; padding: 0; }
+
+  .tabbar, .topbar, .actions, .link-restart, .menu-info, .section.verdict, .section-notes, #journal-zone,
+  #pick-zone, .portions button, .moule .portions, .moule-dit, .ing-chev, .savoirs, .savoirs-seuls,
+  .timer-tray, #toast, .sheet-backdrop, .hero .corner {
+    display: none !important;
+  }
+
+  /* Le bloc « Compose ta version » est interactif : sans ses chips il n'a plus rien à dire. */
+  .section:has(> h2 + #pick-zone) { display: none !important; }
+
+  .hero { margin-top: 0; border-radius: 10px; }
+  .hero .visual { height: 38mm; }
+
+  .r-head h1 { font-size: 24pt; margin-top: 8px; }
+  .ing-ligne { min-height: 0; padding: 3px 2px; }
+  .ing-list li { font-size: 11.5pt; break-inside: avoid; }
+  .steps > li { padding: 6px 0; break-inside: avoid; }
+  .steps p { font-size: 11.5pt; }
+  .section { margin-top: 14px; }
+  .section > h2 { font-size: 16pt; break-after: avoid; }
+  .note-perso { break-inside: avoid; border: 1px solid #999; border-left-width: 3px; }
+  .portions { border: none; padding: 0; }
+  .ing-ligne:active { background: none; }
+}

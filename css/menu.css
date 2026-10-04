@@ -1,0 +1,421 @@
+/* Onglet Au menu : cartes des recettes retenues et structure d'un repas
+   (apéro, table, dessert, boisson). L'en-tête de page est dans base.css. */
+
+/* ---------- Au menu ---------- */
+
+.menu-order {
+  margin: 6px 0 0;
+  font-family: var(--script);
+  font-size: 16px;
+  color: var(--green);
+}
+
+.menu-list { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+
+/* Toute la carte ouvre la recette : elle réagit donc comme une vignette. */
+.menu-card {
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  position: relative;
+  display: flex;
+  gap: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 11px;
+}
+
+/* Le repli visuel ne se déclenche pas si l'on presse une commande de la carte. */
+.menu-card:active:not(:has(a:active, button:active)) { transform: scale(0.985); }
+
+.mc-visual {
+  flex: none;
+  width: 88px;
+  align-self: stretch;
+  min-height: 88px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  text-decoration: none;
+}
+
+.mc-visual img { width: 100%; height: 100%; object-fit: cover; }
+.mc-visual img.zoom { transform: scale(3); }
+.mc-visual svg { width: 82%; height: 88%; }
+
+.mc-body { flex: 1; min-width: 0; }
+
+.mc-title { text-decoration: none; color: inherit; }
+
+.mc-title h3 { font-size: 19px; line-height: 1.14; font-weight: 700; padding-right: 22px; }
+
+.menu-card .meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: 12.5px; color: var(--muted); margin-top: 4px;
+}
+
+.menu-card .meta svg { width: 13px; height: 13px; }
+
+.mc-portions { margin-top: 9px; }
+
+.mc-portions .val { min-width: 0; font-size: 13px; }
+
+/* À 320 px la colonne de la carte mesure 170 px : « 8 personnes » entre deux
+   boutons de 44 px la dépassait de quelques pixels. */
+@media (max-width: 340px) {
+  .mc-portions .val { font-size: 12px; padding: 0; }
+}
+
+/* Étroite, la carte écrasait les boutons à 43 px : ils gardent leurs 44. */
+.mc-portions button, .repas .portions button { flex: none; }
+
+/* Sur 320 px, « Cuisiner » et « Partager » ne tiennent plus côte à côte : le second passe dessous. */
+.mc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.mc-btn {
+  flex: 1;
+  min-height: 44px;               /* on les vise en cuisinant */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+.mc-btn svg { width: 15px; height: 15px; }
+
+.mc-btn:active { background: var(--green-tint); }
+
+/* Discret à dessein — c'est une suppression — mais avec une zone de contact
+   utilisable : le padding l'élargit, la marge négative garde la place d'origine. */
+.mc-x {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 44px; height: 44px;      /* zone de contact */
+  padding: 10px;                  /* la pastille visible reste à 24 px */
+  border-radius: 999px;
+  border: none;
+  background: var(--paper-deep);
+  background-clip: content-box;   /* après le raccourci, qui le réinitialise */
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- La structure d'un repas ----------
+   Toujours présente sur « Au menu », vide ou pas : mêmes quatre moments,
+   cliquables comme un raccourci vers l'accueil filtré. Le pointillé dit
+   « place à prendre », jamais « case à cocher ». */
+
+.sq-label {
+  margin: 20px 2px 8px;
+  font-family: var(--script);
+  font-size: 19px;
+  color: var(--muted);
+}
+
+.squelette { display: flex; flex-direction: column; gap: 8px; margin: 2px 0 14px; }
+
+.sq-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px dashed var(--line);
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--ink);
+}
+
+.sq-row:active { background: var(--green-tint); border-style: solid; }
+
+.sq-nom { flex: 1; font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); }
+
+.sq-n { font-size: 12.5px; color: var(--muted); }
+
+.sq-row > svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+
+.sq-libre {
+  margin: 0 0 18px;
+  text-align: center;
+  font-family: var(--script);
+  font-size: 18px;
+  color: var(--muted);
+}
+
+/* Carte du menu : rappel de la version composée */
+.mc-version { margin: 2px 0 0; font-family: var(--script); font-size: 15.5px; color: var(--green); }
+
+/* ---------- Le repas : convives, heure, allergies ---------- */
+
+.repas {
+  margin-top: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 2px 14px;
+}
+
+.rp-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  min-height: 60px;
+  border-bottom: 1px dashed var(--line);
+}
+
+/* Le libellé et le stepper ne se coupent jamais : à 375 px le « ? » partait seul à
+   la ligne et « 2 convives » se coupait en deux, la rangée sautait de 30 à 60 px
+   d'un convive à l'autre. Faute de place (320 px), c'est le stepper entier qui
+   passe sous le libellé ; sa largeur ne dépend pas du nombre de convives, la
+   rangée garde donc la même hauteur de 1 à 24. */
+.rp-lib { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); white-space: nowrap; }
+
+.rp-ligne:has(> .portions) { flex-wrap: wrap; }
+.rp-ligne .portions { flex: none; margin-left: auto; }
+.rp-ligne .portions .val { white-space: nowrap; min-width: 78px; padding: 0; }
+
+.rp-lib small { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--muted); }
+
+.rp-date { display: flex; align-items: center; gap: 4px; min-width: 0; }
+
+/* 16 px : en dessous, Safari zoome la page au moment de saisir. */
+.rp-champ {
+  min-height: 44px;
+  min-width: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--champ-bord);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 16px var(--sans);
+  font-variant-numeric: tabular-nums;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] .rp-champ { color-scheme: dark; }
+
+.rp-efface {
+  flex: none;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+}
+
+.rp-efface svg { width: 16px; height: 16px; }
+
+/* Deux volets repliables, mêmes gestes : allergies et repas passés. */
+.alg summary, .passes summary {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.alg summary::-webkit-details-marker, .passes summary::-webkit-details-marker { display: none; }
+
+.alg summary::after, .passes summary::after {
+  content: "";
+  margin-left: auto;
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+
+.alg[open] summary::after, .passes[open] summary::after { transform: rotate(-135deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .alg summary::after, .passes summary::after { transition: none; }
+}
+
+.alg-n {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  background: var(--gold-tint);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.alg-aide, .alg-note { margin: 0 0 10px; font-size: 13.5px; color: var(--muted); }
+
+.alg-note { margin: 12px 0 14px; font-size: 12.5px; }
+
+.alg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.alg-chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.alg-chip[aria-pressed="true"] { background: var(--terra); border-color: var(--terra); color: #FFFDF7; }
+
+html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
+
+/* L'avertissement d'une carte : précis (quoi, dans quoi), jamais alarmiste. */
+.mc-alerte {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Le rétroplanning ---------- */
+
+.retro { margin-top: 22px; }
+
+.retro-titre { font-size: 26px; color: var(--green-deep); }
+
+.retro-titre small { font-family: var(--script); font-size: 19px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+
+.retro-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.retro-note svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+
+.retro-plus { margin-top: 10px; }
+.retro-plus summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); font-size: 14px; }
+
+.retro-note.retard { background: transparent; border: 1px solid var(--terra); color: var(--terra); }
+
+/* Une liste horodatée, lisible d'un pouce : l'heure à gauche, un fil, le geste. */
+.frise { list-style: none; margin: 14px 0 0; padding: 0; }
+
+.fr {
+  display: grid;
+  grid-template-columns: 4.2rem 22px minmax(0, 1fr);
+  gap: 0 10px;
+  position: relative;
+  padding: 9px 0;
+}
+
+.fr-h {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--green-deep);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.fr-pt { position: relative; display: flex; justify-content: center; }
+
+.fr-pt::before {
+  content: "";
+  position: absolute;
+  top: -9px; bottom: -9px;
+  width: 2px;
+  background: var(--line);
+}
+
+.fr:first-child .fr-pt::before { top: 11px; }
+.fr:last-child .fr-pt::before { bottom: calc(100% - 11px); }
+.fr:only-child .fr-pt::before { display: none; }
+
+.fr-pt::after {
+  content: "";
+  position: relative;
+  z-index: 1;
+  margin-top: 5px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.fr-pt svg {
+  position: absolute;
+  z-index: 2;
+  top: 1px;
+  width: 20px; height: 20px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+.fr-pt:has(svg)::after { display: none; }
+
+.fr-txt { font-size: 15px; line-height: 1.35; padding-top: 1px; overflow-wrap: anywhere; }
+
+.fr-sub { display: block; font-size: 13px; color: var(--muted); margin-top: 1px; }
+
+.fr-table .fr-txt b { font-family: var(--serif); font-size: 20px; color: var(--green-deep); }
+
+.fr-table .fr-pt::after { background: var(--gold); width: 15px; height: 15px; margin-top: 3px; }
+
+.retro-cal { width: 100%; min-height: 48px; margin-top: 14px; }
+
+/* ---------- Les repas passés ---------- */
+
+.passes { margin: 18px 0 4px; border-top: 1px dashed var(--line); }
+
+.passes-liste { list-style: none; margin: 0; padding: 0 0 6px; display: flex; flex-direction: column; gap: 10px; }
+
+.passe { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+
+.passe-tete { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+
+.passe-tete b { font-family: var(--serif); font-size: 18px; color: var(--green-deep); }
+
+.passe-tete b::first-letter { text-transform: uppercase; }
+
+.passe-tete span { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+
+.passe-liste { margin: 4px 0 10px; font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere; }
+
+.passe-refaire { width: 100%; flex: none; }
+
+/* Vider le menu : même zone de contact que les autres commandes. */
+#clear-menu { min-height: 44px; }
