@@ -2,15 +2,15 @@
    et d'ici seulement : les autres modules ne font que déclarer. Ils s'importent
    les uns les autres en cercle (le routeur appelle les vues, les vues rappellent
    le routeur), ce qui n'est sans danger que parce qu'aucun n'appelle les autres
-   avant que ce fichier ait tout chargé. */
+   avant que ce fichier ait tout chargé.
+   La vue d'accueil est la seule chargée d'emblée : les autres vues, et la synchro, ne
+   viennent qu'après le premier affichage. */
 
 import { migrer, state, surEchecSauvegarde } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
-import { basculerSavoirs, openFondSheet } from "./vues/savoirs.js";
-import { acquireWakeLock, cancelTimer, drawTray, ensureTick } from "./ui/minuteurs.js";
+import { drawTray, ensureTick } from "./ui/minuteurs.js";
 import { retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
-import { demarrerSync } from "./sync.js";
 import { toast } from "./ui/toast.js";
 import { initialiserReglages } from "./vues/reglages.js";
 
@@ -64,29 +64,28 @@ document.addEventListener("input", e => {
    options gardent leurs valeurs par défaut. */
 window.addEventListener("hashchange", () => route());
 
-/* Revenu sur l'onglet pendant une cuisine, l'écran doit rester allumé. */
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && document.querySelector(".cook")) acquireWakeLock();
-});
-
-tenter("premier affichage", route);
+let premierRendu;
+tenter("premier affichage", () => { premierRendu = route(); });
 tenter("bulles des minuteurs", drawTray);
 tenter("horloge des minuteurs", ensureTick);
 
-/* Une bulle ramène à l'étape qui tourne, même depuis une autre recette ;
-   la croix, elle, arrête le minuteur. */
+/* Une bulle ramène à l'étape qui tourne, même depuis une autre recette (sa croix,
+   qui arrête le minuteur, est traitée en amont par js/ui/minuteurs.js). */
 document.getElementById("timer-tray").addEventListener("click", e => {
   const pill = e.target.closest("[data-timer]");
   if (!pill) return;
   const t = state.timers.find(x => x.id === pill.dataset.timer);
   if (!t) return;
-  if (e.target.closest(".t-x")) { cancelTimer(t.id); return; }
   const base = t.mk && entreeDe(t.mk) ? `#/recette/${t.rid}/m/${t.mk}` : `#/recette/${t.rid}`;
   const target = `${base}/cuisine/${t.step}`;
   // Même adresse (on a avancé d'étape sans changer le hash) : pas d'événement, on redessine.
   if (location.hash === target) route();
   else location.hash = target;
 });
+
+/* Le module des savoirs vient à la demande (une fiche l'a déjà chargé si l'appel
+   en fait partie) ; l'écouteur ci-dessous le sollicite à chaque geste. */
+const savoirs = () => import("./vues/savoirs.js");
 
 /* Un appel au savoir peut être n'importe où — fiche, mode cuisine, note de
    supplément. Un seul écouteur délégué plutôt qu'un par rendu.
@@ -96,14 +95,14 @@ document.body.addEventListener("click", e => {
   const fleche = e.target.closest("[data-retour]");
   if (fleche) { e.preventDefault(); return retourVers(fleche.dataset.retour); }
   const lien = e.target.closest("[data-fond]");
-  if (lien) { e.preventDefault(); return openFondSheet(lien.dataset.fond); }
+  if (lien) { e.preventDefault(); return savoirs().then(m => m.openFondSheet(lien.dataset.fond)); }
   // L'appel est lui-même un bouton : c'est lui qui déplie, au doigt comme au clavier.
   const appel = e.target.closest(".s-cue");
-  if (appel) return basculerSavoirs(appel.closest(".a-savoirs"));
+  if (appel) return savoirs().then(m => m.basculerSavoirs(appel.closest(".a-savoirs")));
   // Un autre bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
   if (e.target.closest("button")) return;
   const porteur = e.target.closest(".a-savoirs");
-  if (porteur) basculerSavoirs(porteur);
+  if (porteur) savoirs().then(m => m.basculerSavoirs(porteur));
 });
 
 if ("serviceWorker" in navigator) {
@@ -113,9 +112,17 @@ if ("serviceWorker" in navigator) {
 tenter("thème", initialiserTheme);
 tenter("réglages", initialiserReglages);
 
-/* La synchro démarre en dernier, comme avant : son premier échange ne doit
-   rien trouver à moitié construit. */
-demarrerSync();
+/* Après le premier affichage, d'un instant à l'autre : la synchro ne retarde
+   pas l'accueil, et son premier échange ne trouve rien à moitié construit. La
+   vue des courses se charge aussi : elle s'abonne à la sauvegarde pour élaguer
+   les coches, ce qui doit marcher sur n'importe quelle page. */
+const demarrerPlusTard = () => {
+  setTimeout(() => {
+    import("./vues/courses.js").catch(e => console.error("Démarrage : la vue des courses ne s'est pas chargée", e));
+    import("./sync.js").then(m => m.demarrerSync()).catch(e => console.error("Démarrage : la synchro a échoué", e));
+  }, 0);
+};
+Promise.resolve(premierRendu).then(demarrerPlusTard, demarrerPlusTard);
 demarre = true;
 
 /* Les photos du journal que plus aucune entrée ne réclame, une fois le premier
