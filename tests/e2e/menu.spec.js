@@ -86,19 +86,19 @@ test("frise : deux recettes qui veulent le four à des températures différente
 
   const note = page.locator(".retro-note.conflit");
   await expect(note).toHaveCount(1);
-  await expect(note).toContainText("Focaccia à 220 °C ; Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord");
+  await expect(note).toContainText("À 220 °C pour Focaccia, 180 °C pour Quiche lorraine : enfourne Focaccia en premier");
   await expect(note).toContainText("l'heure est tenue");
   await expect(page.locator(".retro-note.retard")).toHaveCount(0);
 
   // La focaccia est enfournée avant la quiche, et le four est réglé entre les deux.
   const textes = await page.locator(".frise .fr-txt").allTextContents();
   const place = motif => textes.findIndex(t => t.includes(motif));
-  expect(place("Enfourne : Focaccia")).toBeLessThan(place("Enfourne : Quiche lorraine"));
-  expect(place("Sors du four : Focaccia")).toBeLessThan(place("Enfourne : Quiche lorraine"));
-  expect(place("Règle le four à 180 °C")).toBeGreaterThan(-1);
+  expect(place("Enfourne\u00a0: Focaccia")).toBeLessThan(place("Enfourne\u00a0: Quiche lorraine"));
+  expect(place("Sors du four\u00a0: Focaccia")).toBeLessThan(place("Enfourne\u00a0: Quiche lorraine"));
+  expect(place("Règle le four à 180\u00a0°C")).toBeGreaterThan(-1);
   // Les heures de la frise ne reculent jamais.
   const heures = (await page.locator(".frise .fr-h").allTextContents())
-    .map(h => { const m = /(\d+) h(?: (\d+))?/.exec(h); return +m[1] * 60 + +(m[2] || 0); });
+    .map(h => { const m = /(\d+)\sh(?:\s(\d+))?/.exec(h); return +m[1] * 60 + +(m[2] || 0); });
   expect([...heures].sort((a, b) => a - b)).toEqual(heures);
 });
 
@@ -151,12 +151,12 @@ test("calendrier : « Ajouter au calendrier » télécharge un .ics aux événem
   const ics = readFileSync(await dl.path(), "utf8");
   expect(ics).toMatch(/^BEGIN:VCALENDAR\r\n/);
   expect(ics).toContain("TZID:Europe/Paris");
-  expect(ics).toContain("SUMMARY:Cuisiner : Focaccia");
-  expect(ics).toContain("SUMMARY:Cuisiner : Quiche lorraine");
-  expect(ics).toContain("SUMMARY:À table !");
+  expect(ics).toContain("SUMMARY:Cuisiner\u00a0: Focaccia");
+  expect(ics).toContain("SUMMARY:Cuisiner\u00a0: Quiche lorraine");
+  expect(ics).toContain("SUMMARY:À table\u202f!");
   expect(ics).toContain("DTSTART;TZID=Europe/Paris:20990615T200000");
   expect(ics).toContain("DESCRIPTION:6 convives");
-  expect(ics).toMatch(/SUMMARY:Préchauffe le four à 220 °C/);
+  expect(ics).toMatch(/SUMMARY:Préchauffe le four à 220\u00a0°C/);
   expect((ics.match(/BEGIN:VALARM/g) || []).length).toBeGreaterThanOrEqual(4);
   expect(ics).toContain("TRIGGER:-PT30M");
 });
@@ -176,7 +176,7 @@ test("calendrier : quand le téléphone sait partager un fichier, c'est la feuil
   const p = await page.evaluate(() => window.__partage);
   expect(p.type).toBe("text/calendar");
   expect(p.texte).toContain("BEGIN:VCALENDAR");
-  expect(p.texte).toContain("SUMMARY:Cuisiner : Quiche lorraine");
+  expect(p.texte).toContain("SUMMARY:Cuisiner\u00a0: Quiche lorraine");
 });
 
 test("allergies : un allergène à éviter marque les cartes qui en contiennent, version composée comprise", async ({ page, context }) => {

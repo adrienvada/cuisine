@@ -190,8 +190,8 @@ for (const largeur of [320, 375]) {
       await page.locator('[data-conv="1"]').click();
     }
     expect(new Set(hauteurs).size).toBe(1);
-    // Le « ? » ne se détache pas du mot : espace insécable.
-    expect(await page.locator("#rp-conv").textContent()).toBe("Pour combien ?");
+    // Le « ? » ne se détache pas du mot : espace insécable fine.
+    expect(await page.locator("#rp-conv").textContent()).toBe("Pour combien\u202f?");
   });
 }
 
@@ -220,12 +220,12 @@ test("frise : conflit lisible, retard dit une fois, au format « 1 h 30 »", asy
   });
   await page.goto("/#/menu");
   const conflit = page.locator(".retro-note.conflit").first();
-  await expect(conflit).toContainText("Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C");
+  await expect(conflit).toContainText("À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé");
   await expect(conflit).not.toContainText("retard");
   const retard = page.locator(".retro-note.retard");
   await expect(retard).toHaveCount(1);
-  await expect(retard).toContainText(/compte \d+ h( \d{2})? de retard/);
-  await expect(page.locator(".retro")).not.toContainText(/\d{2,3} min de retard/);
+  await expect(retard).toContainText(/compte \d+\sh(\s\d{2})?\sde retard/);
+  await expect(page.locator(".retro")).not.toContainText(/\d{2,3}\smin\sde retard/);
 });
 
 /* ---------- Constat n° 35 : date du jour, heure passée ---------- */

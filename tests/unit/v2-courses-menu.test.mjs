@@ -87,7 +87,7 @@ test("phraseConflit : chaque plat est lié à sa température, le retard n'est p
   const plan = planifier({ table: TABLE, maintenant: TABLE - 120, taches: menu.tachesDuMenu() });
   assert.ok(plan.retard > 0);
   const phrase = phraseConflit(plan.conflits[0]);
-  assert.match(phrase, /^Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C en même temps : enfourne « Focaccia » d'abord\.$/);
+  assert.match(phrase, /^À 220 °C pour Focaccia, 180 °C pour Quiche lorraine et Cake salé : enfourne Focaccia en premier\.$/);
   assert.doesNotMatch(phrase, /retard|min\b/);
 });
 
@@ -99,7 +99,7 @@ test("phraseRetard : la durée s'écrit comme partout ailleurs (1 h 22), jamais 
 
 test("phraseConflit : le départ avancé s'écrit aussi en heures", () => {
   const c = { premier: { titre: "Focaccia", temp: 220 }, second: { titre: "Quiche lorraine", temp: 180 }, autres: [], decale: 80, retard: 0 };
-  assert.match(phraseConflit(c), /départ avancé de 1 h 20, l'heure est tenue\.$/);
+  assert.match(phraseConflit(c), /départ est avancé de 1 h 20, l'heure est tenue\.$/);
 });
 
 /* ---------- Constat n° 19 : « Partager » d'une carte du menu ---------- */
@@ -129,7 +129,7 @@ test("shareRecipe(id, k) envoie la version de l'entrée, pas le brouillon de la 
   assert.match(b.url, new RegExp(`\\?.*c=${choix.id}:${seconde}`));
   assert.match(b.url, /p=4/);
   assert.match(b.text, /Pour 4 /);
-  assert.ok(b.text.includes(`Version : ${choix.options[1].label}`));
+  assert.ok(b.text.includes(`Version\u00a0: ${choix.options[1].label}`));
   assert.match(a.text, /Pour 9 /);
   assert.notEqual(a.url, b.url, "deux cakes du même repas n'envoient pas le même lien");
 });

@@ -872,7 +872,7 @@ const RECIPES = [
     reposLabel: "Repos",
     portions: { base: 4, label: "personnes" },
     ingredients: [
-      { name: "Pois chiches cuits", qty: 400, unit: "g", note: "soit {1 boîte} (ou {1 bocal}) de 400 g, à rincer et égoutter", rayon: "Conserves & bocaux", cid: "pois-chiches",
+      { name: "Pois chiches cuits", qty: 400, unit: "g", note: "soit {1 boîte} ou {1 bocal} de 400 g, à rincer et égoutter", rayon: "Conserves & bocaux", cid: "pois-chiches",
         shop: { label: "Pois chiches au naturel", qty: 1, unit: "boîte", note: "boîte de 400 g : environ 240 g égouttés" } },
       { name: "Feta", qty: 150, unit: "g", rayon: "Fromages", cid: "feta" },
       { name: "Olives noires", qty: 80, unit: "g", note: "type Kalamata", rayon: "Conserves & bocaux", cid: "olives" },

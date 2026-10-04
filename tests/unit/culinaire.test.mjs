@@ -100,6 +100,8 @@ test("le vérificateur refuse deux libellés de courses pour un même cid", () =
   try {
     mkdirSync(path.join(tmp, "tools"));
     mkdirSync(path.join(tmp, "js"));
+    mkdirSync(path.join(tmp, "js/core"));
+    cpSync(path.join(racine, "js/core/format.js"), path.join(tmp, "js/core/format.js"));     // la table des singuliers de portions
     cpSync(path.join(racine, "tools/verifier-recettes.mjs"), path.join(tmp, "tools/verifier-recettes.mjs"));
     for (const f of ["recipes", "placard", "fondamentaux", "allergenes", "saisons", "substitutions"]) {
       cpSync(path.join(racine, `js/${f}.js`), path.join(tmp, `js/${f}.js`));

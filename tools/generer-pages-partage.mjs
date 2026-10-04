@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { libellePortions, typo } from "../js/core/format.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "r");
@@ -32,7 +33,9 @@ const FONDAMENTAUX = new Function(`${fsrc}; return FONDAMENTAUX;`)();
 const F_RENAMES = new Function(`${fsrc}; return typeof FONDAMENTAL_RENAMES === "object" ? FONDAMENTAL_RENAMES : {};`)();
 const aliasF = Object.entries(F_RENAMES).filter(([, actuel]) => FONDAMENTAUX.some(f => f.id === actuel));
 
-const esc = s => String(s == null ? "" : s)
+/* La typographie française (espaces insécables) passe par la même typo() que l'appli :
+   un aperçu partagé dans une messagerie ne coupe pas « 180 °C » ni ne laisse « ? » seul. */
+const esc = s => typo(String(s == null ? "" : s))
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 function fmtTime(min) {
@@ -48,7 +51,7 @@ function description(r) {
   if (t.prep) bits.push(`Préparation ${fmtTime(t.prep)}`);
   if (t.repos) bits.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);
   bits.push(t.cuisson != null ? `Cuisson ${fmtTime(t.cuisson)}` : "Sans cuisson");
-  return `${r.subtitle} · ${bits.join(" · ")} · pour ${r.portions.base} ${r.portions.label}.`;
+  return `${r.subtitle} · ${bits.join(" · ")} · pour ${libellePortions(r.portions.base, r.portions.label)}.`;
 }
 
 /* La requête de l'adresse (`?p=8&c=…&a=…`, cf. js/core/liens.js) passe telle

@@ -91,6 +91,8 @@ test("le vérificateur refuse une option dont le minuteur dépasse le temps anno
   try {
     mkdirSync(path.join(tmp, "tools"));
     mkdirSync(path.join(tmp, "js"));
+    mkdirSync(path.join(tmp, "js/core"));
+    cpSync(path.join(racine, "js/core/format.js"), path.join(tmp, "js/core/format.js"));     // la table des singuliers de portions
     cpSync(path.join(racine, "tools/verifier-recettes.mjs"), path.join(tmp, "tools/verifier-recettes.mjs"));
     for (const f of ["recipes", "placard", "fondamentaux", "allergenes", "saisons", "substitutions"]) {
       cpSync(path.join(racine, `js/${f}.js`), path.join(tmp, `js/${f}.js`));
@@ -123,8 +125,8 @@ test("pois chiches : la salade achète une boîte, le houmous une, les deux ense
 
 test("pois chiches : la note de la salade dit « 1 boîte ou 1 bocal de 400 g » et suit les portions", () => {
   const ing = recette("salade-mediterraneenne").ingredients.find(i => i.cid === "pois-chiches");
-  assert.equal(scaleText(ing.note, 1), "soit 1 boîte (ou 1 bocal) de 400 g, à rincer et égoutter");
-  assert.equal(scaleText(ing.note, 2), "soit 2 boîtes (ou 2 bocaux) de 400 g, à rincer et égoutter");
+  assert.equal(scaleText(ing.note, 1), "soit 1 boîte ou 1 bocal de 400 g, à rincer et égoutter");
+  assert.equal(scaleText(ing.note, 2), "soit 2 boîtes ou 2 bocaux de 400 g, à rincer et égoutter");
   assert.equal(ing.shop.label, "Pois chiches au naturel");
   assert.equal(ing.shop.note, "boîte de 400 g : environ 240 g égouttés");
 });

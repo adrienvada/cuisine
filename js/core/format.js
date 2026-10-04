@@ -110,3 +110,41 @@ export function normaliser(texte) {
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/œ/g, "oe").replace(/æ/g, "ae");
 }
+
+/* Le singulier de chaque unité de portions des recettes (`portions.label`, écrit
+   au pluriel dans les données). Le vérificateur exige que tout label de recette y
+   figure : sans cela, « 1 personnes » reviendrait en silence. */
+export const SINGULIERS_PORTIONS = { personnes: "personne", verres: "verre", tartines: "tartine" };
+
+/* « 4 personnes », « 1 personne » : le pluriel commence à 2, comme pour fmtUnit ;
+   0 et les valeurs inférieures à 2 vont donc au singulier. */
+export function libellePortions(n, label) {
+  const mot = n < 2 ? (SINGULIERS_PORTIONS[label] || label) : label;
+  return `${n} ${mot}`;
+}
+
+/* Typographie française, une seule mécanique pour tout le carnet : espace insécable
+   avant « : » (U+00A0), insécable fine avant « ; ! ? » et à l'intérieur des
+   guillemets « » (U+202F), insécable entre un nombre et son unité (°C, g, min…).
+   Elle ne remplace que des espaces déjà écrites (ou en pose là où la règle l'exige
+   et où il n'y en a pas) : « 12:30 » et les adresses n'en ont pas, elles restent
+   intactes. Idempotente — la passe sur le DOM (js/ui/typo.js) s'en sert pour ne
+   jamais boucler. */
+const ESPACE = "[ \\u00a0\\u202f]";
+const RE_DOUBLE_ESPACE = /(\S) {2,}/g;
+const RE_AVANT_DEUX_POINTS = new RegExp(`(\\S)${ESPACE}+:`, "g");
+const RE_AVANT_PONCTUATION = new RegExp(`(\\S)${ESPACE}+(?=[;!?])`, "g");
+const RE_OUVRANT = new RegExp(`«${ESPACE}*(?=\\S)`, "g");
+const RE_FERMANT = new RegExp(`(\\S)${ESPACE}*»`, "g");
+const RE_NOMBRE_UNITE = new RegExp(`(\\d)${ESPACE}+(°C|kg|g|cl|ml|l|min|h|cm)(?![\\p{L}\\d'’])`, "gu");
+
+export function typo(texte) {
+  if (!texte) return texte;
+  return String(texte)
+    .replace(RE_DOUBLE_ESPACE, "$1 ")
+    .replace(RE_AVANT_DEUX_POINTS, "$1 :")
+    .replace(RE_AVANT_PONCTUATION, "$1 ")
+    .replace(RE_OUVRANT, "« ")
+    .replace(RE_FERMANT, "$1 »")
+    .replace(RE_NOMBRE_UNITE, "$1 $2");
+}

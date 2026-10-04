@@ -260,6 +260,7 @@ js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appa
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
 js/ui/annonces.js       L'unique région live : annoncer(texte)
 js/ui/focus.js          garderFocus() : le focus clavier à travers un redessin
+js/ui/typo.js           Typographie française de tout ce qui s'affiche (espaces insécables), par typo() de core/format.js
 js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour ; seul endroit où vivent Échap, le piège à focus et le retour du focus ; confirmer()
 js/ui/routeur.js        Le routeur (#), les flèches de retour, le chargement des vues à la demande (import())
 js/ui/styles.js         Attente des feuilles de style non bloquantes des vues

@@ -12,6 +12,7 @@ import { drawTray, ensureTick } from "./ui/minuteurs.js";
 import { moduleCharge, retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
 import { toast } from "./ui/toast.js";
+import { installerTypo } from "./ui/typo.js";
 import { initialiserReglages } from "./vues/reglages.js";
 
 /* Une initialisation secondaire qui échoue est journalisée et laissée de côté :
@@ -29,11 +30,15 @@ let demarre = false, prevenu = false;
 surEchecSauvegarde(() => {
   if (!demarre || prevenu) return;
   prevenu = true;
-  setTimeout(() => toast("Mémoire pleine : rien n'est enregistré", { duree: 6000 }), 400);
+  setTimeout(() => toast("Mémoire de l'appareil pleine : tes changements ne sont pas enregistrés", { duree: 6000 }), 400);
 });
 
 /* Les anciens formats d'abord : tout ce qui suit lit un état à jour. */
 tenter("migrations", migrer);
+
+/* La typographie française se pose sur tout texte qui entre dans la page : à installer
+   avant le premier affichage, pour que même lui arrive corrigé. */
+tenter("typographie", installerTypo);
 
 /* Icône de partage : un battement avant l'action, sur tous les boutons de
    partage du carnet (vignette, page recette, mode cuisine, menu, savoirs,

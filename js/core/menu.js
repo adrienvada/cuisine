@@ -134,8 +134,8 @@ function menuLooksLikeMeal() {
 export const MOMENTS = [
   { id: "apero", nom: "Apéro", label: "un apéro", cats: ["Apéro"] },
   { id: "table", nom: "À table", label: "de quoi se mettre à table", cats: MOMENT_TABLE },
-  { id: "dessert", nom: "Dessert", label: "un dessert", cats: ["Desserts"] },
-  { id: "boisson", nom: "Boisson", label: "une boisson", cats: ["Boissons"] }
+  { id: "dessert", nom: "Desserts", label: "un dessert", cats: ["Desserts"] },
+  { id: "boisson", nom: "Boissons", label: "une boisson", cats: ["Boissons"] }
 ];
 
 export const nbRecettes = cats => RECIPES.filter(r => cats.includes(r.category)).length;

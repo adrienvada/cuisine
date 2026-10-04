@@ -177,10 +177,10 @@ export const contenuExport = etat => JSON.stringify(etat, null, 2);
 /* → { donnees } ou { erreur }. */
 export function lireSauvegarde(texte, genererCle) {
   let brut;
-  try { brut = JSON.parse(texte); } catch { return { erreur: "Ce fichier n'est pas un fichier JSON lisible." }; }
-  if (!estObjet(brut)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine." };
+  try { brut = JSON.parse(texte); } catch { return { erreur: "Ce fichier n'est pas un fichier JSON lisible" }; }
+  if (!estObjet(brut)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine" };
   const donnees = normaliserEtat(brut, { genererCle, appareil: false });
-  if (!Object.keys(donnees).some(cle => cle in NORMALISEURS)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine." };
+  if (!Object.keys(donnees).some(cle => cle in NORMALISEURS)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine" };
   return { donnees: { ...structuredClone(VIDES), ...donnees } };
 }
 

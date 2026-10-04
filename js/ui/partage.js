@@ -2,7 +2,7 @@
 
 import { CERTITUDES, fondById } from "../core/fonds.js";
 import { libelleQuantite } from "../core/cuisine.js";
-import { fmtTime } from "../core/format.js";
+import { fmtTime, libellePortions, typo } from "../core/format.js";
 import { requeteDeVersion } from "../core/liens.js";
 import { compo, entreeDe, menuEntrees, portionsOf } from "../core/menu.js";
 import { byId, effectiveIngredients, effectiveSteps, tempsDe, versionSummary } from "../core/recettes.js";
@@ -28,12 +28,14 @@ function recipeUrl(r, conf = compo(r.id)) {
 
 function copyText(text, msg) {
   if (!navigator.clipboard) return toast("Copie impossible sur cet appareil");
-  navigator.clipboard.writeText(text).then(() => toast(msg)).catch(() => toast("Copie impossible"));
+  navigator.clipboard.writeText(typo(text)).then(() => toast(msg)).catch(() => toast("Copie impossible"));
 }
 
 export async function shareOrCopy(data, copied) {
   if (navigator.share) {
-    try { await navigator.share(data); return; }
+    /* Ce qui part dans une messagerie reçoit la même typographie que l'écran. */
+    const envoi = { ...data, ...(data.text ? { text: typo(data.text) } : {}), ...(data.title ? { title: typo(data.title) } : {}) };
+    try { await navigator.share(envoi); return; }
     catch (e) { if (e && e.name === "AbortError") return; }
   }
   copyText([data.text, data.url].filter(Boolean).join("\n"), copied);
@@ -54,7 +56,7 @@ export function recipeShareText(r, conf = compo(r.id)) {
   lines.push("", times.join(" · "));
   const vs = versionSummary(r, conf);
   if (vs) lines.push(`Version : ${vs}`);
-  lines.push("", `Pour ${p} ${r.portions.label} :`);
+  lines.push("", `Pour ${libellePortions(p, r.portions.label)} :`);
   for (const ing of effectiveIngredients(r, conf)) {
     const qty = libelleQuantite(ing, f);
     lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.addon ? " (supplément)" : ing.optional ? " (optionnel)" : ""}`);
@@ -79,7 +81,7 @@ export function shareMenu() {
   const lines = ["🌿 Au menu du carnet de cuisine", ""];
   for (const { e, r } of list) {
     const vs = versionSummary(r, e);
-    lines.push(`${r.emoji} ${r.title} — ${portionsOf(r, e)} ${r.portions.label}${vs ? ` (${vs})` : ""}`, recipeUrl(r, e), "");
+    lines.push(`${r.emoji} ${r.title} — ${libellePortions(portionsOf(r, e), r.portions.label)}${vs ? ` (${vs})` : ""}`, recipeUrl(r, e), "");
   }
   shareOrCopy({ title: "Au menu", text: lines.join("\n").trim() }, "Menu copié !");
 }

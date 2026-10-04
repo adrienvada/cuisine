@@ -148,7 +148,7 @@ test("stockage plein : l'ajout au menu marche en mémoire, avec un message, et l
   await page.getByRole("dialog").getByRole("button", { name: "Ajouter tel quel" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator("#menu-badge")).toHaveText("1");
-  await expect(page.locator("#toast")).toContainText("Mémoire pleine");
+  await expect(page.locator("#toast")).toContainText("Mémoire de l'appareil pleine");
 
   // La synchro, elle, a bien reçu la modification : c'est ce qui sauve les données.
   await expect.poll(() => serveur.ecritures.length).toBeGreaterThan(0);
@@ -164,7 +164,7 @@ test("stockage plein : « Enregistrer » du journal ne fige pas la feuille", asy
   await feuille.locator("#jr-ok").click();
   await expect(feuille).toHaveCount(0);
   await expect(page.locator(".jr-entree")).toContainText("Très bon");
-  await expect(page.locator("#toast")).toContainText("Mémoire pleine");
+  await expect(page.locator("#toast")).toContainText("Mémoire de l'appareil pleine");
 });
 
 test("stockage plein : une séance de cuisine expirée ne casse pas l'affichage de la fiche", async ({ page, context }) => {

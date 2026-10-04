@@ -1,5 +1,7 @@
 /* L'unique région live du carnet : ce que l'écran change sans qu'on le touche (un minuteur prêt, une étape, un nombre de résultats) y est dit à haute voix. */
 
+import { typo } from "../core/format.js";
+
 let attente = null;
 
 /* Un lecteur d'écran n'annonce que ce qui change : redire la même phrase (« Étape 2 / 5 »
@@ -11,5 +13,5 @@ export function annoncer(texte) {
   clearTimeout(attente);
   region.textContent = "";
   if (!texte) return;
-  attente = setTimeout(() => { region.textContent = texte; }, 60);
+  attente = setTimeout(() => { region.textContent = typo(texte); }, 60);
 }
