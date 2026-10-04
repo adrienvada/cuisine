@@ -9,7 +9,7 @@
 html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 /* Le menu en une ligne : le détail vit dans l'onglet Au menu. */
-.menu-ligne { margin: 14px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+.menu-ligne { margin: 24px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
 
 .menu-ligne a {
   display: inline-block;
@@ -108,7 +108,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 .course-list input:checked + .tick path {
   stroke-dashoffset: 0;
   opacity: 1;
-  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) 70ms, opacity 0s linear 70ms;
+  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) var(--d-appui), opacity 0s linear var(--d-appui);
 }
 
 .course-list .lbl { flex: 1; min-width: 0; }
@@ -173,7 +173,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 .course-list input:checked ~ .lbl .rature path {
   stroke-dashoffset: 0;
   opacity: 0.85;
-  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) 140ms, opacity 0s linear 140ms;
+  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) calc(var(--d-appui) * 1.5), opacity 0s linear calc(var(--d-appui) * 1.5);
 }
 
 .course-list .cqty { font-weight: 600; color: var(--green-deep); text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; max-width: 42%; }
@@ -424,7 +424,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
    garde la main (pan-y). */
 .course-list > li { position: relative; }
 
-.course-list li.libre > label { touch-action: pan-y; }
+.course-list li.libre > label { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
 .fond-suppr {
   position: absolute;
@@ -488,7 +488,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .head-branch.trace .o-f {
   animation: o-pousse var(--d-moyenne) var(--e-sortie) both;
-  animation-delay: calc(var(--d-trace) * 0.5 + var(--k, 0) * 45ms);
+  animation-delay: calc(var(--d-trace) * 0.5 + var(--k, 0) * var(--d-appui) * 0.4);
 }
 
 @keyframes o-pousse { from { opacity: 0; scale: 0.2; } }
