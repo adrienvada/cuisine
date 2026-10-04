@@ -22,6 +22,9 @@
    5. Fondamentaux. Une étape qui cite un mécanisme inexistant n'affiche rien du
       tout — la pastille disparaît en silence. Le catalogue lui-même doit être
       complet, et son identifiant part dans les liens partagés.
+   6. Unités de courses. Un même article doit s'exprimer dans une seule unité
+      côté courses, sinon la fusion jette une quantité.
+   7. Placard. Chaque produit du fond de placard doit exister dans les recettes.
 
    Ce que ce vérificateur ne fera JAMAIS : juger du contenu. Il ne réclame pas
    d'astuce, ne compte pas les rattachements, ne trouve pas qu'un fondamental
@@ -39,6 +42,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
 const RECIPES = new Function(`${src}; return RECIPES;`)();
 const RAYONS = new Function(`${src}; return RAYONS;`)();
+const psrc = readFileSync(join(ROOT, "js", "placard.js"), "utf8");
+const PLACARD = new Function(`${psrc}; return PLACARD;`)();
 const fsrc = readFileSync(join(ROOT, "js", "fondamentaux.js"), "utf8");
 const FONDAMENTAUX = new Function(`${fsrc}; return FONDAMENTAUX;`)();
 const FAMILLES = new Function(`${fsrc}; return FAMILLES;`)();
@@ -191,6 +196,53 @@ for (const r of RECIPES) {
   }
 }
 tipsKo.forEach(ko);
+
+/* ---------- 6. Unité de courses unique par article ---------- */
+
+/* La liste de courses n'additionne les quantités d'un même `cid` que si leurs
+   unités sont identiques, et jette la seconde sinon : « gousses » + « gousse »
+   perdait une gousse d'ail, « bouquet » + « botte » la botte de basilic. Pour
+   chaque `cid`, l'unité côté courses (`shop.unit` si présente, sinon `unit`)
+   doit donc être la même dans toutes les recettes, options et suppléments
+   compris. Une unité vide ne compte pas (« 2 citrons » s'additionne avec tout),
+   pas plus qu'une quantité de courses nulle : rien n'y est additionné, la
+   quantité généreuse d'huile d'olive n'entre dans aucun total. */
+const unitesParCid = new Map();
+for (const r of RECIPES) {
+  const lotsCourses = [
+    [r.id, r.ingredients],
+    ...(r.choices || []).flatMap(c => c.options.map(o => [`${r.id} / ${o.id}`, o.ingredients])),
+    ...(r.addons || []).map(a => [`${r.id} / +${a.id}`, a.ingredients])
+  ];
+  for (const [ref, ings] of lotsCourses) for (const i of ings || []) {
+    if (i.course === false || !i.cid) continue;
+    const shop = i.shop || {};
+    const qty = "qty" in shop ? shop.qty : i.qty;
+    const unite = ("unit" in shop ? shop.unit : i.unit) || "";
+    if (qty == null || !unite) continue;
+    if (!unitesParCid.has(i.cid)) unitesParCid.set(i.cid, new Map());
+    const parUnite = unitesParCid.get(i.cid);
+    if (!parUnite.has(unite)) parUnite.set(unite, []);
+    parUnite.get(unite).push(ref);
+  }
+}
+for (const [cid, parUnite] of unitesParCid) {
+  if (parUnite.size < 2) continue;
+  const detail = [...parUnite].map(([u, refs]) => `« ${u} » (${refs.join(", ")})`).join(" contre ");
+  ko(`${cid} : unités de courses différentes, une quantité sera perdue à la fusion — ${detail}. Harmoniser avec shop: { qty, unit }`);
+}
+
+/* ---------- 7. Placard ---------- */
+
+/* Chaque produit de fond de placard est un `cid` d'ingrédient : sinon il ne
+   matche rien et la liste « à vérifier » reste silencieusement incomplète. */
+const cidsConnus = new Set(RECIPES.flatMap(r => [
+  ...r.ingredients,
+  ...(r.choices || []).flatMap(c => c.options.flatMap(o => o.ingredients || [])),
+  ...(r.addons || []).flatMap(a => a.ingredients || [])
+]).map(i => i.cid));
+for (const cid of PLACARD) if (!cidsConnus.has(cid)) ko(`PLACARD : « ${cid} » n'est le cid d'aucun ingrédient des recettes`);
+if (new Set(PLACARD).size !== PLACARD.length) ko("PLACARD : un cid figure deux fois");
 
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
