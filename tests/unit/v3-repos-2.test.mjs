@@ -344,3 +344,17 @@ test("détail d'une attente qui finit un autre jour : on le dit", () => {
   // Un repos garde ses deux lignes, dont « Temps libre » : la différence est dans la frise.
   assert.match(detailRepos({ ...e, type: "repos" })[1], /Temps libre/);
 });
+
+test("revue : un repos qui croise le travail d'un autre plat ne promet ni « Temps libre » ni « Mains libres »", () => {
+  const pate = { k: "a", titre: "Pâte", temps: { prep: 10, repos: 30 }, etapes: [
+    { titre: "Pétrir", duree: 0, genre: "travail" },
+    { titre: "Laisser lever", duree: 30, genre: "repos", libelle: "Levée" }] };
+  const soupe = { k: "b", titre: "Soupe", temps: { prep: 30 }, etapes: [{ titre: "Éplucher", duree: 0, genre: "travail" }] };
+  const croise = evenements(planifier({ table: TABLE, taches: [pate, soupe] }), "repos")[0];
+  assert.equal(croise.libreTout, false, "la soupe demande les mains pendant la levée");
+  assert.deepEqual(detailRepos(croise), [`Levée : 30 min, jusqu'à ${heureFr(croise.fin)}`]);
+  // Seul, le même repos promet toujours le temps libre.
+  const seul = evenements(planifier({ table: TABLE, taches: [pate] }), "repos")[0];
+  assert.equal(seul.libreTout, true);
+  assert.match(detailRepos(seul)[1], /Temps libre/);
+});

@@ -373,6 +373,10 @@ function evenements(lignes, table) {
        libre jusqu'à son terme, le geste qui la suit se lit à la ligne suivante. */
     const jusque = ev[i].type === "repos" ? Math.min(ev[i].fin, suivant?.t ?? ev[i].fin) : suivant?.t;
     ev[i].tempsLibre = !!suivant && bornes.filter(x => x >= ev[i].t && x < jusque).every(libreA);
+    /* Le repos entier, jusqu'à sa fin : « Temps libre » n'est dit que si aucun autre
+       plat ne demande les mains tant qu'il dure (un repos qui croise la préparation
+       d'un autre plat se lit sans promesse). */
+    if (ev[i].type === "repos") ev[i].libreTout = bornes.filter(x => x >= ev[i].t && x < ev[i].fin).every(libreA);
   }
   return ev;
 }
@@ -423,10 +427,10 @@ export function detailRepos(e) {
   const libelle = e.libelle && e.libelle.trim().toLowerCase() !== "repos" ? `${e.libelle} : ` : "";
   const autreJour = (e.jourFin ?? 0) - (e.jour ?? 0);
   const quand = autreJour ? `, ${jourRelatif(autreJour)}` : "";
-  return [
-    `${libelle}${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`,
-    e.duree >= SEUIL_LIBRE ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."
-  ];
+  const duree = `${libelle}${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`;
+  /* Un autre plat occupe les mains pendant ce repos : on ne promet rien. */
+  if (e.libreTout === false) return [duree];
+  return [duree, e.duree >= SEUIL_LIBRE ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."];
 }
 
 /* La ligne qui suit une attente « pendant » : de quelle recette, combien de

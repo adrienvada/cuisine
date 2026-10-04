@@ -177,3 +177,13 @@ for (const [heure, instant, aujourdhui, hier] of [
     await expect(lignes.nth(2)).toContainText("ancienne");
   });
 }
+
+test("revue : le repos de la salade n'annonce pas « Temps libre » quand le cocktail occupe les mains", async ({ page, context }) => {
+  await preremplir(context, { carnet: menuDe("salade-mediterraneenne", "cocktail-concombre-menthe") });
+  await page.goto("/#/menu");
+  await expect(repos(page)).toHaveCount(1);
+  await expect(repos(page)).toContainText(/15\smin,\sjusqu.à\s20\sh/);
+  await expect(repos(page)).not.toContainText(/Temps libre|Mains libres/);
+  // Le fil, lui, n'est pas en pointillés : les mains sont prises.
+  await expect(repos(page)).not.toHaveClass(/fr-bas-libre/);
+});
