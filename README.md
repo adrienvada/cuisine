@@ -221,7 +221,7 @@ js/ui/theme.js          Thème clair/sombre, mouvement réduit
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
-js/vues/ingredient.js    Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
+js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
 js/core/adaptation.js   Allergènes d'une version, portions permises, moule (module pur, testé sous Node)
 js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
