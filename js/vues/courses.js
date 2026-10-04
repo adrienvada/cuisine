@@ -5,6 +5,7 @@ import { save, state, surSauvegarde } from "../core/etat.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { basiquesManquants, menuEntrees, resetHints } from "../core/menu.js";
+import { garderFocus } from "../ui/focus.js";
 import { shareOrCopy } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
@@ -29,10 +30,11 @@ const CHEV_BAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const articleLibre = nom => state.extras.push({ id: Date.now().toString(36), name: nom });
 
 /* Redessine sans perdre la place où l'on en était : cocher un article le fait
-   changer de bloc, la page ne doit pas pour autant remonter. */
+   changer de bloc, la page ne doit pas pour autant remonter, et le clavier doit
+   garder sa place (la case cochée, le bouton de rayon déplacé). */
 function redessiner() {
   const y = window.scrollY;
-  renderCourses();
+  garderFocus(app, renderCourses);
   window.scrollTo(0, y);
 }
 
@@ -132,7 +134,7 @@ export function renderCourses() {
       <div id="courses-root">
       ${raw(ENTETE())}
       <div class="empty-illo cheers">${raw(ILLO.D.cheers)}</div>
-      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter au menu »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
+      <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
       <div style="text-align:center;margin-bottom:14px"><a class="btn-icon" href="#/">${raw(ICON.back)} Voir les recettes</a></div>
       ${raw(FORMULAIRE())}
       </div>`;
@@ -251,12 +253,16 @@ function brancher() {
     if (e.target.matches("details.panier")) panierOuvert = e.target.open;
   }, true);
 
-  document.getElementById("extra-form").addEventListener("submit", e => {
+  /* Le formulaire manque à l'écran de rangement : on ne branche que ce qui existe. */
+  const formulaire = document.getElementById("extra-form");
+  if (formulaire) formulaire.addEventListener("submit", e => {
     e.preventDefault();
     const v = document.getElementById("extra-input").value.trim();
     if (!v) return;
     articleLibre(v);
     save(); updateBadge(); redessiner();
+    // Le bouton « + » n'a pas d'identité stable : le champ reprend le focus, pour enchaîner les articles.
+    document.getElementById("extra-input")?.focus({ preventScroll: true });
   });
 
   const partage = document.getElementById("share");
@@ -306,18 +312,24 @@ function surClic(e) {
     return;
   }
   if (t.closest("[data-decocher]")) { toutDecocher(); return; }
-  if (t.closest("[data-ranger]")) { modeRanger = true; redessiner(); return; }
-  if (t.closest("[data-fin-ranger]")) { modeRanger = false; redessiner(); window.scrollTo(0, 0); return; }
+  /* Le bouton qu'on vient de toucher disparaît avec son écran : le focus passe à son pendant. */
+  if (t.closest("[data-ranger]")) {
+    modeRanger = true; redessiner();
+    document.querySelector("[data-fin-ranger]")?.focus({ preventScroll: true });
+    return;
+  }
+  if (t.closest("[data-fin-ranger]")) {
+    modeRanger = false; redessiner(); window.scrollTo(0, 0);
+    document.querySelector("[data-ranger]")?.focus({ preventScroll: true });
+    return;
+  }
   if (t.closest("[data-reinit-ordre]")) { reinitialiserOrdreRayons(); redessiner(); return; }
   const dep = t.closest("[data-deplacer]");
   if (dep) {
     const nom = dep.dataset.deplacer, sens = Number(dep.dataset.sens);
     deplacerRayon(nom, sens, composerListe().rayonsPresents);
+    // Le doigt reste sur le rayon qu'il déplace : garderFocus lui rend le même bouton (ou son pendant, au bout de la liste).
     redessiner();
-    // Le doigt reste sur le rayon qu'il déplace : on lui rend le même bouton.
-    const meme = [...document.querySelectorAll("[data-deplacer]")].find(b => b.dataset.deplacer === nom && b.dataset.sens === dep.dataset.sens && !b.disabled)
-      || [...document.querySelectorAll("[data-deplacer]")].find(b => b.dataset.deplacer === nom && !b.disabled);
-    if (meme) meme.focus();
   }
 }
 

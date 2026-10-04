@@ -6,6 +6,8 @@
    commune, lues sur l'horloge du mur, sans fuseau — la table à 20 h est à 20 h
    partout, et le calendrier la recevra en Europe/Paris. */
 
+import { fmtTime } from "./format.js";
+
 /* Un four se préchauffe en un quart d'heure environ… */
 export const PRECHAUFFAGE = 15;
 
@@ -72,16 +74,18 @@ export function heureFr(murales) {
   return mm ? `${hh} h ${deuxChiffres(mm)}` : `${hh} h`;
 }
 
-/* Le jour où le repas aura lieu. Une date choisie et encore à venir fait foi ;
-   sinon c'est « la prochaine fois qu'il sera cette heure-là » — aujourd'hui si
-   elle n'est pas passée, demain sinon. `maintenant` : { date, minutes } lus sur
+/* Le jour où le repas aura lieu. Une date choisie et encore à venir fait foi —
+   la date du jour dont l'heure est passée n'est plus à venir ; sinon c'est « la
+   prochaine fois qu'il sera cette heure-là » — aujourd'hui si elle n'est pas
+   passée, demain sinon. `maintenant` : { date, minutes } lus sur
    l'horloge de l'appareil. Rend aussi la minute murale de « maintenant » quand
    le repas est pour aujourd'hui (il bornera alors les départs), sinon null. */
 export function instantTable({ date, heure }, maintenant) {
   const h = minutesDe(heure);
   if (h == null) return null;
   const ajd = minutesMurales(maintenant.date, 0);
-  let jour = date && minutesMurales(date, 0) != null && minutesMurales(date, 0) >= ajd ? date : null;
+  const choisie = date ? minutesMurales(date, 0) : null;
+  let jour = choisie != null && (choisie > ajd || (choisie === ajd && h > maintenant.minutes)) ? date : null;
   if (!jour) jour = maintenant.minutes < h ? maintenant.date : decomposer(ajd + 1440).date;
   const table = minutesMurales(jour, h);
   return { date: jour, table, maintenant: jour === maintenant.date ? ajd + maintenant.minutes : null };
@@ -89,11 +93,23 @@ export function instantTable({ date, heure }, maintenant) {
 
 /* ---------- Noms ---------- */
 
+/* Des noms qui ne disent pas de quoi on parle une fois seuls : « Salade » pour
+   une salade de lentilles ou de pois chiches, « Pesto » pour le basilic ou la
+   roquette. Deux salades au même repas deviendraient indiscernables dans une
+   phrase de conflit ou dans la frise. */
+const GENERIQUES = ["salade", "dip", "pesto", "velouté", "tartines", "mi-cuit"];
+
 /* « Focaccia maison au romarin » → « Focaccia » : le début du titre, avant la
-   première précision. Sert dans les phrases où le titre entier alourdirait. */
+   première précision. Sert dans les phrases où le titre entier alourdirait.
+   Un nom générique garde son complément : « Salade de lentilles ». */
 export function nomCourt(titre) {
-  const coupe = String(titre || "").split(/\s*[,:(«&]\s*|\s+(?:maison|au|aux|à|de|du|des|façon|et)\s|\s+d['’]/i)[0].trim();
-  return coupe || String(titre || "");
+  const entier = String(titre || "");
+  const coupe = entier.split(/\s*[,:(«&]\s*|\s+(?:maison|au|aux|à|de|du|des|façon|et)\s|\s+d['’]/i)[0].trim();
+  if (GENERIQUES.includes(coupe.toLowerCase())) {
+    const suite = /^\S+\s+((?:de|du|des|au|aux)\s+[^\s,;:()]+|d['’][^\s,;:()]+)/i.exec(entier);
+    if (suite) return `${coupe} ${suite[1]}`;
+  }
+  return coupe || entier;
 }
 
 /* ---------- Le déroulé d'une recette ---------- */
@@ -276,22 +292,25 @@ export function texteEvenement(e) {
   }
 }
 
-/* « Focaccia à 220 °C et Quiche lorraine à 180 °C en même temps : enfourne
-   « Focaccia » d'abord. » Les titres restent entre guillemets : le genre d'un
-   nom de plat ne se devine pas, et un article faux serait pire qu'aucun. */
+/* « Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C en même temps :
+   enfourne « Focaccia » d'abord. » Un point-virgule sépare les deux températures
+   pour que chaque plat se lise avec la sienne. Les titres restent entre
+   guillemets : le genre d'un nom de plat ne se devine pas, et un article faux
+   serait pire qu'aucun. Le retard n'est pas redit ici : le message de retard,
+   juste dessous, l'annonce une fois pour tout le repas. */
 export function phraseConflit(c) {
   const a = nomCourt(c.premier.titre);
   const noms = [c.second, ...(c.autres || [])].map(x => nomCourt(x.titre));
   const b = noms.length > 1 ? `${noms.slice(0, -1).join(", ")} et ${noms[noms.length - 1]}` : noms[0];
-  const base = `${a} à ${c.premier.temp} °C et ${b} à ${c.second.temp} °C en même temps : enfourne « ${a} » d'abord`;
-  if (c.retard > 0) return `${base}. Même ainsi l'heure n'est pas tenue : ${c.retard} min de retard.`;
-  if (c.decale > 0) return `${base} : départ avancé de ${c.decale} min, l'heure est tenue.`;
+  const base = `${a} à ${c.premier.temp} °C ; ${b} à ${c.second.temp} °C en même temps : enfourne « ${a} » d'abord`;
+  if (c.retard > 0) return `${base}.`;
+  if (c.decale > 0) return `${base} : départ avancé de ${fmtTime(c.decale)}, l'heure est tenue.`;
   return `${base}.`;
 }
 
 export function phraseRetard(plan) {
   if (!plan.retard) return "";
-  return `Pour ${heureFr(plan.table)}, il aurait fallu s'y mettre plus tôt : compte ${plan.retard} min de retard, à table vers ${heureFr(plan.tableReelle)}.`;
+  return `Pour ${heureFr(plan.table)}, il aurait fallu s'y mettre plus tôt : compte ${fmtTime(plan.retard)} de retard, à table vers ${heureFr(plan.tableReelle)}.`;
 }
 
 /* ---------- Le calendrier (.ics) ---------- */

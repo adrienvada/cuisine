@@ -86,7 +86,7 @@ test("frise : deux recettes qui veulent le four à des températures différente
 
   const note = page.locator(".retro-note.conflit");
   await expect(note).toHaveCount(1);
-  await expect(note).toContainText("Focaccia à 220 °C et Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord");
+  await expect(note).toContainText("Focaccia à 220 °C ; Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord");
   await expect(note).toContainText("l'heure est tenue");
   await expect(page.locator(".retro-note.retard")).toHaveCount(0);
 
@@ -128,7 +128,7 @@ test("frise : trop tard pour l'heure demandée, le retard est annoncé", async (
   await page.goto("/#/menu");
 
   const retard = page.locator(".retro-note.retard");
-  await expect(retard).toContainText("90 min de retard");
+  await expect(retard).toContainText("1 h 30 de retard");
   await expect(retard).toContainText("21 h 30");
   await expect(page.locator(".frise .fr").first()).toContainText("18 h");
 });

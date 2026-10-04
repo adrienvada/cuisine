@@ -62,6 +62,8 @@ export function scaleQty(q, unit, factor, entier = false) {
   if (q == null) return null;
   let s = q * factor;
   if (unit === "g" || unit === "ml") s = Math.round(s);
+  // Un quart de centilitre ne se mesure ni ne s'achète : « 1¼ cl » devient « 1 cl ».
+  else if (unit === "cl") s = Math.max(1, Math.round(s));
   else if (entier || UNITES_ENTIERES.includes(unit)) s = Math.max(1, Math.round(s));
   return s;
 }
