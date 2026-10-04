@@ -142,7 +142,7 @@ export function tick() {
     document.querySelectorAll(`[data-clock="${t.id}"]`).forEach(el => {
       // Un chiffre en train de rouler (+1 min) garde la main jusqu'au bout.
       if (el.querySelector(".rouler")) return;
-      el.textContent = fini && el.classList.contains("t-clock") ? "Prêt !" : fmtClock(left);
+      el.textContent = fini && (el.classList.contains("t-clock") || el.classList.contains("clock")) ? "Prêt !" : fmtClock(left);
     });
     majEtat(t, left, fini);
     if (fini && !t.fired) {

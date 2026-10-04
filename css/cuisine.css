@@ -95,13 +95,13 @@
 
 @keyframes cook-vers-precedent { from { opacity: 0; translate: -44px 0; } }
 
-.cook-step-label { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.cook-step-label { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 
-.cook-body h2 { font-family: var(--serif); font-size: 31px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.1; }
+.cook-body h2 { font-family: var(--serif); font-size: 32px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.08; letter-spacing: 0.005em; }
 
 .cook-flourish { display: block; width: 88px; height: 12px; color: var(--gold); margin: 0 0 12px; opacity: 0.9; }
 
-.cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #E9E4D2; }
+.cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #F1ECDC; }
 
 .cook.taille-0 .txt { font-size: 16.5px; }
 .cook.taille-2 .txt { font-size: 22.5px; line-height: 1.55; }
@@ -177,7 +177,7 @@
 
 .cook-chauffe > button svg { width: 17px; height: 17px; }
 
-.cook .tip { background: rgba(244, 239, 224, 0.1); color: #DCD6C0; margin-top: 18px; }
+.cook .tip { background: rgba(244, 239, 224, 0.1); color: #DCD6C0; margin-top: 18px; border-left-color: var(--gold); }
 
 .cook .tip b { color: var(--gold); }
 
@@ -240,15 +240,15 @@
 .cook-nav button {
   flex: 1;
   border-radius: 14px;
-  padding: 15px;
-  font-size: 16px;
+  padding: 16px;
+  font-size: 16.5px;
   font-weight: 600;
   border: 1px solid rgba(244, 239, 224, 0.3);
   background: transparent;
   color: #F4EFE0;
 }
 
-.cook-nav button.main { background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; }
+.cook-nav button.main { flex: 1.25; background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; box-shadow: 0 4px 14px rgba(10, 20, 8, 0.28); }
 
 .cook-nav button:disabled { opacity: 0.35; }
 
@@ -350,7 +350,7 @@ html[data-theme="dark"] .ing-ligne input { color-scheme: dark; }
    largement suffisant. Rien en mouvement réduit : le routeur ne lance alors aucune transition. */
 @media not (prefers-reduced-motion: reduce) {
   html[data-vt="cuisine"]::view-transition-old(root),
-  html[data-vt="cuisine-sortie"]::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  html[data-vt="cuisine-sortie"]::view-transition-new(root) { animation: cuisine-reste var(--d-longue) linear both; mix-blend-mode: normal; }
 
   html[data-vt="cuisine"]::view-transition-new(root) {
     animation: cuisine-ouvre var(--d-longue) var(--e-sortie) both;
@@ -370,6 +370,9 @@ html { --vt-rayon: 150vmax; }
 @supports (width: hypot(1px, 1px)) {
   html { --vt-rayon: hypot(max(var(--vt-x, 50vw), 100vw - var(--vt-x, 50vw)), max(var(--vt-y, 50vh), 100vh - var(--vt-y, 50vh))); }
 }
+
+/* L'autre vue ne bouge pas : elle reste telle quelle (sans fondu) pendant que le cercle passe. */
+@keyframes cuisine-reste { from, to { opacity: 1; } }
 
 @keyframes cuisine-ouvre {
   from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); }

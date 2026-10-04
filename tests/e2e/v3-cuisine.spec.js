@@ -593,3 +593,13 @@ for (const largeur of [320, 375]) {
     await expect(page.locator("#timer-zone .clock")).toBeInViewport();
   });
 }
+
+test("minuteur qui sonne dans l'étape affichée : le compte dit « Prêt ! » et l'anneau devient une coche", async ({ page, context }) => {
+  await preremplir(context, { carnet: { timers: [minuteur("a", -2000, 5, { fired: true })] } });
+  await page.goto(CUISINE + "/1");
+  const zone = page.locator("#timer-zone");
+  await expect(zone.locator(".clock")).toHaveText("Prêt !");
+  await expect(zone.locator(".clock")).toHaveClass(/flash/);
+  await expect(zone.locator(".cook-anneau.done .coche")).toBeVisible();
+  await expect(zone.getByRole("button", { name: "OK" })).toBeVisible();
+});

@@ -34,8 +34,8 @@ import { shareRecipe } from "../ui/partage.js";
 import { app, noterAdresseCourante, retourVers } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
 import { toast } from "../ui/toast.js";
-import { extrasHtml } from "./fiche.js";
 import { decisionPage, limitesPage } from "./cuisine-gestes.js";
+import { extrasHtml } from "./fiche.js";
 import { astuceHtml } from "./savoirs.js";
 
 let cookIdx = 0;
@@ -578,7 +578,7 @@ export function renderCook(r, step) {
     return `
       <span class="cook-anneau${genre}${compact ? " petit" : ""}${done ? " done" : ""}" data-sonne="${t.id}">${anneauHtml(t, fond)}</span>
       <span class="cook-reste">
-        <span class="clock ${done ? "flash" : ""} ${pause ? "en-pause" : ""}" data-clock="${t.id}">${fmtClock(left)}</span>
+        <span class="clock ${done ? "flash" : ""} ${pause ? "en-pause" : ""}" data-clock="${t.id}">${done ? "Prêt !" : fmtClock(left)}</span>
         ${t.repos && nom && !compact ? `<span class="cook-rappel"><b>${esc(nom)}</b> · ${done ? "c'est prêt." : "tu peux t'éloigner, ça sonnera."}</span>` : ""}
       </span>
       <button type="button" class="t-btn" data-plus="${t.id}">+1 min</button>
