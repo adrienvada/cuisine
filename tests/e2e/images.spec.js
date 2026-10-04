@@ -168,6 +168,38 @@ test.describe("service worker", () => {
     }
   });
 
+  test("la nouvelle version est reproposée au retour sur la page si un autre message a recouvert le toast", async ({ page }) => {
+    const serveur = await serveurDeuxVersions();
+    try {
+      await page.goto(serveur.url + "/");
+      await page.evaluate(() => navigator.serviceWorker.ready);
+      await page.reload();
+      await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+      serveur.version = "v2";
+      await page.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
+      await expect(page.locator("#toast")).toContainText("Nouvelle version");
+
+      await page.evaluate(() => { document.getElementById("toast").hidden = true; });
+      await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+      await expect(page.locator("#toast").getByRole("button", { name: "Recharger" })).toBeVisible();
+    } finally {
+      await serveur.fermer();
+    }
+  });
+
+  test("une vignette de la version courante passe avant une copie d'exécution plus ancienne", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    const taille = await page.evaluate(async () => {
+      const chemin = "img/v/quiche-lorraine.webp";
+      await (await caches.open("carnet-execution")).put(chemin, new Response("vieux", { headers: { "Content-Type": "image/webp" } }));
+      return (await (await fetch(chemin)).blob()).size;
+    });
+    expect(taille).toBeGreaterThan(1000);
+  });
+
   test("premier chargement : aucune « Nouvelle version » proposée", async ({ page }) => {
     const serveur = await serveurDeuxVersions();
     try {

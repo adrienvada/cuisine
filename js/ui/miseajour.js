@@ -38,6 +38,9 @@ export async function surveillerMiseAJour() {
   // Une appli installée reste ouverte des jours : le navigateur ne cherche une
   // version neuve qu'à l'ouverture d'une page, d'où cette vérification au retour.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") reg.update().catch(() => {});
+    if (document.visibilityState !== "visible") return;
+    reg.update().catch(() => {});
+    // Un autre message a pu recouvrir le toast pendant les 30 s : on le remontre.
+    if (reg.waiting && aUnControleur()) proposer(reg.waiting);
   });
 }

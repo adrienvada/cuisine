@@ -11,7 +11,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "c03742f11d";
+const VERSION = "72ebe17a7c";
 
 const CORE = [
   "./",
@@ -169,12 +169,16 @@ async function depuisLeCache(req) {
   }
 }
 
-/* Images : la copie en cache (celle de l'exécution, sinon celle de l'installation)
-   répond tout de suite ; le réseau la rafraîchit en coulisse. Seules les réponses
+/* Images : la copie en cache répond tout de suite ; le réseau la rafraîchit en
+   coulisse (sauf pour les vignettes de CORE, figées par la version). Seules les réponses
    « ok » entrent en cache : un 404 y serait resservi pour toujours. */
 async function cachePuisReseau(e, req) {
+  // Une vignette de CORE appartient à la version courante : sa copie est la bonne.
+  // La copie d'exécution, plus ancienne après une mise à jour, passerait devant sinon.
+  const connue = await (await caches.open(CACHE)).match(req);
+  if (connue) return connue;
   const cache = await caches.open(EXECUTION);
-  const hit = (await cache.match(req)) || (await caches.match(req));
+  const hit = await cache.match(req);
   const maj = fetch(req)
     .then(res => {
       if (res.ok) cache.put(req, res.clone());
