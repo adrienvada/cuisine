@@ -15,6 +15,7 @@ import {
   verdictOf
 } from "../core/recettes.js";
 import { FILTRES, catalogueJai, estDeSaison, foinDe, motsDe, scoreJai, trouve } from "../core/recherche.js";
+import { annoncer } from "../ui/annonces.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
@@ -84,7 +85,7 @@ export function renderHome() {
       </div>
       <button type="button" class="jai-btn" id="jai-ouvrir" aria-haspopup="dialog"></button>
     </div>
-    <div class="chips" id="chips">
+    <div class="chips" id="chips" role="group" aria-label="Catégories">
       ${cats.map(c => `<button class="chip ${state.filter === c ? "on" : ""}" data-cat="${esc(c)}" aria-pressed="${state.filter === c}">${chipLabel(c)}</button>`).join("")}
     </div>
     <div class="chips chips-criteres" id="criteres" role="group" aria-label="Filtres">
@@ -171,7 +172,7 @@ function ouvrirJai() {
       </div>
       <div class="jai-liste" id="jai-liste">
         ${catalogue.map(i => `<button type="button" class="chip jai-chip ${jai.has(i.cle) ? "on" : ""}" data-cle="${esc(i.cle)}" data-norm="${esc(i.norm)}" aria-pressed="${jai.has(i.cle)}">${esc(i.label)}</button>`).join("")}
-        <p class="empty jai-vide" hidden>Aucun ingrédient ne ressemble à ça.</p>
+        <p class="empty jai-vide" role="status" hidden>Aucun ingrédient ne ressemble à ça.</p>
       </div>
       <div class="jai-actions">
         <button type="button" class="btn secondary" id="jai-vider">Tout effacer</button>
@@ -323,6 +324,9 @@ export function applyFilter(animate) {
      (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
   grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER || state.filter === "table"));
   grid.querySelector(".grid-empty").hidden = list.length > 0;
+  /* Filtrer masque des cartes sans rien déplacer sous le focus : sans cette phrase,
+     on ne saurait pas combien de recettes restent. Le premier dessin ne dit rien. */
+  if (animate) annoncer(list.length ? `${list.length} recette${list.length > 1 ? "s" : ""}` : "Aucune recette ne correspond");
 
   /* « 3 / 5 » sur la vignette : seulement tant qu'un ingrédient est choisi. */
   for (const el of grid.querySelectorAll(".card")) {

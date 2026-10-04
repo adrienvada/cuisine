@@ -66,12 +66,12 @@ export const extrasHtml = (s, cuisine) => (s.extras || []).map(x => {
 export const pickChipsHtml = r => `
   ${choiceList(r).map(c => `
     <p class="pick-label">${c.label}</p>
-    <div class="pick-row">${c.options.map(o => `
+    <div class="pick-row" role="group" aria-label="${esc(c.label)}">${c.options.map(o => `
       <button class="chip pick ${optionOf(r, c).id === o.id ? "on" : ""}" data-choice="${c.id}" data-option="${o.id}" aria-pressed="${optionOf(r, c).id === o.id}">${o.emoji ? o.emoji + " " : ""}${o.label}</button>`).join("")}
     </div>`).join("")}
   ${addonList(r).length ? `
     <p class="pick-label">Les petits plus</p>
-    <div class="pick-row">${addonList(r).map(a => {
+    <div class="pick-row" role="group" aria-label="Les petits plus">${addonList(r).map(a => {
       const on = selectedAddons(r).some(x => x.id === a.id);
       return `<button class="chip pick ${on ? "on" : ""}" data-addon="${a.id}" aria-pressed="${on}">${a.emoji ? a.emoji + " " : ""}${a.label}</button>`;
     }).join("")}
@@ -185,7 +185,7 @@ export function renderRecipe(r) {
       <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Ingrédients</span>
         <span class="portions">
           <button id="p-minus" aria-label="Moins de portions">−</button>
-          <span class="val" id="p-val"></span>
+          <span class="val" id="p-val" aria-live="polite"></span>
           <button id="p-plus" aria-label="Plus de portions">+</button>
         </span>
       </h2>

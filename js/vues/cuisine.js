@@ -11,6 +11,7 @@ import { ICON } from "../core/icones.js";
 import { entreeCourante, portionsOf } from "../core/menu.js";
 import { effectiveIngredients, effectiveSteps, markCooked, selectedAddons, verdictOf } from "../core/recettes.js";
 import { cleCuisine, forgetCooking, noAutoResume, setCooking } from "../core/seance.js";
+import { annoncer } from "../ui/annonces.js";
 import { fermerFeuille, feuilleOuverte, ouvrirFeuille } from "../ui/feuilles.js";
 import {
   acquireWakeLock,
@@ -48,6 +49,26 @@ let voixPromesse = null;
 const chargerVoix = () => voixPromesse || (voixPromesse = import("../ui/voix.js")
   .then(m => (m.voixDisponible().ecoute ? m : null))
   .catch(() => null));
+
+/* Redessiner efface le bouton qu'on vient d'activer, et avec lui le focus : la
+   touche Tab suivante repartirait du début de la page. On note donc le contrôle
+   (par son id, ou par son attribut data-*, qui porte l'identifiant du minuteur) pour
+   rendre le focus à son équivalent dans le dessin neuf. */
+const reperer = (racine, el) => {
+  // Les bulles du plateau se ressemblent toutes : le plateau retrouve seul son focus.
+  if (!el || !racine.contains(el) || el === racine || el.closest("#timer-tray")) return null;
+  if (el.id) return `#${el.id}`;
+  const attr = [...el.attributes].find(a => a.name.startsWith("data-") && a.value);
+  return attr ? `[${attr.name}="${attr.value}"]` : null;
+};
+
+/* `secours` reçoit le focus quand l'équivalent n'existe plus ou est désactivé. */
+const rendreLeFocus = (racine, repere, secours) => {
+  if (!repere) return;
+  let cible = racine.querySelector(repere);
+  if (!cible || cible.disabled) cible = typeof secours === "function" ? secours() : secours;
+  if (cible) cible.focus({ preventScroll: true });
+};
 
 const ICONE_MICRO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
 
@@ -115,12 +136,13 @@ export function renderCook(r, step) {
       history.replaceState(history.state, "", `${prefixeCook}/cuisine/${cookIdx}`);
       noterAdresseCourante();
     }
+    const repere = reperer(app, document.activeElement);
     libererPlateau();
     const entree = REDUCE_MOTION.matches ? "" : sens > 0 ? "vers-suivant" : sens < 0 ? "vers-precedent" : "";
     app.innerHTML = `
       <div class="cook taille-${t}">
         <div class="cook-top">
-          <span class="title">${r.title}</span>
+          <h1 class="title">${r.title}</h1>
           <span class="cook-tools">
             <button class="cook-close" id="cook-share" aria-label="Partager la recette">${ICON.share}</button>
             <button class="cook-close" id="cook-close" aria-label="Fermer">✕</button>
@@ -161,6 +183,11 @@ export function renderCook(r, step) {
     setEtapeAffichee(cleSeance, cookIdx);
     drawZones(s);
     setRefreshZone(() => drawZones(steps[cookIdx]));
+    // Un bouton devenu inactif (« Précédent » à la première étape) ne peut plus le garder :
+    // le focus va alors au titre de l'étape, où la lecture reprend.
+    const titre = app.querySelector(".cook-etape h2");
+    titre.tabIndex = -1;
+    rendreLeFocus(app, repere, titre);
   };
 
   const aller = delta => {
@@ -168,6 +195,7 @@ export function renderCook(r, step) {
     if (finished || suivant < 0 || suivant >= steps.length) return;
     cookIdx = suivant;
     draw(delta);
+    annoncer(`Étape ${cookIdx + 1} / ${steps.length}, ${app.querySelector(".cook-etape h2").textContent}`);
     if (ecoute) lireEtape();
   };
 
@@ -197,8 +225,13 @@ export function renderCook(r, step) {
     // Pas de redessin : on garde l'endroit où l'on en est dans l'étape.
     const cook = document.querySelector(".cook");
     cook.className = cook.className.replace(/taille-\d/, `taille-${t}`);
-    document.getElementById("cook-moins").disabled = t === 0;
-    document.getElementById("cook-plus").disabled = t === TAILLES.length - 1;
+    const moins = document.getElementById("cook-moins"), plus = document.getElementById("cook-plus");
+    const avait = document.activeElement;
+    moins.disabled = t === 0;
+    plus.disabled = t === TAILLES.length - 1;
+    // Le bouton qu'on vient d'enfoncer jusqu'au bout se désactive : son vis-à-vis prend le focus.
+    if (avait === moins && moins.disabled) plus.focus({ preventScroll: true });
+    else if (avait === plus && plus.disabled) moins.focus({ preventScroll: true });
   };
 
   /* ---------- La feuille des ingrédients ---------- */
@@ -366,7 +399,19 @@ export function renderCook(r, step) {
 
   /* ---------- Les zones de minuteur ---------- */
 
-  const drawZones = s => { drawTimerZone(s); drawAddonZones(s); drawFourZone(); };
+  /* Les zones sont réécrites à chaque geste de minuteur (« Pause » devient
+     « Reprendre », « Arrêter » laisse place à « Minuteur… ») : le focus suit le
+     contrôle équivalent de sa zone, ou à défaut le premier bouton de cette zone. */
+  const drawZones = s => {
+    const zone = document.activeElement && document.activeElement.closest("#timer-zone, .addon-timer, #four-zone");
+    const repere = zone ? reperer(app, document.activeElement) : null;
+    const reperZone = zone ? reperer(app, zone) : null;
+    drawTimerZone(s); drawAddonZones(s); drawFourZone();
+    rendreLeFocus(app, repere, () => {
+      const nouvelle = reperZone && app.querySelector(reperZone);
+      return nouvelle && nouvelle.querySelector("button");
+    });
+  };
 
   /* Le compte à rebours et ses trois gestes : +1 min, pause / reprise, arrêt.
      Un minuteur qui sonne ne propose plus de pause, et son arrêt s'appelle « OK ». */
@@ -391,7 +436,7 @@ export function renderCook(r, step) {
       zone.innerHTML = `<button id="timer-start">${ICON.timer} Minuteur ${fmtTime(s.timer)}</button>`;
       document.getElementById("timer-start").addEventListener("click", () => {
         startTimer(r, cookIdx, { timer: s.timer, label: s.t });
-        drawTimerZone(s);
+        drawZones(s);
       });
     } else {
       zone.innerHTML = "";

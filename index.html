@@ -65,6 +65,7 @@
   <link rel="modulepreload" href="js/ui/partage.js">
   <link rel="modulepreload" href="js/ui/routeur.js">
   <link rel="modulepreload" href="js/ui/theme.js">
+  <link rel="modulepreload" href="js/ui/annonces.js">
   <link rel="modulepreload" href="js/ui/toast.js">
   <link rel="modulepreload" href="js/ui/visuel.js">
   <link rel="modulepreload" href="js/vues/accueil.js">
@@ -116,7 +117,9 @@
 
   <div id="timer-tray" class="timer-tray" hidden></div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <!-- Toujours rendu (voir toast.js) : la voix passe par la région #annonces, la seule du carnet. -->
+  <div id="toast" class="toast"></div>
+  <div id="annonces" class="sr-only" role="status" aria-live="polite"></div>
 
   <script src="js/recipes.js"></script>
   <script src="js/placard.js"></script>

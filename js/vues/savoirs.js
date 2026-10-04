@@ -62,8 +62,9 @@ export const astuceHtml = s => {
 };
 
 /* Corps d'un fondamental — le même dans la feuille et dans la page partagée :
-   deux contenants, une seule vérité. */
-export function fondBodyHtml(f) {
+   deux contenants, une seule vérité. `niveau` est celui des intertitres : 4 sous le
+   h3 de la feuille, 2 sous le h1 de la page — la hiérarchie ne saute jamais. */
+export function fondBodyHtml(f, niveau = 4) {
   const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
   const recettes = recettesDuFond(f.id);
   /* L'ordre n'est pas cosmétique : on ouvre cette feuille une casserole sur le
@@ -72,22 +73,22 @@ export function fondBodyHtml(f) {
   return `
     <p class="f-accroche">${f.accroche}</p>
     ${f.cas && f.cas.length ? `<div class="f-bloc">
-      <h4>Selon les cas</h4>
+      <h${niveau}>Selon les cas</h${niveau}>
       <dl class="f-cas">${f.cas.map(x => `<dt>${x.q}</dt><dd>${x.r}</dd>`).join("")}</dl>
     </div>` : ""}
     ${f.reperes && f.reperes.length ? `<div class="f-bloc">
-      <h4>À retenir</h4>
+      <h${niveau}>À retenir</h${niveau}>
       <ul class="f-rep">${f.reperes.map(x => `<li>${x}</li>`).join("")}</ul>
     </div>` : ""}
     <div class="f-bloc">
-      <h4>Pourquoi ça marche</h4>
+      <h${niveau}>Pourquoi ça marche</h${niveau}>
       <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
       ${f.pourquoi.split("\n\n").map(p => `<p>${p}</p>`).join("")}
       ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
     </div>
     ${f.piege ? `<div class="f-piege"><b>L'erreur classique</b>${f.piege}</div>` : ""}
     ${recettes.length ? `<div class="f-bloc">
-      <h4>Dans le carnet</h4>
+      <h${niveau}>Dans le carnet</h${niveau}>
       <div class="f-recettes">${recettes.map(r =>
         `<a class="f-rec" href="#/recette/${r.id}"><span>${r.emoji}</span>${r.title}</a>`).join("")}</div>
     </div>` : `<p class="f-orphelin">Pas encore rattaché à une recette du carnet.</p>`}
@@ -193,7 +194,7 @@ export function renderFondamentaux() {
     <p class="f-intro">Les gestes que tu retrouves d'une recette à l'autre, et ce qui se passe vraiment quand tu les fais.</p>
     <div class="searchbar">
       ${raw(ICON.search)}
-      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off">
+      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off" aria-label="Chercher un mécanisme">
     </div>
     <div id="f-resultats">${raw(listeFondamentaux(q))}</div>
   `;
@@ -218,7 +219,7 @@ export function renderFondamental(f) {
       <p class="f-fam-tag">${f.famille}</p>
       <h1><span class="f-emoji">${f.emoji}</span>${f.t}</h1>
     </header>
-    <div class="f-page">${fondBodyHtml(f)}</div>
+    <div class="f-page">${fondBodyHtml(f, 2)}</div>
   `;
   document.getElementById("f-share-page").addEventListener("click", () => shareFond(f.id));
 }
