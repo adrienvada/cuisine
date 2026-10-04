@@ -130,7 +130,7 @@ test("conflit de four : focaccia à 220 °C et quiche à 180 °C, la plus chaude
   assert.ok(q.fin <= TABLE && f.fin < TABLE);
   assert.equal(plan.retard, 0);
   assert.ok(c.decale > 0);
-  assert.match(phraseConflit(c), /^Focaccia à 220 °C et Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord : départ avancé de \d+ min, l'heure est tenue/);
+  assert.match(phraseConflit(c), /^Focaccia à 220 °C ; Quiche lorraine à 180 °C en même temps : enfourne « Focaccia » d'abord : départ avancé de (?:\d+ h(?: \d+)?|\d+ min), l'heure est tenue/);
   // Le four se règle entre les deux fournées.
   const types = plan.evenements.map(e => e.type);
   assert.ok(types.includes("regler") || types.filter(t => t === "prechauffage").length === 2);
@@ -143,7 +143,7 @@ test("conflit de four : plusieurs plats à la même température contre le même
   ajouter("cake-sale", { k: "c" });
   const plan = planifier({ table: TABLE, taches: menu.tachesDuMenu() });
   assert.equal(plan.conflits.length, 1);
-  assert.match(phraseConflit(plan.conflits[0]), /^Focaccia à 220 °C et Quiche lorraine et Cake salé à 180 °C en même temps/);
+  assert.match(phraseConflit(plan.conflits[0]), /^Focaccia à 220 °C ; Quiche lorraine et Cake salé à 180 °C en même temps/);
   assert.equal(plan.retard, 0);
 });
 
@@ -178,7 +178,7 @@ test("trop tard pour tenir l'heure : le retard est annoncé, rien ne part dans l
   assert.ok(min(plan, "f").debut >= maintenant);
   assert.equal(plan.retard, 150);
   assert.equal(plan.tableReelle, TABLE + 150);
-  assert.match(phraseRetard(plan), /150 min de retard.*22 h 30/);
+  assert.match(phraseRetard(plan), /2 h 30 de retard.*22 h 30/);
 });
 
 test("un conflit que « maintenant » rend insoluble repousse le plat suivant : le retard le dit", () => {
@@ -190,7 +190,9 @@ test("un conflit que « maintenant » rend insoluble repousse le plat suivant : 
   assert.ok(f.debut >= TABLE - 120);
   assert.ok(f.four.sortie + 10 <= q.four.entree);
   assert.ok(plan.retard > 0);
-  assert.match(phraseConflit(plan.conflits[0]), /l'heure n'est pas tenue/);
+  // Le retard se dit une fois, dans son propre message : la phrase de conflit ne le répète pas.
+  assert.doesNotMatch(phraseConflit(plan.conflits[0]), /retard|tenue/);
+  assert.match(phraseRetard(plan), /de retard/);
 });
 
 test("mains libres : ce qui démarre pendant l'attente d'une autre recette le dit", () => {

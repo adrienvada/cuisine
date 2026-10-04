@@ -41,6 +41,7 @@ import {
 } from "../core/planning.js";
 import { VERDICTS, byId, cookedOf, totalTimeText, verdictOf, versionSummary } from "../core/recettes.js";
 import { cookHref, cookingStep } from "../core/seance.js";
+import { garderFocus } from "../ui/focus.js";
 import { onShareClick, shareMenu } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { toast, updateBadge } from "../ui/toast.js";
@@ -86,7 +87,7 @@ function repasHtml(repas) {
   const nbExclus = repas.exclus.length;
   return html`<section class="repas fade-in" aria-label="Le repas">
     <div class="rp-ligne">
-      <span class="rp-lib" id="rp-conv">Pour combien ?</span>
+      <span class="rp-lib" id="rp-conv">Pour combien&nbsp;?</span>
       <span class="portions" role="group" aria-labelledby="rp-conv">
         <button data-conv="-1" aria-label="Un convive de moins">−</button>
         <span class="val" id="rp-conv-val">${pluriel(repas.convives, "convive")}</span>
@@ -214,7 +215,7 @@ function carteHtml({ e, r }, repas) {
       </span>
       <div class="mc-actions">
         <a class="mc-btn" href="${cookHref(r, e.k)}">${raw(ICON.chef)} ${cookingStep(r, e.k) ? "Reprendre" : "Cuisiner"}</a>
-        <button class="mc-btn" data-share="${r.id}">${raw(ICON.share)} Partager</button>
+        <button class="mc-btn" data-share="${r.id}" data-share-k="${e.k}">${raw(ICON.share)} Partager</button>
       </div>
     </div>
     <button class="mc-x" data-remove="${e.k}" aria-label="Retirer du menu">✕</button>
@@ -276,10 +277,10 @@ export function renderMenu() {
   brancher();
 }
 
-/* Redessiner sur place, sans revenir en haut de page. */
+/* Redessiner sur place, sans revenir en haut de page ni perdre le focus clavier. */
 function redessiner() {
   const y = window.scrollY;
-  renderMenu();
+  garderFocus(app, renderMenu);
   window.scrollTo(0, y);
 }
 

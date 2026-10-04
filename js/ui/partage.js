@@ -3,7 +3,7 @@
 import { CERTITUDES, fondById } from "../core/fonds.js";
 import { fmtQty, fmtTime, fmtUnit, scaleQty } from "../core/format.js";
 import { requeteDeVersion } from "../core/liens.js";
-import { compo, menuEntrees, portionsOf } from "../core/menu.js";
+import { compo, entreeDe, menuEntrees, portionsOf } from "../core/menu.js";
 import { byId, effectiveIngredients, effectiveSteps, versionSummary } from "../core/recettes.js";
 import { toast } from "./toast.js";
 
@@ -39,9 +39,10 @@ export async function shareOrCopy(data, copied) {
 }
 
 /* Résumé d'une recette : de quoi lire l'essentiel dans la conversation,
-   aux portions actuellement affichées, et le lien pour le pas-à-pas illustré. */
-export function recipeShareText(r) {
-  const p = portionsOf(r), f = p / r.portions.base, t = r.times;
+   aux portions de la version `conf` (par défaut la composition courante), et le
+   lien pour le pas-à-pas illustré. */
+export function recipeShareText(r, conf = compo(r.id)) {
+  const p = portionsOf(r, conf), f = p / r.portions.base, t = r.times;
   const times = [];
   if (t.prep) times.push(`Préparation ${fmtTime(t.prep)}`);
   if (t.repos) times.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);
@@ -50,22 +51,26 @@ export function recipeShareText(r) {
   const lines = [`${r.emoji} ${r.title}`, r.subtitle];
   if (r.discovered) lines.push(`📍 Découverte ${r.discovered}`);
   lines.push("", times.join(" · "));
-  const vs = versionSummary(r);
+  const vs = versionSummary(r, conf);
   if (vs) lines.push(`Version : ${vs}`);
   lines.push("", `Pour ${p} ${r.portions.label} :`);
-  for (const ing of effectiveIngredients(r)) {
+  for (const ing of effectiveIngredients(r, conf)) {
     const q = scaleQty(ing.qty, ing.unit, f, ing.entier);
     const qty = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "");
     lines.push(`• ${ing.name}${qty ? ` — ${qty}` : ""}${ing.addon ? " (supplément)" : ing.optional ? " (optionnel)" : ""}`);
   }
-  lines.push("", `Les ${effectiveSteps(r).length} étapes en pas-à-pas, avec les minuteurs :`);
+  lines.push("", `Les ${effectiveSteps(r, conf).length} étapes en pas-à-pas, avec les minuteurs :`);
   return lines.join("\n");
 }
 
-export function shareRecipe(id) {
+/* `k` : la clé d'une entrée du menu. Une carte du menu partage sa version à elle
+   (garniture, suppléments, portions), pas le brouillon de la fiche — deux cakes
+   au même repas n'envoient pas le même lien. Sans `k`, la composition courante. */
+export function shareRecipe(id, k = null) {
   const r = byId(id);
   if (!r) return;
-  shareOrCopy({ title: r.title, text: recipeShareText(r), url: recipeUrl(r) }, "Recette copiée !");
+  const conf = (k && entreeDe(k)) || compo(r.id);
+  shareOrCopy({ title: r.title, text: recipeShareText(r, conf), url: recipeUrl(r, conf) }, "Recette copiée !");
 }
 
 export function shareMenu() {
@@ -104,5 +109,5 @@ export function onShareClick(e) {
   if (!b) return;
   e.preventDefault();
   e.stopPropagation();
-  shareRecipe(b.dataset.share);
+  shareRecipe(b.dataset.share, b.dataset.shareK);
 }

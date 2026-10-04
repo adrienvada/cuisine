@@ -167,12 +167,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 8px;
   min-height: 60px;
   border-bottom: 1px dashed var(--line);
 }
 
-.rp-lib { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); }
+/* Le libellé et le stepper ne se coupent jamais : à 375 px le « ? » partait seul à
+   la ligne et « 2 convives » se coupait en deux, la rangée sautait de 30 à 60 px
+   d'un convive à l'autre. Faute de place (320 px), c'est le stepper entier qui
+   passe sous le libellé ; sa largeur ne dépend pas du nombre de convives, la
+   rangée garde donc la même hauteur de 1 à 24. */
+.rp-lib { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--green-deep); white-space: nowrap; }
+
+.rp-ligne:has(> .portions) { flex-wrap: wrap; }
+.rp-ligne .portions { flex: none; margin-left: auto; }
+.rp-ligne .portions .val { white-space: nowrap; min-width: 78px; padding: 0; }
 
 .rp-lib small { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--muted); }
 
