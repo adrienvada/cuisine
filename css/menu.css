@@ -306,6 +306,9 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
 
 .retro-note svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
 
+.retro-plus { margin-top: 10px; }
+.retro-plus summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); font-size: 14px; }
+
 .retro-note.retard { background: transparent; border: 1px solid var(--terra); color: var(--terra); }
 
 /* Une liste horodatée, lisible d'un pouce : l'heure à gauche, un fil, le geste. */

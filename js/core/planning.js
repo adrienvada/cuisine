@@ -280,11 +280,15 @@ export function phraseRetard(plan) {
 const ics = t => String(t ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
 function plier(ligne) {
+  /* RFC 5545 compte en octets : un « é » en pèse deux. */
+  const octets = c => new TextEncoder().encode(c).length;
   const morceaux = [];
-  let reste = Array.from(ligne);
-  let max = 75;
-  while (reste.length > max) { morceaux.push(reste.slice(0, max).join("")); reste = reste.slice(max); max = 74; }
-  morceaux.push(reste.join(""));
+  let courant = "", poids = 0, max = 75;
+  for (const c of ligne) {
+    if (poids + octets(c) > max) { morceaux.push(courant); courant = ""; poids = 0; max = 74; }
+    courant += c; poids += octets(c);
+  }
+  morceaux.push(courant);
   return morceaux.join("\r\n ");
 }
 

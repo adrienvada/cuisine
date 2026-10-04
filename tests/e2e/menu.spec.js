@@ -102,6 +102,23 @@ test("frise : deux recettes qui veulent le four à des températures différente
   expect([...heures].sort((a, b) => a - b)).toEqual(heures);
 });
 
+test("frise : quatre températures, deux phrases de conflit au plus, le reste se replie sous un résumé", async ({ page, context }) => {
+  await preremplir(context, {
+    carnet: {
+      menu: [entree("focaccia-romarin", { k: "f1" }), entree("torsades-pesto", { k: "t1" }), entree("quiche-lorraine", { k: "q1" }), entree("mi-cuit-chocolat-suzy-palatin", { k: "m1" })],
+      repas: REPAS
+    }
+  });
+  await page.goto("/#/menu");
+  await expect(page.locator(".retro > .retro-note.conflit")).toHaveCount(2);
+  const plus = page.locator(".retro-plus");
+  await expect(plus).toContainText("autres conflits de four");
+  await expect(plus.locator(".retro-note.conflit")).toHaveCount(4);
+  await expect(plus.locator(".retro-note.conflit").first()).toBeHidden();
+  await plus.locator("summary").click();
+  await expect(plus.locator(".retro-note.conflit").first()).toBeVisible();
+});
+
 test("frise : trop tard pour l'heure demandée, le retard est annoncé", async ({ page, context }) => {
   await page.clock.setFixedTime(new Date("2099-06-15T18:00:00+02:00"));
   await preremplir(context, {

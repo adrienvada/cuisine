@@ -119,6 +119,11 @@ function repasHtml(repas) {
 
 const ICONE_EVT = { prechauffage: ICON.flame, regler: ICON.flame, enfourner: ICON.flame, sortir: ICON.flame };
 
+/* Quatre plats à quatre températures font six paires : au-delà de deux phrases,
+   le reste se replie, pour que la frise ne soit pas repoussée hors de l'écran. */
+const CONFLITS_VISIBLES = 2;
+const noteConflit = c => raw(html`<p class="retro-note conflit">${raw(ICON.flame)}<span>${phraseConflit(c)}</span></p>`);
+
 function retroHtml(plan, inst, versions) {
   const aujourdhui = maintenantLocal().date;
   const ligne = e => {
@@ -133,7 +138,8 @@ function retroHtml(plan, inst, versions) {
   };
   return html`<section class="retro fade-in" aria-label="Rétroplanning">
     <h2 class="retro-titre">À table à ${heureFr(plan.table)} <small>${jourFr(inst.date, aujourdhui)}</small></h2>
-    ${plan.conflits.map(c => raw(html`<p class="retro-note conflit">${raw(ICON.flame)}<span>${phraseConflit(c)}</span></p>`))}
+    ${plan.conflits.slice(0, CONFLITS_VISIBLES).map(noteConflit)}
+    ${plan.conflits.length > CONFLITS_VISIBLES ? raw(html`<details class="retro-plus"><summary>${plan.conflits.length - CONFLITS_VISIBLES} autre${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} conflit${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} de four</summary>${plan.conflits.slice(CONFLITS_VISIBLES).map(noteConflit)}</details>`) : ""}
     ${plan.retard ? raw(html`<p class="retro-note retard">${raw(ICON.clock)}<span>${phraseRetard(plan)}</span></p>`) : ""}
     <ol class="frise">${plan.evenements.map(e => raw(ligne(e)))}</ol>
     <button class="btn secondary retro-cal" id="ajout-calendrier">${raw(ICON.clock)} Ajouter au calendrier</button>

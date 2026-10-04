@@ -230,10 +230,20 @@ test("icsRepas : fuseau Europe/Paris, un événement par recette, des rappels, l
   assert.ok(/TRIGGER:-PT30M/.test(ics));
   assert.ok((ics.match(/BEGIN:VALARM/g) || []).length >= 4);
   assert.ok(/SUMMARY:Préchauffe le four à 220 °C/.test(ics));
-  for (const ligne of ics.split("\r\n")) assert.ok(Array.from(ligne).length <= 75, ligne);
+  for (const ligne of ics.split("\r\n")) assert.ok(Buffer.byteLength(ligne) <= 75, ligne);
   // Les virgules et les points-virgules du texte sont échappés.
   const avecVirgule = icsRepas({ ...plan, recettes: [{ ...plan.recettes[0], titre: "Pâtes, sauce; tomate" }] }, { horodatage: "20300101T000000Z" });
   assert.ok(avecVirgule.includes("SUMMARY:Cuisiner : Pâtes\\, sauce\\; tomate") || avecVirgule.includes("SUMMARY:Cuisiner : Pâtes"));
+});
+
+test("icsRepas : un titre accentué long se plie à 75 octets, pas à 75 caractères", () => {
+  vide();
+  ajouter("focaccia-romarin", { k: "f" });
+  const plan = planifier({ table: TABLE, taches: menu.tachesDuMenu() });
+  plan.recettes[0].titre = "Éééééééééé ".repeat(12);
+  const ics = icsRepas(plan, { horodatage: "20300101T000000Z" });
+  for (const ligne of ics.split("\r\n")) assert.ok(Buffer.byteLength(ligne) <= 75, ligne);
+  assert.ok(ics.includes("\r\n "));
 });
 
 /* ---------- Convives ---------- */
