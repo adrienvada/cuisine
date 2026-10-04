@@ -1,10 +1,11 @@
 /* L'onglet Savoirs : le catalogue des fondamentaux, leur page, leur feuille et l'astuce qui y renvoie. */
 
 import { state } from "../core/etat.js";
-import { CERTITUDES, fondById, fondMatches, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
+import { CERTITUDES, figuresDe, fondById, fondMatches, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { figureHtml, figuresA, observerFigures } from "../ui/figures.js";
 import { shareFond } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 
@@ -67,23 +68,32 @@ export const astuceHtml = s => {
 function fondBodyHtml(f, niveau = 4) {
   const c = CERTITUDES[f.certitude] || CERTITUDES.partiel;
   const recettes = recettesDuFond(f.id);
+  /* Les schémas de js/figures.js, s'il est arrivé : chacun dit où il se place
+     (tete, cas, reperes, pourquoi + apres). Sans le fichier, `figures` est vide
+     et la fiche est exactement celle d'avant. */
+  const figures = figuresDe(f.id);
+  const ici = (ou, opts) => figuresA(figures, f.id, ou, opts);
+  const paragraphes = f.pourquoi.split("\n\n");
   /* L'ordre n'est pas cosmétique : on ouvre cette feuille une casserole sur le
      feu. Ce qu'on fait vient donc avant pourquoi ça marche — la science reste
      entière, une longueur de pouce plus bas. */
   return `
     <p class="f-accroche">${f.accroche}</p>
+    ${ici("tete")}
     ${f.cas && f.cas.length ? `<div class="f-bloc">
       <h${niveau}>Selon les cas</h${niveau}>
       <dl class="f-cas">${f.cas.map(x => `<dt>${x.q}</dt><dd>${x.r}</dd>`).join("")}</dl>
     </div>` : ""}
+    ${ici("cas")}
     ${f.reperes && f.reperes.length ? `<div class="f-bloc">
       <h${niveau}>À retenir</h${niveau}>
       <ul class="f-rep">${f.reperes.map(x => `<li>${x}</li>`).join("")}</ul>
-    </div>` : ""}
+      ${ici("reperes")}
+    </div>` : ici("reperes")}
     <div class="f-bloc">
       <h${niveau}>Pourquoi ça marche</h${niveau}>
       <span class="f-cert f-cert-${f.certitude}">${c.l}</span>
-      ${f.pourquoi.split("\n\n").map(p => `<p>${p}</p>`).join("")}
+      ${paragraphes.map((p, i) => `<p>${p}</p>${ici("pourquoi", { k: i + 1, nbParagraphes: paragraphes.length })}`).join("")}
       ${f.certitude !== "etabli" ? `<p class="f-cert-note">${c.d}</p>` : ""}
     </div>
     ${f.piege ? `<div class="f-piege"><b>L'erreur classique</b>${f.piege}</div>` : ""}
@@ -94,6 +104,38 @@ function fondBodyHtml(f, niveau = 4) {
     </div>` : `<p class="f-orphelin">Dans aucune recette pour l'instant.</p>`}
     ${f.source ? `<p class="f-source">${f.source}</p>` : ""}`;
 }
+
+/* Le zoom d'une figure : la même figure, redessinée depuis les données dans une
+   feuille plus haute, où elle défile si l'écran est plus étroit qu'elle. Une
+   feuille comme les autres : Échap, le geste de retour et le focus sont ceux de
+   js/ui/feuilles.js. */
+export function ouvrirFigure(fondId, i) {
+  const fig = figuresDe(fondId)[i];
+  if (!fig) return;
+  const rendu = figureHtml(fig, { fond: fondId, i, zoom: true });
+  if (!rendu) return;
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop fg-zoom";
+  backdrop.innerHTML = `
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${html`${fig.titre || "Schéma"}`}">
+      <div class="sheet-grip"></div>
+      <div class="fg-zoom-corps">${rendu}</div>
+      <button type="button" class="btn secondary f-close" id="fg-close">Fermer</button>
+    </div>`;
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop || e.target.closest("#fg-close")) fermerFeuille();
+  });
+  ouvrirFeuille(backdrop);
+}
+
+/* Un appui sur le cadre d'une figure (le dessin ou le bouton d'agrandissement)
+   l'ouvre. Un seul écouteur délégué : les figures vivent dans la page et dans la
+   feuille d'un savoir, qui se redessinent. */
+document.addEventListener("click", e => {
+  const cadre = e.target.closest(".fg:not(.fg-zoomee) .fg-cadre");
+  const bouton = cadre && cadre.querySelector("[data-fg-zoom]");
+  if (bouton) ouvrirFigure(bouton.dataset.fgFond, Number(bouton.dataset.fgI));
+});
 
 /* Ouverture par-dessus l'endroit où l'on se trouve : aucune adresse ne change,
    donc `route()` n'est pas rappelée — le mode cuisine garde son étape, son
@@ -133,6 +175,7 @@ export function openFondSheet(id) {
   ouvrirFeuille(backdrop, () => {
     if (ensuite) { const aller = ensuite; ensuite = null; aller(); }
   });
+  observerFigures(backdrop);
 }
 
 /* La liste seule : c'est tout ce qui change quand on tape. */
@@ -147,12 +190,16 @@ function listeFondamentaux(q) {
         <div class="f-liste">
           ${trouves.filter(f => f.famille === fam).map(f => {
             const n = recettesDuFond(f.id).length;
+            const nf = figuresDe(f.id).length;
             return raw(html`<a class="f-item" href="#/fondamental/${f.id}">
               <span class="f-item-emoji">${f.emoji}</span>
               <span class="f-item-txt">
                 <b>${f.t}</b>
                 <small>${f.accroche}</small>
-                <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Dans aucune recette pour l'instant"}</span>
+                <span class="f-item-bas">
+                  <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Dans aucune recette pour l'instant"}</span>
+                  ${nf ? raw(html`<span class="f-item-fig">${nf} schéma${nf > 1 ? "s" : ""}</span>`) : ""}
+                </span>
               </span>
               ${raw(ICON.chev)}
             </a>`);
@@ -202,4 +249,5 @@ export function renderFondamental(f) {
     <div class="f-page">${fondBodyHtml(f, 2)}</div>
   `;
   document.getElementById("f-share-page").addEventListener("click", () => shareFond(f.id));
+  observerFigures(app);
 }

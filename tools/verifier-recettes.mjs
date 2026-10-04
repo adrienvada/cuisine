@@ -46,6 +46,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SINGULIERS_PORTIONS } from "../js/core/format.js";
+import { EMPLACEMENTS, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml } from "../js/ui/figures.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -57,6 +58,10 @@ const fsrc = readFileSync(join(ROOT, "js", "fondamentaux.js"), "utf8");
 const FONDAMENTAUX = new Function(`${fsrc}; return FONDAMENTAUX;`)();
 const FAMILLES = new Function(`${fsrc}; return FAMILLES;`)();
 const FONDAMENTAL_RENAMES = new Function(`${fsrc}; return FONDAMENTAL_RENAMES;`)();
+
+const figsrc = readFileSync(join(ROOT, "js", "figures.js"), "utf8");
+const FIGURES = new Function(`${figsrc}; return FIGURES;`)();
+const cssFigures = readFileSync(join(ROOT, "css", "figures.css"), "utf8");
 
 const DUREE = /(\d+(?:\s*à\s*\d+)?)\s*(minutes?|min\b|heures?|h\b)/i;
 const POSTES = ["prep", "repos", "cuisson"];
@@ -213,6 +218,84 @@ for (const f of FONDAMENTAUX) {
 
 for (const [ancien, actuel] of Object.entries(FONDAMENTAL_RENAMES)) {
   if (!FONDAMENTAUX.some(f => f.id === actuel)) ko(`FONDAMENTAL_RENAMES : « ${ancien} » renvoie vers « ${actuel} », qui n'existe pas`);
+}
+
+/* ---------- 5 bis. Figures des savoirs (js/figures.js) ---------- */
+
+/* Les classes que css/figures.css définit : un SVG libre n'en invente pas. */
+const CLASSES_FG = new Set([...cssFigures.matchAll(/\.(fg-[a-z0-9-]+)/g)].map(m => m[1]));
+const SANS_COULEUR = [
+  [/#[0-9a-fA-F]{3,8}\b/, "une couleur #hex"],
+  [/\b(?:rgba?|hsla?|hwb|lab|lch|oklch|oklab)\s*\(/i, "une couleur rgb()/hsl()"],
+  [/\bstyle\s*=/i, "un attribut style"],
+  [/<\s*(?:script|foreignObject|image|use|a)\b|\son[a-z]+\s*=|javascript:|\bhref\s*=/i, "du balisage actif (script, image, lien, évènement)"]
+];
+const COULEUR_OK = /^(?:none|currentColor|inherit|url\(#[\w@-]+\))$/;
+
+/* Toutes les chaînes d'une figure, avec leur chemin : pour y chercher accolades et couleurs. */
+function chaines(valeur, chemin = "", sortie = []) {
+  if (typeof valeur === "string") sortie.push([chemin, valeur]);
+  else if (Array.isArray(valeur)) valeur.forEach((v, i) => chaines(v, `${chemin}[${i}]`, sortie));
+  else if (valeur && typeof valeur === "object") for (const [k, v] of Object.entries(valeur)) chaines(v, chemin ? `${chemin}.${k}` : k, sortie);
+  return sortie;
+}
+
+/* Les sections de js/figures.js : une par famille, dans l'ordre de FAMILLES, avec leurs repères. */
+const reperesFigures = FAMILLES.map(fam => ({ fam, debut: figsrc.indexOf(`/* ===== ${fam} ===== */`), fin: figsrc.indexOf(`/* ===== fin ${fam} ===== */`) }));
+for (const r of reperesFigures) {
+  if (r.debut < 0 || r.fin < r.debut) ko(`js/figures.js : repères « ===== ${r.fam} ===== » / « ===== fin ${r.fam} ===== » absents ou dans le désordre`);
+}
+reperesFigures.forEach((r, i) => {
+  if (i && r.debut >= 0 && reperesFigures[i - 1].fin >= r.debut) ko(`js/figures.js : la section « ${r.fam} » doit suivre « ${reperesFigures[i - 1].fam} »`);
+});
+const familleDeCle = cle => {
+  const pos = figsrc.indexOf(`\nFIGURES["${cle}"] =`);
+  const r = reperesFigures.find(x => pos > x.debut && pos < x.fin);
+  return r ? r.fam : null;
+};
+
+let nbFigures = 0;
+for (const [cle, liste] of Object.entries(FIGURES)) {
+  const fond = FONDAMENTAUX.find(f => f.id === cle);
+  if (!fond) { ko(`FIGURES["${cle}"] : aucun fondamental de cet identifiant`); continue; }
+  const section = familleDeCle(cle);
+  if (section !== fond.famille) ko(`FIGURES["${cle}"] : doit s'écrire dans la section « ${fond.famille} » de js/figures.js${section ? ` (elle est dans « ${section} »)` : ""}`);
+  if (!Array.isArray(liste) || !liste.length) { ko(`FIGURES["${cle}"] : un tableau de figures est attendu`); continue; }
+  const paragraphes = fond.pourquoi.split("\n\n").length;
+  liste.forEach((fig, i) => {
+    nbFigures++;
+    const ref = `FIGURES["${cle}"][${i}]${fig && fig.titre ? ` « ${fig.titre} »` : ""}`;
+    if (!fig || typeof fig !== "object") return ko(`${ref} : un objet est attendu`);
+    if (!TYPES_FIGURES.includes(fig.type)) ko(`${ref} : type « ${fig.type} » inconnu (${TYPES_FIGURES.join(", ")})`);
+    for (const k of ["titre", "legende", "alt"]) if (!fig[k] || !String(fig[k]).trim()) ko(`${ref} : champ « ${k} » manquant`);
+    if (fig.alt && String(fig.alt).trim().length < 40) ko(`${ref} : l'alt doit décrire la figure en entier (au moins une phrase)`);
+    if (!EMPLACEMENTS.includes(fig.ou)) ko(`${ref} : « ou » vaut « ${fig.ou} » (${EMPLACEMENTS.join(", ")})`);
+    if (fig.apres !== undefined) {
+      if (fig.ou !== "pourquoi") ko(`${ref} : « apres » n'a de sens que pour ou: "pourquoi"`);
+      else if (!Number.isInteger(fig.apres) || fig.apres < 1 || fig.apres > paragraphes) ko(`${ref} : « apres » vaut ${fig.apres}, la fiche a ${paragraphes} paragraphe(s) dans « Pourquoi ça marche »`);
+    }
+    if (fig.qualitative && !/qualitative/i.test(fig.legende || "")) ko(`${ref} : une figure qualitative le dit dans sa légende (« allure qualitative », « illustration qualitative »)`);
+    if (fig.type === "etapes" && !(fig.etapes || []).length) ko(`${ref} : aucune étape`);
+    else if (fig.type === "etapes" && (fig.etapes.length < 2 || fig.etapes.length > 5)) ko(`${ref} : 2 à 5 étapes (il y en a ${fig.etapes.length})`);
+    if (fig.type === "comparaison" && !((fig.panneaux || []).length >= 2 && fig.panneaux.length <= 3)) ko(`${ref} : deux ou trois panneaux`);
+    for (const [chemin, txt] of chaines(fig)) {
+      if (/[{}]/.test(txt)) ko(`${ref} : accolade dans ${chemin} — réservée aux quantités mises à l'échelle`);
+      for (const [re, quoi] of SANS_COULEUR) if (re.test(txt)) ko(`${ref} : ${quoi} dans ${chemin} — aucune couleur en dur, des classes fg-… seulement`);
+      if (/(?:^|\.)corps$/.test(chemin)) {
+        for (const m of txt.matchAll(/\b(fill|stroke|stop-color|flood-color|color)\s*=\s*"([^"]*)"/g)) {
+          if (!COULEUR_OK.test(m[2])) ko(`${ref} : ${m[1]}="${m[2]}" dans ${chemin} — une classe fg-… à la place`);
+        }
+        if (!balisesEquilibrees(txt)) ko(`${ref} : balises mal fermées dans ${chemin}`);
+        for (const m of txt.matchAll(/\bclass\s*=\s*"([^"]*)"/g)) {
+          for (const c of m[1].split(/\s+/).filter(Boolean)) if (!CLASSES_FG.has(c)) ko(`${ref} : classe « ${c} » inconnue de css/figures.css (dans ${chemin})`);
+        }
+      }
+    }
+    /* Le dessin lui-même : une figure qui ne se calcule pas ne s'affiche pas. */
+    if (TYPES_FIGURES.includes(fig.type)) {
+      try { figureHtml(fig, { uid: "v", strict: true }); } catch (e) { ko(`${ref} : ne se dessine pas — ${e.message}`); }
+    }
+  });
 }
 
 /* Chaque `fond` posé dans une recette doit tomber sur un fondamental réel :
@@ -413,6 +496,7 @@ if (erreurs.length) {
 
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
 console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
+console.log(`${nbFigures} figure(s) vérifiée(s) pour ${Object.keys(FIGURES).length} fondamental(aux) : types, titres, alt, emplacements, aucune couleur en dur.`);
 console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions.`);
 
 /* Pour information seulement — jamais une erreur. Un fondamental sans recette
