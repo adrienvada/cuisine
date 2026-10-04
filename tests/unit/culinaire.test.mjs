@@ -10,7 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RECIPES } from "./donnees.mjs";
 import { state } from "../../js/core/etat.js";
-import { buildCourseList, quantiteTexte } from "../../js/core/courses.js";
+import { buildCourseList, quantitesDe } from "../../js/core/courses.js";
 import { fmtQty, scaleQty, scaleText } from "../../js/core/format.js";
 import { portionsPermises, remarqueCuissonMoule } from "../../js/core/adaptation.js";
 import { planPrechauffage } from "../../js/core/cuisine.js";
@@ -185,7 +185,7 @@ test("une quantité de courses exprimée en grammes est entière, pas « 66¾ g 
   state.menu = [entree("pesto-basilic-maison", { portions: 3 })];
   const parmesan = ligne(buildCourseList(), "parmesan");
   assert.equal(parmesan.qty, 38);           // 50 × 3/4 = 37,5
-  assert.equal(quantiteTexte(parmesan), "38 g");
+  assert.equal(quantitesDe(parmesan), "38 g");
 });
 
 test("un pot de moutarde sert à toutes les vinaigrettes : une seule fois sur la liste", () => {
@@ -196,7 +196,7 @@ test("un pot de moutarde sert à toutes les vinaigrettes : une seule fois sur la
     entree("mayonnaise-maison")
   ];
   const moutarde = ligne(buildCourseList(), "moutarde");
-  assert.equal(quantiteTexte(moutarde), "1 pot");
+  assert.equal(quantitesDe(moutarde), "1 pot");
 });
 
 test("les demi-oignons rouges de trois recettes s'additionnent avant qu'on achète", () => {
@@ -215,7 +215,7 @@ test("des petits pois en cosses : la liste le dit, la boîte de pois chiches aus
   state.menu = [entree("houmous-petits-pois-menthe"), entree("salade-mediterraneenne")];
   const liste = buildCourseList();
   assert.match(ligne(liste, "petits-pois").notes.join(" "), /cosses/);
-  assert.equal(quantiteTexte(ligne(liste, "pois-chiches")), "2 boîtes");     // une boîte pour le houmous, une pour la salade
+  assert.equal(quantitesDe(ligne(liste, "pois-chiches")), "2 boîtes");     // une boîte pour le houmous, une pour la salade
 });
 
 test("la liste ne dit plus « T55 ou T65 » pour des cookies", () => {

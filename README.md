@@ -212,25 +212,32 @@ manifest.webmanifest    Manifeste PWA
 sw.js                   Service worker (hors ligne) — CORE et VERSION y sont écrits par `npm run sw`
 r/  f/                  Pages d'aperçu des recettes et des fondamentaux (générées)
 
+css/polices.css         Polices locales (@font-face) : rien n'est demandé à un serveur de polices
 css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), mise en page, onglets, boutons, toast, feuilles
 css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
-css/cuisine.css         Mode cuisine plein écran
-css/menu.css            Onglet Au menu : cartes et structure d'un repas
-css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/minuteurs.css       Plateau des bulles de minuteur
-css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
 css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
+  (les feuilles qui suivent sont celles des vues chargées à la demande : index.html les charge sans bloquer le premier rendu — <link data-vue media="print" onload="this.media='all'"> — et js/ui/styles.js fait attendre le routeur)
+css/cuisine.css         Mode cuisine plein écran
+css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas
+css/courses.css         Onglet Courses : liste par rayon, articles libres
+css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+css/journal.css         Journal des recettes cuisinées : feuille d'ajout, photos, liste
 
 js/recipes.js           Données : les recettes
 js/placard.js           Données : le fond de placard (cid des produits « à vérifier » en courses)
 js/fondamentaux.js      Données : le catalogue des mécanismes
 js/illos.js             Données : les illustrations dessinées
+js/allergenes.js        Données : allergènes, produits non végétariens
+js/saisons.js           Données : mois de saison des fruits, légumes et herbes
+js/substitutions.js     Données : remplacements d'ingrédients et ce qu'ils changent
 js/sync-config.js       Données : l'adresse de la base de synchro
   (ces fichiers de données sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
 
-js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs, service worker
-js/sync.js              Synchronisation entre appareils (Supabase REST + canal Realtime)
+js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs ; la synchro et le service worker viennent après le premier affichage
+js/sync.js              Synchronisation entre appareils (Supabase REST + canal Realtime), chargée après le premier affichage
+js/vendor/qrcode-generator.js   Bibliothèque de QR code (MIT), chargée avec les réglages
 
 js/core/etat.js         L'état (lecture du stockage sans plantage), save(), abonnés à la sauvegarde et à son échec, migrations
 js/core/format.js       Durées, quantités à l'échelle, dates, horloge, normaliser()
@@ -238,35 +245,44 @@ js/core/html.js         esc(), html`…`, raw()
 js/core/icones.js       Les icônes SVG
 js/core/recettes.js     Temps, verdicts, séances cuisinées, version composée (ingrédients et étapes effectifs)
 js/core/fonds.js        Les fondamentaux vus des recettes, et inversement
-js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas, basiques oubliés
+js/core/recherche.js    Recherche de l'accueil : texte normalisé, filtres de régime, de temps et de saison, ingrédients du « J'ai… »
+js/core/adaptation.js   Allergènes d'une version, bornes des portions et des convives (PORTIONS_MIN/MAX, CONVIVES_MAX), portions permises, moule
+js/core/liens.js        Une version de recette dans l'adresse (?p=…&c=…&a=…), dans les deux sens
+js/core/menu.js         Entrées du menu, composition en cours, repas (convives, heure, allergies), repas passés, basiques oubliés
+js/core/planning.js     Rétroplanning d'un repas, préchauffage du four et fichier .ics (pur : des minutes, pas de DOM)
 js/core/courses.js      La liste de courses calculée depuis le menu
+js/core/cuisine.js      Mode cuisine, côté calcul : taille du texte, ingrédients d'une étape, libelleQuantite(), plan de préchauffage, durées
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
+js/core/journal.js      Journal, côté pur : dates en clair et tri des entrées d'une recette
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
-js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour (focus, Tab, Échap) et confirmer()
-js/ui/routeur.js        Le routeur (#) et les flèches de retour
+js/ui/annonces.js       L'unique région live : annoncer(texte)
+js/ui/focus.js          garderFocus() : le focus clavier à travers un redessin
+js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour ; seul endroit où vivent Échap, le piège à focus et le retour du focus ; confirmer()
+js/ui/routeur.js        Le routeur (#), les flèches de retour, le chargement des vues à la demande (import())
+js/ui/styles.js         Attente des feuilles de style non bloquantes des vues
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
 js/ui/miseajour.js      Enregistrement du service worker (au repos, après le premier affichage), « Nouvelle version — Recharger »
 js/ui/theme.js          Thème automatique/clair/sombre, mouvement réduit
-js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome)
-js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js (MIT)
+js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome, chargé à la demande)
+js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js
 
-js/vues/accueil.js      Accueil : grille, recherche, filtres
+js/vues/accueil.js      Accueil : grille, recherche, filtres (la seule vue chargée avec le premier affichage)
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
 js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
-js/core/adaptation.js   Allergènes d'une version, portions permises, moule (module pur, testé sous Node)
 js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
+js/vues/journal.js      Journal des recettes cuisinées : feuille d'ajout, photos (IndexedDB), liste
 js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import
 
 tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker
-tests/                  Tests unitaires (unit/) et de bout en bout (e2e/)
+tests/                  Tests unitaires (unit/) et de bout en bout (e2e/), serveur de test, page de la voix (fixtures/)
 ```
 
 **Les modules `core/` ne touchent ni `document` ni `window` au chargement** : ils ne lisent les données globales (`RECIPES`, `FONDAMENTAUX`…) qu'à l'appel. Ils s'importent donc tels quels sous Node, et `tests/unit/` les teste sans navigateur — c'est aussi là qu'on met le code pur (calculs, formats, textes) plutôt que dans les vues.
@@ -293,13 +309,26 @@ npm run pages      # régénère les pages de partage r/ et f/
 
 Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, ou `PORT=…`). Ils pilotent l'interface comme un doigt — jamais par les modules de `js/` — après avoir pré-rempli `localStorage`, et simulent Supabase (`tests/e2e/outils.js`). Chromium doit être installé (`npx playwright install chromium`).
 
+**Les familles de tests.** Chaque thème a ses deux étages, `tests/unit/<thème>.test.mjs` (sous Node) et `tests/e2e/<thème>.spec.js` (dans Chromium) :
+
+- le tronc du carnet : `accueil` (recherche, critères, « J'ai… »), `accueil-fiche`, `fiche`, `recettes`, `format`, `html`, `core` (la règle « core/ sans DOM ») ;
+- le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `culinaire` (logique de cuisinier : un `cid` est un produit) ;
+- le menu et les courses : `menu`, `menu-courses`, `courses` (`outils-courses.js`) ;
+- le carnet lui-même : `journal`, `reglages` (`outils-reglages.js`), `synchro` (`outils-synchro.js` : le faux Supabase), `navigation` ;
+- le chargement : `images` (service worker, vignettes ; `outils-images.js`) ;
+- `verificateur.test.mjs` et `donnees.mjs` : le vérificateur de recettes et les données chargées pour les tests unitaires ;
+- les lots de la deuxième vague, `v2-*` : `a11y`, `chargement`, `courses-menu`, `css`, `culinaire-2`, `navigation`, `robustesse`, `synchro`, `tests` (la fiabilité de la suite) et `code` (un mécanisme par règle, la carte du README) ;
+- `bugs-connus.spec.js`, les bugs en attente.
+
+Un test unitaire (`tests/unit/v2-code.test.mjs`) échoue quand un fichier de `js/`, `css/` ou `tools/` n'est pas cité dans ce README : ajouter un module, c'est ajouter sa ligne à la carte ci-dessus.
+
 `tests/e2e/bugs-connus.spec.js` rassemble les **`test.fixme`** : des bugs connus, B1 à B12, en attente de correction. Chacun est écrit pour le comportement *attendu* et reste ignoré par la suite. Celui qui corrige un bug retire le `fixme` de son test : il passe alors de lui-même, et c'est son critère d'acceptation.
 
 La CI (`.github/workflows/ci.yml`) rejoue tout cela, puis vérifie que `r/` et `f/` sont à jour.
 
 ### Mains libres (voix)
 
-[`js/ui/voix.js`](js/ui/voix.js) est un module autonome (aucun import) que le mode cuisine charge à la demande. L'API est documentée dans son en-tête : `voixDisponible()`, `lire(texte)`, `arreterLecture()`, `ecouter(commandes, { onErreur })`.
+[`js/ui/voix.js`](js/ui/voix.js) est un module autonome (son seul import est `normaliser()`) que le mode cuisine charge à la demande. L'API est documentée dans son en-tête : `voixDisponible()`, `lire(texte)`, `arreterLecture()`, `ecouter(commandes, { onErreur })`.
 
 - **Navigateurs** : la lecture (`speechSynthesis`) marche partout ou presque, avec une voix française installée de préférence. L'écoute (`SpeechRecognition`) existe dans Chrome et Edge, et dans Safari / iOS (préfixée `webkit`) ; elle manque dans Firefox. Sans elle, le mode cuisine ne propose simplement pas les mains libres.
 - **Micro** : le navigateur demande l'accès au premier `ecouter()`, qui doit donc partir d'un geste (un bouton). Refusé, l'écoute s'arrête et `onErreur` reçoit un message à afficher ; il se rétablit dans les réglages du site. Sur iOS, la reconnaissance passe par les serveurs d'Apple : elle exige le réseau et coupe après un silence, d'où la relance automatique.
@@ -343,22 +372,9 @@ Le menu, les cases cochées, les articles libres, les verdicts, les compteurs de
 - **Temps réel** : l'appareil rejoint un canal Supabase Realtime en *broadcast* dont le nom est le SHA-256 hexadécimal de `carnet:` collé au mot de passe (introuvable sans lui). Après chaque écriture il y diffuse un simple « change » — aucune donnée n'y passe — et les autres appareils relèvent aussitôt. Protocole Phoenix minimal, sans dépendance : `phx_join`, heartbeat toutes les 25 s, reconnexion à délai croissant (1 s à 1 min). Canal tenu : relevé de secours toutes les 2 min ; sinon toutes les 10 s, comme avant. Si les canaux publics sont désactivés (Realtime → Settings → « Allow public access »), la synchro continue par relevé.
 - **Connexion par QR code** : `lienConnexion()` donne `…/#/connexion/<mot de passe en base64url>`, que les réglages encodent avec `qrSvg` (`js/ui/qr.js`, sur la bibliothèque MIT `js/vendor/qrcode-generator.js`, chargée seulement à l'affichage du code). Ouvrir ce lien se connecte (avec confirmation si l'appareil porte déjà un menu et que le carnet partagé existe), puis l'adresse est remplacée par `#/` pour que le jeton ne reste pas dans l'historique. Le jeton *est* le mot de passe : à ne montrer qu'à l'écran d'un appareil déjà connecté.
 - **Ne pas déranger** : une mise à jour redessine Menu ou Courses sur place (`route({ garderDefilement: true })`), mais attend la fin d'une saisie et la fermeture d'une feuille.
-- `localStorage` reste la source hors ligne. Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
+- `localStorage` reste la source hors ligne. Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`) ; une entrée reçue sans clé en reçoit une dérivée de son contenu et de sa place (`r…`), la même à chaque relève, pour que relire la même version ne redessine rien.
+- **Un champ supprimé l'est partout** : si la fusion n'a plus un champ (le menu vidé puis « Annuler » retire l'historique), l'autre appareil le retire aussi au lieu de le renvoyer au serveur.
 - Les tests simulent Supabase (`page.route`) et le canal (`page.routeWebSocket`) — `tests/e2e/outils-synchro.js` — et ne touchent jamais au vrai serveur.
-- **Un mot de passe**, saisi une fois par navigateur (feuille « Réglages », bouton en haut de l'accueil : un point vert = connecté, doré = connecté mais hors réseau, rien = pas connecté).
-  Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans
-  `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe,
-  on ne lit ni n'écrit rien.
-- Mise en place, une fois : exécuter [`supabase/carnet.sql`](supabase/carnet.sql) dans le
-  SQL Editor (en remplaçant `MON_MOT_DE_PASSE`), puis renseigner l'URL et la clé
-  publique dans [`js/sync-config.js`](js/sync-config.js). Vide, la synchro est désactivée
-  et le bouton caché. Changer le mot de passe : relancer l'`insert … on conflict`.
-- La première connexion sur une base vide en fait le carnet partagé ; les suivantes
-  remplacent le menu et la liste du navigateur par ceux de la base (avec confirmation).
-- `localStorage` reste la source hors ligne ; les changements partent 0,8 s après
-  la modification, et l'appareil relit le serveur toutes les 10 s et au retour sur l'app.
-- En cas de modifications simultanées, la dernière écriture l'emporte.
-- Les clés d'entrées de menu sont uniques entre appareils (`m<horodatage><aléa>`).
 
 Pour tester en local :
 

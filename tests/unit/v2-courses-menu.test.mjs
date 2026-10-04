@@ -12,7 +12,7 @@ globalThis.PLACARD = new Function(readFileSync(path.join(racine, "js/placard.js"
 
 const { state } = await import("../../js/core/etat.js");
 const menu = await import("../../js/core/menu.js");
-const { buildCourseList, quantiteTexte } = await import("../../js/core/courses.js");
+const { buildCourseList, quantitesDe } = await import("../../js/core/courses.js");
 const { instantTable, planifier, minutesMurales, nomCourt, phraseConflit, phraseRetard } = await import("../../js/core/planning.js");
 const { recipeShareText, shareRecipe } = await import("../../js/ui/partage.js");
 
@@ -153,7 +153,7 @@ test("liste de courses : aucun gramme ni millilitre fractionnaire, aucune fracti
           for (const q of s.parts) {
             if (q.unit !== "g" && q.unit !== "ml") continue;
             assert.ok(Number.isInteger(q.qty), `${r.id} ×${p} : ${it.key} ${q.qty} ${q.unit}`);
-            assert.doesNotMatch(quantiteTexte({ parts: [q] }), /[¼½¾]/);
+            assert.doesNotMatch(quantitesDe({ parts: [q] }), /[¼½¾]/);
           }
         }
       }

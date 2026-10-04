@@ -1,5 +1,6 @@
 /* L'onglet Au menu : le repas (convives, heure, allergies), son rétroplanning, les recettes retenues avec leurs portions, la structure d'un repas à compléter et les repas passés. */
 
+import { CONVIVES_MAX, PORTIONS_MAX, PORTIONS_MIN } from "../core/adaptation.js";
 import { courseTodo } from "../core/courses.js";
 import { save, state } from "../core/etat.js";
 import { html, raw } from "../core/html.js";
@@ -60,7 +61,7 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
 /* La structure d'un repas, présente en permanence sur la page — vide ou pas.
    Chaque ligne compte les recettes de la page où elle mène : annoncer un
    total plus large que ce qu'on y montre ferait chercher le reste. */
-export function squeletteHtml() {
+function squeletteHtml() {
   const moments = MOMENTS.filter(m => catDuMoment(m));
   return `<div class="squelette">
     ${moments.map(m => {
@@ -299,7 +300,7 @@ function brancher() {
     const conv = e.target.closest("[data-conv]");
     if (conv) {
       const n = lireRepas().convives + Number(conv.dataset.conv);
-      if (n < 1 || n > 24) return;
+      if (n < 1 || n > CONVIVES_MAX) return;
       setConvives(n); updateBadge(); redessiner();
       // La vue est redessinée : une région live posée dedans ne dirait rien.
       annoncer(pluriel(n, "convive"));
@@ -317,7 +318,7 @@ function brancher() {
       const r = ent && byId(ent.rid);
       if (!r) return;
       const p = portionsOf(r, ent) + (step.dataset.plus ? 1 : -1);
-      if (p < 1 || p > 24) return;
+      if (p < PORTIONS_MIN || p > PORTIONS_MAX) return;
       ent.portions = p;
       save(); updateBadge(); redessiner();
       annoncer(`${r.title} : ${p} ${r.portions.label}`);

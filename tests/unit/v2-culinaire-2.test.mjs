@@ -15,7 +15,7 @@ globalThis.PLACARD = new Function(readFileSync(path.join(racine, "js/placard.js"
 const { ALLERGENES } = new Function(readFileSync(path.join(racine, "js/allergenes.js"), "utf8") + ";return { ALLERGENES };")();
 
 const { state } = await import("../../js/core/etat.js");
-const { buildCourseList, quantiteTexte } = await import("../../js/core/courses.js");
+const { buildCourseList, quantitesDe } = await import("../../js/core/courses.js");
 const { scaleQty, scaleText } = await import("../../js/core/format.js");
 const { planifier, minutesMurales } = await import("../../js/core/planning.js");
 const menu = await import("../../js/core/menu.js");
@@ -113,11 +113,11 @@ test("le vérificateur refuse une option dont le minuteur dépasse le temps anno
 test("pois chiches : la salade achète une boîte, le houmous une, les deux ensemble deux", () => {
   vide();
   state.menu = [entree("salade-mediterraneenne")];
-  assert.equal(quantiteTexte(ligne(buildCourseList(), "pois-chiches")), "1 boîte");
+  assert.equal(quantitesDe(ligne(buildCourseList(), "pois-chiches")), "1 boîte");
   state.menu = [entree("houmous-petits-pois-menthe")];
-  assert.equal(quantiteTexte(ligne(buildCourseList(), "pois-chiches")), "1 boîte");
+  assert.equal(quantitesDe(ligne(buildCourseList(), "pois-chiches")), "1 boîte");
   state.menu = [entree("salade-mediterraneenne"), entree("houmous-petits-pois-menthe")];
-  assert.equal(quantiteTexte(ligne(buildCourseList(), "pois-chiches")), "2 boîtes");
+  assert.equal(quantitesDe(ligne(buildCourseList(), "pois-chiches")), "2 boîtes");
   vide();
 });
 
@@ -149,7 +149,7 @@ test("tartines : une figue par tartine, comptée en entier et mise à l'échelle
   assert.equal(scaleQty(f.qty, f.unit, 3 / 8, f.entier), 3);
   vide();
   state.menu = [entree("tartines-figues-chevre-miel", { portions: 4 })];
-  assert.equal(quantiteTexte(ligne(buildCourseList(), "figues")), "4");
+  assert.equal(quantitesDe(ligne(buildCourseList(), "figues")), "4");
   vide();
 });
 
@@ -165,7 +165,7 @@ test("cake salé : le moule beurré a son beurre, au libellé de courses commun"
   state.menu = [entree("cake-sale"), entree("quiche-lorraine", { choices: { pate: "maison" } })];
   const b = ligne(buildCourseList(), "beurre");
   assert.equal(b.label, "Beurre doux");
-  assert.equal(quantiteTexte(b), "135 g");                         // 125 g de pâte + 10 g de moule
+  assert.equal(quantitesDe(b), "135 g");                         // 125 g de pâte + 10 g de moule
   vide();
 });
 

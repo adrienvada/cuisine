@@ -5,6 +5,10 @@ import { scaleQty } from "./format.js";
 /* Bornes des portions de la fiche : celles de ses boutons « − » et « + ». */
 export const PORTIONS_MIN = 1;
 export const PORTIONS_MAX = 24;
+/* Les convives du repas règlent les portions de toutes les entrées : même plafond.
+   Le journal, lui, note des repas passés (une tablée, une fête) : il monte plus haut. */
+export const CONVIVES_MAX = PORTIONS_MAX;
+export const CONVIVES_JOURNAL_MAX = 99;
 
 const borner = n => Math.max(PORTIONS_MIN, Math.min(PORTIONS_MAX, n));
 

@@ -1,5 +1,6 @@
 /* Le menu : ses entrées, la composition en cours d'édition, la forme d'un repas et les basiques qu'on peut oublier. */
 
+import { CONVIVES_MAX } from "./adaptation.js";
 import { buildCourseList } from "./courses.js";
 import { save, state } from "./etat.js";
 import { byId, effectiveIngredients, effectiveSteps, selectedAddons, tempsDe, totalTime } from "./recettes.js";
@@ -112,7 +113,7 @@ export function toggleAddon(rid, aid) {
 
 export const MOMENT_TABLE = ["Plats", "Entrées", "Soupes", "Salades"];
 
-export function menuMoments() {
+function menuMoments() {
   const cats = new Set(state.menu.map(e => byId(e.rid)).filter(Boolean).map(r => r.category));
   return {
     apero: cats.has("Apéro"),
@@ -123,7 +124,7 @@ export function menuMoments() {
 }
 
 /* Deux moments qui se mangent : le menu a pris la forme d'un repas tout seul. */
-export function menuLooksLikeMeal() {
+function menuLooksLikeMeal() {
   const m = menuMoments();
   return [m.apero, m.table, m.dessert].filter(Boolean).length >= 2;
 }
@@ -161,7 +162,7 @@ export const cibleDuMoment = x => (x.cats.length > 1 ? x.id : catDuMoment(x));
    déclenchait à tous les repas, donc plus jamais à propos. Un repas sans
    fromage est complet, comme un repas sans apéro ; un repas sans pain se
    remarque. On ne signale que le trou. */
-export const BASIQUES = [
+const BASIQUES = [
   { id: "pain", chip: "Du pain", article: "Pain",
     re: /pain|baguette|focaccia|brioche|tartine|toast|pita|grissin|craquant|blini|crouton/i }
 ];
@@ -186,13 +187,12 @@ export function resetHints() { state.hintCoursesOff = false; }
    à la lecture, ecrireRepas() fixe tout ce qui a été choisi. */
 
 const REPAS_DEFAUT = { convives: null, heure: "20:00", date: "", exclus: [] };
-const CONVIVES_MAX = 24;
 
 export const enPersonnes = r => r.portions.label === "personnes";
 
 /* Sans choix explicite, les convives sont ceux que le menu suppose déjà : le
    nombre de personnes le plus courant parmi ses entrées, 4 à défaut. */
-export function convivesDuMenu() {
+function convivesDuMenu() {
   const nb = new Map();
   for (const e of state.menu) {
     const r = byId(e.rid);

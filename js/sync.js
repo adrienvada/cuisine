@@ -106,14 +106,32 @@ function redessiner() {
 
 /* Remplace dans l'état les champs synchronisés par `donnees` ; rend vrai si
    quelque chose a changé. Pas de save() : ce n'est pas une modification locale. */
+/* Les champs que l'état porte toujours (des listes et des dictionnaires que les
+   vues lisent sans précaution) : retirés par l'autre appareil, ils reviennent
+   vides plutôt qu'absents. Les autres (repas, historique, journal…) sont
+   facultatifs et se retirent pour de bon. */
+const VIDE_DE = { menu: [], extras: [], checked: {}, notes: {}, cooked: {} };
+
 function appliquer(donnees) {
   /* Ce qui vient d'un autre appareil peut être d'une autre version, ou abîmé :
      comme pour un fichier importé, on écarte entrée par entrée ce qui est mal
-     formé. Un champ inutilisable est absent du résultat, donc laissé tel quel ici. */
+     formé. Un champ inutilisable est absent du résultat normalisé, donc laissé
+     tel quel ici. */
   const propre = normaliserEtat(donnees, { appareil: false });
   let change = false;
   for (const c of CHAMPS) {
-    if (propre[c] === undefined || memesDonnees({ [c]: state[c] }, { [c]: propre[c] })) continue;
+    if (propre[c] === undefined) {
+      /* Absent des données brutes (et non seulement écarté par la normalisation) :
+         la fusion ne l'omet que si un appareil l'a supprimé — « Vider le menu »
+         puis « Annuler » retire l'historique. Le garder ici le renverrait au serveur. */
+      if (c in donnees || state[c] === undefined) continue;
+      const vide = structuredClone(VIDE_DE[c]);
+      if (memesDonnees({ [c]: state[c] }, { [c]: vide })) continue;
+      if (vide === undefined) delete state[c]; else state[c] = vide;
+      change = true;
+      continue;
+    }
+    if (memesDonnees({ [c]: state[c] }, { [c]: propre[c] })) continue;
     state[c] = propre[c];
     change = true;
   }

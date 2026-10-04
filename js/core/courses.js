@@ -71,15 +71,16 @@ export function buildCourseList() {
   return [...map.values()];
 }
 
-/* « 1 bouquet + 1 botte » : toutes les quantités, aucune perdue. */
-export function quantiteTexte({ parts = [], textes = [] }) {
+/* « 1 bouquet + 1 botte » : toutes les quantités d'une ligne de courses, aucune perdue.
+   (La quantité d'un seul ingrédient d'une fiche, c'est libelleQuantite de core/cuisine.js.) */
+export function quantitesDe({ parts = [], textes = [] }) {
   return [
     ...parts.map(p => `${fmtQty(p.qty)} ${fmtUnit(p.unit, p.qty)}`.trim()),
     ...textes
   ].join(" + ");
 }
 
-export const courseQtyStr = it => quantiteTexte(it);
+export const courseQtyStr = it => quantitesDe(it);
 
 /* Ce qu'il reste à acheter — le badge de l'onglet Courses. Le placard n'y entre
    pas : c'est à vérifier, pas à acheter. */

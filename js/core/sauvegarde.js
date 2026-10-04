@@ -1,5 +1,7 @@
 /* Sauvegarde du carnet : le fichier d'export, la normalisation de tout état reçu (stockage, fichier, autre appareil) et l'aperçu de ce qu'un import remplacerait. */
 
+import { CONVIVES_JOURNAL_MAX, CONVIVES_MAX } from "./adaptation.js";
+
 /* Un fichier importé, le stockage du navigateur et la version d'un autre
    appareil viennent de l'extérieur : on ne leur fait confiance ni pour leur
    forme ni pour leurs clés. Ce module ne touche ni `document` ni `localStorage`,
@@ -47,7 +49,7 @@ const dico = (v, f) => {
 
 const textes = v => Array.isArray(v) ? v.filter(estTexte) : [];
 const chaine = v => estTexte(v) ? v : undefined;
-const convivesJournal = v => estNombre(v) ? Math.min(99, Math.max(1, Math.round(v))) : 1;
+const convivesJournal = v => estNombre(v) ? Math.min(CONVIVES_JOURNAL_MAX, Math.max(1, Math.round(v))) : 1;
 
 /* La composition d'une recette (menu et repas passés) : ses choix, ses
    suppléments, ses portions. Toujours présents, sans quoi `[...e.addons]` plante. */
@@ -63,9 +65,29 @@ const composition = e => ({
 function entreeMenu(e, ctx) {
   if (estTexte(e)) return e;
   if (!estObjet(e) || !estTexte(e.rid)) return undefined;
-  const k = estTexte(e.k) && e.k && !ctx.cles.has(e.k) ? e.k : ctx.genererCle();
+  const k = estTexte(e.k) && e.k && !ctx.cles.has(e.k) ? e.k : cleDe(e, ctx);
   ctx.cles.add(k);
   return { ...e, k, ...composition(e) };
+}
+
+/* La clé d'une entrée qui n'en a pas (ou en double). Un générateur imposé (les
+   tests) passe avant ; sinon elle est DÉRIVÉE de l'entrée et de sa place : la
+   même version reçue deux fois donne les mêmes clés, donc la même fusion et pas
+   de redessin à chaque relève. Le préfixe « r » la distingue des clés d'appareil
+   (« m… »), et un rang de plus écarte les deux entrées strictement identiques. */
+function cleDe(e, ctx) {
+  if (ctx.genererCle) return ctx.genererCle();
+  const empreinte = hacher(JSON.stringify([ctx.rang++, e.rid, e.choices ?? null, e.addons ?? null, e.portions ?? null]));
+  let k = "r" + empreinte;
+  while (ctx.cles.has(k)) k += "x";
+  return k;
+}
+
+/* Empreinte FNV-1a de 32 bits en base 36 : de quoi dériver une clé, pas de la sécurité. */
+function hacher(texte) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < texte.length; i++) { h ^= texte.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
 }
 
 function repasPasse(e) {
@@ -85,7 +107,7 @@ function repas(v) {
   const sortie = {};
   for (const [cle, x] of Object.entries(v)) {
     if (INTERDITES.has(cle)) continue;
-    if (cle === "convives") { if (estNombre(x) && x >= 1 && x <= 24) sortie.convives = Math.round(x); }
+    if (cle === "convives") { if (estNombre(x) && x >= 1 && x <= CONVIVES_MAX) sortie.convives = Math.round(x); }
     else if (cle === "heure") { if (x === "" || heureValide(x)) sortie.heure = x; }   // vide : l'heure effacée, que la frise réclame
     else if (cle === "date") { if (x === "" || jourValide(x)) sortie.date = x; }
     else if (cle === "exclus") { if (Array.isArray(x)) sortie.exclus = textes(x); }
@@ -123,19 +145,14 @@ const NORMALISEURS = {
   hintCoursesOff: v => typeof v === "boolean" ? v : undefined
 };
 
-/* Même forme que cleMenu() (js/core/menu.js), qu'on n'importe pas d'ici : menu.js
-   dépend de l'état, qui dépend de ce module, et l'état normalise dès son chargement.
-   Les tests peuvent imposer leur propre générateur par `genererCle`. */
-const cleParDefaut = () => "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-
 /* → une copie propre de `o` ({} si ce n'est pas un objet). Un champ connu de
    mauvaise forme est écarté, ses entrées invalides aussi ; un champ inconnu —
    ajouté par une version plus récente du carnet — est gardé tel quel.
    `appareil: false` retire en plus ce qui est propre à l'appareil (minuteurs,
    réglages), pour un fichier ou une version venue d'ailleurs. */
-export function normaliserEtat(o, { genererCle = cleParDefaut, appareil = true } = {}) {
+export function normaliserEtat(o, { genererCle = null, appareil = true } = {}) {
   if (!estObjet(o)) return {};
-  const ctx = { genererCle, cles: new Set() };
+  const ctx = { genererCle, cles: new Set(), rang: 0 };
   const sortie = {};
   for (const [cle, valeur] of Object.entries(o)) {
     if (INTERDITES.has(cle) || (!appareil && DE_L_APPAREIL.includes(cle))) continue;

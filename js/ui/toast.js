@@ -102,7 +102,7 @@ if (typeof document !== "undefined") {
   }
 }
 
-export function setBadge(id, n) {
+function setBadge(id, n) {
   const b = document.getElementById(id);
   b.hidden = n === 0;
   b.textContent = n;

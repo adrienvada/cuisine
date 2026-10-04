@@ -45,7 +45,7 @@ export function cookHref(r, k) {
 
 /* Un minuteur appartient à une séance : celle d'une entrée de menu, ou celle de
    la recette seule. Sans quoi le cake aux olives rappellerait celui aux lardons. */
-export const hasRunningTimer = cle => state.timers.some(t => (t.mk || t.rid) === cle);
+const hasRunningTimer = cle => state.timers.some(t => (t.mk || t.rid) === cle);
 
 /* Fermer avec la croix, c'est vouloir sortir : sans ce garde-fou, la reprise
    automatique renverrait aussitôt dans le mode cuisine qu'on vient de quitter.

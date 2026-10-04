@@ -1,5 +1,5 @@
 /* Les mains libres : dicter « suivant » au lieu de toucher l'écran avec des doigts pleins de farine.
-   Module autonome (aucun import) : le mode cuisine le charge par import() dynamique et
+   Module autonome (son seul import est normaliser(), pur) : le mode cuisine le charge par import() dynamique et
    se passe de lui quand le navigateur ne sait ni écouter ni parler.
 
    API — c'est le contrat avec le mode cuisine :
@@ -29,6 +29,8 @@
          micro ou une panne durable, l'écoute est arrêtée pour de bon (ne pas la relancer
          sans geste de l'utilisateur). arreter() est idempotent. */
 
+import { normaliser } from "../core/format.js";
+
 const LANGUE = "fr-FR";
 
 /* ---------- Disponibilité ---------- */
@@ -45,12 +47,7 @@ export function voixDisponible() {
 /* Les reconnaissances varient (« Suivant. », « suivante », « c’est bon ! ») : on compare
    sur du texte sans accents, sans ponctuation, apostrophes comme espaces, bordé d'espaces
    pour qu'un mot ne se cache pas dans un autre (« fini » dans « affiné »). */
-const epurer = t => " " + String(t ?? "")
-  .toLowerCase()
-  .normalize("NFD").replace(/[̀-ͯ]/g, "")
-  .replace(/œ/g, "oe")
-  .replace(/[^a-z0-9]+/g, " ")
-  .trim() + " ";
+const epurer = t => " " + normaliser(t).replace(/[^a-z0-9]+/g, " ").trim() + " ";
 
 /* L'ordre compte quand un énoncé en contient plusieurs (« répète l'étape suivante ») :
    le plus précis passe avant, le banal « ok » ferme la marche. */

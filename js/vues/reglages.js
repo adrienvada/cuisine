@@ -289,7 +289,7 @@ function blocSynchro(cs, zone) {
 
 /* ---------- Sauvegarde ---------- */
 
-export function exporterCarnet() {
+function exporterCarnet() {
   const blob = new Blob([contenuExport(state)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const lien = document.createElement("a");

@@ -39,8 +39,10 @@ export function ouvrirFeuille(backdrop, auRetrait) {
 /* Toute fermeture passe par le retour — croix, fond, Échap, bouton : un seul
    chemin, donc jamais d'entrée orpheline dans la pile. `toutes` referme aussi
    les feuilles du dessous (une confirmation et les réglages qu'elle recouvre).
-   Une feuille déjà en train de se fermer ne redemande pas le retour : Échap
-   peut arriver deux fois (ici et dans une feuille qui l'écoutait déjà). */
+   Une feuille déjà en train de se fermer ne redemande pas le retour : deux
+   appuis rapprochés sur Échap, ou sur la croix puis le fond, ne dépilent qu'une
+   entrée. Échap et le piège à focus sont ici, et nulle part ailleurs : une vue
+   qui ouvre une feuille n'écoute pas le clavier pour elle. */
 export function fermerFeuille({ toutes = false } = {}) {
   const f = feuilleOuverte();
   if (!f || f._ferme) return;
