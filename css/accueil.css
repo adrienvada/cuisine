@@ -1,4 +1,4 @@
-/* Accueil : en-tête « Le carnet de… », recherche, filtres par catégorie et
+/* Accueil : en-tête « Le carnet de… », recherche, « J'ai… », filtres par catégorie et par critère, et
    grille de vignettes (avec son filtrage animé). Les pastilles « Découverte »
    de la fiche vivent dans fiche.css. */
 
@@ -61,6 +61,71 @@
   margin: 18px 0 12px;
 }
 
+/* La recherche et « J'ai… » partagent une ligne : le champ prend ce qui reste. */
+.search-row { display: flex; align-items: stretch; gap: 8px; margin: 18px 0 12px; }
+
+.search-row .searchbar { flex: 1; min-width: 0; margin: 0; }
+
+.jai-btn {
+  flex: none;
+  min-width: 64px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--green-deep);
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jai-btn.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
+
+.jai-n {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #FDFBF3;
+  color: #31492B;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+
+html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
+
+/* Le rappel de la sélection, sous les filtres */
+.jai-etat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.jai-etat[hidden] { display: none; }
+
+.jai-efface {
+  flex: none;
+  min-height: 44px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--green-deep);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .searchbar svg { width: 18px; height: 18px; color: var(--muted); flex: none; transform-box: fill-box; transform-origin: center; }
 
 /* Loupe qui tourne pendant la frappe. */
@@ -79,7 +144,7 @@
 
 .searchbar input::placeholder { color: var(--muted); }
 
-.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 10px; scrollbar-width: none; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 
 .chip {
@@ -93,6 +158,10 @@
   font-size: 13.5px;
   font-weight: 500;
 }
+
+/* Une puce fait ~34 px : on lui rend un doigt de 44 px sans l'agrandir à l'œil.
+   La marge de 5 px du conteneur laisse la place à ce halo. */
+.chips .chip::before { content: ""; position: absolute; inset: -5px 0; }
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
 
@@ -151,6 +220,7 @@
 .grid.no-cat .card-cat { display: none; }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -223,6 +293,55 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
   color: var(--green-deep);
   display: flex; align-items: center; justify-content: center;
   padding: 0;
+  z-index: 2;                             /* au-dessus du lien étiré sur la carte */
+}
+
+/* Le bouton fait 30 px à l'œil ; sa zone de contact en fait 44. */
+.card-share::before { content: ""; position: absolute; inset: -7px; }
+
+/* « De saison » et « 3 / 5 » : mêmes pastilles que la catégorie, en bas de l'image */
+.card-saison, .card-jai {
+  position: absolute;
+  bottom: 7px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(44, 51, 38, 0.18);
+}
+
+.card-saison { left: 7px; background: var(--green); color: #FDFBF3; }
+
+html[data-theme="dark"] .card-saison { color: #1B2217; }
+
+.card-jai { right: 7px; background: rgba(255, 253, 247, 0.9); color: #31492B; }
+
+.card-jai[hidden] { display: none; }
+
+/* ---------- « J'ai… » : la feuille ---------- */
+
+.jai-sheet { display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; }
+
+.jai-recherche { margin: 12px 0 10px; }
+
+.jai-liste { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 2px 0 6px; }
+
+.jai-chip { min-height: 44px; font-size: 14px; text-align: left; }
+
+.jai-vide { width: 100%; margin: 8px 0; }
+
+.jai-actions { display: flex; gap: 10px; margin-top: 12px; }
+
+.jai-actions .btn { min-height: 48px; }
+
+.jai-actions .btn[disabled] { opacity: 0.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jai-sheet { animation: none; }
 }
 
 .card .visual .card-share svg { width: 15px; height: 15px; }
@@ -241,6 +360,15 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
 .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; flex: 1; }
 
 .card h3 { font-size: 18px; line-height: 1.15; font-weight: 700; }
+
+/* Le lien est le titre, mais sa zone couvre toute la vignette : le bouton
+   partager, frère posé au-dessus, reste seul à répondre sur son coin. */
+.card-lien { color: inherit; text-decoration: none; }
+
+.card-lien::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+
+.card-lien:focus-visible { outline: none; }
+.card-lien:focus-visible::after { outline: 3px solid var(--green); outline-offset: -3px; border-radius: var(--radius); }
 
 /* Pied de vignette : le lieu puis la durée, calés en bas quel que soit le
    nombre de lignes du titre — la durée, dernière, s'aligne ainsi d'une

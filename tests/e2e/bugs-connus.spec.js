@@ -313,7 +313,7 @@ test.fixme("B9b — liste de courses défilée : une mise à jour du serveur ne 
 
 /* ---------- B10 : la recherche ignore accents et ligatures ---------- */
 
-test.fixme("B10a — la recherche des recettes ignore accents et ligatures", async ({ page }) => {
+test("B10a — la recherche des recettes ignore accents et ligatures", async ({ page }) => {
   await page.goto("/");
   const compter = async texte => {
     await page.locator("#search").fill(texte);
@@ -347,7 +347,7 @@ test.fixme("B11a — un article libre s'affiche en texte brut, sans exécuter so
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
 });
 
-test.fixme("B11b — une recherche avec des guillemets reste intacte après un aller-retour", async ({ page }) => {
+test("B11b — une recherche avec des guillemets reste intacte après un aller-retour", async ({ page }) => {
   const requete = 'pâte "feuilletée';
   await page.goto("/");
   await page.locator("#search").fill(requete);
