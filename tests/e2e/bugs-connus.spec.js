@@ -95,7 +95,7 @@ test.fixme("B2b — la ligne du basilic garde le bouquet ET la botte", async ({ 
 
 /* ---------- B3 : les coches ne survivent pas à un menu vidé ---------- */
 
-test.fixme("B3 — vider le menu puis remettre la recette : rien n'est coché", async ({ page, context }) => {
+test("B3 — vider le menu puis remettre la recette : rien n'est coché", async ({ page, context }) => {
   await preremplir(context, { carnet: { menu: [entree("focaccia-romarin", { k: "f1" })] } });
   page.on("dialog", d => d.accept());
   await page.goto("/#/courses");
