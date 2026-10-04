@@ -542,7 +542,10 @@
 /* La barre d'actions du bas, en papier calque : le texte de la page passe dessous,
    adouci par le flou, et la barre se détache par son ombre. */
 .actions {
+  /* Le calque déborde de 8 px autour des boutons, qui gardent leur place d'avant. */
   padding: 8px;
+  margin: 12px -8px 0;
+  bottom: calc(70px + var(--safe-b));
   border-radius: 20px;
   background: var(--paper);
   border: 1px solid var(--line);

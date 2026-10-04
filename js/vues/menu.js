@@ -394,11 +394,11 @@ function retroZone(list, repas) {
 }
 
 /* Redessiner sur place, sans revenir en haut de page ni perdre le focus clavier. */
-function redessiner({ rejouer = [] } = {}) {
+function redessiner({ rejouer = [], arrivee = false } = {}) {
   const y = window.scrollY;
   // Les nombres que le redessin va changer : leur texte d'avant, pour que le chiffre roule.
   const avant = rejouer.map(sel => [sel, document.querySelector(sel)?.textContent]);
-  enRedessin = true;
+  enRedessin = !arrivee;   // une arrivée (l'état vide après un menu vidé) rejoue ses entrées
   try { garderFocus(app, renderMenu); } finally { enRedessin = false; }
   window.scrollTo(0, y);
   avant.forEach(([sel, texte]) => { if (texte) rejouerNombre(document.querySelector(sel), texte); });
@@ -518,7 +518,7 @@ function sortirCartes(cartes) {
   }
   const finies = sortantes.map(c => sortir(c));
   if (menuEntrees().length) majPartiel();
-  else Promise.all(finies).then(() => { if (document.getElementById("menu-root") && !menuEntrees().length) redessiner(); });
+  else Promise.all(finies).then(() => { if (document.getElementById("menu-root") && !menuEntrees().length) redessiner({ arrivee: true }); });
 }
 
 /* Annuler : la carte revient à sa place avec un ressort, les autres s'écartent (flip). */
