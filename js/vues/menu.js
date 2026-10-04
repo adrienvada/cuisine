@@ -73,8 +73,7 @@ function squeletteHtml() {
         ${ICON.chev}
       </button>`;
     }).join("")}
-  </div>
-  <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>`;
+  </div>`;
 }
 
 /* « samedi 10 octobre », ou « aujourd'hui » / « demain » quand c'est le cas. */
