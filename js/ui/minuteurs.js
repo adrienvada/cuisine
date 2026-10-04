@@ -110,6 +110,9 @@ export function ensureTick() {
 const aSignaler = new Set();
 
 export function tick() {
+  // Deux minuteurs qui finissent au même battement : une annonce en recouvre l'autre,
+  // on n'en dit donc qu'une, qui les nomme tous.
+  const prets = [];
   for (const t of state.timers) {
     const left = secondesRestantes(t);
     const fini = t.reste == null && left === 0;
@@ -122,7 +125,7 @@ export function tick() {
       if (document.visibilityState === "hidden") aSignaler.add(t.id);
       else if (retard > 5000) annoncerPrets([t]);
       // Seule la voix prévient qui ne regarde pas l'écran (la bulle passe, elle, en « Prêt ! »).
-      else annoncer(`Minuteur « ${t.label} » prêt`);
+      else prets.push(t);
       sonner(t);
       drawTray();
       if (refreshZone) refreshZone();
@@ -130,6 +133,8 @@ export function tick() {
       setTimeout(() => { document.title = "Carnet de cuisine"; }, 5000);
     }
   }
+  if (prets.length === 1) annoncer(`Minuteur « ${prets[0].label} » prêt`);
+  else if (prets.length) annoncer(`${prets.length} minuteurs prêts : ${prets.map(t => `« ${t.label} »`).join(", ")}`);
 }
 
 /* « Prêt depuis 3 min » : le minuteur a fini pendant qu'on regardait ailleurs. */

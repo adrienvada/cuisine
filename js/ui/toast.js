@@ -32,6 +32,10 @@ export function toast(msg, { action, surAction, duree } = {}) {
   const t = document.getElementById("toast");
   delaiCourant = duree ?? (action ? 5000 : 2200);
   const id = ++compteur;
+  // Un message qui en remplace un autre dont le bouton avait le focus efface ce bouton :
+  // le focus retourne d'abord à ce qu'il avait quitté, sinon il tomberait dans le vide.
+  if (t.contains(document.activeElement) && precedent && precedent.isConnected) precedent.focus({ preventScroll: true });
+  precedent = null;
   const focusAvant = document.activeElement;
   const prendLeFocus = !!action && auClavier();
   t.textContent = "";
@@ -46,7 +50,10 @@ export function toast(msg, { action, surAction, duree } = {}) {
     clearTimeout(minuterie);
     const avaitLeFocus = t.contains(document.activeElement);
     t.classList.remove("visible");
-    t.textContent = "";
+    // Le bouton part tout de suite (il ne doit plus être atteignable), le message
+    // reste le temps du fondu : une pastille vide qui s'éteint serait un éclair.
+    t.querySelector(".toast-action")?.remove();
+    setTimeout(() => { if (id === compteur && !t.classList.contains("visible")) t.textContent = ""; }, 300);
     // Le bouton disparaît avec le focus dessus : on le rend à ce qu'il avait quitté.
     if (avaitLeFocus && precedent && precedent.isConnected) precedent.focus({ preventScroll: true });
     precedent = null;

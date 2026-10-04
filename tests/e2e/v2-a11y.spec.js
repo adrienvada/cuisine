@@ -262,3 +262,39 @@ test("n° 61 — « Aucune recette ne correspond » est annoncé", async ({ page
   await page.locator("#search").fill("zzzxyzqq");
   await expect(page.locator("#annonces")).toHaveText("Aucune recette ne correspond");
 });
+
+/* ---------- relecture : deux minuteurs prêts au même battement ---------- */
+
+test("n° 59 — deux minuteurs qui finissent ensemble sont annoncés tous les deux (une annonce n'écrase pas l'autre)", async ({ page, context }) => {
+  await preremplir(context, { carnet: { timers: [minuteur(1500), minuteur(1500, { id: "tx2", label: "Salade", step: 2 })] } });
+  await page.goto("/#/recette/focaccia-romarin");
+  await expect(page.locator("#annonces")).toHaveText(/^2 minuteurs prêts/, { timeout: 8000 });
+  await expect(page.locator("#annonces")).toContainText("« Cuisson à blanc »");
+  await expect(page.locator("#annonces")).toContainText("« Salade »");
+});
+
+test("n° 58 — à la fermeture le message reste pendant le fondu (pas de pastille vide), le bouton part tout de suite", async ({ page }) => {
+  await page.goto("/#/fondamentaux");
+  await page.evaluate(async () => { (await import("/js/ui/toast.js")).toast("Retiré du menu", { action: "Annuler" }); });
+  const etat = await page.evaluate(() => {
+    document.querySelector("#toast .toast-action").click();
+    const t = document.getElementById("toast");
+    return { texte: t.textContent, boutons: t.querySelectorAll(".toast-action").length, visible: t.classList.contains("visible") };
+  });
+  expect(etat).toEqual({ texte: "Retiré du menu", boutons: 0, visible: false });
+  await expect(page.locator("#toast")).toHaveText("");
+});
+
+/* ---------- relecture : un message qui en remplace un autre ne perd pas le focus ---------- */
+
+test("n° 58 — un second message qui efface le bouton « Annuler » focalisé rend le focus au contrôle d'origine", async ({ page }) => {
+  await page.goto("/#/fondamentaux");
+  await page.locator("#f-search").focus();
+  await page.keyboard.press("a");
+  await page.evaluate(async () => { (await import("/js/ui/toast.js")).toast("Retiré", { action: "Annuler" }); });
+  await expect(page.locator("#toast .toast-action")).toBeFocused();
+  await page.evaluate(async () => { (await import("/js/ui/toast.js")).toast("Autre chose"); });
+  await expect(page.locator("#toast")).toContainText("Autre chose");
+  await expect(page.locator("#toast .toast-action")).toHaveCount(0);
+  await expect(page.locator("#f-search")).toBeFocused();
+});
