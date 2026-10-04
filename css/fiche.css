@@ -350,8 +350,9 @@
 /* Une recette peut être au menu en plusieurs versions : la fiche dit lesquelles
    sont déjà retenues, et l'entrée que l'on est en train de composer se retire
    d'ici plutôt que par une bascule du bouton d'ajout. */
+/* 12 px de part et d'autre : la zone de contact du lien « La retirer » (44 px) empiète dessus sans passer sous le bouton ni sous la barre d'onglets. */
 .menu-info {
-  margin: 8px 0 0;
+  margin: 12px 0;
   text-align: center;
   font-size: 13.5px;
   line-height: 1.5;
