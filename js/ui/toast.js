@@ -89,7 +89,7 @@ export function toast(msg, { action, surAction, duree } = {}) {
 }
 
 /* Tant qu'on lit le message ou qu'on vise son bouton, il ne s'éteint pas. */
-{
+if (typeof document !== "undefined") {
   const t = document.getElementById("toast");
   if (t) {
     const reprendre = () => { if (t.classList.contains("visible")) armer(Math.min(delaiCourant, 3000)); };
