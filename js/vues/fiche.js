@@ -1,12 +1,24 @@
-/* La fiche d'une recette : ingrédients à l'échelle, composition de la version, étapes, ajout au menu. */
+/* La fiche d'une recette : ingrédients à l'échelle, composition de la version, allergènes, notes, étapes, ajout au menu. */
 
+import {
+  PORTIONS_MAX,
+  PORTIONS_MIN,
+  allergenesDe,
+  libelleMoule,
+  portionsPourMoule,
+  tailleDeReference,
+  tailleEquivalente
+} from "../core/adaptation.js";
 import { save, state } from "../core/etat.js";
-import { fmtQty, fmtUnit, scaleQty, scaleText, timeText } from "../core/format.js";
+import { scaleText, timeText } from "../core/format.js";
+import { esc, html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import {
   ajouterAuMenu,
+  compo,
   entreeCourante,
   entreesDe,
+  portionsOf,
   retirerDuMenu,
   setChoice,
   toggleAddon
@@ -27,10 +39,11 @@ import {
 import { cleCuisine, cookHref, cookingStep, forgetCooking } from "../core/seance.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { shareRecipe } from "../ui/partage.js";
-import { allerEnRemplacant, app } from "../ui/routeur.js";
+import { allerEnRemplacant, app, hashPrecedent } from "../ui/routeur.js";
 import { toast, updateBadge } from "../ui/toast.js";
 import { visuel } from "../ui/visuel.js";
 import { burstHeart, discoveredHtml } from "./accueil.js";
+import { ouvrirIngredient, quantiteTexte } from "./ingredient.js";
 import { astuceHtml, savoirsHtml } from "./savoirs.js";
 
 /* Le geste d'un supplément, affiché dans l'étape concernée.
@@ -107,14 +120,46 @@ export function openAddSheet(r, done) {
   ouvrirFeuille(backdrop, () => done(resultat));
 }
 
+/* Où mène la flèche de retour : là d'où l'on vient, nommée comme telle. Une
+   fiche ouverte directement, ou depuis l'accueil, retombe sur « Recettes ». */
+function retourDe() {
+  const p = hashPrecedent() || "";
+  if (p === "#/menu") return { href: p, texte: "Au menu" };
+  if (p === "#/courses") return { href: p, texte: "Courses" };
+  if (p === "#/fondamentaux" || p.startsWith("#/fondamental/")) return { href: p, texte: "Savoirs" };
+  return { href: "#/", texte: "Recettes" };
+}
+
+const ICON_IMPRIMER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>';
+
+/* Les notes perso s'enregistrent d'elles-mêmes, mais un rechargement, un
+   changement d'onglet ou l'impression peuvent arriver avant la fin du délai :
+   la fiche affichée dépose ici de quoi tout enregistrer tout de suite. */
+let enregistrerMaintenant = null;
+let ecouteursPoses = false;
+function poserEcouteurs() {
+  if (ecouteursPoses) return;
+  ecouteursPoses = true;
+  window.addEventListener("pagehide", () => enregistrerMaintenant?.());
+  document.addEventListener("visibilitychange", () => { if (document.hidden) enregistrerMaintenant?.(); });
+  window.addEventListener("beforeprint", () => enregistrerMaintenant?.({ afficher: true }));
+}
+
+const DELAI_NOTE = 600;
+
 export function renderRecipe(r) {
   // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
   const resume = cookingStep(r) || null;
   const t = r.times;
+  const retour = retourDe();
+  poserEcouteurs();
   app.innerHTML = `
     <div class="topbar fade-in">
-      <a class="btn-icon" href="#/" data-retour="#/">${ICON.back} Recettes</a>
-      <button class="btn-icon" id="share-recipe">${ICON.share} Partager</button>
+      <a class="btn-icon" href="${esc(retour.href)}" data-retour="${esc(retour.href)}">${ICON.back} ${retour.texte}</a>
+      <div class="topbar-actions">
+        <button class="btn-icon" id="print-recipe" aria-label="Imprimer">${ICON_IMPRIMER} <span class="btn-lib">Imprimer</span></button>
+        <button class="btn-icon" id="share-recipe">${ICON.share} Partager</button>
+      </div>
     </div>
     <div class="hero"><div class="visual" style="background:${r.color}33">
       ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
@@ -129,7 +174,10 @@ export function renderRecipe(r) {
         ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.zzz} ${r.reposLabel || "Repos"} : ${timeText(t.repos || 0, addonTime(r, "repos"))}</span>` : ""}
         ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
       </div>
+      <p class="allergenes" id="allergenes" hidden></p>
     </div>
+
+    <aside class="note-perso" id="note-perso-tete" hidden></aside>
 
     <section class="section">
       <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Ingrédients</span>
@@ -139,12 +187,13 @@ export function renderRecipe(r) {
           <button id="p-plus" aria-label="Plus de portions">+</button>
         </span>
       </h2>
+      ${r.moule ? `<div class="moule" id="moule-zone"></div>` : ""}
       <ul class="ing-list" id="ing-list"></ul>
     </section>
 
     ${customizable(r) ? `
     <section class="section">
-      <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Composez votre version</span></h2>
+      <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Compose ta version</span></h2>
       <div id="pick-zone"></div>
     </section>` : ""}
 
@@ -155,38 +204,49 @@ export function renderRecipe(r) {
 
     ${r.note ? `<p class="recipe-note">« ${r.note} »<span class="n-heart">${ILLO.D.heart}</span><span class="n-flourish">${ILLO.D.flourish}</span></p>` : ""}
 
+    <section class="section section-notes">
+      <h2><span class="h-title">Mes notes</span><span class="note-etat" id="note-etat" role="status"></span></h2>
+      <textarea class="note-saisie" id="note-saisie" rows="3" aria-label="Mes notes sur cette recette" placeholder="Ce que tu as changé, ce qu'il faut retenir…"></textarea>
+    </section>
+
     <section class="section verdict">
       <h2>Un coup de cœur ?</h2>
       <div class="verdict-row" id="verdict-row"></div>
       <p class="cooked-line" id="cooked-line"></p>
     </section>
 
+    <section class="section" id="journal-zone" hidden></section>
+
     <div class="actions">
       <button class="btn secondary" id="add-list"></button>
       <a class="btn primary ${resume ? "resume" : ""}" href="${cookHref(r)}">${ICON.chef}
-        ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : "Mode cuisine"}
+        ${resume ? `<span>Reprendre<small>étape ${resume + 1} / ${r.steps.length}</small></span>` : `<span>Cuisiner<span class="fiche-sr"> en mode cuisine</span></span>`}
       </a>
     </div>
     ${resume ? `<button class="link-restart" id="restart-cook">Repartir du début</button>` : ""}
     <p class="menu-info" id="menu-info"></p>
   `;
 
+  /* Les portions de CETTE version : celles de l'entrée du menu quand on en édite
+     une, celles du brouillon sinon — portionsOf / compo tranchent. */
+  const portionsCourantes = () => portionsOf(r);
+  const unite = r.portions.label;
+
   const drawIngredients = () => {
-    const p = state.portions[r.id] || r.portions.base;
+    const p = portionsCourantes();
     const f = p / r.portions.base;
-    document.getElementById("p-val").textContent = `${p} ${r.portions.label}`;
-    document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map(ing => {
-      const q = scaleQty(ing.qty, ing.unit, f);
-      const qtyStr = q != null ? `${fmtQty(q)} ${fmtUnit(ing.unit, q)}`.trim() : (ing.qtyText || "—");
-      return `<li>
-        <span class="qty">${qtyStr}</span>
-        <span>${ing.name}${ing.addon ? `<span class="opt sup">supplément</span>` : ""}${ing.optional ? `<span class="opt">optionnel</span>` : ""}${ing.note ? `<span class="note"> — ${scaleText(ing.note, f)}</span>` : ""}</span>
-      </li>`;
-    }).join("");
+    document.getElementById("p-val").textContent = `${p} ${unite}`;
+    document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map((ing, i) => html`<li>
+      <button type="button" class="ing-ligne" data-i="${i}" aria-haspopup="dialog">
+        <span class="qty">${quantiteTexte(ing, f)}</span>
+        <span class="ing-nom">${ing.name}${ing.addon ? raw(`<span class="opt sup">supplément</span>`) : ""}${ing.optional ? raw(`<span class="opt">optionnel</span>`) : ""}${ing.note ? raw(html`<span class="note"> — ${scaleText(ing.note, f)}</span>`) : ""}</span>
+        <span class="ing-chev" aria-hidden="true">${raw(ICON.chev)}</span>
+      </button>
+    </li>`).join("");
   };
 
   const drawSteps = () => {
-    const f = (state.portions[r.id] || r.portions.base) / r.portions.base;
+    const f = portionsCourantes() / r.portions.base;
     document.getElementById("steps-list").innerHTML = effectiveSteps(r).map((s, i) => `
       <li>
         <span class="num">${i + 1}</span>
@@ -204,7 +264,43 @@ export function renderRecipe(r) {
     if (zone) zone.innerHTML = pickChipsHtml(r);
   };
 
-  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); };
+  /* Un supplément ou un autre choix change les ingrédients, donc les allergènes. */
+  const drawAllergenes = () => {
+    const ligne = document.getElementById("allergenes");
+    const liste = allergenesDe(effectiveIngredients(r));
+    ligne.hidden = !liste.length;
+    ligne.innerHTML = liste.length
+      ? html`Contient : ${raw(liste.map(a => html`<span class="alg">${a.emoji} ${a.label.toLowerCase()}</span>`).join(" · "))} <small>vérifie les étiquettes</small>`
+      : "";
+  };
+
+  /* ---------- Le moule ---------- */
+
+  /* Ce que la dernière manœuvre a dit (« moule de 28 cm → recette pour 8 »), tant
+     qu'on ne touche pas aux portions autrement. */
+  let diteDuMoule = "";
+
+  const drawMoule = () => {
+    const zone = document.getElementById("moule-zone");
+    if (!zone) return;
+    const base = r.portions.base, p = portionsCourantes();
+    /* La taille retenue ne vaut que si elle donne bien ces portions : réglées
+       à la main depuis, elles ont repris la main et le moule affiché suit. */
+    const memo = state.moules?.[r.id];
+    const taille = memo && portionsPourMoule(r.moule, base, memo) === p ? memo : tailleEquivalente(r.moule, base, p);
+    zone.innerHTML = html`
+      <div class="moule-ligne">
+        <span class="moule-lib">Ton moule : <b>${libelleMoule(r.moule, taille)}</b></span>
+        <span class="portions">
+          <button id="m-minus" aria-label="Moule plus petit">−</button>
+          <button id="m-plus" aria-label="Moule plus grand">+</button>
+        </span>
+      </div>
+      <p class="moule-dit" aria-live="polite">${diteDuMoule || `La recette est écrite pour un moule de ${libelleMoule(r.moule, tailleDeReference(r.moule))}.`}</p>`;
+    zone.dataset.taille = taille;
+  };
+
+  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); drawAllergenes(); drawMoule(); };
 
   if (customizable(r)) {
     document.getElementById("pick-zone").addEventListener("click", e => {
@@ -214,31 +310,67 @@ export function renderRecipe(r) {
 
   /* Les étapes citent elles aussi des quantités : elles se redessinent avec la
      liste d'ingrédients, sinon les deux se contrediraient. */
-  const setPortions = p => { state.portions[r.id] = p; save(); drawIngredients(); drawSteps(); };
+  const setPortions = (p, dit = "") => {
+    compo(r.id).portions = p;
+    diteDuMoule = dit;
+    save();
+    drawIngredients(); drawSteps(); drawMoule();
+    updateBadge();   // une entrée du menu change les quantités des courses
+  };
   document.getElementById("p-minus").addEventListener("click", () => {
-    const p = state.portions[r.id] || r.portions.base;
-    if (p > 1) setPortions(p - 1);
+    const p = portionsCourantes();
+    if (p > PORTIONS_MIN) setPortions(p - 1);
   });
   document.getElementById("p-plus").addEventListener("click", () => {
-    const p = state.portions[r.id] || r.portions.base;
-    if (p < 24) setPortions(p + 1);
+    const p = portionsCourantes();
+    if (p < PORTIONS_MAX) setPortions(p + 1);
   });
+
+  const moulezone = document.getElementById("moule-zone");
+  if (moulezone) moulezone.addEventListener("click", e => {
+    const pas = e.target.closest("#m-minus") ? -1 : e.target.closest("#m-plus") ? 1 : 0;
+    if (!pas) return;
+    const taille = Number(moulezone.dataset.taille) + pas;
+    if (taille < 8 || taille > 60) return;
+    (state.moules ??= {})[r.id] = taille;
+    const p = portionsPourMoule(r.moule, r.portions.base, taille);
+    setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${p} ${unite}`);
+  });
+
+  /* Toucher une ligne : la feuille de l'ingrédient. */
+  document.getElementById("ing-list").addEventListener("click", e => {
+    const ligne = e.target.closest("[data-i]");
+    const ing = ligne && effectiveIngredients(r)[Number(ligne.dataset.i)];
+    if (!ing) return;
+    ouvrirIngredient(r, ing, {
+      portions: portionsCourantes(),
+      regler: n => {
+        const avant = portionsCourantes();
+        setPortions(n);
+        toast(`Recette réglée pour ${n} ${unite}`, { action: "Annuler", surAction: () => setPortions(avant) });
+      }
+    });
+  });
+
   const addBtn = document.getElementById("add-list");
   const info = document.getElementById("menu-info");
 
   /* Sur une entrée de menu, le bouton la retire. Sur la fiche nue, il AJOUTE —
      toujours, jamais en bascule : c'est ce qui permet deux cakes au menu, l'un
      aux olives, l'autre aux lardons. On retire depuis le menu ou depuis
-     l'entrée elle-même. */
+     l'entrée elle-même. Les libellés sont courts pour tenir sur une ligne ;
+     la suite, muette à l'œil, reste lue par les lecteurs d'écran. */
   const drawAddBtn = () => {
     const n = entreesDe(r.id).length;
     if (entreeCourante()) {
       addBtn.className = "btn added";
       addBtn.innerHTML = `${ICON.check} Au menu`;
-      info.innerHTML = `Vous composez la version qui est au menu. <button class="lien-nu" id="menu-retirer">La retirer</button>`;
+      info.innerHTML = `Tu composes la version qui est au menu. <button class="lien-nu" id="menu-retirer">La retirer</button>`;
     } else {
       addBtn.className = n ? "btn added" : "btn secondary";
-      addBtn.innerHTML = n ? `${ICON.cart} Ajouter une autre version` : `${ICON.cart} Ajouter au menu`;
+      addBtn.innerHTML = n
+        ? `${ICON.cart} <span>Ajouter<span class="fiche-sr"> une autre version</span></span>`
+        : `${ICON.cart} <span>Ajouter<span class="fiche-sr"> au menu</span></span>`;
       info.innerHTML = n
         ? `${n} version${n > 1 ? "s" : ""} de cette recette déjà <a href="#/menu">au menu</a>.`
         : "";
@@ -261,6 +393,7 @@ export function renderRecipe(r) {
        des suppléments de la précédente — deux cakes qui n'en font qu'un. */
     delete state.choices[r.id]; delete state.addons[r.id]; delete state.portions[r.id];
     save();
+    diteDuMoule = "";
     drawVersion(); drawAddBtn();
     const combien = entreesDe(r.id).length;
     toast(combien > 1
@@ -283,10 +416,55 @@ export function renderRecipe(r) {
 
   document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
 
+  /* L'impression part de la page telle qu'elle est : la note en cours de frappe
+     est d'abord enregistrée et remontée en tête, où la feuille de style la garde. */
+  document.getElementById("print-recipe").addEventListener("click", () => {
+    enregistrerMaintenant?.({ afficher: true });
+    window.print();
+  });
+
   if (resume) document.getElementById("restart-cook").addEventListener("click", () => {
     forgetCooking(cleCuisine(r));
     location.hash = `#/recette/${r.id}/cuisine`;
   });
+
+  /* ---------- Mes notes ---------- */
+
+  const saisie = document.getElementById("note-saisie");
+  const etatNote = document.getElementById("note-etat");
+  const teteNote = document.getElementById("note-perso-tete");
+  const noteEnregistree = () => state.notesPerso?.[r.id]?.txt ?? "";
+
+  /* En tête de fiche, la note se lit sans descendre. Elle ne se redessine pas à
+     chaque frappe : un bloc qui apparaît au-dessus pousserait la zone de saisie
+     sous le doigt qui écrit. */
+  const drawNoteTete = () => {
+    const txt = noteEnregistree();
+    teteNote.hidden = !txt;
+    teteNote.innerHTML = txt ? html`<b>Ma note</b><p>${txt}</p>` : "";
+  };
+
+  let delaiNote = null;
+  const enregistrerNote = ({ afficher = false } = {}) => {
+    clearTimeout(delaiNote);
+    const txt = saisie.value.trim();
+    if (txt !== noteEnregistree()) {
+      if (txt) (state.notesPerso ??= {})[r.id] = { txt, at: Date.now() };
+      else delete state.notesPerso[r.id];
+      save();
+      etatNote.textContent = "Enregistré";
+    }
+    if (afficher) drawNoteTete();
+  };
+  saisie.value = noteEnregistree();
+  saisie.addEventListener("input", () => {
+    etatNote.textContent = "";
+    clearTimeout(delaiNote);
+    delaiNote = setTimeout(enregistrerNote, DELAI_NOTE);
+  });
+  saisie.addEventListener("blur", () => enregistrerNote({ afficher: true }));
+  enregistrerMaintenant = enregistrerNote;
+  drawNoteTete();
 
   const drawVerdict = () => {
     const cur = verdictOf(r);
@@ -317,4 +495,13 @@ export function renderRecipe(r) {
 
   drawVersion();
   drawVerdict();
+
+  /* Le journal est l'affaire d'un autre module, facultatif : sans lui la section
+     reste cachée, comme si elle n'existait pas. */
+  const zoneJournal = document.getElementById("journal-zone");
+  import("./journal.js").then(m => {
+    if (!zoneJournal.isConnected || typeof m.dessinerJournal !== "function") return;
+    m.dessinerJournal(zoneJournal, r);
+    zoneJournal.hidden = false;
+  }).catch(() => {});
 }
