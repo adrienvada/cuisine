@@ -2,6 +2,7 @@
    doit rester propre à chaque test (constat n° 23 de la seconde vague). */
 
 import { test, expect } from "@playwright/test";
+import { attendreCalme } from "./outils.js";
 
 const regler = (baseURL, id, reglage = "") =>
   fetch(`${baseURL}/__reseau?id=${id}${reglage}`).then(r => r.json());
@@ -47,4 +48,13 @@ test("réseau simulé : la latence d'un test ne ralentit pas les autres", async 
   } finally {
     await regler(baseURL, id);
   }
+});
+
+test("attendre le calme : une requête tardive (lecture puis écriture) est vue avant de conclure", async () => {
+  // Un envoi fait deux allers-retours : la seconde requête part après la première réponse.
+  // Conclure « rien n'est arrivé » dès la première ne prouverait donc rien.
+  const recu = [];
+  setTimeout(() => recu.push("lecture"), 50);
+  setTimeout(() => recu.push("ecriture"), 250);
+  expect(await attendreCalme(() => recu.length)).toBe(2);
 });

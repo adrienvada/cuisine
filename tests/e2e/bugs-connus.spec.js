@@ -2,7 +2,7 @@
    ATTENDU. Celui qui corrige un bug retire le « fixme » de son test : c'est son
    critère d'acceptation. Tant qu'il reste, la suite l'ignore. */
 
-import { test, expect, preremplir, entree, simulerSupabase, lireCarnet, cochesAffichees, reseau, pageStable } from "./outils.js";
+import { test, expect, preremplir, entree, simulerSupabase, lireCarnet, cochesAffichees, reseau, pageStable, attendreCalme } from "./outils.js";
 
 const VIDE = { menu: [], checked: {}, extras: [] };
 const CARTES = ".card:not(.gone):not(.card-leave)";
@@ -47,6 +47,9 @@ test("B1a — taper une recherche ou avancer d'une étape n'envoie rien au serve
   const lectures = serveur.lectures;
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
   await expect.poll(() => serveur.lectures).toBeGreaterThan(lectures);
+  // Un envoi se fait en plusieurs allers-retours (lecture, puis écriture) : on attend que
+  // le serveur ne reçoive plus rien avant de conclure qu'il n'a rien reçu.
+  await attendreCalme(() => serveur.lectures + serveur.ecritures.length);
   expect(serveur.ecritures).toHaveLength(0);
 });
 
