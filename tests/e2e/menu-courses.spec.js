@@ -30,8 +30,8 @@ test("courses : articles rangés par rayon", async ({ page, context }) => {
   await page.goto("/#/courses");
 
   const rayon = nom => page.locator("section.rayon", { has: page.getByRole("heading", { name: nom, exact: true }) });
-  await expect(rayon("Produits frais").locator("li", { hasText: "Lardons fumés" })).toBeVisible();
-  await expect(rayon("Épicerie").locator("li", { hasText: "Farine" }).first()).toBeVisible();
+  await expect(rayon("Boucherie & charcuterie").locator("li", { hasText: "Lardons fumés" })).toBeVisible();
+  await expect(rayon("Pâtisserie & épicerie sucrée").locator("li", { hasText: "Farine" }).first()).toBeVisible();
   // Chaque article n'apparaît que dans un rayon.
   await expect(page.locator("li", { hasText: "Lardons fumés" })).toHaveCount(1);
   // Les rayons se présentent dans un ordre stable, un titre par rayon.

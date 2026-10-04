@@ -30,7 +30,7 @@ test("une recette : ses ingrédients, rangés par rayon, aux quantités de la fi
   const lardons = ligne(liste, "lardons");
   assert.equal(lardons.qty, 200);
   assert.equal(lardons.unit, "g");
-  assert.equal(lardons.rayon, "Produits frais");
+  assert.equal(lardons.rayon, "Boucherie & charcuterie");
   assert.equal(courseQtyStr(lardons), "200 g");
 });
 
