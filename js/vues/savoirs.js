@@ -2,6 +2,8 @@
 
 import { state } from "../core/etat.js";
 import { CERTITUDES, fondById, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
+import { normaliser } from "../core/format.js";
+import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { shareFond } from "../ui/partage.js";
@@ -25,16 +27,31 @@ export function tipHtml(tip, savoirs = "") {
    et alourdissait la lecture d'une étape. L'appel est donc une simple ligne,
    dans l'encre du titre de l'astuce, et l'appui ne fait que RÉVÉLER le lien —
    il n'ouvre rien. Un doigt posé par mégarde en cuisinant ne coûte donc pas
-   une lecture qu'on n'a pas demandée, seulement une ligne à replier. */
+   une lecture qu'on n'a pas demandée, seulement une ligne à replier.
+   L'appel et les liens sont de vrais boutons : le clavier et les lecteurs
+   d'écran les atteignent (Tab), les déplient et les ouvrent (Entrée, Espace)
+   sans rien de plus que ce que le navigateur fournit déjà. */
+let compteurAppels = 0;
 export const savoirsHtml = o => {
   const list = fondsDe(o);
   if (!list.length) return "";
-  return `<div class="savoirs">
-    <span class="s-cue">Pourquoi ça marche${ICON.chev}</span>
-    <div class="s-liste">${list.map(f =>
-      `<a class="s-lien" role="button" tabindex="0" data-fond="${f.id}"><span class="s-emoji">${f.emoji}</span>${f.t}${ICON.chev}</a>`).join("")}</div>
+  /* Un identifiant par appel : aria-controls doit viser la liste de CET appel,
+     et plusieurs étapes d'une même page portent chacune le leur. */
+  const id = "s-liste-" + (++compteurAppels);
+  return html`<div class="savoirs">
+    <button type="button" class="s-cue" aria-expanded="false" aria-controls="${id}">Pourquoi ça marche${raw(ICON.chev)}</button>
+    <div class="s-liste" id="${id}">${list.map(f =>
+      raw(html`<button type="button" class="s-lien" data-fond="${f.id}"><span class="s-emoji">${f.emoji}</span>${f.t}${raw(ICON.chev)}</button>`))}</div>
   </div>`;
 };
+
+/* Déplie ou replie l'appel d'un encadré, et garde aria-expanded d'accord avec
+   la classe qui, elle, commande l'affichage. Appelée par l'écouteur délégué de
+   main.js, que le geste vienne du bouton ou de l'astuce entière. */
+export function basculerSavoirs(porteur) {
+  const ouvert = porteur.classList.toggle("ouvert");
+  porteur.querySelectorAll(".s-cue").forEach(b => b.setAttribute("aria-expanded", String(ouvert)));
+}
 
 /* L'astuce reste ce qu'elle est ; l'appel au savoir se glisse à sa suite, dans
    le même encadré. Une étape qui met un mécanisme en jeu sans avoir d'astuce —
@@ -97,7 +114,21 @@ export function openFondSheet(id) {
       ${fondBodyHtml(f)}
       <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
     </div>`;
-  const surEchap = e => { if (e.key === "Escape") fermerFeuille(); };
+  /* Le clavier reste dans la feuille : Échap la ferme, et Tab tourne entre ses
+     contrôles au lieu de filer vers la page qu'elle recouvre. */
+  const surClavier = e => {
+    if (e.key === "Escape") return fermerFeuille();
+    if (e.key !== "Tab") return;
+    const prises = [...backdrop.querySelectorAll("button, a[href]")];
+    if (!prises.length) return;
+    const feuille = backdrop.querySelector(".sheet");
+    const premiere = prises[0], derniere = prises[prises.length - 1];
+    if (e.shiftKey && (document.activeElement === premiere || document.activeElement === feuille)) { e.preventDefault(); derniere.focus(); }
+    else if (!e.shiftKey && document.activeElement === derniere) { e.preventDefault(); premiere.focus(); }
+  };
+  /* Là d'où l'on vient : on y rend le clavier à la fermeture, pour reprendre
+     la lecture de l'étape là où on l'avait laissée. */
+  const declencheur = document.activeElement;
   /* Un lien vers une recette ne navigue pas tout de suite : on dépile d'abord
      l'entrée de la feuille, sinon les deux gestes se croisent et l'un annule
      l'autre. La navigation se fait donc une fois la feuille retirée. */
@@ -113,68 +144,87 @@ export function openFondSheet(id) {
       fermerFeuille();
     }
   });
-  document.addEventListener("keydown", surEchap);
+  document.addEventListener("keydown", surClavier);
   ouvrirFeuille(backdrop, () => {
-    document.removeEventListener("keydown", surEchap);
+    document.removeEventListener("keydown", surClavier);
     if (ensuite) { const aller = ensuite; ensuite = null; aller(); }
+    else if (declencheur && declencheur.isConnected) declencheur.focus({ preventScroll: true });
   });
+  const feuille = backdrop.querySelector(".sheet");
+  feuille.tabIndex = -1;
+  feuille.focus({ preventScroll: true });
 }
+
+/* Le texte où l'on cherche, normalisé une fois pour toutes : le refaire à
+   chaque lettre tapée, pour une quarantaine de fondamentaux, serait du travail
+   perdu. Rempli à la demande (les données sont des globales, chargées avant
+   les modules mais pas forcément avant cet import). */
+const foins = new Map();
+const foinDe = f => {
+  if (!foins.has(f.id)) {
+    foins.set(f.id, normaliser([f.t, f.accroche, f.pourquoi, f.famille, f.piege,
+      ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ")));
+  }
+  return foins.get(f.id);
+};
 
 export const fondMatches = (f, q) => {
   if (!q) return true;
-  const foin = [f.t, f.accroche, f.pourquoi, f.famille, f.piege,
-    ...(f.cas || []).flatMap(c => [c.q, c.r]), ...(f.reperes || [])].join(" ").toLowerCase();
-  return q.toLowerCase().split(/\s+/).every(w => foin.includes(w));
+  const foin = foinDe(f);
+  return normaliser(q).split(/\s+/).filter(Boolean).every(w => foin.includes(w));
 };
 
-export function renderFondamentaux() {
-  const q = state.fondQuery || "";
+/* La liste seule : c'est tout ce qui change quand on tape. */
+function listeFondamentaux(q) {
   const trouves = fondsTous().filter(f => fondMatches(f, q));
   const familles = FAMILLES.filter(fam => trouves.some(f => f.famille === fam));
   /* Une famille inconnue ne disparaît pas en silence : elle passe en fin de liste. */
   const autres = [...new Set(trouves.map(f => f.famille))].filter(fam => !FAMILLES.includes(fam));
-
-  app.innerHTML = `
-    <header class="masthead fade-in">
-      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Ce qui sert</p>${ILLO.D.sprigR}</div>
-      <h1>Savoirs</h1>
-      <p class="byline"><span>les mécanismes du <span class="u">carnet</span></span></p>
-    </header>
-    <p class="f-intro">Les gestes qui reviennent d'une recette à l'autre, et ce qui se passe vraiment quand on les fait.</p>
-    <div class="searchbar">
-      ${ICON.search}
-      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q.replace(/"/g, "&quot;")}" autocomplete="off">
-    </div>
-    ${trouves.length ? [...familles, ...autres].map(fam => `
+  return html`${trouves.length ? [...familles, ...autres].map(fam => raw(html`
       <section class="f-fam">
         <h2>${fam}</h2>
         <div class="f-liste">
           ${trouves.filter(f => f.famille === fam).map(f => {
             const n = recettesDuFond(f.id).length;
-            return `<a class="f-item" href="#/fondamental/${f.id}">
+            return raw(html`<a class="f-item" href="#/fondamental/${f.id}">
               <span class="f-item-emoji">${f.emoji}</span>
               <span class="f-item-txt">
                 <b>${f.t}</b>
                 <small>${f.accroche}</small>
                 <span class="f-item-meta">${n ? `${n} recette${n > 1 ? "s" : ""}` : "Pas encore rattaché"}</span>
               </span>
-              ${ICON.chev}
-            </a>`;
-          }).join("")}
+              ${raw(ICON.chev)}
+            </a>`);
+          })}
         </div>
-      </section>`).join("") : `<p class="empty">Aucun savoir ne correspond à « ${q} ».</p>`}
-    <p class="f-compte">${fondsTous().length} fondamental${fondsTous().length > 1 ? "aux" : ""} dans le carnet.</p>
+      </section>`)) : raw(html`<p class="empty">Aucun savoir ne correspond à « ${q} ».</p>`)}
+    <p class="f-compte">${fondsTous().length} fondamental${fondsTous().length > 1 ? "aux" : ""} dans le carnet.</p>`;
+}
+
+export function renderFondamentaux() {
+  const q = state.fondQuery || "";
+
+  app.innerHTML = html`
+    <header class="masthead fade-in">
+      <div class="mast-row">${raw(ILLO.D.sprig)}<p class="eyebrow">Ce qui sert</p>${raw(ILLO.D.sprigR)}</div>
+      <h1>Savoirs</h1>
+      <p class="byline"><span>les mécanismes du <span class="u">carnet</span></span></p>
+    </header>
+    <p class="f-intro">Les gestes que tu retrouves d'une recette à l'autre, et ce qui se passe vraiment quand tu les fais.</p>
+    <div class="searchbar">
+      ${raw(ICON.search)}
+      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off">
+    </div>
+    <div id="f-resultats">${raw(listeFondamentaux(q))}</div>
   `;
 
+  /* Seule la liste est redessinée : le champ n'est jamais recréé, il garde donc
+     le clavier, la sélection et la composition en cours, sans rien à rétablir. */
   const champ = document.getElementById("f-search");
+  const zone = document.getElementById("f-resultats");
   champ.addEventListener("input", () => {
     state.fondQuery = champ.value;
-    // On ne redessine que la liste : refaire la vue entière perdrait le clavier.
-    const pos = champ.selectionStart;
-    renderFondamentaux();
-    const neuf = document.getElementById("f-search");
-    neuf.focus();
-    neuf.setSelectionRange(pos, pos);
+    zone.innerHTML = listeFondamentaux(champ.value);
   });
 }
 

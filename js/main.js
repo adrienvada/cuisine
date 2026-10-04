@@ -6,7 +6,7 @@
 
 import { migrer, state } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
-import { openFondSheet } from "./vues/savoirs.js";
+import { basculerSavoirs, openFondSheet } from "./vues/savoirs.js";
 import { acquireWakeLock, cancelTimer, drawTray, ensureTick } from "./ui/minuteurs.js";
 import { retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
@@ -77,10 +77,13 @@ document.body.addEventListener("click", e => {
   if (fleche) { e.preventDefault(); return retourVers(fleche.dataset.retour); }
   const lien = e.target.closest("[data-fond]");
   if (lien) { e.preventDefault(); return openFondSheet(lien.dataset.fond); }
-  // Un bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
+  // L'appel est lui-même un bouton : c'est lui qui déplie, au doigt comme au clavier.
+  const appel = e.target.closest(".s-cue");
+  if (appel) return basculerSavoirs(appel.closest(".a-savoirs"));
+  // Un autre bouton dans l'encadré (le minuteur d'un supplément) garde son geste.
   if (e.target.closest("button")) return;
   const porteur = e.target.closest(".a-savoirs");
-  if (porteur) porteur.classList.toggle("ouvert");
+  if (porteur) basculerSavoirs(porteur);
 });
 
 if ("serviceWorker" in navigator) {
