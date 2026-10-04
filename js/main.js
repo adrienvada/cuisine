@@ -105,8 +105,13 @@ document.body.addEventListener("click", e => {
   if (porteur) savoirs().then(m => m.basculerSavoirs(porteur));
 });
 
+/* Le service worker s'enregistre au repos, après le premier affichage : dès son
+   installation il télécharge toute l'appli (près de 1 Mo), et ce téléchargement
+   partagerait la bande passante avec les images et les modules de l'accueil. Le
+   délai borne l'attente si le navigateur n'est jamais tout à fait oisif. */
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => import("./ui/miseajour.js").then(m => m.surveillerMiseAJour()).catch(() => {}));
+  const auRepos = suite => ("requestIdleCallback" in window ? requestIdleCallback(suite, { timeout: 4000 }) : setTimeout(suite, 2000));
+  window.addEventListener("load", () => auRepos(() => import("./ui/miseajour.js").then(m => m.surveillerMiseAJour()).catch(() => {})));
 }
 
 tenter("thème", initialiserTheme);

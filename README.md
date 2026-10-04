@@ -193,11 +193,12 @@ Puis committe les dossiers `r/` et `f/`. Pour un autre domaine : `SITE_URL=https
 L'appli s'ouvre depuis le cache, sans attendre le réseau ([`sw.js`](sw.js)) :
 
 - les fichiers de l'appli (`CORE` : `index.html`, manifeste, `css/`, `js/` avec les données et les modules, `fonts/`, icônes, vignettes `img/v/` et `img/c/`) sont servis depuis le cache et renouvelés à l'installation d'une nouvelle version ;
+- les héros WebP des fiches (`img/h/`, 1,3 Mo) ne bloquent pas l'installation : une fois l'appli affichée, la page demande au service worker de les ranger (message `heros`, liste `HEROS`) dans le cache d'exécution. Une fiche jamais ouverte s'affiche donc avec sa photo hors ligne, après une première visite laissée au repos quelques secondes (sauf si le navigateur demande d'économiser les données : rien n'est alors téléchargé en douce). Les JPEG entiers ne servent que de secours aux navigateurs sans WebP ; si ni l'un ni l'autre ne répond, `js/ui/visuel.js` montre l'illustration (ou l'emoji) plutôt qu'une image cassée ;
 - les images : « stale-while-revalidate » — la copie en cache répond tout de suite, le réseau la rafraîchit pour la fois suivante ;
 - les pages d'aperçu `r/` et `f/` : réseau d'abord, mais 3 s au plus, puis le cache ;
 - seules les réponses « ok » sont mises en cache.
 
-**La version du cache est automatique.** `npm run sw` ([`tools/version-sw.mjs`](tools/version-sw.mjs)) liste tous les fichiers de l'appli et écrit dans `sw.js` la liste `CORE` et une `VERSION` dérivée de leur contenu : plus de « Bump cache version » à faire à la main. À relancer après toute modification d'un fichier de l'appli (page, style, module, donnée, vignette) et à committer avec : la CI lance l'outil puis `git diff --exit-code sw.js`, elle échoue donc si `sw.js` n'est pas à jour. Ne jamais modifier à la main le bloc entre les repères `>>>` et `<<<`.
+**La version du cache est automatique.** `npm run sw` ([`tools/version-sw.mjs`](tools/version-sw.mjs)) liste tous les fichiers de l'appli et écrit dans `sw.js` la liste `CORE` et une `VERSION` dérivée de leur contenu : plus de « Bump cache version » à faire à la main. À relancer après toute modification d'un fichier de l'appli (page, style, module, donnée, vignette) et à committer avec : la CI lance l'outil puis `git diff --exit-code sw.js index.html`, elle échoue donc si `sw.js` ou `index.html` n'est pas à jour. L'outil écrit aussi dans `index.html`, entre repères, le bloc `modulepreload` (le graphe des imports **statiques** de `js/main.js`, calculé par [`tools/graphe-modules.mjs`](tools/graphe-modules.mjs) : un module ajouté change le bloc, les `import()` dynamiques n'y figurent pas) et le préchargement des quatre premières vignettes de l'accueil. Ne jamais modifier à la main le bloc entre les repères `>>>` et `<<<`.
 
 **Mises à jour.** Une nouvelle version s'installe en coulisse puis attend ; l'appli affiche « Nouvelle version — Recharger » ([`js/ui/miseajour.js`](js/ui/miseajour.js)). Le bouton active la nouvelle version (`skipWaiting`) et recharge dès qu'elle contrôle la page.
 
@@ -249,7 +250,7 @@ js/ui/routeur.js        Le routeur (#) et les flèches de retour
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
-js/ui/miseajour.js      Enregistrement du service worker, « Nouvelle version — Recharger »
+js/ui/miseajour.js      Enregistrement du service worker (au repos, après le premier affichage), « Nouvelle version — Recharger »
 js/ui/theme.js          Thème automatique/clair/sombre, mouvement réduit
 js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome)
 js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js (MIT)
