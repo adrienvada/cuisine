@@ -122,14 +122,20 @@ test("notes perso : on tape pendant qu'une synchro arrive, la frappe n'est pas �
   await etat(page, "ok");
   await page.locator("#note-saisie").focus();
   await page.keyboard.type("ma frappe");
+  /* La note s'enregistre un instant après la dernière touche, à l'heure de cet
+     enregistrement : on la laisse partir avant que l'autre appareil n'écrive, pour que
+     « note B » soit bien la plus récente (sinon c'est « ma frappe » qui gagne, à raison). */
+  await expect.poll(() => serveur.data.notesPerso?.["quiche-lorraine"]?.txt).toBe("ma frappe");
 
   await second.page.goto("/#/recette/quiche-lorraine");
   await second.page.locator("#note-saisie").fill("note B");
   await second.page.locator("#note-saisie").blur();
   await expect.poll(() => serveur.data.notesPerso?.["quiche-lorraine"]?.txt).toBe("note B");
 
+  // Le curseur est toujours dans la note : la version reçue entre dans le carnet, pas
+  // dans la zone qu'on est en train de taper.
   await reveiller(page);
-  await page.waitForTimeout(500);
+  await expect.poll(async () => (await lireCarnet(page)).notesPerso?.["quiche-lorraine"]?.txt).toBe("note B");
   await expect(page.locator("#note-saisie")).toHaveValue("ma frappe");
   await second.context.close();
 });
