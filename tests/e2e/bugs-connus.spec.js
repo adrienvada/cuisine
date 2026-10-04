@@ -326,7 +326,7 @@ test.fixme("B10a — la recherche des recettes ignore accents et ligatures", asy
   }
 });
 
-test.fixme("B10b — dans les Savoirs, « reaction » trouve la réaction de Maillard", async ({ page }) => {
+test("B10b — dans les Savoirs, « reaction » trouve la réaction de Maillard", async ({ page }) => {
   await page.goto("/#/fondamentaux");
   await page.locator("#f-search").fill("reaction");
   await expect(page.locator(".f-item", { hasText: "La réaction de Maillard" })).toBeVisible();
@@ -362,7 +362,7 @@ test.fixme("B11b — une recherche avec des guillemets reste intacte après un a
 
 /* ---------- B12 : la recherche des Savoirs ne doit pas recréer l'en-tête ---------- */
 
-test.fixme("B12 — taper dans la recherche des Savoirs garde le même en-tête dans le document", async ({ page }) => {
+test("B12 — taper dans la recherche des Savoirs garde le même en-tête dans le document", async ({ page }) => {
   await page.goto("/#/fondamentaux");
   await expect(page.locator(".masthead")).toBeVisible();
   await page.evaluate(() => { window.__entete = document.querySelector(".masthead"); });
