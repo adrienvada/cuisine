@@ -21,16 +21,21 @@ export const app = document.getElementById("app");
    worker. `modules` garde ceux qui sont arrivés : une vue déjà vue se dessine
    sans attendre un tour de plus, donc un redessin sur place reste immédiat. */
 const chargeurs = {
-  fiche: () => import("../vues/fiche.js"),
-  cuisine: () => import("../vues/cuisine.js"),
-  menu: () => import("../vues/menu.js"),
-  courses: () => import("../vues/courses.js"),
-  savoirs: () => import("../vues/savoirs.js")
+  fiche: q => import("../vues/fiche.js" + q),
+  cuisine: q => import("../vues/cuisine.js" + q),
+  menu: q => import("../vues/menu.js" + q),
+  courses: q => import("../vues/courses.js" + q),
+  savoirs: q => import("../vues/savoirs.js" + q)
 };
 const modules = {};
+/* Un import() échoué reste échoué pour la même adresse (le navigateur retient
+   l'échec) : « Réessayer » doit donc demander une adresse neuve. Le service
+   worker, lui, ignore la requête pour retrouver le module en cache. */
+const echecs = {};
 const charger = nom => (modules[nom]
   ? Promise.resolve(modules[nom])
-  : chargeurs[nom]().then(m => (modules[nom] = m)));
+  : chargeurs[nom](echecs[nom] ? `?essai=${echecs[nom]}` : "")
+    .then(m => (modules[nom] = m), erreur => { echecs[nom] = (echecs[nom] || 0) + 1; throw erreur; }));
 
 /* La place retrouvée. Le navigateur ne sait pas toujours rendre sa position à
    une page que l'on redessine (Safari, les PWA installées) : on coupe sa
@@ -181,6 +186,8 @@ function afficherIndisponible(message) {
     <p class="empty">${message}<br>Vérifie ta connexion, puis réessaie.</p>
     <p class="empty"><button class="btn primary" id="fonds-reessayer">Réessayer</button></p>`;
   document.getElementById("fonds-reessayer").addEventListener("click", () => route({ garderDefilement: true }));
+  // Le titre de la vue d'avant serait un mensonge devant cette page.
+  document.title = "Page indisponible" + SUFFIXE_TITRE;
 }
 
 /* Les Savoirs attendent leurs données pour s'écrire : en attendant, un mot
@@ -199,8 +206,9 @@ function afficherAttenteSavoirs() {
    touché a disparu avec l'ancienne vue). Le focus ne se déplace que lorsqu'on
    arrive par un lien ; au retour arrière, la restauration de la place suffit. */
 const SUFFIXE_TITRE = " – Carnet de cuisine";
-function annoncerVue(titre, avecFocus) {
-  document.title = titre + SUFFIXE_TITRE;
+function annoncerVue(titre, avecFocus, surPlace) {
+  // Le minuteur qui sonne garde la place : son titre revient tout seul au bout de 5 s.
+  if (!(surPlace && document.title.startsWith("⏰"))) document.title = titre + SUFFIXE_TITRE;
   const h1 = avecFocus && app.querySelector("h1");
   if (!h1) return;
   h1.setAttribute("tabindex", "-1");
@@ -304,7 +312,8 @@ export function route({ garderDefilement = false } = {}) {
     }
     window.scrollTo(0, garderDefilement ? defilement : retrouve);
     updateBadge();
-    if (!garderDefilement) annoncerVue(titre, arrivee && !premierAffichage);
+    // Un redessin sur place (« Réessayer » après une page indisponible, par exemple) rend aussi son titre à la vue ; `arrivee` n'y vaut jamais vrai : pas de focus déplacé.
+    annoncerVue(titre, arrivee && !premierAffichage, garderDefilement);
     // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
     touche = false;
     fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;

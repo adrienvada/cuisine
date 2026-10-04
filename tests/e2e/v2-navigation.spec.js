@@ -186,3 +186,28 @@ test("connexion par lien : le mot de passe ne reste pas dans la mémoire des pos
   expect(stockage).not.toContain(b64url(MDP));
   expect(stockage).not.toContain("connexion");
 });
+
+/* ---------- relecture : cas voisins ---------- */
+
+test("retour : la fiche ouverte depuis le menu garde « Au menu » après un rechargement", async ({ page, context }) => {
+  await preremplir(context, { carnet: { menu: [entree("quiche-lorraine", { k: "q1" })], checked: {}, extras: [] } });
+  await page.goto("/#/menu");
+  await page.locator(".mc-title").first().tap();
+  await expect(page.locator(".hero")).toBeVisible();
+  await page.reload();
+  await expect(page.locator(".hero")).toBeVisible();
+  await expect(page.locator("[data-retour]").first()).toContainText("Au menu");
+});
+
+test("chargement : un module qui ne vient pas laisse une page honnête, un titre juste, et « Réessayer » le retente", async ({ page }) => {
+  let echecs = 1;
+  await page.route("**/js/vues/menu.js", route => (echecs-- > 0 ? route.abort() : route.continue()));
+  await page.goto("/#/");
+  await expect(page.locator(CARTES)).toHaveCount(20);
+  await page.evaluate(() => { location.hash = "#/menu"; });
+  await expect(page.getByText("Cette page ne s'est pas chargée")).toBeVisible();
+  await expect(page).toHaveTitle("Page indisponible – Carnet de cuisine");
+  await page.locator("#fonds-reessayer").tap();
+  await expect(page.locator("h1")).toHaveText("Au menu");
+  await expect(page).toHaveTitle("Au menu – Carnet de cuisine");
+});

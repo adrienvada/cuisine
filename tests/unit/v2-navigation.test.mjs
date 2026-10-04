@@ -80,3 +80,23 @@ test("stylesPrets : au plus tard après 3 s", async t => {
   await p;
   assert.equal(resolue, true);
 });
+
+test("stylesPrets : une feuille dont l'erreur est connue n'est plus attendue aux navigations suivantes", async () => {
+  const [a] = faussesFeuilles(false);
+  const { stylesPrets, stylesDejaPrets } = await styles();
+  const p = stylesPrets();
+  a.declencher("error");
+  await p;
+  assert.equal(stylesDejaPrets(), true);
+  await stylesPrets();                           // rien à attendre : résolue d'emblée
+});
+
+test("stylesPrets : le délai épuisé n'est pas repayé à la navigation suivante", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  faussesFeuilles(false);                        // aucune erreur ni chargement ne sera jamais signalé
+  const { stylesPrets, stylesDejaPrets } = await styles();
+  const p = stylesPrets();
+  t.mock.timers.tick(3100);
+  await p;
+  assert.equal(stylesDejaPrets(), true);
+});
