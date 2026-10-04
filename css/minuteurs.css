@@ -84,6 +84,12 @@ body.cooking .timer-pill:not(.done) {
 
 .timer-pill .t-go { gap: 8px; min-height: 44px; padding: 0 6px 0 14px; text-align: left; }
 
+/* Étroite (320 px), la bulle d'un libellé long dépassait de l'écran et la croix
+   d'arrêt n'était plus atteignable : c'est le libellé qui cède, jamais les boutons. */
+.timer-pill { max-width: calc(100vw - 28px); }
+.timer-pill .t-go { min-width: 0; flex: 1 1 auto; }
+.timer-pill .t-act { flex: none; }
+
 .timer-pill .t-act { min-width: 44px; min-height: 44px; padding: 0; border-radius: 999px; font-size: 13px; font-weight: 700; }
 
 .timer-pill .t-act svg { width: 14px; height: 14px; color: inherit; }
@@ -104,6 +110,8 @@ html[data-theme="dark"] .timer-pill:not(.done) {
 
 .timer-pill .t-label {
   max-width: 110px;
+  min-width: 0;
+  flex: 0 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

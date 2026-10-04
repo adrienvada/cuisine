@@ -88,6 +88,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 .course-list .nom {
   display: inline-block;
   padding: 12px 6px 12px 0;
+  min-width: 44px;
   margin: -12px 0;
   border: none;
   background: none;
@@ -247,8 +248,8 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
-  margin: 18px 2px 0;
+  gap: 0 7px;
+  margin: 8px 2px 0;
   color: var(--muted);
 }
 
@@ -262,7 +263,13 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   padding: 4px 13px;
   font-size: 13px;
   font-weight: 600;
+  /* La pastille garde son allure ; le doigt, lui, a 44 px. La marge empêche deux
+     rangées de se disputer le même halo. */
+  position: relative;
+  margin: 10px 0;
 }
+
+.mh-chip::before { content: ""; position: absolute; inset: -11px -2px; }
 
 .mh-chip:active { background: var(--green-tint); border-style: solid; }
 
@@ -274,7 +281,9 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   color: var(--muted);
   font-size: 13px;
   line-height: 1;
-  padding: 5px 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
 }
 
 .add-extra {
@@ -285,15 +294,17 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .add-extra input {
   flex: 1;
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   background: var(--card);
   border-radius: 12px;
   padding: 11px 14px;
   font-size: 15px;
   color: var(--ink);
-  outline: none;
   min-width: 0;
+  min-height: 44px;
 }
+
+.add-extra input::placeholder { color: var(--muted); }
 
 .add-extra button {
   border: none;
@@ -301,6 +312,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   color: #FDFBF3;
   border-radius: 12px;
   width: 46px;
+  min-height: 44px;
   font-size: 22px;
   font-weight: 500;
 }

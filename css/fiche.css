@@ -75,6 +75,7 @@
 .section > h2 {
   font-size: 23px;
   display: flex;
+  flex-wrap: wrap;                /* à 320 px, les portions passent sous le titre plutôt que de déborder */
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
@@ -87,6 +88,7 @@
 .portions {
   display: inline-flex;
   align-items: center;
+  margin-left: auto;
   gap: 2px;
   background: var(--card);
   border: 1px solid var(--line);
@@ -240,6 +242,7 @@
   color: var(--ink-soft);
   border-radius: 12px;
   padding: 12px 8px;
+  min-height: 44px;
   font-size: 15px;
   font-weight: 600;
   transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
@@ -309,9 +312,13 @@
    l'espace qu'il avait sous le sous-titre. */
 .sheet-picks > .pick-label:first-child { margin-top: 16px; }
 
-.pick-row { display: flex; flex-wrap: wrap; gap: 8px; }
+/* L'écart entre rangées (12 px) est celui des deux halos de contact des puces : elles ne se disputent pas le même doigt. */
+.pick-row { display: flex; flex-wrap: wrap; gap: 12px 8px; }
 
 .chip.pick { padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }
+
+/* La puce fait 34 px : son halo la porte à 44 px de contact sans l'agrandir à l'œil. */
+.chip.pick::before { content: ""; position: absolute; inset: -7px 0; }
 
 .ing-list .opt.sup { color: var(--terra); }
 
@@ -354,10 +361,13 @@
 .menu-info:empty { display: none; }
 .menu-info a { color: var(--green); font-weight: 600; }
 
+/* Un lien dans une phrase fait 20 px de haut : le padding lui donne 44 px de contact,
+   et les marges négatives lui rendent la place empruntée (la ligne ne grandit pas). */
 .lien-nu {
   background: none;
   border: none;
-  padding: 0;
+  padding: 12px 6px;
+  margin: -12px -6px;
   font: inherit;
   color: var(--terra);
   font-weight: 600;
@@ -402,7 +412,7 @@
   min-height: 96px;
   margin-top: 12px;
   padding: 12px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   border-radius: 12px;
   background: var(--card);
   color: var(--ink);
@@ -447,7 +457,7 @@
   min-width: 0;
   min-height: 44px;
   padding: 8px 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   border-radius: 12px;
   background: var(--card);
   color: var(--ink);

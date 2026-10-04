@@ -193,7 +193,7 @@ export function renderFondamentaux() {
     <p class="f-intro">Les gestes que tu retrouves d'une recette à l'autre, et ce qui se passe vraiment quand tu les fais.</p>
     <div class="searchbar">
       ${raw(ICON.search)}
-      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off">
+      <input id="f-search" type="search" placeholder="Chercher un mécanisme…" value="${q}" autocomplete="off" aria-label="Chercher un mécanisme">
     </div>
     <div id="f-resultats">${raw(listeFondamentaux(q))}</div>
   `;
