@@ -3,10 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-/* Le module importe les feuilles, qui s'abonnent à `window` au chargement :
-   sous Node, un faux `window` suffit pour tester les fonctions pures. */
-globalThis.window ??= { addEventListener() {} };
-const { dateEnClair, entreesDe } = await import("../../js/vues/journal.js");
+const { dateEnClair, entreesDe } = await import("../../js/core/journal.js");
 
 test("dateEnClair : aujourd'hui, hier, puis la date en toutes lettres", () => {
   assert.equal(dateEnClair("2026-10-04", "2026-10-04"), "Aujourd'hui");

@@ -9,7 +9,7 @@ export const STORE_KEY = "carnet-cuisine-v1";
 const enregistre = typeof localStorage !== "undefined" ? JSON.parse(localStorage.getItem(STORE_KEY) || "{}") : {};
 
 export const state = Object.assign(
-  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", query: "", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "", hintCoursesOff: false },
+  { portions: {}, menu: [], checked: {}, extras: [], filter: "Toutes", notes: {}, cooked: {}, timers: [], choices: {}, addons: {}, cooking: {}, fondQuery: "", hintCoursesOff: false },
   enregistre
 );
 

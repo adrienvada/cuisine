@@ -506,7 +506,7 @@
 
   .tabbar, .topbar, .actions, .link-restart, .menu-info, .section.verdict, .section-notes, #journal-zone,
   #pick-zone, .portions button, .moule .portions, .moule-dit, .ing-chev, .savoirs, .savoirs-seuls,
-  .theme-toggle, .sync-btn, .timer-tray, #toast, .sheet-backdrop, .hero .corner {
+  .timer-tray, #toast, .sheet-backdrop, .hero .corner {
     display: none !important;
   }
 

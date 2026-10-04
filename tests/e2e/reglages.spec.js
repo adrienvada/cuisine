@@ -27,8 +27,8 @@ test("accueil : plus de bouton flottant, « Réglages » défile avec la page", 
 
   const avant = (await bouton.boundingBox()).y;
   await page.evaluate(() => window.scrollBy(0, 160));
-  const apres = (await bouton.boundingBox()).y;
-  expect(apres).toBeLessThan(avant - 100);            // il est parti avec la page
+  // Il est parti avec la page (on attend que le défilement soit appliqué).
+  await expect.poll(async () => (await bouton.boundingBox()).y).toBeLessThan(avant - 100);
 });
 
 test("accueil : aucun débordement horizontal à 375 px", async ({ page }) => {
@@ -405,7 +405,7 @@ for (const theme of ["light", "dark"]) {
     expect(contraste(textePret, fondPret)).toBeGreaterThanOrEqual(4.5);
 
     await page.locator(".card").first().click();
-    await page.getByRole("link", { name: /Mode cuisine/ }).dispatchEvent("click");   // les bulles recouvrent le bas de la fiche
+    await page.getByRole("link", { name: /mode cuisine/i }).dispatchEvent("click");
     const etiquette = page.locator(".cook-step-label");
     await expect(etiquette).toBeVisible();
     const [couleur, vert] = await etiquette.evaluate(el => [getComputedStyle(el).color, getComputedStyle(el.closest(".cook")).backgroundColor]);
