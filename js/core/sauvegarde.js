@@ -1,19 +1,9 @@
-/* Sauvegarde du carnet : le fichier d'export, la lecture prudente d'un fichier importé et l'aperçu de ce qu'il remplacerait. */
+/* Sauvegarde du carnet : le fichier d'export, la normalisation de tout état reçu (stockage, fichier, autre appareil) et l'aperçu de ce qu'un import remplacerait. */
 
-/* Un fichier importé vient de l'extérieur : on ne lui fait confiance ni pour sa
-   forme ni pour ses clés. Ce module ne touche ni `document` ni `localStorage`,
+/* Un fichier importé, le stockage du navigateur et la version d'un autre
+   appareil viennent de l'extérieur : on ne leur fait confiance ni pour leur
+   forme ni pour leurs clés. Ce module ne touche ni `document` ni `localStorage`,
    il s'importe donc sous Node et se teste sans navigateur. */
-
-/* La forme attendue des champs connus de l'état. Un champ connu qui n'a pas la
-   bonne forme est écarté (le reste du fichier passe) : mieux vaut perdre ce
-   champ que faire planter, plus tard, la vue qui le lit. Un champ inconnu —
-   ajouté par une version plus récente du carnet — est gardé tel quel. */
-const FORMES = {
-  portions: "objet", checked: "objet", notes: "objet", cooked: "objet", choices: "objet",
-  addons: "objet", cooking: "objet", notesPerso: "objet", repas: "objet",
-  menu: "tableau", extras: "tableau", historique: "tableau", journal: "tableau", ordreRayons: "tableau",
-  filter: "texte", query: "texte", fondQuery: "texte", hintCoursesOff: "booleen"
-};
 
 /* Ce qui décrit l'appareil et non le carnet : les minuteurs qui tournent ici et
    les réglages de ce téléphone survivent à un import. */
@@ -30,21 +20,135 @@ const VIDES = {
 const INTERDITES = new Set(["__proto__", "constructor", "prototype"]);
 
 const estObjet = v => v !== null && typeof v === "object" && !Array.isArray(v);
+const estTexte = v => typeof v === "string";
+const estNombre = v => typeof v === "number" && Number.isFinite(v);
+const jourValide = v => estTexte(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const heureValide = v => estTexte(v) && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
 
-const AVEC_FORME = {
-  objet: estObjet,
-  tableau: Array.isArray,
-  texte: v => typeof v === "string",
-  booleen: v => typeof v === "boolean"
+/* ---------- Normaliser un état ----------
+   Chaque normaliseur rend la valeur propre, ou `undefined` quand le champ entier
+   est inutilisable. Une valeur déjà bien formée ressort identique : normaliser
+   deux fois ne change rien, ce dont la synchro a besoin pour ne pas croire à une
+   modification. Mieux vaut perdre une entrée que tout le carnet (refus en bloc)
+   ou, pire, une vue qui ne se dessine plus (acceptation en bloc). */
+
+const liste = (v, f) => Array.isArray(v) ? v.map(f).filter(x => x !== undefined) : undefined;
+
+const dico = (v, f) => {
+  if (!estObjet(v)) return undefined;
+  const sortie = {};
+  for (const [cle, x] of Object.entries(v)) {
+    if (INTERDITES.has(cle)) continue;
+    const propre = f(x);
+    if (propre !== undefined) sortie[cle] = propre;
+  }
+  return sortie;
 };
 
-/* Une entrée de menu est un objet qui nomme sa recette (les anciens menus,
-   une liste d'identifiants, sont convertis par migrer() après l'import) ; un
-   article libre a un identifiant. */
-const entreeValide = {
-  menu: e => typeof e === "string" || (estObjet(e) && typeof e.rid === "string"),
-  extras: e => estObjet(e) && typeof e.id === "string"
+const textes = v => Array.isArray(v) ? v.filter(estTexte) : [];
+const chaine = v => estTexte(v) ? v : undefined;
+const convivesJournal = v => estNombre(v) ? Math.min(99, Math.max(1, Math.round(v))) : 1;
+
+/* La composition d'une recette (menu et repas passés) : ses choix, ses
+   suppléments, ses portions. Toujours présents, sans quoi `[...e.addons]` plante. */
+const composition = e => ({
+  choices: dico(e.choices, chaine) ?? {},
+  addons: textes(e.addons),
+  portions: estNombre(e.portions) && e.portions > 0 ? e.portions : null
+});
+
+/* Une entrée de menu nomme sa recette (les anciens menus, une liste
+   d'identifiants, sont convertis par migrer() ensuite) et porte une clé unique :
+   sans clé, ou avec une clé déjà prise, on en tire une neuve. */
+function entreeMenu(e, ctx) {
+  if (estTexte(e)) return e;
+  if (!estObjet(e) || !estTexte(e.rid)) return undefined;
+  const k = estTexte(e.k) && e.k && !ctx.cles.has(e.k) ? e.k : ctx.genererCle();
+  ctx.cles.add(k);
+  return { ...e, k, ...composition(e) };
+}
+
+function repasPasse(e) {
+  if (!estObjet(e) || !estTexte(e.id) || !jourValide(e.date)) return undefined;
+  const entrees = liste(e.entrees, x => estObjet(x) && estTexte(x.rid) ? { ...x, ...composition(x) } : undefined);
+  return entrees && { ...e, convives: convivesJournal(e.convives), entrees };
+}
+
+function entreeJournal(e) {
+  if (!estObjet(e) || !estTexte(e.id) || !estTexte(e.rid) || !jourValide(e.date)) return undefined;
+  return { ...e, convives: convivesJournal(e.convives), note: estTexte(e.note) ? e.note : "", photo: e.photo === true };
+}
+
+/* Le repas : un réglage invalide est retiré, lireRepas() le remplace par sa valeur de départ. */
+function repas(v) {
+  if (!estObjet(v)) return undefined;
+  const sortie = {};
+  for (const [cle, x] of Object.entries(v)) {
+    if (INTERDITES.has(cle)) continue;
+    if (cle === "convives") { if (estNombre(x) && x >= 1 && x <= 24) sortie.convives = Math.round(x); }
+    else if (cle === "heure") { if (x === "" || heureValide(x)) sortie.heure = x; }   // vide : l'heure effacée, que la frise réclame
+    else if (cle === "date") { if (x === "" || jourValide(x)) sortie.date = x; }
+    else if (cle === "exclus") { if (Array.isArray(x)) sortie.exclus = textes(x); }
+    else sortie[cle] = x;
+  }
+  return sortie;
+}
+
+/* Un minuteur sans identifiant, sans recette ou sans heure de fin ne sonnerait jamais juste. */
+function minuteur(t) {
+  if (!estObjet(t) || !estTexte(t.id) || !estTexte(t.rid) || !estNombre(t.end) || !estNombre(t.step)) return undefined;
+  return { ...t, label: estTexte(t.label) ? t.label : "", emoji: estTexte(t.emoji) ? t.emoji : "" };
+}
+
+const NORMALISEURS = {
+  menu: (v, ctx) => liste(v, e => entreeMenu(e, ctx)),
+  extras: v => liste(v, e => estObjet(e) && estTexte(e.id) && estTexte(e.name) ? { ...e } : undefined),
+  timers: v => liste(v, minuteur),
+  journal: v => liste(v, entreeJournal),
+  historique: v => liste(v, repasPasse),
+  repas,
+  notes: v => dico(v, chaine),
+  notesPerso: v => dico(v, x => estObjet(x) && estTexte(x.txt) ? { ...x } : undefined),
+  checked: v => dico(v, x => x ? true : undefined),
+  cooked: v => dico(v, x => estObjet(x) && estNombre(x.count) ? { ...x, count: Math.max(0, x.count), last: estNombre(x.last) ? x.last : null } : undefined),
+  ordreRayons: v => Array.isArray(v) ? textes(v) : undefined,
+  portions: v => dico(v, x => estNombre(x) && x > 0 ? x : undefined),
+  choices: v => dico(v, c => dico(c, chaine)),
+  addons: v => dico(v, a => Array.isArray(a) ? textes(a) : undefined),
+  cooking: v => dico(v, x => estObjet(x) && estNombre(x.step) && estNombre(x.at) ? { ...x } : undefined),
+  reglages: v => dico(v, x => x),
+  filter: chaine,
+  query: chaine,
+  fondQuery: chaine,
+  hintCoursesOff: v => typeof v === "boolean" ? v : undefined
 };
+
+/* Même forme que cleMenu() (js/core/menu.js), qu'on n'importe pas d'ici : menu.js
+   dépend de l'état, qui dépend de ce module, et l'état normalise dès son chargement.
+   Les tests peuvent imposer leur propre générateur par `genererCle`. */
+const cleParDefaut = () => "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+/* → une copie propre de `o` ({} si ce n'est pas un objet). Un champ connu de
+   mauvaise forme est écarté, ses entrées invalides aussi ; un champ inconnu —
+   ajouté par une version plus récente du carnet — est gardé tel quel.
+   `appareil: false` retire en plus ce qui est propre à l'appareil (minuteurs,
+   réglages), pour un fichier ou une version venue d'ailleurs. */
+export function normaliserEtat(o, { genererCle = cleParDefaut, appareil = true } = {}) {
+  if (!estObjet(o)) return {};
+  const ctx = { genererCle, cles: new Set() };
+  const sortie = {};
+  for (const [cle, valeur] of Object.entries(o)) {
+    if (INTERDITES.has(cle) || (!appareil && DE_L_APPAREIL.includes(cle))) continue;
+    const normaliseur = NORMALISEURS[cle];
+    if (!normaliseur) {
+      try { sortie[cle] = structuredClone(valeur); } catch { /* non copiable : écartée */ }
+      continue;
+    }
+    const propre = normaliseur(valeur, ctx);
+    if (propre !== undefined) sortie[cle] = propre;
+  }
+  return sortie;
+}
 
 export function nomFichier(date = new Date()) {
   const deux = n => String(n).padStart(2, "0");
@@ -54,22 +158,12 @@ export function nomFichier(date = new Date()) {
 export const contenuExport = etat => JSON.stringify(etat, null, 2);
 
 /* → { donnees } ou { erreur }. */
-export function lireSauvegarde(texte) {
+export function lireSauvegarde(texte, genererCle) {
   let brut;
   try { brut = JSON.parse(texte); } catch { return { erreur: "Ce fichier n'est pas un fichier JSON lisible." }; }
   if (!estObjet(brut)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine." };
-  const donnees = {};
-  let reconnus = 0;
-  for (const [cle, valeur] of Object.entries(brut)) {
-    if (INTERDITES.has(cle) || DE_L_APPAREIL.includes(cle)) continue;
-    const forme = FORMES[cle];
-    if (forme) {
-      if (!AVEC_FORME[forme](valeur)) continue;
-      reconnus++;
-    }
-    donnees[cle] = entreeValide[cle] ? valeur.filter(entreeValide[cle]) : valeur;
-  }
-  if (!reconnus) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine." };
+  const donnees = normaliserEtat(brut, { genererCle, appareil: false });
+  if (!Object.keys(donnees).some(cle => cle in NORMALISEURS)) return { erreur: "Ce fichier ne ressemble pas à un carnet de cuisine." };
   return { donnees: { ...structuredClone(VIDES), ...donnees } };
 }
 

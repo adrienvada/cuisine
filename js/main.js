@@ -4,17 +4,36 @@
    le routeur), ce qui n'est sans danger que parce qu'aucun n'appelle les autres
    avant que ce fichier ait tout chargé. */
 
-import { migrer, state } from "./core/etat.js";
+import { migrer, state, surEchecSauvegarde } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
 import { basculerSavoirs, openFondSheet } from "./vues/savoirs.js";
 import { acquireWakeLock, cancelTimer, drawTray, ensureTick } from "./ui/minuteurs.js";
 import { retourVers, route } from "./ui/routeur.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
 import { demarrerSync } from "./sync.js";
+import { toast } from "./ui/toast.js";
 import { initialiserReglages } from "./vues/reglages.js";
 
+/* Une initialisation secondaire qui échoue est journalisée et laissée de côté :
+   elle ne doit pas empêcher les suivantes, ni surtout demarrerSync(). */
+function tenter(nom, fn) {
+  try { fn(); } catch (e) { console.error(`Démarrage : ${nom} a échoué`, e); }
+}
+
+/* Le stockage est plein ou refusé : les actions continuent en mémoire, mais rien
+   ne survivra à la fermeture. Dit une fois par session, et seulement quand une
+   action de l'utilisateur échoue : l'écriture du démarrage (la demande de
+   persistance) ne change rien à ses données. Le message part un instant après
+   l'écriture fautive pour ne pas être recouvert par le toast de l'action elle-même. */
+let demarre = false, prevenu = false;
+surEchecSauvegarde(() => {
+  if (!demarre || prevenu) return;
+  prevenu = true;
+  setTimeout(() => toast("Mémoire pleine : rien n'est enregistré", { duree: 6000 }), 400);
+});
+
 /* Les anciens formats d'abord : tout ce qui suit lit un état à jour. */
-migrer();
+tenter("migrations", migrer);
 
 /* Icône de partage : un battement avant l'action, sur tous les boutons de
    partage du carnet (vignette, page recette, mode cuisine, menu, savoirs,
@@ -50,9 +69,9 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && document.querySelector(".cook")) acquireWakeLock();
 });
 
-route();
-drawTray();
-ensureTick();
+tenter("premier affichage", route);
+tenter("bulles des minuteurs", drawTray);
+tenter("horloge des minuteurs", ensureTick);
 
 /* Une bulle ramène à l'étape qui tourne, même depuis une autre recette ;
    la croix, elle, arrête le minuteur. */
@@ -91,9 +110,14 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => import("./ui/miseajour.js").then(m => m.surveillerMiseAJour()).catch(() => {}));
 }
 
-initialiserTheme();
-initialiserReglages();
+tenter("thème", initialiserTheme);
+tenter("réglages", initialiserReglages);
 
 /* La synchro démarre en dernier, comme avant : son premier échange ne doit
    rien trouver à moitié construit. */
 demarrerSync();
+demarre = true;
+
+/* Les photos du journal que plus aucune entrée ne réclame, une fois le premier
+   affichage passé : le ménage n'a rien d'urgent. */
+setTimeout(() => import("./vues/journal.js").then(m => m.purgerOrphelines()).catch(e => console.error(e)), 3000);

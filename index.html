@@ -79,7 +79,9 @@
   <script>
     (function () {
       // « dark » / « light » : choix explicite ; toute autre valeur (ou aucune) : automatique, comme le système.
-      var saved = localStorage.getItem("theme");
+      // Le stockage peut être refusé (Safari, cookies bloqués) : alors, automatique.
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) {}
       var dark = saved === "dark" || (saved !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
       if (dark) document.documentElement.setAttribute("data-theme", "dark");
     })();

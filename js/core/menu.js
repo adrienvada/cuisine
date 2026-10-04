@@ -291,7 +291,7 @@ export function viderLeMenu() {
       id: cleMenu(),
       date: repas.date || maintenantLocal().date,
       convives: repas.convives,
-      entrees: state.menu.map(e => ({ rid: e.rid, choices: { ...e.choices }, addons: [...e.addons], portions: e.portions }))
+      entrees: state.menu.map(e => ({ rid: e.rid, choices: { ...e.choices }, addons: [...(e.addons || [])], portions: e.portions }))
     });
     state.historique.length = Math.min(state.historique.length, MAX_HISTORIQUE);
     /* La date visée est derrière nous : le prochain repas repart sans. */
@@ -324,7 +324,7 @@ export function refaireRepas(id) {
   const ajoutees = [];
   for (const x of h.entrees) {
     if (!byId(x.rid)) continue;
-    const e = { k: cleMenu(), rid: x.rid, choices: { ...x.choices }, addons: [...x.addons], portions: x.portions };
+    const e = { k: cleMenu(), rid: x.rid, choices: { ...x.choices }, addons: [...(x.addons || [])], portions: x.portions };
     state.menu.push(e);
     ajoutees.push(e.k);
   }

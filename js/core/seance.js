@@ -20,12 +20,17 @@ export function cookingStep(r, k) {
   const cle = cleCuisine(r, k);
   const c = state.cooking[cle];
   if (!c) return null;
-  if (Date.now() - c.at > COOKING_TTL) { forgetCooking(cle); return null; }
+  /* Expirée : lue comme absente, sans rien écrire. Cette fonction sert au
+     rendu, et une sauvegarde qui lève au milieu d'un rendu casserait la page ;
+     setCooking() balaie les séances périmées à la prochaine action. */
+  if (Date.now() - c.at > COOKING_TTL) return null;
   return Math.min(c.step, r.steps.length - 1);
 }
 
 export function setCooking(id, step) {
-  state.cooking[id] = { step, at: Date.now() };
+  const maintenant = Date.now();
+  for (const [cle, c] of Object.entries(state.cooking)) if (maintenant - c.at > COOKING_TTL) delete state.cooking[cle];
+  state.cooking[id] = { step, at: maintenant };
   save();
 }
 

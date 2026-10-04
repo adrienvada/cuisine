@@ -549,5 +549,5 @@ export function renderRecipe(r) {
     journalDessine = m.dessinerJournal;
     m.dessinerJournal(zoneJournal, r);
     zoneJournal.hidden = false;
-  }).catch(() => {});
+  }).catch(e => console.error("Journal indisponible :", e));
 }

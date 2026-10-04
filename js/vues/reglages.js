@@ -343,4 +343,8 @@ async function proposerImport(fichier) {
       toast("Ton ancien carnet est revenu");
     }
   });
+  /* Les photos de l'ancien journal ne servent plus à rien, mais « Annuler » les
+     rendrait utiles : la purge attend la fin du délai (elle relit l'état, donc
+     ne touche à rien si le carnet est revenu). */
+  setTimeout(() => import("./journal.js").then(m => m.purgerOrphelines()).catch(() => {}), 9000);
 }

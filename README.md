@@ -231,7 +231,7 @@ js/sync-config.js       Données : l'adresse de la base de synchro
 js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs, service worker
 js/sync.js              Synchronisation entre appareils (Supabase REST + canal Realtime)
 
-js/core/etat.js         L'état, save(), abonnés à la sauvegarde, migrations des anciens formats
+js/core/etat.js         L'état (lecture du stockage sans plantage), save(), abonnés à la sauvegarde et à son échec, migrations
 js/core/format.js       Durées, quantités à l'échelle, dates, horloge, normaliser()
 js/core/html.js         esc(), html`…`, raw()
 js/core/icones.js       Les icônes SVG
@@ -241,7 +241,7 @@ js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas
 js/core/courses.js      La liste de courses calculée depuis le menu
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
-js/core/sauvegarde.js   Export du carnet, lecture prudente d'un fichier importé, aperçu du remplacement
+js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
 js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour (focus, Tab, Échap) et confirmer()
