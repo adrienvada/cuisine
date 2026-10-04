@@ -194,3 +194,17 @@ test("journal : sans photo, l'entrée s'enregistre ; la feuille tient à 375 px,
   expect((await lireCarnet(page)).journal[0].photo).toBe(false);
   await expect(page.locator(".jr-photo")).toHaveCount(0);
 });
+
+test("journal : « Enregistrer » juste après le choix de la photo ne la perd pas, et une date future devient aujourd'hui", async ({ page }) => {
+  await ouvrirFiche(page);
+  await page.locator("#jr-ajout").click();
+  const feuille = page.getByRole("dialog", { name: "Ajouter au journal" });
+  await feuille.locator("#jr-date").evaluate(el => { el.removeAttribute("max"); el.value = "2999-01-01"; });
+  await feuille.locator("#jr-fichier").setInputFiles(await imageDeTest(page));
+  await feuille.locator("#jr-ok").click();
+  await expect(feuille).toBeHidden();
+  const e = (await lireCarnet(page)).journal[0];
+  expect(e.photo).toBe(true);
+  expect(e.date.startsWith("2999")).toBe(false);
+  expect(await photoStockee(page, e.id)).not.toBeNull();
+});

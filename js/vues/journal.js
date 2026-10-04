@@ -241,6 +241,7 @@ export function ouvrirJournal(rid) {
   if (!r) return;
   let convives = Math.max(1, Math.min(99, Math.round((state.repas && state.repas.convives) || (state.portions && state.portions[rid]) || (r.portions && r.portions.base) || 2)));
   let photo = null;          // le blob déjà réduit, prêt à ranger
+  let preparation = null;    // la réduction en cours : « Enregistrer » l'attend plutôt que de perdre la photo
   let urlApercu = null;
 
   const fond = document.createElement("div");
@@ -285,8 +286,9 @@ export function ouvrirJournal(rid) {
     const fichier = e.target.files && e.target.files[0];
     if (!fichier) return;
     $("#jr-fichier-txt").textContent = "Préparation de la photo…";
+    preparation = reduirePhoto(fichier);
     try {
-      photo = await reduirePhoto(fichier);
+      photo = await preparation;
       if (urlApercu) URL.revokeObjectURL(urlApercu);
       urlApercu = URL.createObjectURL(photo);
       $("#jr-apercu").src = urlApercu;
@@ -303,11 +305,13 @@ export function ouvrirJournal(rid) {
     const bouton = $("#jr-ok");
     if (bouton.disabled) return;
     bouton.disabled = true;   // une photo à ranger prend un instant : pas de double entrée
+    if (preparation) await preparation.catch(() => {});
     const saisie = $("#jr-date").value;
     const entree = {
       id: nouvelId(),
       rid,
-      date: /^\d{4}-\d{2}-\d{2}$/.test(saisie) ? saisie : aujourdhui(),
+      /* Le champ plafonne à aujourd'hui, mais une saisie au clavier peut le dépasser. */
+      date: /^\d{4}-\d{2}-\d{2}$/.test(saisie) && saisie <= aujourdhui() ? saisie : aujourdhui(),
       convives,
       note: $("#jr-note").value.trim(),
       photo: false
