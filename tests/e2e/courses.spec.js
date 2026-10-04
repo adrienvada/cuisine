@@ -309,19 +309,20 @@ for (const theme of ["clair", "sombre"]) {
     expect(Math.round(boite.width)).toBe(26);
     expect(Math.round(boite.height)).toBe(26);
 
-    const couleurs = await tick.evaluate(el => {
+    // Couleurs relues jusqu'à la fin de la transition du thème.
+    const couleurs = () => tick.evaluate(el => {
       const s = getComputedStyle(el);
       return { bord: s.borderTopColor, fond: s.backgroundColor, papier: getComputedStyle(document.body).backgroundColor };
     });
-    expect(contraste(couleurs.bord, couleurs.fond)).toBeGreaterThanOrEqual(3);
-    expect(contraste(couleurs.bord, couleurs.papier)).toBeGreaterThanOrEqual(3);
+    await expect.poll(async () => { const c = await couleurs(); return contraste(c.bord, c.fond); }).toBeGreaterThanOrEqual(3);
+    await expect.poll(async () => { const c = await couleurs(); return contraste(c.bord, c.papier); }).toBeGreaterThanOrEqual(3);
 
     // Une zone de contact d'au moins 44 px pour la ligne, le nom, la croix et les boutons.
+    const hauteur = loc => async () => (await loc.boundingBox()).height;
     for (const loc of [ligneDe(page, "farine").locator("label"), ligneDe(page, "x-e1").locator(".x"), page.getByRole("button", { name: "Ranger les rayons" })]) {
-      expect((await loc.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      await expect.poll(hauteur(loc)).toBeGreaterThanOrEqual(44);
     }
-    const nom = (await ligneDe(page, "farine").locator(".nom").boundingBox());
-    expect(nom.height).toBeGreaterThanOrEqual(44);
+    await expect.poll(hauteur(ligneDe(page, "farine").locator(".nom"))).toBeGreaterThanOrEqual(44);
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });

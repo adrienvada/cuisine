@@ -296,9 +296,12 @@ test("mains libres : l'écoute s'arrête en quittant le mode cuisine", async ({ 
   await simulerVoix(page);
   await page.goto(CUISINE);
   await page.getByRole("button", { name: "Mains libres" }).click();
+  await expect(page.getByRole("button", { name: "Mains libres" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Fermer" }).click();
   await expect(page).toHaveURL(/#\/recette\/quiche-lorraine$/);
-  expect((await page.evaluate(() => window.__voix)).some(e => e[0] === "arreter")).toBe(true);
+  /* L'adresse change avant que le routeur, sur hashchange, ne ferme le mode cuisine :
+     l'arrêt du micro se constate, il ne se lit pas à l'instant. */
+  await expect.poll(async () => (await page.evaluate(() => window.__voix)).some(e => e[0] === "arreter")).toBe(true);
 });
 
 test("« Terminer » à la dernière étape revient à la fiche, « Cuisinée une fois »", async ({ page }) => {
