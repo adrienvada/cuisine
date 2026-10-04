@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "1735ea1484";
+const VERSION = "c775e5de5a";
 
 const CORE = [
   "./",
@@ -31,6 +31,7 @@ const CORE = [
   "css/savoirs.css",
   "favicon.ico",
   "fonts/LICENCE.txt",
+  "fonts/caveat-titre.woff2",
   "fonts/caveat.woff2",
   "fonts/cormorant-italique.woff2",
   "fonts/cormorant.woff2",
@@ -117,6 +118,7 @@ const CORE = [
   "js/ui/partage.js",
   "js/ui/qr.js",
   "js/ui/routeur.js",
+  "js/ui/scripts.js",
   "js/ui/styles.js",
   "js/ui/theme.js",
   "js/ui/toast.js",
@@ -131,6 +133,7 @@ const CORE = [
   "js/vues/ingredient.js",
   "js/vues/journal.js",
   "js/vues/menu.js",
+  "js/vues/reglages-entree.js",
   "js/vues/reglages.js",
   "js/vues/savoirs.js",
   "manifest.webmanifest"

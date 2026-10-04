@@ -26,7 +26,8 @@
 }
 
 .masthead h1 {
-  font-family: var(--script);
+  /* « Caveat Titre » : les seuls glyphes du bandeau, préchargés (css/polices.css). */
+  font-family: "Caveat Titre", var(--script);
   font-weight: 700;
   font-size: 58px;
   line-height: 1;
@@ -36,7 +37,7 @@
 }
 
 .masthead .byline {
-  font-family: var(--script);
+  font-family: "Caveat Titre", var(--script);
   font-size: 21px;
   font-weight: 500;
   color: var(--ink-soft);

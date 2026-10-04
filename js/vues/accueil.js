@@ -18,11 +18,11 @@ import {
 import { FILTRES, catalogueJai, estDeSaison, foinDe, motsDe, scoreJai, trouve } from "../core/recherche.js";
 import { annoncer } from "../ui/annonces.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
-import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
+import { toast } from "../ui/toast.js";
 import { visuel } from "../ui/visuel.js";
-import { boutonReglages } from "./reglages.js";
+import { boutonReglages } from "./reglages-entree.js";
 
 /* Pastille « Découverte à… » — facultative, cf. l'en-tête de recipes.js */
 export function discoveredHtml(r) {
@@ -129,8 +129,26 @@ export function renderHome() {
   });
   document.getElementById("jai-ouvrir").addEventListener("click", ouvrirJai);
   document.getElementById("jai-efface").addEventListener("click", () => { jai.clear(); majJai(); applyFilter(true); });
-  document.getElementById("grid").addEventListener("click", onShareClick);
+  document.getElementById("grid").addEventListener("click", partagerDepuisCarte);
   applyFilter(false);
+}
+
+/* Le module de partage (avec le calcul qu'il emporte) ne vient pas avec l'accueil :
+   main.js le tire dès le premier affichage passé, et le premier appui qui le trouve
+   déjà là partage dans le même tour (navigator.share exige le geste de l'utilisateur,
+   que les navigateurs ne gardent pas toujours à travers un import). */
+let partage = null;
+export const preparerPartage = () => import("../ui/partage.js").then(m => (partage = m));
+
+/* Posé sur une vignette, le bouton partager ne doit pas ouvrir la recette. */
+function partagerDepuisCarte(e) {
+  const b = e.target.closest("[data-share]");
+  if (!b) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const partager = m => m.shareRecipe(b.dataset.share, b.dataset.shareK);
+  if (partage) partager(partage);
+  else preparerPartage().then(partager, () => toast("Le partage ne s'est pas chargé"));
 }
 
 function rebondir(b) {
@@ -265,7 +283,7 @@ function cardHtml(r) {
         <span class="card-jai" hidden></span>
       </div>
       <div class="body">
-        <h3><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
+        <h3 elementtiming="carte-titre"><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}

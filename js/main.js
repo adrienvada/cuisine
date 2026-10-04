@@ -8,12 +8,14 @@
 
 import { migrer, state, surEchecSauvegarde } from "./core/etat.js";
 import { entreeDe } from "./core/menu.js";
-import { drawTray, ensureTick } from "./ui/minuteurs.js";
 import { moduleCharge, retourVers, route } from "./ui/routeur.js";
+import { chargerScript, chargerSync } from "./ui/scripts.js";
+import { preparerFeuilles } from "./ui/styles.js";
 import { initialiserTheme, REDUCE_MOTION } from "./ui/theme.js";
 import { toast } from "./ui/toast.js";
 import { installerTypo } from "./ui/typo.js";
-import { initialiserReglages } from "./vues/reglages.js";
+import { preparerPartage } from "./vues/accueil.js";
+import { demanderPersistance } from "./vues/reglages-entree.js";
 
 /* Une initialisation secondaire qui échoue est journalisée et laissée de côté :
    elle ne doit pas empêcher les suivantes, ni surtout demarrerSync(). */
@@ -71,8 +73,15 @@ window.addEventListener("hashchange", () => route());
 
 let premierRendu;
 tenter("premier affichage", () => { premierRendu = route(); });
-tenter("bulles des minuteurs", drawTray);
-tenter("horloge des minuteurs", ensureTick);
+/* Les minuteurs (leur module, avec le calcul du rétroplanning qu'il emporte) ne se
+   chargent que si l'un d'eux tourne : la plupart des ouvertures n'en ont aucun, et
+   le mode cuisine charge le module lui-même quand on en lance un. */
+if (state.timers.length) {
+  tenter("minuteurs", () => import("./ui/minuteurs.js").then(m => {
+    tenter("bulles des minuteurs", m.drawTray);
+    tenter("horloge des minuteurs", m.ensureTick);
+  }, e => console.error("Démarrage : les minuteurs ne se sont pas chargés", e)));
+}
 
 /* Une bulle ramène à l'étape qui tourne, même depuis une autre recette (sa croix,
    qui arrête le minuteur, est traitée en amont par js/ui/minuteurs.js). */
@@ -126,7 +135,21 @@ if ("serviceWorker" in navigator) {
 }
 
 tenter("thème", initialiserTheme);
-tenter("réglages", initialiserReglages);
+/* Écrite avant la fin du démarrage : un échec de stockage ici n'est pas celui d'une action de l'utilisateur. */
+tenter("persistance du stockage", demanderPersistance);
+
+/* La feuille des réglages (module à part) s'ouvre au premier appui, même si le module
+   n'est pas encore arrivé : le bouton le dit (aria-busy) le temps qu'il vienne. Le
+   module est tiré dès le premier affichage passé : en pratique, il est déjà là. */
+let reglagesChargement = null;
+const chargerReglages = () => (reglagesChargement ??= import("./vues/reglages.js").catch(e => { reglagesChargement = null; throw e; }));
+document.addEventListener("click", e => {
+  const bouton = e.target.closest("[data-reglages]");
+  if (!bouton) return;
+  bouton.setAttribute("aria-busy", "true");
+  chargerReglages().then(m => m.ouvrirReglages(), () => toast("Les réglages ne se sont pas chargés. Vérifie ta connexion"))
+    .finally(() => bouton.removeAttribute("aria-busy"));
+});
 
 /* Après le premier affichage, d'un instant à l'autre : la synchro ne retarde
    pas l'accueil, et son premier échange ne trouve rien à moitié construit. La
@@ -134,8 +157,18 @@ tenter("réglages", initialiserReglages);
    les coches, ce qui doit marcher sur n'importe quelle page. */
 const demarrerPlusTard = () => {
   setTimeout(() => {
+    /* Le Caveat complet (css/polices.css) n'est plus préchargé : l'accueil n'écrit
+       en Caveat que son bandeau, qui a sa propre police. Les autres vues ont
+       leurs annotations en Caveat : on le tire ici, au repos, pour qu'il soit là
+       avant leur premier dessin. */
+    if (document.fonts) document.fonts.load('500 1em "Caveat"', "abc").catch(() => {});
+    /* Les feuilles des autres vues, pour que leur première visite ne les attende pas. */
+    tenter("feuilles des vues", preparerFeuilles);
+    chargerScript("js/substitutions.js").catch(() => {});
+    chargerReglages().then(m => m.initialiserReglages(), () => {});
+    preparerPartage().catch(() => {});
     import("./vues/courses.js").catch(e => console.error("Démarrage : la vue des courses ne s'est pas chargée", e));
-    import("./sync.js").then(m => m.demarrerSync()).catch(e => console.error("Démarrage : la synchro a échoué", e));
+    chargerSync().then(m => m.demarrerSync()).catch(e => console.error("Démarrage : la synchro a échoué", e));
   }, 0);
 };
 Promise.resolve(premierRendu).then(demarrerPlusTard, demarrerPlusTard);

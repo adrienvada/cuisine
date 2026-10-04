@@ -6,12 +6,14 @@
     "verifier": "node tools/verifier-recettes.mjs",
     "pages": "node tools/generer-pages-partage.mjs",
     "sw": "node tools/version-sw.mjs",
+    "mesurer": "node tools/mesurer-accueil.mjs",
     "vignettes": "node tools/generer-vignettes.mjs",
     "test": "node --test \"tests/unit/**/*.test.mjs\"",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "subset-font": "^2.9.0"
   }
 }
