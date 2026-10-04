@@ -101,6 +101,29 @@ test.describe("service worker", () => {
   });
 });
 
+test.describe("économie de données", () => {
+  test.use({ serviceWorkers: "allow" });
+
+  test("les héros ne sont pas téléchargés en douce quand le navigateur demande d'économiser", async ({ page }) => {
+    const serveur = await serveurDeuxVersions();
+    try {
+      await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true } }));
+      await page.goto(serveur.url + "/");
+      await page.evaluate(() => navigator.serviceWorker.ready);
+      await page.reload();
+      await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+      // Laisse au précache, s'il partait, le temps de ranger au moins un héros.
+      await page.waitForTimeout(4000);
+      expect(await page.evaluate(async () => {
+        const c = await caches.open("carnet-execution");
+        return (await c.keys()).filter(r => r.url.includes("/img/h/")).length;
+      })).toBe(0);
+    } finally {
+      await serveur.fermer();
+    }
+  });
+});
+
 test.describe("photo introuvable", () => {
   test("fiche : ni WebP ni JPEG, l'illustration remplace l'image cassée", async ({ page }) => {
     await page.route(/\/img\/(h\/)?focaccia-romarin\.(webp|jpg)$/, route => route.abort());

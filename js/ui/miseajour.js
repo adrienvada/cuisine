@@ -12,7 +12,11 @@ export async function surveillerMiseAJour() {
 
   // Le service worker actif (au premier passage, dès qu'il l'est) garnit son cache
   // des héros : c'est ce qui rend lisibles hors ligne les fiches jamais ouvertes.
-  navigator.serviceWorker.ready.then(r => r.active?.postMessage({ type: "heros" })).catch(() => {});
+  // Pas en mode économie de données : 1,3 Mo en douce sur un forfait mobile, non
+  // (hors ligne, ces fiches montreront alors leur illustration).
+  if (!navigator.connection?.saveData) {
+    navigator.serviceWorker.ready.then(r => r.active?.postMessage({ type: "heros" })).catch(() => {});
+  }
 
   const proposer = attente => toast("Nouvelle version", {
     action: "Recharger",
