@@ -128,10 +128,12 @@ async function tirer() {
   if (!dispo || !local.mdp) return;
   if (enCours || releve) { releverEncore = true; return; }   // une relève ou un envoi tourne : on repassera
   releve = true;
-  const avant = ecritures;
+  const avant = ecritures, mdp = local.mdp;
   try {
-    const lignes = await rpc("carnet_lire");
-    if (!local.mdp || avant !== ecritures) return;           // déconnecté, ou un envoi est passé entre-temps
+    const lignes = await rpc("carnet_lire", {}, mdp);
+    /* Déconnecté, reconnecté à un autre carnet (la réponse ne vient pas du bon),
+       ou un envoi est passé entre-temps. */
+    if (local.mdp !== mdp || avant !== ecritures) return;
     derniereReleve = Date.now();
     etatVers("ok");
     const serveur = lignes[0];
@@ -154,10 +156,10 @@ async function tirer() {
 const MAX_ESSAIS = 3;
 
 /* Écrit `data` si le serveur est encore à la version `vu`. Rend { ok, updated_at }. */
-async function ecrireVersServeur(data, vu) {
+async function ecrireVersServeur(data, vu, mdp) {
   if (!ancienneFonction) {
     try {
-      const r = await rpc("carnet_ecrire", { p_data: data, p_vu: vu });
+      const r = await rpc("carnet_ecrire", { p_data: data, p_vu: vu }, mdp);
       return typeof r === "string" ? { ok: true, updated_at: r } : r;
     } catch (e) {
       if (!(e instanceof FonctionAbsente)) throw e;
@@ -166,10 +168,10 @@ async function ecrireVersServeur(data, vu) {
   }
   /* Ancienne fonction : elle écrit sans rien vérifier. On relit juste avant,
      ce qui réduit la fenêtre sans la fermer. */
-  const lignes = await rpc("carnet_lire");
+  const lignes = await rpc("carnet_lire", {}, mdp);
   const actuel = lignes[0]?.updated_at ?? null;
   if (actuel !== (vu ?? null)) return { ok: false, updated_at: actuel };
-  return { ok: true, updated_at: await rpc("carnet_ecrire", { p_data: data }) };
+  return { ok: true, updated_at: await rpc("carnet_ecrire", { p_data: data }, mdp) };
 }
 
 async function pousser() {
@@ -178,11 +180,12 @@ async function pousser() {
   if (enCours) { sale = true; return; }
   enCours = true;
   let retard = null;
+  const mdp = local.mdp;          // l'envoi appartient à ce carnet : si on en change en route, il s'arrête
   try {
     let fait = false;
     for (let essai = 0; essai < MAX_ESSAIS && !fait; essai++) {
-      const lignes = await rpc("carnet_lire");
-      if (!local.mdp) return;
+      const lignes = await rpc("carnet_lire", {}, mdp);
+      if (local.mdp !== mdp) return;
       const serveur = lignes[0] || null;
       const envoye = instantane();
       const fusion = fusionner(local.base, envoye, serveur?.data);
@@ -194,7 +197,8 @@ async function pousser() {
         etatVers("ok");
         break;
       }
-      const r = await ecrireVersServeur(fusion, serveur?.updated_at ?? null);
+      const r = await ecrireVersServeur(fusion, serveur?.updated_at ?? null, mdp);
+      if (local.mdp !== mdp) return;
       if (!r.ok) continue;                                    // quelqu'un a écrit entre-temps : on relit et on refusionne
       ecritures++;
       /* L'état a pu bouger pendant l'aller-retour : ce qui s'est ajouté ici

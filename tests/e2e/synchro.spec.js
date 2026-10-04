@@ -321,6 +321,29 @@ test("synchro : surEtat() prévient des changements et se désabonne", async ({ 
   expect(vus).toEqual(["ok", "off"]);
 });
 
+test("synchro : une relève tardive de l'ancien carnet ne s'applique pas après un changement de carnet", async ({ page, context }) => {
+  const serveur = await simulerServeur(context, { ...VIDE, menu: [entree("focaccia-romarin", { k: "f1" })] });
+  await preremplir(context, { carnet: VIDE, sync: { mdp: "vieux", vu: serveur.updated_at } });
+  // La réponse du vieux carnet arrive en retard, avec un menu qui n'est pas celui du nouveau.
+  let liberer, vue;
+  const retenue = new Promise(r => { liberer = r; });
+  const arrivee = new Promise(r => { vue = r; });
+  await context.route("**/rest/v1/rpc/carnet_lire", async route => {
+    if (JSON.parse(route.request().postData() || "{}").p_mdp !== "vieux") return route.fallback();
+    vue();
+    await retenue;
+    await route.fulfill({ status: 200, headers: { "access-control-allow-origin": "*" }, contentType: "application/json",
+      body: JSON.stringify([{ data: { ...VIDE, menu: [entree("quiche-lorraine", { k: "q1" })] }, updated_at: "2030-01-01T00:00:00.000Z" }]) });
+  });
+  await page.goto("/#/");
+  await arrivee;                       // la relève du vieux carnet est partie et attend sa réponse
+  await api(page, "carnetSync.deconnecter(); return carnetSync.connecter(args[0], { remplacer: true })", "nouveau");
+  liberer();
+  await page.waitForTimeout(500);
+  const menu = (await lireCarnet(page)).menu.map(e => e.rid);
+  expect(menu).toEqual(["focaccia-romarin"]);
+});
+
 /* ---------- ne pas déranger ---------- */
 
 test("synchro : une mise à jour attend la fin de la saisie en cours", async ({ page, context }) => {
