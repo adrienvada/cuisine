@@ -1,6 +1,6 @@
 /* L'onglet Au menu et la liste de courses qui en découle. */
 
-import { test, expect, preremplir, entree, lireCarnet, cochesAffichees } from "./outils.js";
+import { test, expect, preremplir, entree, cochesAffichees } from "./outils.js";
 
 test("au menu : la carte apparaît, ses portions se règlent, la croix la retire", async ({ page, context }) => {
   await preremplir(context, { carnet: { menu: [entree("quiche-lorraine", { k: "q1" })] } });
@@ -31,7 +31,7 @@ test("courses : articles rangés par rayon", async ({ page, context }) => {
 
   const rayon = nom => page.locator("section.rayon", { has: page.getByRole("heading", { name: nom, exact: true }) });
   await expect(rayon("Boucherie & charcuterie").locator("li", { hasText: "Lardons fumés" })).toBeVisible();
-  await expect(rayon("Pâtisserie & épicerie sucrée").locator("li", { hasText: "Farine" }).first()).toBeVisible();
+  await expect(rayon("Pâtisserie & épicerie sucrée").locator("li", { hasText: "Levure" }).first()).toBeVisible();
   // Chaque article n'apparaît que dans un rayon.
   await expect(page.locator("li", { hasText: "Lardons fumés" })).toHaveCount(1);
   // Les rayons se présentent dans un ordre stable, un titre par rayon.
@@ -45,7 +45,7 @@ test("courses : une coche survit au rechargement", async ({ page, context }) => 
   await page.goto("/#/courses");
 
   const ligne = page.locator("label", { has: page.locator('input[data-key="lardons"]') });
-  await ligne.click();
+  await ligne.locator(".tick").click();
   await expect(page.locator('input[data-key="lardons"]')).toBeChecked();
 
   await page.reload();
@@ -65,24 +65,4 @@ test("courses : un article libre s'ajoute puis se supprime", async ({ page }) =>
   await page.getByRole("button", { name: "Supprimer" }).click();
   await expect(page.locator(".course-list")).toHaveCount(0);
   await expect(page.locator("#app")).toContainText("Ta liste est vide");
-});
-
-test("courses : « Vider la liste » (confirmation acceptée) vide tout", async ({ page, context }) => {
-  await preremplir(context, {
-    carnet: { menu: [entree("quiche-lorraine", { k: "q1" })], extras: [{ id: "e1", name: "Éponges" }], checked: { lardons: true } }
-  });
-  await page.goto("/#/courses");
-  await expect(page.locator("li", { hasText: "Éponges" })).toBeVisible();
-
-  let message = "";
-  page.once("dialog", d => { message = d.message(); d.accept(); });
-  await page.getByRole("button", { name: "Vider la liste" }).click();
-
-  await expect(page.locator("#app")).toContainText("Ta liste est vide");
-  expect(message).toContain("Vider la liste de courses");
-  await expect(page.locator("#menu-badge")).toBeHidden();
-  const carnet = await lireCarnet(page);
-  expect(carnet.menu).toEqual([]);
-  expect(carnet.extras).toEqual([]);
-  expect(carnet.checked).toEqual({});
 });

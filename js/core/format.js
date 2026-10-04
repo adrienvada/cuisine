@@ -33,7 +33,14 @@ export function fmtQty(q) {
 }
 
 export const WEIGHT_UNITS = ["g", "kg", "ml", "cl", "l", "c. à s.", "c. à c."];
-export const PLURALS = { rouleau: "rouleaux", bocal: "bocaux", pot: "pots", "petit pot": "petits pots", sachet: "sachets", botte: "bottes", bouquet: "bouquets", gousse: "gousses", "petite gousse": "petites gousses" };
+/* Les unités de compte sont écrites au singulier dans les données ; leur pluriel
+   n'est pas un simple « s » pour toutes (rouleau, bocal), d'où cette table. */
+export const PLURALS = {
+  rouleau: "rouleaux", bocal: "bocaux", pot: "pots", "petit pot": "petits pots",
+  sachet: "sachets", botte: "bottes", bouquet: "bouquets", gousse: "gousses", "petite gousse": "petites gousses",
+  tranche: "tranches", brin: "brins", poignée: "poignées", bouteille: "bouteilles",
+  paquet: "paquets", tube: "tubes", flacon: "flacons"
+};
 
 export function fmtUnit(unit, qty) {
   if (!unit) return "";
