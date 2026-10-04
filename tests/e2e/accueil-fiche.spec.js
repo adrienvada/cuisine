@@ -72,9 +72,9 @@ test("thème : la bascule pose data-theme=dark et le choix survit au rechargemen
   const html = page.locator("html");
   await expect(html).not.toHaveAttribute("data-theme", "dark");
 
-  await page.locator("#theme-toggle").click();
+  await page.getByRole("button", { name: /^Réglages/ }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Sombre" }).click();
   await expect(html).toHaveAttribute("data-theme", "dark");
-  await expect(page.locator("#theme-toggle")).toHaveAttribute("aria-pressed", "true");
 
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "dark");

@@ -20,6 +20,7 @@ import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
 import { visuel } from "../ui/visuel.js";
+import { boutonReglages } from "./reglages.js";
 
 /* Pastille « Découverte à… » — facultative, cf. l'en-tête de recipes.js */
 export function discoveredHtml(r) {
@@ -61,6 +62,7 @@ export function renderHome() {
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   app.innerHTML = `
     <header class="masthead fade-in">
+      ${boutonReglages()}
       <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
       <p class="byline"><span>d'<span class="u">Evadri</span></span> ${ILLO.D.heart}</p>

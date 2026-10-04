@@ -1,0 +1,197 @@
+/* Réglages : le bouton de l'en-tête de l'accueil (avec le point d'état de la synchro) et la feuille qui s'ouvre. */
+
+/* ---------- Bouton de l'accueil ---------- */
+
+/* Dans l'en-tête et non plus flottant : il défile avec la page et ne recouvre
+   plus « ← Recettes » ni « Partager » sur les fiches. */
+.masthead { position: relative; }
+
+.reglages-btn {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+}
+
+.reglages-btn svg { width: 22px; height: 22px; }
+
+/* Le point dit où en est la synchro : vert connecté, doré hors ligne, un
+   anneau pendant la connexion, rien tant qu'on n'est pas connecté. */
+.reglages-point {
+  display: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.reglages-btn .reglages-point {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  box-shadow: 0 0 0 2px var(--card);
+}
+
+[data-sync="ok"] > .reglages-point,
+[data-sync="hors"] > .reglages-point,
+[data-sync="attente"] > .reglages-point,
+.reglages-point.en-ligne { display: inline-block; }
+
+[data-sync="ok"] > .reglages-point,
+.reglages-point[data-sync="ok"] { background: var(--green); }
+[data-sync="hors"] > .reglages-point,
+.reglages-point[data-sync="hors"] { background: var(--gold-deco); border: 1.5px solid var(--gold); }
+[data-sync="attente"] > .reglages-point,
+.reglages-point[data-sync="attente"] { border: 2px solid var(--green); background: transparent; }
+
+/* ---------- La feuille ---------- */
+
+.reglages-sheet .sheet { max-height: 88vh; }
+
+.reg-tete { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+
+.reg-fermer {
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.reg-fermer svg { width: 20px; height: 20px; }
+
+.reg-bloc { padding: 14px 0 6px; border-top: 1px solid var(--line-soft); }
+.reg-bloc:first-of-type { border-top: none; }
+
+.reg-bloc h4 {
+  margin: 0 0 10px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.reg-aide { margin: 10px 0 12px; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+
+/* Trois choix côte à côte, comme un sélecteur segmenté. */
+.reg-choix {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 14px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+}
+
+.reg-mode {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.reg-mode[aria-pressed="true"] { background: var(--card); color: var(--green-deep); box-shadow: 0 1px 4px rgba(44, 51, 38, 0.18); }
+
+.reg-duo { display: flex; gap: 10px; }
+.reg-duo .btn { min-height: 48px; padding: 12px 10px; font-size: 14.5px; }
+
+.reg-form { display: flex; flex-direction: column; gap: 8px; }
+.reg-form label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.reg-form .btn { flex: none; min-height: 48px; }
+
+.reg-form input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;                 /* 16 px : sinon iOS zoome sur le champ */
+  width: 100%;
+}
+
+.reg-erreur { margin: 8px 0 0; min-height: 0; font-size: 13.5px; font-weight: 600; color: var(--terra); }
+.reg-erreur:empty { display: none; }
+
+.reg-statut { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); }
+.reg-statut .reglages-point { width: 12px; height: 12px; flex: none; }
+
+#reg-sync .btn { flex: none; width: 100%; min-height: 48px; margin-top: 8px; }
+
+.reg-alerte {
+  margin: 12px 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--gold-tint);
+  border: 1px solid var(--gold-deco);
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/* Le code se lit sur blanc franc, en clair comme en sombre : un QR sur fond
+   sombre ne se scanne pas. */
+.reg-qr {
+  width: 220px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #000;
+}
+
+.reg-qr svg { display: block; width: 100%; height: auto; }
+
+.reg-apercu { list-style: none; margin: 12px 0 0; padding: 0; }
+
+.reg-apercu li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.reg-apercu b { font-variant-numeric: tabular-nums; color: var(--green-deep); white-space: nowrap; }
+
+/* ---------- Confirmation (feuilles.js) ---------- */
+
+.confirmation .conf-texte { font-size: 14.5px; line-height: 1.45; color: var(--ink-soft); margin: 6px 0 8px; }
+
+.conf-boutons { display: flex; gap: 10px; margin-top: 18px; }
+.conf-boutons .btn { min-height: 48px; padding: 12px 10px; font-size: 15px; }
+
+.btn.primary.danger { background: var(--terra); border-color: var(--terra); color: #fff; box-shadow: none; }
+html[data-theme="dark"] .btn.primary.danger { color: var(--sur-vert); }
+
+/* La feuille d'import et celle de confirmation montent par-dessus les réglages. */
+.confirmation { z-index: 160; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-backdrop, .sheet, .toast { animation: none; }
+}

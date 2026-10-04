@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="css/courses.css">
   <link rel="stylesheet" href="css/minuteurs.css">
   <link rel="stylesheet" href="css/savoirs.css">
+  <link rel="stylesheet" href="css/reglages.css">
   <!-- Les modules s'importent les uns les autres : sans ces préchargements, le
        navigateur ne découvre chaque import qu'après avoir lu le module qui le
        demande, et les requêtes s'enchaînent une à une. -->
@@ -67,29 +68,14 @@
   <link rel="modulepreload" href="js/sync.js">
   <script>
     (function () {
+      // « dark » / « light » : choix explicite ; toute autre valeur (ou aucune) : automatique, comme le système.
       var saved = localStorage.getItem("theme");
-      var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
       if (dark) document.documentElement.setAttribute("data-theme", "dark");
     })();
   </script>
 </head>
 <body>
-  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Activer le mode sombre" aria-pressed="false">
-    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
-  </button>
-
-  <button id="sync-btn" class="theme-toggle sync-btn" type="button" aria-label="Se connecter au carnet partagé" data-etat="off" hidden>
-    <!-- Nuage barré : pas connecté -->
-    <svg class="ic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5.2A6 6 0 0 1 17.9 9.7 4.5 4.5 0 0 1 20 17.3"/><path d="M6.5 18A4.5 4.5 0 0 1 5.4 9.3"/><path d="M3 3l18 18"/></svg>
-    <!-- Flèches circulaires : connexion en cours -->
-    <svg class="ic-attente" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-15-6.7L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/><path d="M21 21v-5h-5"/></svg>
-    <!-- Nuage coché : connecté -->
-    <svg class="ic-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 5.3 17.2 4.5 4.5 0 0 0 6.5 19z"/><path d="M9 13.5l2.2 2.2L15.5 11"/></svg>
-    <!-- Wi-Fi barré : connecté mais hors réseau -->
-    <svg class="ic-hors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.6a10 10 0 0 1 4-2.3"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M12 5a15 15 0 0 1 10 3.8"/><path d="M15 10.3a10 10 0 0 1 4 2.3"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></svg>
-  </button>
-
   <main id="app"></main>
 
   <nav class="tabbar" aria-label="Navigation principale">

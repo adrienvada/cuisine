@@ -46,7 +46,7 @@
   gap: 7px;
 }
 
-.masthead .byline .u { border-bottom: 1.5px solid var(--gold); padding-bottom: 1px; }
+.masthead .byline .u { border-bottom: 1.5px solid var(--gold-deco); padding-bottom: 1px; }
 
 .masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
 
@@ -270,7 +270,7 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
   overflow: hidden;
 }
 
-.card-disc svg { width: 12px; height: 12px; flex: none; color: var(--gold); }
+.card-disc svg { width: 12px; height: 12px; flex: none; color: var(--gold-deco); }
 
 .card-disc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

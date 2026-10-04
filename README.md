@@ -182,7 +182,7 @@ manifest.webmanifest    Manifeste PWA
 sw.js                   Service worker (hors ligne) — liste tous les fichiers dans CORE, VERSION à monter
 r/  f/                  Pages d'aperçu des recettes et des fondamentaux (générées)
 
-css/base.css            Palette (clair/sombre), mise en page, onglets, boutons, toast, feuilles
+css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), mise en page, onglets, boutons, toast, feuilles
 css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/cuisine.css         Mode cuisine plein écran
@@ -190,6 +190,7 @@ css/menu.css            Onglet Au menu : cartes et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/minuteurs.css       Plateau des bulles de minuteur
 css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
 
 js/recipes.js           Données : les recettes
 js/placard.js           Données : le fond de placard (cid des produits « à vérifier » en courses)
@@ -210,14 +211,15 @@ js/core/fonds.js        Les fondamentaux vus des recettes, et inversement
 js/core/menu.js         Entrées du menu, composition en cours, forme d'un repas, basiques oubliés
 js/core/courses.js      La liste de courses calculée depuis le menu
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
+js/core/sauvegarde.js   Export du carnet, lecture prudente d'un fichier importé, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
-js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour
+js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour (focus, Tab, Échap) et confirmer()
 js/ui/routeur.js        Le routeur (#) et les flèches de retour
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
-js/ui/theme.js          Thème clair/sombre, mouvement réduit
+js/ui/theme.js          Thème automatique/clair/sombre, mouvement réduit
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
@@ -225,6 +227,7 @@ js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
+js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import
 
 tools/                  Vérificateur de recettes, pages de partage, génération de photos
 tests/                  Tests unitaires (unit/) et de bout en bout (e2e/)
@@ -289,7 +292,7 @@ Le menu, les cases cochées et les articles libres (`menu`, `checked`, `extras`)
 stockés dans **une seule base partagée**. Le reste (thème, recherche, minuteurs, notes)
 reste local à chaque appareil.
 
-- **Un mot de passe**, saisi une fois par navigateur (icône nuage en haut à gauche : barré = pas connecté, coché vert = connecté, Wi-Fi barré doré = connecté mais hors réseau, flèches qui tournent = connexion en cours).
+- **Un mot de passe**, saisi une fois par navigateur (feuille « Réglages », bouton en haut de l'accueil : un point vert = connecté, doré = connecté mais hors réseau, rien = pas connecté).
   Il est vérifié côté serveur à chaque lecture et écriture (hash bcrypt dans
   `carnet_acces`) ; les tables sont fermées à l'API publique. Sans le mot de passe,
   on ne lit ni n'écrit rien.

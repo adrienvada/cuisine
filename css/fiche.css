@@ -36,7 +36,7 @@
   align-items: center;
   gap: 7px;
   background: var(--gold-tint);
-  border: 1px solid var(--gold);
+  border: 1px solid var(--gold-deco);
   border-radius: 999px;
   padding: 7px 15px 7px 12px;
   font-size: 13.5px;
@@ -45,7 +45,7 @@
   color: var(--gold-deep);
 }
 
-.discovered svg { width: 15px; height: 15px; flex: none; align-self: flex-start; margin-top: 2px; color: var(--gold); }
+.discovered svg { width: 15px; height: 15px; flex: none; align-self: flex-start; margin-top: 2px; color: var(--gold-deco); }
 
 .timerow {
   display: flex;
@@ -66,7 +66,7 @@
   color: var(--ink-soft);
 }
 
-.timechip svg { width: 14px; height: 14px; color: var(--gold); }
+.timechip svg { width: 14px; height: 14px; color: var(--gold-deco); }
 
 .section { margin-top: 22px; }
 
@@ -180,7 +180,7 @@
 }
 
 .recipe-note .n-heart { display: inline-block; width: 16px; height: 14px; color: var(--terra); margin-left: 4px; }
-.recipe-note .n-flourish { display: block; width: 110px; margin: 2px auto 0; color: var(--gold); }
+.recipe-note .n-flourish { display: block; width: 110px; margin: 2px auto 0; color: var(--gold-deco); }
 
 .actions {
   position: sticky;
@@ -306,7 +306,7 @@
   margin-top: 10px;
   padding: 10px 12px;
   background: var(--card);
-  border: 1px dashed var(--gold);
+  border: 1px dashed var(--gold-deco);
   border-radius: 12px;
   font-size: 14.5px;
   line-height: 1.45;

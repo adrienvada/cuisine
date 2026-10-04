@@ -15,7 +15,8 @@ async function connecte(context, carnet = VIDE) {
 test("synchro : une modification du menu part au serveur", async ({ page, context }) => {
   const serveur = await connecte(context);
   await page.goto("/#/recette/quiche-lorraine");
-  await expect(page.locator("#sync-btn")).toHaveAttribute("data-etat", "ok");
+  // Plus de bouton de synchro dans la page : la première lecture du serveur dit qu'on est connecté.
+  await expect.poll(() => serveur.lectures).toBeGreaterThan(0);
 
   await page.locator("#add-list").click();
   await page.getByRole("dialog").getByRole("button", { name: "Ajouter tel quel" }).click();
@@ -31,7 +32,8 @@ test("synchro : une version serveur plus récente est appliquée au retour sur l
   const serveur = await connecte(context, { menu: [entree("quiche-lorraine", { k: "q1" })] });
   await page.goto("/#/menu");
   await expect(page.locator(".menu-card")).toContainText("Quiche lorraine");
-  await expect(page.locator("#sync-btn")).toHaveAttribute("data-etat", "ok");
+  // Plus de bouton de synchro dans la page : la première lecture du serveur dit qu'on est connecté.
+  await expect.poll(() => serveur.lectures).toBeGreaterThan(0);
 
   // Quelqu'un d'autre vient de remplacer le menu.
   serveur.modifier({ menu: [entree("focaccia-romarin", { k: "f1" })], checked: {}, extras: [] });
