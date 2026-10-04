@@ -124,6 +124,21 @@ export async function pageStable(page) {
   }, null, { polling: 50 });
 }
 
+/* Attend que `lire()` ne change plus pendant `duree` ms : un envoi qui part se fait en
+   plusieurs allers-retours (lecture puis écriture), donc voir passer la première requête
+   ne prouve pas que la dernière est arrivée. À utiliser avant d'asserter qu'« il ne s'est
+   rien passé » : la quiétude observée remplace un délai calé sur le code. */
+export async function attendreCalme(lire, { duree = 400, pas = 50 } = {}) {
+  let derniere = await lire();
+  let depuis = Date.now();
+  while (Date.now() - depuis < duree) {
+    await new Promise(r => setTimeout(r, pas));
+    const valeur = await lire();
+    if (valeur !== derniere) { derniere = valeur; depuis = Date.now(); }
+  }
+  return derniere;
+}
+
 /* Les articles cochés de la liste de courses, par clé. */
 export const cochesAffichees = page =>
   page.$$eval("input[data-key]", els => els.filter(e => e.checked).map(e => e.dataset.key));
