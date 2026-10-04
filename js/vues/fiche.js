@@ -36,6 +36,7 @@ import {
   effectiveSteps,
   optionOf,
   selectedAddons,
+  tempsDe,
   verdictOf
 } from "../core/recettes.js";
 import { cleCuisine, cookHref, cookingStep, forgetCooking } from "../core/seance.js";
@@ -149,10 +150,22 @@ function poserEcouteurs() {
 
 const DELAI_NOTE = 600;
 
+/* Les trois temps de la version composée : la recette, ce que ses options
+   ajoutent (pâte maison), et en fourchette ce que les suppléments peuvent y
+   ajouter. Redessinés à chaque choix, pour que la fiche, la carte du menu et la
+   frise du rétroplanning disent la même durée. */
+const tempsHtml = r => {
+  const t = tempsDe(r);
+  return `
+        ${t.prep || addonTime(r, "prep") ? `<span class="timechip">${ICON.knife} Préparation : ${timeText(t.prep, addonTime(r, "prep"))}</span>` : ""}
+        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.zzz} ${r.reposLabel || "Repos"} : ${timeText(t.repos, addonTime(r, "repos"))}</span>` : ""}
+        ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
+      `;
+};
+
 export function renderRecipe(r) {
   // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
   const resume = cookingStep(r) || null;
-  const t = r.times;
   const retour = retourDe();
   poserEcouteurs();
   app.innerHTML = `
@@ -171,11 +184,7 @@ export function renderRecipe(r) {
       <h1>${r.title}</h1>
       <p class="subtitle">${r.subtitle}</p>
       ${discoveredHtml(r)}
-      <div class="timerow">
-        ${t.prep || addonTime(r, "prep") ? `<span class="timechip">${ICON.knife} Préparation : ${timeText(t.prep || 0, addonTime(r, "prep"))}</span>` : ""}
-        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.zzz} ${r.reposLabel || "Repos"} : ${timeText(t.repos || 0, addonTime(r, "repos"))}</span>` : ""}
-        ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
-      </div>
+      <div class="timerow" id="timerow">${tempsHtml(r)}</div>
       <p class="allergenes" id="allergenes" hidden></p>
     </div>
 
@@ -302,7 +311,9 @@ export function renderRecipe(r) {
     zone.dataset.taille = taille;
   };
 
-  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); drawAllergenes(); drawMoule(); };
+  const drawTemps = () => { document.getElementById("timerow").innerHTML = tempsHtml(r); };
+
+  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); drawAllergenes(); drawMoule(); drawTemps(); };
 
   if (customizable(r)) {
     document.getElementById("pick-zone").addEventListener("click", e => {

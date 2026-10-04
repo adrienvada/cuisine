@@ -2,7 +2,7 @@
 
 import { buildCourseList } from "./courses.js";
 import { save, state } from "./etat.js";
-import { byId, effectiveIngredients, effectiveSteps, selectedAddons, totalTime } from "./recettes.js";
+import { byId, effectiveIngredients, effectiveSteps, selectedAddons, tempsDe, totalTime } from "./recettes.js";
 
 /* Clé unique d'un appareil à l'autre : deux téléphones qui ajoutent chacun une
    entrée ne doivent jamais produire la même adresse une fois synchronisés. */
@@ -20,7 +20,7 @@ export const entreesDe = rid => state.menu.filter(e => e.rid === rid);
    tout arrive à table en même temps. À durée égale, l'ordre d'ajout tranche. */
 export const menuEntrees = () => state.menu
   .map(e => ({ e, r: byId(e.rid) })).filter(x => x.r)
-  .sort((a, b) => totalTime(b.r) - totalTime(a.r));
+  .sort((a, b) => totalTime(b.r, b.e) - totalTime(a.r, a.e));
 
 /* Ajouter, c'est figer la composition du brouillon dans une entrée neuve : une
    seconde version de la même recette ne vient donc pas écraser la première. */
@@ -340,12 +340,13 @@ export function defaireRefaire(cles) {
 /* ---------- Ce que le rétroplanning reçoit ---------- */
 
 /* Les entrées du menu au format de core/planning.js : leur composition compte,
-   un supplément minuté allonge l'étape qu'il enrichit. */
+   une option plus longue (pâte maison) rallonge les temps de la recette, et un
+   supplément minuté allonge l'étape qu'il enrichit. */
 export function tachesDuMenu() {
   return menuEntrees().map(({ e, r }) => ({
     k: e.k,
     titre: r.title,
-    temps: r.times,
+    temps: tempsDe(r, e),
     supplement: selectedAddons(r, e).reduce((n, a) => n + (a.step?.timer || 0), 0),
     etapes: effectiveSteps(r, e).map(s => ({
       titre: s.t,

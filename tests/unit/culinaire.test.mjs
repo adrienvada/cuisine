@@ -215,7 +215,7 @@ test("des petits pois en cosses : la liste le dit, la boîte de pois chiches aus
   state.menu = [entree("houmous-petits-pois-menthe"), entree("salade-mediterraneenne")];
   const liste = buildCourseList();
   assert.match(ligne(liste, "petits-pois").notes.join(" "), /cosses/);
-  assert.equal(quantiteTexte(ligne(liste, "pois-chiches")), "3 boîtes");     // 200 g + 400 g égouttés
+  assert.equal(quantiteTexte(ligne(liste, "pois-chiches")), "2 boîtes");     // une boîte pour le houmous, une pour la salade
 });
 
 test("la liste ne dit plus « T55 ou T65 » pour des cookies", () => {

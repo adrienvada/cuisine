@@ -12,6 +12,7 @@ import {
   byCategoryOrder,
   cookedOf,
   isFav,
+  tempsDe,
   verdictOf
 } from "../core/recettes.js";
 import { FILTRES, catalogueJai, estDeSaison, foinDe, motsDe, scoreJai, trouve } from "../core/recherche.js";
@@ -34,7 +35,7 @@ export function discoveredHtml(r) {
    détaille ce que les suppléments y ajoutent. Un poste absent ne prend pas de
    place, sauf l'absence de cuisson, qui est une information. */
 export function timeChipsHtml(r) {
-  const t = r.times;
+  const t = tempsDe(r);
   const part = (icone, min) => `<span class="t-part">${icone} ${fmtTime(min)}</span>`;
   return [
     t.prep ? part(ICON.knife, t.prep) : "",

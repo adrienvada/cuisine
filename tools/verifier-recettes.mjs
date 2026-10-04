@@ -72,9 +72,13 @@ const PAR_PORTION = /\bpar\s+(verre|personne|part|portion|convive|pièce|sachet|
 const CONTENANTS = ["bocal", "boîte", "brique", "pot", "petit pot", "sachet", "rouleau", "botte", "bouquet"];
 const nombre = n => parseFloat(String(n).replace(",", "."));
 
+/* « une boîte de 400 g », « {1 bocal}) de 400 g » : le poids décrit l'emballage du
+   commerce, il ne change pas avec les portions — c'est le nombre de boîtes qui change. */
+const POIDS_EMBALLAGE = /(?:boîtes?|bocaux?|bocal|briques?|pots?|sachets?)\}?\)?\s+(?:de|d['’])\s*\d+(?:[.,]\d+)?\s*(?:g|kg|ml|cl|l)\b/gi;
+
 function quantitesNues(txt) {
   if (!txt || PAR_PORTION.test(txt)) return [];
-  return [...txt.replace(MARQUEE, "…").matchAll(NUE)].map(m => m[0]);
+  return [...txt.replace(POIDS_EMBALLAGE, "…").replace(MARQUEE, "…").matchAll(NUE)].map(m => m[0]);
 }
 const erreurs = [];
 const ko = m => erreurs.push(m);
@@ -105,6 +109,26 @@ for (const r of RECIPES) {
   for (const a of r.addons || []) {
     if (a.step && a.step.timer && !POSTES.includes(a.step.adds)) {
       ko(`${r.id} / +${a.id} a un minuteur mais pas de \`adds\` valide (${POSTES.join(", ")})`);
+    }
+  }
+
+  /* Même règle pour les options de choix : une option plus longue que la version
+     par défaut dit où son minuteur s'ajoute (`adds`), sinon la carte annonce un
+     temps que la frise du rétroplanning, elle, additionne autrement. Et une
+     option sans `adds` dont le minuteur dépasse ce que `times` laisse de place
+     est une option qui aurait dû en avoir un. */
+  const total = (r.times.prep || 0) + (r.times.repos || 0) + (r.times.cuisson || 0);
+  for (const c of r.choices || []) {
+    const i = r.steps.findIndex(s => s.choice === c.id);
+    const minuteurs = (o) => r.steps.reduce((n, s, j) => n + ((j === i ? o.step : s).timer || 0), 0);
+    for (const o of c.options) {
+      const ref = `${r.id}[${i}] version ${o.id}`;
+      if (o.step.adds && !POSTES.includes(o.step.adds)) ko(`${ref} : \`adds\` invalide (${POSTES.join(", ")})`);
+      if (o.step.adds && !o.step.timer) ko(`${ref} : \`adds\` sans minuteur`);
+      const annonce = total + (o.step.adds && o.step.timer ? o.step.timer : 0);
+      if (minuteurs(o) > annonce) {
+        ko(`${ref} : ses minuteurs durent ${minuteurs(o)} min, plus que les ${annonce} min que la carte annonce — il manque un \`adds\` ?`);
+      }
     }
   }
 

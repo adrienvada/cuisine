@@ -22,7 +22,7 @@ const PLACARD = [
   // Huiles et vinaigres
   "huile-olive", "huile-neutre",
   "vinaigre-vin", "vinaigre-cidre", "vinaigre-blanc", "vinaigre-balsamique",
-  // Épices et aromates secs
+  // Épices et aromates secs (le girofle sert à piquer l'oignon, un classique ; le cumin est courant)
   "muscade", "cumin", "origan", "herbes-provence", "girofle", "laurier",
   // Condiment de base
   "moutarde",

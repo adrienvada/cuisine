@@ -201,7 +201,7 @@ function carteHtml({ e, r }, repas) {
     <a class="mc-visual" style="background:${r.color}22" href="${lien}" aria-label="${r.title}">${raw(visuel(r, { genre: "carre" }))}</a>
     <div class="mc-body">
       <a class="mc-title" href="${lien}"><h3>${r.title}</h3></a>
-      <div class="meta">${raw(ICON.clock)} ${totalTimeText(r)}
+      <div class="meta">${raw(ICON.clock)} ${totalTimeText(r, e)}
         ${v ? raw(html`<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>`) : ""}
         ${c.count ? raw(html`<span class="cook-count">cuisinée ${c.count}×</span>`) : ""}
       </div>

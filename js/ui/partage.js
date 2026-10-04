@@ -4,7 +4,7 @@ import { CERTITUDES, fondById } from "../core/fonds.js";
 import { fmtQty, fmtTime, fmtUnit, scaleQty } from "../core/format.js";
 import { requeteDeVersion } from "../core/liens.js";
 import { compo, menuEntrees, portionsOf } from "../core/menu.js";
-import { byId, effectiveIngredients, effectiveSteps, versionSummary } from "../core/recettes.js";
+import { byId, effectiveIngredients, effectiveSteps, tempsDe, versionSummary } from "../core/recettes.js";
 import { toast } from "./toast.js";
 
 const SITE_FALLBACK = "https://adrienvada.fr/cuisine/";
@@ -41,7 +41,7 @@ export async function shareOrCopy(data, copied) {
 /* Résumé d'une recette : de quoi lire l'essentiel dans la conversation,
    aux portions actuellement affichées, et le lien pour le pas-à-pas illustré. */
 export function recipeShareText(r) {
-  const p = portionsOf(r), f = p / r.portions.base, t = r.times;
+  const p = portionsOf(r), f = p / r.portions.base, t = tempsDe(r);
   const times = [];
   if (t.prep) times.push(`Préparation ${fmtTime(t.prep)}`);
   if (t.repos) times.push(`${r.reposLabel || "Repos"} ${fmtTime(t.repos)}`);

@@ -143,10 +143,11 @@ function chronologie(tache) {
 
 /* Quand commencer. Chaque recette vise l'heure de table, pile. Si deux plats
    veulent le four à des températures différentes sur des créneaux qui se
-   touchent, le plus chaud passe d'abord — un four redescend plus vite qu'il ne
-   remonte — et se fait donc plus tôt, quitte à attendre à table. Si « maintenant »
-   interdit de partir assez tôt, les plus tardifs glissent après lui : c'est le
-   retard, annoncé tel quel. */
+   touchent, le plus chaud passe d'abord — un four ménager monte plus vite qu'il
+   ne redescend : on cuit le plus chaud, puis on baisse en entrouvrant la porte,
+   comme le font les cuisiniers — et se fait donc plus tôt, quitte à attendre à
+   table. Si « maintenant » interdit de partir assez tôt, les plus tardifs
+   glissent après lui : c'est le retard, annoncé tel quel. */
 export function planifier({ table, maintenant = null, taches }) {
   const lignes = taches.map((t, i) => ({ i, t, ...chronologie(t), decalage: 0, retard: 0 }));
   for (const l of lignes) { l.debut = au5(table - l.duree); l.depart = l.debut; }
