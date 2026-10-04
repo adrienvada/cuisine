@@ -256,3 +256,21 @@ test("photos orphelines : un carnet de secours (stockage illisible) ne fait rien
   await page.waitForTimeout(500);
   expect(await cles(page)).toEqual(["precieuse"]);
 });
+
+test("photos orphelines : un import emporte les photos de l'ancien journal, après le délai d'« Annuler »", async ({ page, context }) => {
+  test.setTimeout(45000);
+  await preremplir(context, {
+    carnet: { journal: [{ id: "ancienne", rid: RID, date: "2026-02-01", convives: 2, note: "", photo: true }] }
+  });
+  await page.goto("/#/");
+  // Le ménage du démarrage (3 s) est passé : seule la purge d'après l'import est en jeu.
+  await page.waitForTimeout(3500);
+  await ranger(page, ["ancienne", "nouvelle"]);
+  await page.getByRole("button", { name: /^Réglages/ }).click();
+  const fichier = { journal: [{ id: "nouvelle", rid: RID, date: "2026-03-01", convives: 2, note: "", photo: true }] };
+  await page.locator("#reg-fichier").setInputFiles({ name: "carnet.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(fichier)) });
+  await page.getByRole("alertdialog").getByRole("button", { name: "Remplacer mon carnet" }).click();
+  // Pendant le délai d'« Annuler », rien n'est encore perdu.
+  expect(await cles(page)).toEqual(["ancienne", "nouvelle"]);
+  await expect.poll(() => cles(page), { timeout: 15000 }).toEqual(["nouvelle"]);
+});
