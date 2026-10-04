@@ -246,7 +246,10 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
   overflow: hidden;
 }
 
-.card .visual img { width: 100%; height: 100%; object-fit: cover; transform: scale(3); }
+.card .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Variante WebP absente : le JPEG entier revient, recadré par le zoom comme avant les vignettes. */
+.card .visual img.zoom { transform: scale(3); }
 
 .card .visual svg { width: 76%; height: 86%; }
 

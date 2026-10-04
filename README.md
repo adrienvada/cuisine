@@ -125,15 +125,26 @@ alors pour toutes les options), et sur le `step` d'un supplément.
 
 Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dans [`js/illos.js`](js/illos.js) — clé = identifiant de la recette. Si une recette n'a pas d'illustration, son emoji prend le relais ; si elle a une **photo** (`image: "img/….jpg"`), la photo gagne.
 
-**Une vraie photo du plat prime sur une image générée** : recadrer en 4:3 sur l'assiette, redimensionner en 800 px de large et enregistrer en JPEG qualité 80 (~70 Ko), sous `img/<id-recette>.jpg`.
+**Une vraie photo du plat prime sur une image générée** : recadrer en 4:3 sur l'assiette, redimensionner en 800 px de large et enregistrer en JPEG qualité 80 (~70 Ko), sous `img/<id-recette>.jpg`. **Garder si possible un original plus grand** (1 600 px de large) sous `img/originaux/<id-recette>.jpg` : l'outil des vignettes (ci-dessous) le préfère à la photo de 800 px et en tire des vignettes plus nettes.
+
+**Après avoir posé ou remplacé `img/<id>.jpg`, lancer `npm run vignettes`**, puis `npm run sw`, et committer `img/v/`, `img/c/`, `img/h/` et `sw.js` :
+
+```bash
+npm run vignettes   # img/v/<id>.webp, img/c/<id>.webp, img/h/<id>.webp
+npm run sw          # sw.js : la liste et la version du cache
+```
+
+Chaque vignette n'a plus à télécharger la photo de 800 px (70 à 160 Ko) pour n'en montrer que le tiers central : l'outil ([`tools/generer-vignettes.mjs`](tools/generer-vignettes.mjs), qui utilise `sharp`, donc un `npm install` d'abord) fait le recadrage une fois pour toutes, en WebP qualité 78, à 2× la taille d'affichage (ou à la résolution de la source si elle est moindre) : `img/v/` pour la grille d'accueil (~12 Ko), `img/c/` pour la carte du menu (~9 Ko), `img/h/` pour le héro de la fiche (photo entière, ~60 Ko). `visuel()` ([`js/ui/visuel.js`](js/ui/visuel.js)) choisit la bonne image et retombe sur le JPEG, zoomé par le CSS comme avant, si une variante manque. La CI échoue (`npm run vignettes -- --verifier`) si une photo n'a pas ses variantes.
 
 **Le cadrage se décide sur la bande centrale — et les vignettes sont volontairement très serrées** : on doit y voir l'aliment de près, pas forcément le bol ou l'assiette qui le porte.
 
 | | Boîte | Ce qui reste visible d'une image 4:3 |
 |---|---|---|
-| Vignette de la grille | 168 × 110 px | 33 % de la largeur, **29 % de la hauteur** (le `cover` recadre, puis `transform: scale(3)` rapproche) |
-| Carte « Au menu » | 88 × 88 px | **25 % de la largeur**, 33 % de la hauteur (même mécanisme, `scale(3)`) |
-| Héro de la fiche | 352 × 240 px (280 px dès 480 px de large) | toute la largeur, 64 % de la hauteur (pas de zoom ici : contexte plus généreux) |
+| Vignette de la grille | 168 × 110 px | 33 % de la largeur, **29 % de la hauteur** (recadrage de `img/v/`, qui reproduit un `cover` agrandi ×3) |
+| Carte « Au menu » | 88 × 88 px | **25 % de la largeur**, 33 % de la hauteur (`img/c/`, même règle) |
+| Héro de la fiche | 352 × 240 px (280 px dès 480 px de large) | toute la largeur, 64 % de la hauteur (`img/h/` : la photo entière, contexte plus généreux) |
+
+Ces boîtes sont des constantes de `tools/generer-vignettes.mjs` (`GENRES`) : si le CSS des vignettes change, les changer là aussi et relancer l'outil.
 
 Autrement dit, pour que le plat remplisse les deux vignettes plutôt que de laisser voir de la table ou du bord d'assiette : **le sujet doit occuper entre 38 % et 62 % de la largeur de l'image, et entre 35 % et 65 % de sa hauteur**, centré. C'est bien plus serré que ce qu'il faut pour l'héro (qui tolère 18–82 % de hauteur) : caler le cadrage sur les vignettes couvre les deux cas. Recadrer en centrant sur le plat — voire sur un détail du plat — et non sur la composition, vaut mieux que de garder un joli décor invisible.
 
@@ -172,6 +183,19 @@ node tools/generer-pages-partage.mjs
 
 Puis committe les dossiers `r/` et `f/`. Pour un autre domaine : `SITE_URL=https://exemple.fr/cuisine/ node tools/generer-pages-partage.mjs`.
 
+## Service worker et hors ligne
+
+L'appli s'ouvre depuis le cache, sans attendre le réseau ([`sw.js`](sw.js)) :
+
+- les fichiers de l'appli (`CORE` : `index.html`, manifeste, `css/`, `js/` avec les données et les modules, `fonts/`, icônes, vignettes `img/v/` et `img/c/`) sont servis depuis le cache et renouvelés à l'installation d'une nouvelle version ;
+- les images : « stale-while-revalidate » — la copie en cache répond tout de suite, le réseau la rafraîchit pour la fois suivante ;
+- les pages d'aperçu `r/` et `f/` : réseau d'abord, mais 3 s au plus, puis le cache ;
+- seules les réponses « ok » sont mises en cache.
+
+**La version du cache est automatique.** `npm run sw` ([`tools/version-sw.mjs`](tools/version-sw.mjs)) liste tous les fichiers de l'appli et écrit dans `sw.js` la liste `CORE` et une `VERSION` dérivée de leur contenu : plus de « Bump cache version » à faire à la main. À relancer après toute modification d'un fichier de l'appli (page, style, module, donnée, vignette) et à committer avec : la CI lance l'outil puis `git diff --exit-code sw.js`, elle échoue donc si `sw.js` n'est pas à jour. Ne jamais modifier à la main le bloc entre les repères `>>>` et `<<<`.
+
+**Mises à jour.** Une nouvelle version s'installe en coulisse puis attend ; l'appli affiche « Nouvelle version — Recharger » ([`js/ui/miseajour.js`](js/ui/miseajour.js)). Le bouton active la nouvelle version (`skipWaiting`) et recharge dès qu'elle contrôle la page.
+
 ## Développement
 
 Site 100 % statique, sans build ni dépendance : HTML + CSS + JavaScript vanilla.
@@ -179,7 +203,7 @@ Site 100 % statique, sans build ni dépendance : HTML + CSS + JavaScript vanilla
 ```
 index.html              Coquille de l'application : feuilles de style, puis les données, puis js/main.js
 manifest.webmanifest    Manifeste PWA
-sw.js                   Service worker (hors ligne) — liste tous les fichiers dans CORE, VERSION à monter
+sw.js                   Service worker (hors ligne) — CORE et VERSION y sont écrits par `npm run sw`
 r/  f/                  Pages d'aperçu des recettes et des fondamentaux (générées)
 
 css/base.css            Palette (clair/sombre), mise en page, onglets, boutons, toast, feuilles
@@ -218,6 +242,7 @@ js/ui/routeur.js        Le routeur (#) et les flèches de retour
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
+js/ui/miseajour.js      Enregistrement du service worker, « Nouvelle version — Recharger »
 js/ui/theme.js          Thème clair/sombre, mouvement réduit
 js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome)
 js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js (MIT)
@@ -231,7 +256,7 @@ js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
 
-tools/                  Vérificateur de recettes, pages de partage, génération de photos
+tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker
 tests/                  Tests unitaires (unit/) et de bout en bout (e2e/)
 ```
 
