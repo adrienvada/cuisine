@@ -14,6 +14,12 @@
      durée, il lui faut son minuteur. `step.adds` dit à quel poste ce temps
      s'ajoute — "prep", "repos" ou "cuisson" — pour que les temps affichés
      deviennent des fourchettes.
+   - Une option de `choices` plus longue que la version par défaut (la pâte
+     maison de la quiche, le chèvre gratiné des tartines) le dit de la même
+     façon : `step.timer` + `step.adds`. `times` décrit la version par défaut ;
+     le temps de l'option s'y ajoute, au poste `adds`, partout où il s'affiche
+     (vignette, fiche, carte du menu, partage) et dans le rétroplanning. Une
+     option sans `adds` a son minuteur déjà compté dans `times`.
 
    Quantités écrites au fil du texte (note d'ingrédient, étape, astuce) : les
    entourer d'accolades pour qu'elles suivent le curseur de portions, sinon
@@ -866,8 +872,8 @@ const RECIPES = [
     reposLabel: "Repos",
     portions: { base: 4, label: "personnes" },
     ingredients: [
-      { name: "Pois chiches cuits", qty: 400, unit: "g", note: "en bocal ou boîte", rayon: "Conserves & bocaux", cid: "pois-chiches",
-        shop: { label: "Pois chiches au naturel", qty: 2, unit: "boîte", note: "boîte de 400 g : environ 240 g égouttés" } },
+      { name: "Pois chiches cuits", qty: 400, unit: "g", note: "soit {1 boîte} (ou {1 bocal}) de 400 g, à rincer et égoutter", rayon: "Conserves & bocaux", cid: "pois-chiches",
+        shop: { label: "Pois chiches au naturel", qty: 1, unit: "boîte", note: "boîte de 400 g : environ 240 g égouttés" } },
       { name: "Feta", qty: 150, unit: "g", rayon: "Fromages", cid: "feta" },
       { name: "Olives noires", qty: 80, unit: "g", note: "type Kalamata", rayon: "Conserves & bocaux", cid: "olives" },
       { name: "Oignon rouge", qty: 0.25, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" },
@@ -1018,7 +1024,7 @@ const RECIPES = [
           step: { t: "Vinaigrette douce miel-cidre",
             txt: "Délayez le miel et la moutarde dans le vinaigre de cidre avec le sel et le poivre, puis émulsionnez avec l'huile d'olive.",
             ing: ["miel", "moutarde", "vinaigre-cidre", "sel-poivre", "huile-olive"],
-            tip: { t: "Astuce du chef", txt: "Cette version douce va aux légumes verts, mais réservez-la aux pommes de terre tièdes : sur des haricots encore chauds, l'acidité ferait virer le vert en quelques minutes." } } }
+            tip: { t: "Astuce du chef", txt: "Le vinaigre de cidre est acide : versé sur des haricots encore chauds, il ferait virer le vert en quelques minutes. Ici les haricots sont refroidis à l'eau glacée, vous pouvez donc napper l'ensemble sans crainte, mais ne laissez pas la salade mariner longtemps avant de servir." } } }
       ]
     }],
     addons: [
@@ -1379,7 +1385,7 @@ const RECIPES = [
     tags: ["four", "réconfortant", "complet"],
     emoji: "🥧",
     color: "#D9A24C",
-    times: { prep: 15, cuisson: 57 },
+    times: { prep: 15, cuisson: 52 },
     portions: { base: 6, label: "personnes" },
     moule: { forme: "rond", diametre: 26 },
     note: "Se garde 2 à 3 jours au réfrigérateur, filmée. Se réchauffe très bien au four (10 min à 180 °C) ; se congèle aussi, déjà cuite, en parts individuelles.",
@@ -1418,7 +1424,7 @@ const RECIPES = [
           step: { t: "Pâte maison",
             txt: "Du bout des doigts, sablez la farine, le sel et le beurre bien froid en dés jusqu'à une texture de sable grossier. Ajoutez l'eau très froide petit à petit et rassemblez la pâte sans pétrir. Formez un disque, filmez et réservez 30 min au frais, puis étalez-la et foncez-en le moule à tarte (26-28 cm).",
             ing: ["farine", "sel-fin", "beurre", "Eau très froide"],
-            fond: ["gluten", "froid-raffermit"], timer: 30,
+            fond: ["gluten", "froid-raffermit"], timer: 30, adds: "repos",
             tip: { t: "Astuce du chef", txt: "Travaillez la pâte le moins possible, avec le bout des doigts plutôt que la paume : elle doit juste se tenir, jamais devenir lisse et élastique." } } }
       ]
     }],
@@ -1458,7 +1464,7 @@ const RECIPES = [
     addons: [
       { id: "comte", label: "Comté râpé", emoji: "🧀",
         ingredients: [{ name: "Comté râpé", qty: 50, unit: "g", rayon: "Fromages", cid: "comte" }],
-        step: { i: 4, txt: "Remplacez tout ou partie du gruyère par du comté râpé, plus corsé." } },
+        step: { i: 4, txt: "Mêlez le comté râpé au gruyère, ou remplacez-en une partie : plus corsé, il relève la garniture." } },
       { id: "reblochon", label: "Reblochon", emoji: "🏔️",
         ingredients: [{ name: "Reblochon", qty: 100, unit: "g", note: "en tranches", rayon: "Fromages", cid: "reblochon",
           shop: { label: "Reblochon fermier ou laitier" } }],
@@ -1548,7 +1554,7 @@ const RECIPES = [
     tags: ["four", "de base", "convivial"],
     emoji: "🍰",
     color: "#C8935A",
-    times: { prep: 15, cuisson: 50 },
+    times: { prep: 15, cuisson: 45 },
     portions: { base: 6, label: "personnes" },
     note: "Se garde 3 à 4 jours à température ambiante, filmé — souvent meilleur le lendemain, une fois les saveurs installées. Se congèle très bien, entier ou en tranches, jusqu'à 2 mois.",
     ingredients: [
@@ -1560,7 +1566,9 @@ const RECIPES = [
       { name: "Huile neutre", qty: 8, unit: "cl", note: "tournesol ou pépins de raisin", rayon: "Huiles, vinaigres & condiments", cid: "huile-neutre",
         shop: { label: "Huile neutre (tournesol, pépins de raisin)" } },
       { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
-        shop: { label: "Sel fin, poivre noir du moulin" } }
+        shop: { label: "Sel fin, poivre noir du moulin" } },
+      { name: "Beurre", qty: 10, unit: "g", note: "une noix, pour le moule", rayon: "Crèmerie & œufs", cid: "beurre",
+        shop: { label: "Beurre doux" } }
     ],
     choices: [{
       id: "garniture", label: "La garniture",
@@ -1613,7 +1621,7 @@ const RECIPES = [
       {
         t: "Cuisson",
         txt: "Versez la pâte dans un moule à cake beurré et fariné, et enfournez aussitôt à 180 °C pendant 45 minutes, jusqu'à ce que le dessus soit bien doré et qu'une lame ressorte sèche.",
-        ing: ["farine"],
+        ing: ["beurre", "farine"],
         four: 180,
         fond: ["maillard", "levure-chimique"], timer: 45,
         tip: { t: "Astuce du chef", txt: "Ne laissez pas la pâte attendre une fois montée : la levure chimique commence déjà à travailler au contact du liquide, et chaque minute perdue avant le four, c'est un peu moins de gonflant à la cuisson." }
@@ -1740,7 +1748,7 @@ const RECIPES = [
     ingredients: [
       { name: "Pain de campagne au levain", qty: 8, unit: "tranche", rayon: "Boulangerie", cid: "pain",
         shop: { label: "Pain de campagne", note: "au levain de préférence, ou un pain aux céréales" } },
-      { name: "Figues noires", qty: null, qtyText: "6 à 8", note: "bien mûres", rayon: "Fruits & légumes", cid: "figues",
+      { name: "Figues noires", qty: 8, unit: "", note: "bien mûres, une par tartine : {6-8} selon leur taille", rayon: "Fruits & légumes", cid: "figues", entier: true,
         shop: { label: "Figues noires", note: "bien mûres" } },
       { name: "Miel liquide", qty: 2, unit: "c. à s.", rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
         shop: { label: "Miel", qty: null, qtyText: "1 pot", note: "liquide : thym, châtaignier ou toutes fleurs" } },
@@ -1772,7 +1780,7 @@ const RECIPES = [
             txt: "Préchauffez le four à 200 °C (chaleur tournante ou gril doux). Déposez sur le pain cru de belles rondelles de bûche ou de crottin, intercalez les quartiers de figues par-dessus, puis enfournez 5 à 7 minutes : le pain doit devenir croustillant, le chèvre commencer à fondre et les figues légèrement compoter sans s'affaisser complètement.",
             ing: ["pain", "chevre-buche", "figues"],
             four: 200,
-            timer: 6, fond: "maillard",
+            timer: 6, adds: "cuisson", fond: "maillard",
             tip: { t: "Astuce du chef", txt: "Surveillez plutôt que de régler une minuterie absolue : selon l'affinage du chèvre et la puissance du four, le basculement entre « fondant » et « liquide qui s'étale » peut se jouer en une minute." } } }
       ]
     }],

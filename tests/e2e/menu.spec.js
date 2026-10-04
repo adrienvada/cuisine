@@ -200,8 +200,8 @@ test("allergies : un allergène à éviter marque les cartes qui en contiennent,
   await expect(page.locator(".alg-n")).toHaveText("1 à éviter");
 
   const alerte1 = page.locator('.menu-card[data-open="c1"] .mc-alerte');
-  await expect(alerte1).toContainText("Contient du lait : lait, comté râpé");
-  // Le cake au saumon contient aussi du lait (la pâte), mais pas de comté.
+  await expect(alerte1).toContainText("Contient du lait : lait, beurre, comté râpé");
+  // Le cake au saumon contient aussi du lait (la pâte, et le beurre du moule), mais pas de comté.
   await expect(page.locator('.menu-card[data-open="c2"] .mc-alerte')).toContainText("Contient du lait : lait");
   await expect(page.locator('.menu-card[data-open="c2"] .mc-alerte')).not.toContainText("comté");
   await expect(page.locator('.menu-card[data-open="v1"] .mc-alerte')).toHaveCount(0);

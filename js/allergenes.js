@@ -48,6 +48,7 @@ const ALLERGENES = {
   /* Gluten : céréales du commerce */
   farine: ["gluten"],
   "farine-pain": ["gluten"],
+  "levure-chimique": ["gluten"],   // selon la marque (amidon de blé) : lire l'étiquette
   pain: ["gluten"],
   "pain-suedois": ["gluten"],   // seigle ; certaines marques ajoutent du sésame
   pita: ["gluten"],

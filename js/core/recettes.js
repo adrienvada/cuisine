@@ -7,8 +7,32 @@ import { compo } from "./menu.js";
 
 export const byId = id => RECIPES.find(r => r.id === id);
 
-export function totalTime(r) {
-  return (r.times.prep || 0) + (r.times.repos || 0) + (r.times.cuisson || 0);
+/* Temps qu'ajoutent les options de choix retenues (pâte maison : 30 min au frais ;
+   chèvre gratiné : 6 min de four). Le temps de recette, `times`, décrit la version
+   par défaut ; une option plus longue le dit par `step.timer` + `step.adds` (le
+   poste où ce temps s'ajoute), exactement comme un supplément. Sans `adds`, le
+   minuteur de l'option est déjà compris dans `times`. `conf` : la composition à
+   lire, la courante si on l'omet. */
+export const choiceTime = (r, poste, conf) => choiceList(r).reduce((n, c) => {
+  const s = optionOf(r, c, conf).step;
+  return n + (s && s.timer && s.adds === poste ? s.timer : 0);
+}, 0);
+
+/* Les trois temps de la version composée : la recette, plus ce que ses options
+   y ajoutent. `cuisson` reste nul quand rien ne cuit, ni dans la recette ni dans
+   les options choisies : « sans cuisson » est une information. */
+export function tempsDe(r, conf) {
+  const cuisson = choiceTime(r, "cuisson", conf);
+  return {
+    prep: (r.times.prep || 0) + choiceTime(r, "prep", conf),
+    repos: (r.times.repos || 0) + choiceTime(r, "repos", conf),
+    cuisson: r.times.cuisson == null && !cuisson ? null : (r.times.cuisson || 0) + cuisson
+  };
+}
+
+export function totalTime(r, conf) {
+  const t = tempsDe(r, conf);
+  return t.prep + t.repos + (t.cuisson || 0);
 }
 
 /* Temps qu'ajouteraient tous les suppléments minutés (torréfier des graines,
@@ -17,8 +41,9 @@ export function totalTime(r) {
 export const addonTime = (r, poste) => (r.addons || []).reduce(
   (n, a) => n + (a.step && a.step.timer && (!poste || a.step.adds === poste) ? a.step.timer : 0), 0);
 
-/* Le total : la recette nue, et jusqu'où elle monte avec tous les petits plus. */
-export const totalTimeText = r => rangeTime(totalTime(r), totalTime(r) + addonTime(r));
+/* Le total : la version composée (choix par défaut tant qu'on n'en a pas fait
+   d'autre), et jusqu'où elle monte avec tous les petits plus. */
+export const totalTimeText = (r, conf) => rangeTime(totalTime(r, conf), totalTime(r, conf) + addonTime(r));
 
 export const VERDICTS = [
   { id: "encore", label: "♥ Coup de cœur", tag: "♥ Coup de cœur" }
