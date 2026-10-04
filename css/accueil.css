@@ -55,7 +55,7 @@
   align-items: center;
   gap: 10px;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   border-radius: 14px;
   padding: 11px 14px;
   margin: 18px 0 12px;
@@ -140,11 +140,30 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
   color: var(--ink);
   outline: none;
   padding: 0;
+  min-width: 0;
 }
 
 .searchbar input::placeholder { color: var(--muted); }
 
-.chips { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
+/* L'anneau de focus est celui de la barre entière : le champ, lui, n'a pas de
+   bord à encadrer. */
+.searchbar:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
+
+/* La croix d'effacement du navigateur est bleue : on lui donne la couleur du
+   carnet, sur une zone de contact plus large que le trait. */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin: 0 -6px 0 0;
+  cursor: pointer;
+  background-color: var(--muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px no-repeat;
+}
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 7px 0; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 
 .chip {
@@ -159,9 +178,11 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
   font-weight: 500;
 }
 
-/* Une puce fait ~34 px : on lui rend un doigt de 44 px sans l'agrandir à l'œil.
-   La marge de 5 px du conteneur laisse la place à ce halo. */
-.chips .chip::before { content: ""; position: absolute; inset: -5px 0; }
+/* Une puce fait 31 px : on lui rend un doigt de 44 px sans l'agrandir à l'œil.
+   Le halo se mesure depuis le bord intérieur (le trait de 1 px est dedans) : il
+   déborde de 7 px, juste la marge du conteneur, donc deux rangées l'une sous
+   l'autre ne se disputent jamais le même doigt. */
+.chips .chip::before { content: ""; position: absolute; inset: -8px 0; }
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
 
@@ -293,7 +314,9 @@ html[data-theme="dark"] .card-cat { color: #31492B; }
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 2px 6px rgba(44, 51, 38, 0.18);
-  color: var(--green-deep);
+  /* Le fond reste crème dans les deux thèmes : l'encre aussi (le vert profond du
+     mode sombre est un vert clair, 1,5:1 sur ce crème). */
+  color: #31492B;
   display: flex; align-items: center; justify-content: center;
   padding: 0;
   z-index: 2;                             /* au-dessus du lien étiré sur la carte */
@@ -397,13 +420,22 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
   background: var(--gold-tint);
   font-size: 11.5px;
   font-weight: 600;
+  line-height: 1.25;
   color: var(--gold-deep);
   overflow: hidden;
 }
 
 .card-disc svg { width: 12px; height: 12px; flex: none; color: var(--gold-deco); }
 
-.card-disc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Le lieu se lit en entier : deux lignes plutôt qu'une ellipse qui mange la ville. */
+.card-disc span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 
 @media (min-width: 480px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }

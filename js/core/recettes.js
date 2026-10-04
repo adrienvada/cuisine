@@ -79,19 +79,14 @@ export function cookedText(id) {
 /* Version abrégée de `discovered` pour la pastille des vignettes :
    sans article/préposition d'intro, et sans détail superflu — juste
    « Lieu, Ville ». Ex. « à l'hôtel Park Plaza Victoria, à Amsterdam »
-   → « Hôtel Pla. Vic., Amsterdam ». */
+   → « Plaza Victoria, Amsterdam ». On retire des mots, jamais des lettres :
+   « Pla. Vic. » ne se lisait pas, et la pastille tient en deux lignes. */
 export function abbrevDiscovered(text) {
   const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
-  const abbrevWord = w => {
-    // Contraction (d'Aligre, l'Écailler…) : n'abrège que la partie après l'apostrophe.
-    const m = w.match(/^([a-zàâäéèêëïîôöùûüç]['’])(.+)$/i);
-    if (m) return m[1] + (m[2].length <= 3 ? m[2] : m[2].slice(0, 3) + ".");
-    return w.length <= 3 ? w : w.slice(0, 3) + ".";
-  };
   const abbrevPlace = phrase => {
-    const [first, ...rest] = phrase.split(/\s+/);
-    const kept = rest.length > 2 ? rest.slice(rest.length - 2) : rest;
-    return [capFirst(first), ...kept.map(abbrevWord)].join(" ");
+    const mots = phrase.split(/\s+/);
+    // Au-delà de trois mots, seuls les deux derniers (le nom propre) disent encore le lieu.
+    return capFirst((mots.length > 3 ? mots.slice(-2) : mots).join(" "));
   };
   const stripped = text.replace(/^\s*(à l['’]|au\s|à la\s|aux\s|chez\s|du\s|des\s|de l['’]|en\s|à\s)/i, "").trim();
   const commaIdx = stripped.indexOf(",");

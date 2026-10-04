@@ -28,18 +28,18 @@
   gap: 5px;
   font-family: var(--sans);
   font-style: normal;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--green);
-  opacity: 0.72;
+  /* Plein pot : une opacité réduite le faisait passer sous 4,5:1, replié comme
+     déplié. L'état déplié se lit au chevron, pas à la pâleur. */
+  color: var(--green-deep);
 }
 
 /* Le chevron pointe vers le bas au repos, vers le haut une fois déplié. */
 .s-cue svg { width: 12px; height: 12px; transform: rotate(90deg); transition: transform 0.22s ease; }
 .a-savoirs.ouvert .s-cue svg { transform: rotate(-90deg); }
-.a-savoirs.ouvert .s-cue { opacity: 0.5; }
 
 /* La ligne garde sa hauteur ; la zone de contact, elle, déborde jusqu'à 44 px. */
 .s-cue::after { content: ""; position: absolute; inset: -16px -10px; }
@@ -271,8 +271,9 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .f-compte { margin: 26px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
 
 .f-head { text-align: center; margin-bottom: 4px; }
-.f-fam-tag { margin: 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.f-fam-tag { margin: 14px 0 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .f-head h1 { margin: 4px 0 0; font-family: var(--serif); font-size: 32px; color: var(--green-deep); }
+.f-head h1 .f-emoji { margin-right: 0.35em; }
 .f-page { margin-top: 10px; }
 
 /* Le cadre de focus de la feuille elle-même n'aide personne : le focus y est posé par le code, pas visé. */

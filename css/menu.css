@@ -72,6 +72,7 @@
 /* Étroite, la carte écrasait les boutons à 43 px : ils gardent leurs 44. */
 .mc-portions button, .repas .portions button { flex: none; }
 
+/* Sur 320 px, « Cuisiner » et « Partager » ne tiennent plus côte à côte : le second passe dessous. */
 .mc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
 .mc-btn {
@@ -198,7 +199,7 @@
   min-height: 44px;
   min-width: 0;
   padding: 6px 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   border-radius: 12px;
   background: var(--paper);
   color: var(--ink);

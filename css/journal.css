@@ -71,7 +71,7 @@
   font-size: 16px;               /* 16 px : sans cela Safari zoome au focus */
   color: var(--ink);
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--champ-bord);
   border-radius: 12px;
 }
 

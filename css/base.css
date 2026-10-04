@@ -31,6 +31,9 @@
   --or-sur-fond-vert: #E8C889;
   --line: #E2DAC5;
   --line-soft: #ECE5D2;
+  /* Le contour d'un champ de saisie est une limite à percevoir (3:1 contre la
+     page comme contre la carte) ; --line reste aux filets décoratifs. */
+  --champ-bord: #8A8672;
   --radius: 16px;
   --serif: "Cormorant Garamond", Georgia, serif;
   --script: "Caveat", "Bradley Hand", cursive;
@@ -56,6 +59,7 @@ html[data-theme="dark"] {
   --sur-vert: #15180F;
   --line: #383E31;
   --line-soft: #2E3327;
+  --champ-bord: #7C8070;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -118,6 +122,7 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
 
 .tabbar a {
   flex: 1;
+  min-width: 0;                    /* sans cela, « Savoirs » repoussait la barre au-delà de 320 px */
   max-width: 180px;
   display: flex;
   flex-direction: column;
@@ -132,6 +137,10 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
 }
 
 .tabbar a svg { width: 23px; height: 23px; }
+
+@media (max-width: 340px) {
+  .tabbar { gap: 4px; padding-left: 8px; padding-right: 8px; }
+}
 
 .tabbar a.active { color: var(--green-deep); background: var(--green-tint); }
 
@@ -241,9 +250,11 @@ html[data-theme="dark"] .tabbar { background: rgba(36, 41, 32, 0.94); }
   color: var(--terra);
   font-size: 13.5px;
   font-weight: 500;
-  padding: 10px 0;
-  margin: 6px auto 0;
+  min-height: 44px;
+  padding: 0 14px;
+  margin: 2px auto 0;
   display: block;
+  width: fit-content;
 }
 
 .toast {
@@ -358,3 +369,33 @@ html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
 
 /* La feuille reçoit le focus à l'ouverture (feuilles.js) pour que Tab parte d'elle : sans anneau, ce n'est pas une zone à désigner. */
 .sheet:focus { outline: none; }
+
+/* ---------- Focus au clavier ----------
+   Un seul anneau pour tout le carnet, dans sa palette. Les champs de recherche
+   portent le leur sur leur barre (.searchbar:focus-within), et les endroits qui
+   ont déjà le leur (cases des courses, cartes, feuilles) le gardent : leurs
+   règles, plus précises, passent avant celle-ci. */
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+/* Sur le vert profond fixe (mode cuisine, bulles de minuteur), le vert ordinaire
+   ne se voit plus : l'anneau y prend le doré des petits textes. */
+/* Ce que le code amène au focus (titre de page, feuille) n'est pas une cible à désigner. */
+[tabindex="-1"]:focus-visible { outline: none; }
+
+.cook :focus-visible, .timer-pill :focus-visible { outline-color: var(--or-sur-fond-vert); }
+
+/* ---------- Mouvement réduit ----------
+   Un filet pour tout le carnet, plutôt que des exceptions écran par écran :
+   plus d'entrée de page, de rebond ni de fondu. Durées ramenées à presque rien
+   (et non supprimées) pour que les « animationend » et « transitionend » que le
+   code attend arrivent tout de même. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
