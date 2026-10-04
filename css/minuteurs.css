@@ -39,6 +39,12 @@ body.cooking .timer-tray {
   flex: none;
   padding: 8px 0 0;
   z-index: auto;
+  /* À la ligne plutôt qu'à défiler : une bulle qui sonne ne doit jamais rester
+     cachée hors de l'écran. Au-delà de deux rangées, le plateau défile en hauteur. */
+  flex-wrap: wrap;
+  overflow-x: visible;
+  overflow-y: auto;
+  max-height: 124px;
 }
 
 body.cooking .timer-tray .timer-pill { max-width: 100%; }

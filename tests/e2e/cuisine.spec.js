@@ -443,3 +443,39 @@ test("375 px : aucun débordement horizontal, le plateau a sa place, zones de co
     expect(boite.width).toBeGreaterThanOrEqual(43.5);
   }
 });
+
+test("mode cuisine : toutes les bulles restent visibles, y compris celle qui sonne", async ({ page, context }) => {
+  const un = (id, step, label, delta) => ({
+    id, rid: "quiche-lorraine", mk: null, step, slot: null, label, emoji: "🥧",
+    end: Date.now() + delta, total: 10, fired: delta < 0
+  });
+  await preremplir(context, { carnet: { timers: [un("a", 1, "Pâte", 600000), un("b", 3, "Gratin", 900000), un("c", 4, "Prêt", -4000)] } });
+  await page.goto(CUISINE + "/0");
+  const pilules = page.locator("#timer-tray .timer-pill");
+  await expect(pilules).toHaveCount(3);
+  for (const p of await pilules.all()) {
+    const boite = await p.boundingBox();
+    expect(boite.x).toBeGreaterThanOrEqual(0);
+    expect(boite.x + boite.width).toBeLessThanOrEqual(390.5);
+  }
+  await expect(pilules.first()).toHaveClass(/done/);
+  await expect(pilules.first()).toBeInViewport();
+});
+
+test("page rouverte avec un minuteur : le premier toucher réveille le son", async ({ page, context }) => {
+  await context.addInitScript(() => {
+    window.__audio = [];
+    const Natif = window.AudioContext || window.webkitAudioContext;
+    class Espion extends Natif {
+      constructor(...a) { super(...a); window.__audio.push({ type: "create", geste: navigator.userActivation.isActive }); }
+    }
+    window.AudioContext = Espion;
+    window.webkitAudioContext = Espion;
+  });
+  await preremplir(context, { carnet: { timers: [{ id: "t1", rid: "quiche-lorraine", mk: null, step: 1, slot: null, label: "Pâte", emoji: "🥧", end: Date.now() + 600000, total: 10, fired: false }] } });
+  await page.goto("/#/recette/quiche-lorraine");
+  expect(await page.evaluate(() => window.__audio)).toEqual([]);
+  await page.locator("body").tap({ position: { x: 20, y: 300 } });
+  const journal = await page.evaluate(() => window.__audio);
+  expect(journal.some(e => e.type === "create" && e.geste), JSON.stringify(journal)).toBe(true);
+});

@@ -159,7 +159,9 @@ export function drawTray() {
   if (!tray) return;
   placerPlateau(tray);
   tray.hidden = !state.timers.length;
-  tray.innerHTML = state.timers.map(t => {
+  // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
+  const ordre = [...state.timers].sort((a, b) => estFini(b) - estFini(a));
+  tray.innerHTML = ordre.map(t => {
     const left = secondesRestantes(t);
     const done = estFini(t);
     const pause = t.reste != null;
@@ -325,6 +327,13 @@ export function arreterSonnerie(id) {
   sonneries.delete(id);
   majVerrou();
 }
+
+/* Page rouverte avec des minuteurs en route (iOS ferme volontiers une PWA) : aucun
+   toucher n'a encore réveillé le son. Le premier doigt posé sur l'écran s'en charge,
+   sans quoi la sonnerie resterait muette. */
+document.addEventListener("pointerdown", () => {
+  if (state.timers.length && (!ctxAudio || ctxAudio.state !== "running")) debloquerAudio();
+}, { passive: true });
 
 /* ---------- Au démarrage ----------
    Un minuteur déjà en route (page rouverte) a besoin du verrou dès le départ. */
