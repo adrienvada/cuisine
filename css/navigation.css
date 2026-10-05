@@ -10,8 +10,8 @@
 /* Posée et déplacée par transitions.js (translate, width, height en pixels) : elle glisse
    d'un onglet à l'autre avec le ressort, et une nouvelle destination la reprend là où elle
    est. Le fond de base.css (a.active) lui passe la main une fois qu'elle est en place. */
-.tabbar.avec-pastille .tab-pill {
-  display: block;
+.tab-pill {
+  display: none;
   position: absolute;
   left: 0;
   top: 0;
@@ -21,7 +21,9 @@
   transition: translate var(--ressort-duree) var(--ressort), width var(--d-moyenne) var(--e-sortie), height var(--d-moyenne) var(--e-sortie);
 }
 
-.tabbar.avec-pastille .tab-pill.sans-glisse { transition: none; }
+.tabbar.avec-pastille .tab-pill { display: block; }
+
+.tab-pill.sans-glisse { transition: none; }
 
 .tabbar.avec-pastille a { position: relative; }
 

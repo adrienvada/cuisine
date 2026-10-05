@@ -1,9 +1,7 @@
 /* Le routeur : l'adresse (#) dit quelle vue dessiner, et d'où l'on vient pour que les flèches de retour ne mentent pas. */
 
-import { save, state } from "../core/etat.js";
 import { chargerFondamentaux, fondById, fondRenames, fondamentauxCharges } from "../core/fonds.js";
 import { ICON } from "../core/icones.js";
-import { versionDeRequete } from "../core/liens.js";
 import { entreeCourante, entreeDe, setEntreeCourante } from "../core/menu.js";
 import { byId } from "../core/recettes.js";
 import { autoResumeStep } from "../core/seance.js";
@@ -130,15 +128,12 @@ export function retourVers(hash) {
   else allerEnRemplacant(hash);
 }
 
-/* Les transitions de vue sont jouées par js/ui/transitions.js (T), chargé après le premier
-   affichage avec css/navigation.css : hors du chemin de l'accueil. Tant qu'il manque, ou sans
-   l'API, une navigation échange la vue d'un coup. `vueAffichee` : l'adresse de la vue
-   réellement dessinée (une redirection ou un redessin sur place ne la changent pas). */
+/* Les transitions de vue : js/ui/transitions.js (T), chargé après le premier affichage ; sans
+   lui, ou sans l'API, la vue s'échange d'un coup. `vueAffichee` : l'adresse de la vue dessinée. */
 let T = null, ongletActuel = null, vueAffichee = null, imposee = null;
 
-/* preparerTransition({ type, origine }) — la prochaine navigation (elle seule) jouera cette
-   transition ("avant", "arriere", "onglet", "cuisine", "cuisine-sortie") depuis cette origine
-   ({ x, y } en pixels ; à défaut, le dernier élément activé). */
+/* preparerTransition({ type, origine }) — la prochaine navigation, elle seule, jouera cette
+   transition ("avant", "arriere", "onglet", "cuisine", "cuisine-sortie") depuis { x, y } (px). */
 export function preparerTransition({ type, origine } = {}) { imposee = { type, origine }; }
 
 /* L'onglet actif, pour l'œil (`active`) et pour les lecteurs d'écran
@@ -152,22 +147,6 @@ function marquerOnglet(nom) {
   });
   ongletActuel = nom;
   if (T) T.onglet(nom);   // la pastille glisse
-}
-
-/* Un lien partagé porte la version de la recette (`?p=8&c=…&a=…`) : elle
-   s'applique au brouillon de la fiche, jamais au menu — ouvrir un lien ne doit
-   pas modifier le repas en préparation. */
-function appliquerVersion(r, requete) {
-  const v = versionDeRequete(r, requete);
-  if (!Object.keys(v).length) return;
-  /* Le lien ne dit que l'écart aux valeurs par défaut : ce qu'il omet vaut le
-     défaut. On repart donc d'un brouillon vierge, sans quoi un réglage resté
-     d'une visite précédente fausserait la version reçue. */
-  delete state.portions[r.id]; delete state.choices[r.id]; delete state.addons[r.id];
-  if (v.portions != null) state.portions[r.id] = v.portions;
-  if (v.choices) state.choices[r.id] = v.choices;
-  if (v.addons) state.addons[r.id] = v.addons;
-  save();
 }
 
 /* Un numéro par appel : si l'adresse change pendant qu'un module ou les
@@ -284,33 +263,32 @@ export function route({ garderDefilement = false } = {}) {
   // Paramètres inconnus ou invalides : ignorés. Dans tous les cas l'adresse est nettoyée.
   if (parts[0] === "recette" && requete) {
     const r = byId(parts[1]);
-    if (r && parts[2] !== "m") appliquerVersion(r, requete);
+    // Un lien partagé porte la version de la recette : js/ui/lien-recu.js l'applique (chargé pour l'occasion seulement).
+    if (r && parts[2] !== "m") return import("./lien-recu.js").then(m => m.appliquerVersion(r, requete), () => {}).then(() => { if (numero === dessin) allerEnRemplacant(chemin); });
     return allerEnRemplacant(chemin);
   }
 
-  /* Ce que la route dessine : l'adresse où aller à la place (`aller`), ou l'onglet, le titre
-     et le dessin (`rendu`, qui n'écrit dans la page que quand on l'appelle : une transition
-     n'enveloppe que l'échange du DOM, jamais une redirection). */
-  const choisir = fondsOk => {
-    let titre = "Recettes", onglet = "home", rendu = renderHome;
+  const dessiner = fondsOk => {
+    let titre = "Recettes";
     if (parts[0] === "fondamental" && fondRenames()[parts[1]]) {
-      return { aller: `#/fondamental/${fondRenames()[parts[1]]}` };
+      return allerEnRemplacant(`#/fondamental/${fondRenames()[parts[1]]}`);
     }
     if (parts[0] === "fondamentaux" || (parts[0] === "fondamental" && (!fondsOk || fondById(parts[1])))) {
-      onglet = "fond";
+      marquerOnglet("fond");
       titre = parts[0] === "fondamental" && fondById(parts[1]) ? fondById(parts[1]).t : "Savoirs";
-      if (!fondsOk) rendu = () => afficherIndisponible("Les fondamentaux ne se sont pas chargés.");
-      else if (parts[0] === "fondamentaux") rendu = () => modules.savoirs.renderFondamentaux();
-      else rendu = () => modules.savoirs.renderFondamental(fondById(parts[1]));
+      if (!fondsOk) afficherIndisponible("Les fondamentaux ne se sont pas chargés.");
+      else if (parts[0] === "fondamentaux") modules.savoirs.renderFondamentaux();
+      else modules.savoirs.renderFondamental(fondById(parts[1]));
     } else if (parts[0] === "courses") {
-      onglet = "courses";
+      marquerOnglet("courses");
       titre = "Liste de courses";
-      rendu = () => modules.courses.renderCourses();
+      modules.courses.renderCourses();
     } else if (parts[0] === "menu") {
-      onglet = "menu";
+      marquerOnglet("menu");
       titre = "Au menu";
-      rendu = () => modules.menu.renderMenu();
+      modules.menu.renderMenu();
     } else if (parts[0] === "recette" && byId(parts[1])) {
+      marquerOnglet("home");
       const r = byId(parts[1]);
       titre = r.title;
       /* `#/recette/<id>/m/<clé>` : on édite l'entrée de menu plutôt que le
@@ -319,55 +297,51 @@ export function route({ garderDefilement = false } = {}) {
       let reste = parts.slice(2);
       if (reste[0] === "m") {
         const e = entreeDe(reste[1]);
-        if (!e || e.rid !== r.id) return { aller: `#/recette/${r.id}` };
+        if (!e || e.rid !== r.id) return allerEnRemplacant(`#/recette/${r.id}`);
         setEntreeCourante(e.k);
         reste = reste.slice(2);
       }
       const prefixe = entreeCourante() ? `#/recette/${r.id}/m/${entreeCourante()}` : `#/recette/${r.id}`;
       if (reste[0] === "cuisine") {
         titre = `Mode cuisine : ${r.title}`;
-        rendu = () => modules.cuisine.renderCook(r, reste[1]);
+        modules.cuisine.renderCook(r, reste[1]);
       } else {
         const step = autoResumeStep(r);
         // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
         // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
-        if (step != null) return { aller: `${prefixe}/cuisine/${step}` };
-        rendu = () => modules.fiche.renderRecipe(r);
+        if (step != null) return allerEnRemplacant(`${prefixe}/cuisine/${step}`);
+        modules.fiche.renderRecipe(r);
       }
+    } else {
+      marquerOnglet("home");
+      renderHome();
     }
-    return { onglet, titre, rendu };
+    window.scrollTo(0, garderDefilement ? defilement : retrouve);
+    updateBadge();
+    // Un redessin sur place (« Réessayer » après une page indisponible, par exemple) rend aussi son titre à la vue ; `arrivee` n'y vaut jamais vrai : pas de focus déplacé.
+    annoncerVue(titre, arrivee && !premierAffichage, garderDefilement);
+    // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
+    touche = false;
+    fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;
+    vueAffichee = chemin || "#/";
+    if (premierAffichage) {
+      premierAffichage = false;
+      demarrerChargementFonds();
+    }
   };
 
-  const dessiner = fondsOk => {
-    const c = choisir(fondsOk);
-    if (c.aller) return allerEnRemplacant(c.aller);
+  /* Le même dessin, dans une transition de vue s'il y en a une (jamais au premier affichage ni
+     sur place). Une redirection n'a rien changé à la page : on saute la transition. */
+  const dessinerAvecTransition = fondsOk => {
     const demandee = garderDefilement ? null : imposee;
     if (!garderDefilement) imposee = null;
-    /* L'échange du DOM, défilement compris, dans le même tour : à l'intérieur d'une
-       transition la nouvelle vue est prête (et à sa place : sinon la photo partagée volerait
-       vers un mauvais endroit) quand le navigateur en prend l'image. */
-    const echanger = () => {
-      if (numero !== dessin) return;
-      marquerOnglet(c.onglet);
-      c.rendu();
-      window.scrollTo(0, garderDefilement ? defilement : retrouve);
-      updateBadge();
-      // Un redessin sur place (« Réessayer » après une page indisponible, par exemple) rend aussi son titre à la vue ; `arrivee` n'y vaut jamais vrai : pas de focus déplacé.
-      annoncerVue(c.titre, arrivee && !premierAffichage, garderDefilement);
-      // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
-      touche = false;
-      fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;
-      vueAffichee = chemin || "#/";
-      if (premierAffichage) {
-        premierAffichage = false;
-        demarrerChargementFonds();
-      }
-    };
-    /* Jamais de transition au premier affichage ni pour un redessin sur place. */
     const plan = garderDefilement || premierAffichage || !T ? null : T.planifier({ de: vueAffichee, vers: chemin || "#/", nouvelle: arrivee, demandee });
-    const fait = plan && T.jouer(plan, echanger);
-    if (fait) return fait;
-    echanger();
+    const echanger = () => {
+      if (numero === dessin) dessiner(fondsOk);
+      if (remplacement) imposee = demandee;
+      return !remplacement;
+    };
+    return (plan && T.jouer(plan, echanger)) || void echanger();
   };
 
   /* Les modules dont la vue a besoin : le premier affichage de chaque route les
@@ -388,7 +362,7 @@ export function route({ garderDefilement = false } = {}) {
   /* Les feuilles de style de ces vues viennent avec leurs modules : index.html n'en porte plus aucune. */
   const feuilles = feuillesDes(noms);
   const scripts = scriptsDes(noms);
-  if (fondsLa && noms.every(n => modules[n]) && stylesDejaPrets(feuilles) && scripts.every(scriptCharge)) return dessiner(true);
+  if (fondsLa && noms.every(n => modules[n]) && stylesDejaPrets(feuilles) && scripts.every(scriptCharge)) return dessinerAvecTransition(true);
 
   if (besoinFonds && !fondsLa && !recette) afficherAttenteSavoirs();
   const fonds = fondsLa ? Promise.resolve(true) : chargerFondamentaux().then(() => true, () => false);
@@ -399,6 +373,6 @@ export function route({ garderDefilement = false } = {}) {
   return Promise.all([vue, fondsOuDelai]).then(([vueOk, fondsOk]) => {
     if (numero !== dessin) return;
     if (!vueOk) return afficherIndisponible("Cette page ne s'est pas chargée.");
-    dessiner(fondsOk);
+    dessinerAvecTransition(fondsOk);
   });
 }

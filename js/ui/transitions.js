@@ -95,7 +95,7 @@ const effacerNoms = () => { nommees.forEach(e => { e.style.viewTransitionName = 
 let jeton = 0;
 
 /* jouer({ type, origine, photo: { id, cible } }, rendre) — échange le DOM par `rendre()` à
-   l'intérieur d'une transition de vue. `type` va sur <html data-vt>, `origine` ({ x, y })
+   l'intérieur d'une transition de vue (si `rendre()` rend false, rien n'a changé : on la saute). `type` va sur <html data-vt>, `origine` ({ x, y })
    dans --vt-x / --vt-y, avant tout. `photo.id` est la recette dont la photo voyage : on
    nomme sa photo visible dans la vue qu'on quitte (celle que `cible`, l'élément touché, désigne
    s'il y en a deux) et, une fois la nouvelle dessinée, la sienne. Rend la promesse de
@@ -117,7 +117,8 @@ export function jouer({ type, origine, photo }, rendre) {
   let t;
   try {
     t = document.startViewTransition(() => {
-      rendre();
+      // Une vue qui n'a rien changé (une redirection) : la transition n'a rien à montrer.
+      if (rendre() === false) return t.skipTransition();
       if (photo) nommer(photoDe(document, photo.id, null));
     });
   } catch {
@@ -142,8 +143,18 @@ export function jouer({ type, origine, photo }, rendre) {
 /* ---------- La barre d'onglets ---------- */
 
 const barre = typeof document !== "undefined" ? document.querySelector(".tabbar") : null;
-const pastille = barre && barre.querySelector(".tab-pill");
-let actif = null;
+let pastille = null, actif = null;
+
+/* La pastille (décor, cachée des lecteurs d'écran) est créée une fois la feuille de style
+   là : avant, elle serait un enfant de plus de la barre et la ferait bouger. */
+pret.then(() => {
+  if (!barre) return;
+  pastille = document.createElement("span");
+  pastille.className = "tab-pill";
+  pastille.setAttribute("aria-hidden", "true");
+  barre.prepend(pastille);
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => placer(true)).observe(barre);
+});
 
 /* La pastille est placée sur l'onglet actif en pixels (translate) et glisse d'un onglet
    à l'autre par une transition CSS à ressort : interruptible, sans module de mouvement. */
@@ -179,8 +190,6 @@ export function onglet(nom, { anime = true } = {}) {
   }
   actif = nom;
 }
-
-if (pastille && typeof ResizeObserver === "function") new ResizeObserver(() => placer(true)).observe(barre);
 
 /* Le mouvement des messages et des pastilles (gestes, chiffres qui roulent) arrive au repos,
    après la feuille de style, jamais sur le chemin de l'accueil. <html data-nav-pret> dit que

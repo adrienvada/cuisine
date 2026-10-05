@@ -127,16 +127,16 @@ test("base.css : le toast arrive à ressort et repart plus vite qu'il n'arrive",
 
 /* ---------- Hors du chemin de l'accueil ---------- */
 
-test("le chemin de l'accueil n'emporte ni les transitions, ni le message lui-même, ni son mouvement, ni le geste des feuilles", () => {
+test("le chemin de l'accueil n'emporte ni les transitions, ni le mouvement des messages, ni le geste des feuilles", () => {
   const graphe = grapheStatique(racine, "js/main.js");
-  for (const m of ["js/ui/transitions.js", "js/ui/toast-corps.js", "js/ui/toast-mouvement.js", "js/ui/feuilles-geste.js", "js/core/sens.js", "js/ui/mouvement.js", "js/ui/geste.js"]) {
+  for (const m of ["js/ui/transitions.js", "js/ui/toast-mouvement.js", "js/ui/feuilles-geste.js", "js/core/sens.js", "js/ui/mouvement.js", "js/ui/geste.js"]) {
     assert.ok(!graphe.includes(m), `${m} ne doit pas être importé statiquement`);
   }
   assert.doesNotMatch(lire("index.html"), /navigation\.css"[^>]*>(?![\s\S]*<\/noscript>)/, "navigation.css n'est dans la page que pour le repli sans JavaScript");
 });
 
 test("le routeur, les messages et les feuilles chargent leur mouvement par import(), jamais en tête de module", () => {
-  for (const [f, cible] of [["js/ui/routeur.js", "transitions"], ["js/ui/toast.js", "toast-corps"], ["js/ui/toast-corps.js", "toast-mouvement"], ["js/ui/feuilles.js", "feuilles-geste"]]) {
+  for (const [f, cible] of [["js/ui/routeur.js", "transitions"], ["js/ui/toast.js", "toast-mouvement"], ["js/ui/feuilles.js", "feuilles-geste"]]) {
     const src = sansCommentaires(lire(f));
     assert.match(src, new RegExp(`import\\("\\./${cible}\\.js"\\)`), f);
     assert.doesNotMatch(src, new RegExp(`^import[^\\n]*${cible}`, "m"), f);
@@ -147,12 +147,15 @@ test("le routeur garde son contrat : preparerTransition, premier affichage sans 
   const src = sansCommentaires(lire("js/ui/routeur.js"));
   assert.match(src, /export function preparerTransition\(/);
   assert.match(src, /garderDefilement \|\| premierAffichage \|\| !T \? null/);
+  assert.match(src, /if \(remplacement\) imposee = demandee/);
   assert.match(src, /classList\.toggle\("premier-affichage"/);
   assert.match(src, /feuillesDes\(noms\)/);
 });
 
-test("la barre d'onglets porte sa pastille, décor caché des lecteurs d'écran", () => {
-  assert.match(lire("index.html"), /<nav class="tabbar"[^>]*>\s*(?:<!--[\s\S]*?-->\s*)?<span class="tab-pill" aria-hidden="true"><\/span>/);
+test("la pastille d'onglet est créée par transitions.js une fois la feuille là (décor caché des lecteurs d'écran), jamais dans la page", () => {
+  assert.doesNotMatch(lire("index.html"), /tab-pill/);
+  const src = sansCommentaires(lire("js/ui/transitions.js"));
+  assert.match(src, /pret\.then\(\(\) => \{[\s\S]*?className = "tab-pill"[\s\S]*?setAttribute\("aria-hidden", "true"\)[\s\S]*?barre\.prepend/);
 });
 
 test("les feuilles ouvertes en sortie ne comptent plus comme ouvertes (feuilleOuverte), et quittent l'arbre d'accessibilité dès le début", () => {

@@ -201,10 +201,8 @@ a { color: var(--green); }
   .tabbar { gap: 4px; padding-left: 8px; padding-right: 8px; }
 }
 
-/* Sa pastille (.tab-pill, navigation.css) prend le fond quand elle est posée. */
+/* Sa pastille qui glisse (navigation.css) prend le fond quand elle est posée. */
 .tabbar a.active { color: var(--green-deep); background: var(--green-tint); }
-
-.tab-pill { display: none; }
 
 .cart-wrap { position: relative; display: inline-flex; }
 
