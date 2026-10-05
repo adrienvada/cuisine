@@ -7,6 +7,7 @@
     "pages": "node tools/generer-pages-partage.mjs",
     "sw": "node tools/version-sw.mjs",
     "mesurer": "node tools/mesurer-accueil.mjs",
+    "polices": "node tools/polices.mjs",
     "vignettes": "node tools/generer-vignettes.mjs",
     "test": "node --test \"tests/unit/**/*.test.mjs\"",
     "test:e2e": "playwright test"

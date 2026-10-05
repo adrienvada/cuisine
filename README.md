@@ -198,9 +198,42 @@ L'appli s'ouvre depuis le cache, sans attendre le réseau ([`sw.js`](sw.js)) :
 - les pages d'aperçu `r/` et `f/` : réseau d'abord, mais 3 s au plus, puis le cache ;
 - seules les réponses « ok » sont mises en cache.
 
-**La version du cache est automatique.** `npm run sw` ([`tools/version-sw.mjs`](tools/version-sw.mjs)) liste tous les fichiers de l'appli et écrit dans `sw.js` la liste `CORE` et une `VERSION` dérivée de leur contenu : plus de « Bump cache version » à faire à la main. À relancer après toute modification d'un fichier de l'appli (page, style, module, donnée, vignette) et à committer avec : la CI lance l'outil puis `git diff --exit-code sw.js index.html`, elle échoue donc si `sw.js` ou `index.html` n'est pas à jour. L'outil écrit aussi dans `index.html`, entre repères, le bloc `modulepreload` (le graphe des imports **statiques** de `js/main.js`, calculé par [`tools/graphe-modules.mjs`](tools/graphe-modules.mjs) : un module ajouté change le bloc, les `import()` dynamiques n'y figurent pas) et le préchargement des quatre premières vignettes de l'accueil. Ne jamais modifier à la main le bloc entre les repères `>>>` et `<<<`.
+**La version du cache est automatique.** `npm run sw` ([`tools/version-sw.mjs`](tools/version-sw.mjs)) liste tous les fichiers de l'appli et écrit dans `sw.js` la liste `CORE` et une `VERSION` dérivée de leur contenu : plus de « Bump cache version » à faire à la main. À relancer après toute modification d'un fichier de l'appli (page, style, module, donnée, vignette) et à committer avec : la CI lance l'outil puis `git diff --exit-code sw.js index.html`, elle échoue donc si `sw.js` ou `index.html` n'est pas à jour. L'outil écrit aussi dans `index.html`, entre repères, le bloc `modulepreload` (le graphe des imports **statiques** de `js/main.js`, calculé par [`tools/graphe-modules.mjs`](tools/graphe-modules.mjs) : un module ajouté change le bloc, les `import()` dynamiques n'y figurent pas) et le préchargement de la première vignette de l'accueil (celle qui fait le LCP). Ne jamais modifier à la main le bloc entre les repères `>>>` et `<<<`.
 
 **Mises à jour.** Une nouvelle version s'installe en coulisse puis attend ; l'appli affiche « Nouvelle version — Recharger » ([`js/ui/miseajour.js`](js/ui/miseajour.js)). Le bouton active la nouvelle version (`skipWaiting`) et recharge dès qu'elle contrôle la page.
+
+## Performance
+
+Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télécharge et s'exécute avant que la première carte de l'accueil soit peinte (le **chemin de l'accueil**) est compté.
+
+**Mesurer.** `npm run mesurer` ([`tools/mesurer-accueil.mjs`](tools/mesurer-accueil.mjs)) lance un serveur local HTTP/2 + gzip (comme GitHub Pages, `cache-control: max-age=600` ; certificat autosigné fabriqué à l'exécution par openssl dans un dossier temporaire, jamais committé ; ports 4561 à 4569) et Chromium de Playwright, profil toujours le même : 390×844 @2x, cache vide, service worker bloqué, 150 ms de latence, 1,6 Mbit/s descendant, 750 kbit/s montant, processeur ×4. Toute requête hors de localhost est introuvable (le serveur de synchro réel n'est jamais appelé). Sept passages par défaut, médiane et étendue de : FCP, **cartes** (Element Timing du titre de la première carte), **LCP** (temps et élément), CLS, octets transférés avant les cartes, requêtes, temps de script (longues tâches) avant les cartes. Options : `--retour` (retour à l'accueil depuis une fiche, tout en cache), `--sw` (seconde visite, service worker actif), `--detail` (les requêtes du dernier passage), `--racine <dossier>` (mesurer une autre copie, pour comparer avec un ancien commit), `--passages <n>`, `--json`. Les chiffres bougent d'une machine à l'autre et d'une minute à l'autre quand elle est partagée : on compare deux mesures faites l'une après l'autre sur la même machine, jamais à un chiffre absolu.
+
+| Médiane de 7 passages, même machine | avant (ad67ed3) | après |
+|---|---|---|
+| Cartes dessinées | 2 612 ms | 1 728 ms (1 548 ms à la meilleure série) |
+| LCP (première photo) | 2 612 ms | 1 740 ms |
+| CLS | 0 | 0 |
+| Octets avant les cartes | 327,7 Ko | 171,2 Ko |
+| Requêtes avant les cartes | 56 | 42 |
+| Temps de script avant les cartes | 389 ms | 233 ms |
+| Retour à l'accueil depuis une fiche (processeur ×4, en cache) | 93 ms | 102 ms (bruit : de 56 à 172 ms avant, de 62 à 125 ms après) |
+| Seconde visite, service worker actif : cartes | 904 ms | 672 ms |
+
+**Ce qui a gagné** (chaque poste a été mesuré seul) : les polices servies sont des sous-ensembles (`npm run polices`, voir plus bas) et seules deux sont préchargées, 31 Ko au lieu de 112 Ko ; les cinq feuilles des vues (13,5 Ko) ne se téléchargent plus au démarrage ; `substitutions.js` et `sync-config.js` ne se chargent qu'au besoin ; le graphe de modules de `js/main.js` perd les minuteurs, le partage, le calcul du rétroplanning, la feuille des réglages et la synchro (25 modules au lieu de 28, 61,6 Ko gzip au lieu de 79,4 Ko) ; une seule vignette est préchargée (celle du LCP) ; l'accueil ne se redessine plus à l'arrivée des fondamentaux (les cartes ne sont plus détachées puis rattachées : c'était le « candidat LCP qui disparaît ») ; le tout premier dessin ne se fond pas (0,22 s de page vide en moins).
+
+**Ce qui n'a pas gagné, abandonné.** `content-visibility: auto` sur les cartes : aucun écart mesurable (20 cartes), et un risque de saut de défilement (hauteurs variables). Ne pas précharger Cormorant : 160 ms de gagnés, mais les titres des cartes s'écrivent d'abord en Georgia puis sautent (CLS 0,0017) : gardé préchargé. Sous-ensemble du Caveat du bandeau « à part » étendu à Savoirs : les glyphes de Caveat dépendent des lettres voisines, un mot écrit moitié dans un fichier moitié dans l'autre change de forme ; « Caveat Titre » est donc réservé au bandeau de l'accueil (`.masthead-accueil`).
+
+**Polices.** `node tools/polices.mjs` fabrique `fonts/` et `css/polices.css` à partir des polices d'origine rangées dans `tools/sources-polices/` (devDependency d'outillage : `subset-font`). Le jeu de caractères est celui du français et de sa typographie, plus tout caractère qui apparaît dans le code, les recettes et les fondamentaux et que la police d'origine sait dessiner. **À relancer après avoir écrit un caractère nouveau** (un test le dit) : un caractère hors du jeu s'écrit dans la police de secours du système. Caveat Titre (les seuls glyphes de « Cuisine d'Evadri ») est en `font-display: block`, préchargée : le bandeau attend quelques dizaines de millisecondes plutôt que de s'écrire en écriture de secours puis de sauter.
+
+**Ce qui a le droit d'entrer sur le chemin de l'accueil.** Rien de ce qui n'est pas dessiné ou utilisable dans le premier écran de l'accueil. Concrètement, et vérifié par `tests/unit/v3-chemin-critique.test.mjs` et `tests/e2e/v3-chemin-critique.spec.js` :
+
+- le graphe d'imports **statiques** de `js/main.js` n'emporte aucun module de vue, ni `ui/minuteurs.js`, `ui/partage.js`, `vues/reglages.js`, `sync.js`, `core/planning.js`, `core/cuisine.js` : tout cela s'importe au moment du besoin (`import()`), avec un état d'attente si un geste le précède (Réglages : `aria-busy` ; partage : le premier appui attend le module) et un message plus un réessai (adresse neuve) s'il ne vient pas ;
+- `index.html` ne charge que cinq scripts classiques (`recipes`, `placard`, `allergenes`, `saisons`, `illos`) ; un autre se déclare dans `js/ui/scripts.js` avec le module qui s'en sert ;
+- aucune feuille de vue dans `index.html` (hors repli `<noscript>`) : `js/ui/styles.js` les demande avec le module de la vue, et le carnet les pose au repos après le premier affichage ;
+- deux polices préchargées au plus, une vignette ;
+- la synchro, le service worker, les feuilles et les modules reportés partent après le premier affichage, jamais avant.
+
+**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 171 Ko. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
 
 ## Développement
 
@@ -218,7 +251,7 @@ css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignet
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/minuteurs.css       Plateau des bulles de minuteur
 css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
-  (les feuilles qui suivent sont celles des vues chargées à la demande : index.html les charge sans bloquer le premier rendu — <link data-vue media="print" onload="this.media='all'"> — et js/ui/styles.js fait attendre le routeur)
+  (les feuilles qui suivent sont celles des vues chargées à la demande : elles ne sont plus dans index.html, hors du repli <noscript> ; le routeur les demande avec le module de la vue, à leur place dans la cascade, et js/ui/styles.js le fait attendre)
 css/cuisine.css         Mode cuisine plein écran
 css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
@@ -235,7 +268,7 @@ js/substitutions.js     Données : remplacements d'ingrédients et ce qu'ils cha
 js/sync-config.js       Données : l'adresse de la base de synchro
   (ces fichiers de données sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
 
-js/main.js              Démarrage : migrations, écouteurs globaux, première vue, minuteurs ; la synchro et le service worker viennent après le premier affichage
+js/main.js              Démarrage : migrations, écouteurs globaux, première vue ; minuteurs (si l'un tourne), réglages, partage, synchro et service worker viennent après le premier affichage
 js/sync.js              Synchronisation entre appareils (Supabase REST + canal Realtime), chargée après le premier affichage
 js/vendor/qrcode-generator.js   Bibliothèque de QR code (MIT), chargée avec les réglages
 
@@ -263,7 +296,8 @@ js/ui/focus.js          garderFocus() : le focus clavier à travers un redessin
 js/ui/typo.js           Typographie française de tout ce qui s'affiche (espaces insécables), par typo() de core/format.js
 js/ui/feuilles.js       Feuilles qui montent du bas, liées au geste de retour ; seul endroit où vivent Échap, le piège à focus et le retour du focus ; confirmer()
 js/ui/routeur.js        Le routeur (#), les flèches de retour, le chargement des vues à la demande (import())
-js/ui/styles.js         Attente des feuilles de style non bloquantes des vues
+js/ui/styles.js         Les feuilles de style des vues hors accueil : demandées avec leur module, posées au repos, attendues par le routeur
+js/ui/scripts.js        Les scripts classiques que l'accueil n'utilise pas (substitutions, sync-config), chargés au moment du besoin
 js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
@@ -280,9 +314,13 @@ js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
 js/vues/journal.js      Journal des recettes cuisinées : feuille d'ajout, photos (IndexedDB), liste
-js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import
+js/vues/reglages-entree.js  Ce que l'accueil sait des réglages sans charger la feuille : le bouton et son point d'état, la demande de persistance
+js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import (module reporté : main.js le tire après le premier affichage ou au premier appui)
 
 tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker
+tools/mesurer-accueil.mjs   Mesure du chemin vers l'accueil (voir « Performance »)
+tools/polices.mjs       Sous-ensembles des polices (fonts/, css/polices.css) à partir de tools/sources-polices/ (polices d'origine, non servies)
+tools/sources-polices/caveat.woff2, tools/sources-polices/cormorant.woff2, tools/sources-polices/cormorant-italique.woff2   Les polices d'origine (hors de fonts/ : le service worker ne les précache pas)
 tests/                  Tests unitaires (unit/) et de bout en bout (e2e/), serveur de test, page de la voix (fixtures/)
 ```
 
