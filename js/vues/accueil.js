@@ -18,11 +18,11 @@ import {
 import { FILTRES, catalogueJai, estDeSaison, foinDe, motsDe, scoreJai, trouve } from "../core/recherche.js";
 import { annoncer } from "../ui/annonces.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
-import { onShareClick } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { REDUCE_MOTION } from "../ui/theme.js";
+import { toast } from "../ui/toast.js";
 import { visuel } from "../ui/visuel.js";
-import { boutonReglages } from "./reglages.js";
+import { boutonReglages } from "./reglages-entree.js";
 
 /* Pastille « Découverte à… » — facultative, cf. l'en-tête de recipes.js */
 export function discoveredHtml(r) {
@@ -73,7 +73,7 @@ export function renderHome() {
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   calculerFoins();
   app.innerHTML = `
-    <header class="masthead fade-in">
+    <header class="masthead masthead-accueil fade-in">
       ${boutonReglages()}
       <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
@@ -129,8 +129,29 @@ export function renderHome() {
   });
   document.getElementById("jai-ouvrir").addEventListener("click", ouvrirJai);
   document.getElementById("jai-efface").addEventListener("click", () => { jai.clear(); majJai(); applyFilter(true); });
-  document.getElementById("grid").addEventListener("click", onShareClick);
+  document.getElementById("grid").addEventListener("click", partagerDepuisCarte);
   applyFilter(false);
+}
+
+/* Le module de partage (avec le calcul qu'il emporte) ne vient pas avec l'accueil :
+   main.js le tire dès le premier affichage passé, et le premier appui qui le trouve
+   déjà là partage dans le même tour (navigator.share exige le geste de l'utilisateur,
+   que les navigateurs ne gardent pas toujours à travers un import). */
+let partage = null;
+let echecsPartage = 0;
+/* Un import() échoué reste échoué pour la même adresse : le nouvel essai en demande une neuve. */
+export const preparerPartage = () => import("../ui/partage.js" + (echecsPartage ? `?essai=${echecsPartage}` : ""))
+  .then(m => (partage = m), e => { echecsPartage++; throw e; });
+
+/* Posé sur une vignette, le bouton partager ne doit pas ouvrir la recette. */
+function partagerDepuisCarte(e) {
+  const b = e.target.closest("[data-share]");
+  if (!b) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const partager = m => m.shareRecipe(b.dataset.share, b.dataset.shareK);
+  if (partage) partager(partage);
+  else preparerPartage().then(partager, () => toast("Le partage ne s'est pas chargé"));
 }
 
 function rebondir(b) {
@@ -265,7 +286,7 @@ function cardHtml(r) {
         <span class="card-jai" hidden></span>
       </div>
       <div class="body">
-        <h3><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
+        <h3 elementtiming="carte-titre"><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
         ${v || c.count ? `<div class="tagrow">
           ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
           ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
@@ -310,6 +331,21 @@ function finishLeave(el) {
   el.classList.add("gone");
 }
 
+/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal
+   placées. Tout ré-attacher (appendChild de chacune) coûte une mise en page, et
+   détache les vignettes : le navigateur oublie celle qu'il comptait pour le plus grand
+   élément peint, et le fondu d'une carte déjà là repartirait. Au premier dessin comme à
+   l'arrivée des fondamentaux (rafraichirFoins), l'ordre est déjà le bon : rien ne bouge. */
+function ordonner(grid, voulues) {
+  let suivante = grid.firstElementChild;
+  for (const el of voulues) {
+    if (el === suivante) suivante = suivante.nextElementSibling;
+    else grid.insertBefore(el, suivante);
+  }
+  const vide = grid.querySelector(".grid-empty");
+  if (grid.lastElementChild !== vide) grid.appendChild(vide);
+}
+
 /* Filtre la grille façon FLIP : les cartes écartées s'estompent sur place,
    les survivantes glissent vers leur nouvelle position, les entrantes
    apparaissent en fondu. Aucune reconstruction du DOM. */
@@ -344,8 +380,7 @@ function applyFilter(animate) {
 
   if (!animate || REDUCE_MOTION.matches) {
     for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
-    for (const el of wanted) grid.appendChild(el);
-    grid.appendChild(grid.querySelector(".grid-empty"));
+    ordonner(grid, wanted);
     return;
   }
 
@@ -379,8 +414,7 @@ function applyFilter(animate) {
   }
 
   /* Ordre cible (le tri des coups de cœur déplace aussi les survivantes) */
-  for (const el of wanted) grid.appendChild(el);
-  grid.appendChild(grid.querySelector(".grid-empty"));
+  ordonner(grid, wanted);
 
   /* LAST + INVERT — chaque survivante repart de son ancienne position… */
   const movers = [];

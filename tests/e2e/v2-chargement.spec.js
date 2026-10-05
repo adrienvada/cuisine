@@ -7,37 +7,37 @@ import { serveurDeuxVersions } from "./outils-images.js";
 const URL_VIGNETTE = /\/img\/v\/[^/]+\.webp$/;
 
 test.describe("feuilles CSS", () => {
-  test("celles des vues se chargent sans bloquer, puis s'appliquent toutes", async ({ page }) => {
+  test("celles des vues ne sont pas dans la page : elles se posent au repos, puis s'appliquent toutes", async ({ page }) => {
     await page.goto("/");
     const liens = page.locator("link[rel=stylesheet][data-vue]");
-    expect(await liens.count()).toBe(5);
-    await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.media))).toEqual(Array(5).fill("all"));
+    await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.getAttribute("href").split("/").pop()).sort()))
+      .toEqual(["courses.css", "cuisine.css", "journal.css", "menu.css", "savoirs.css"]);
+    await expect.poll(() => liens.evaluateAll(ls => ls.every(l => l.media === "" || l.media === "all"))).toBe(true);
     // Toutes les règles sont bien là : celles des vues comme celles de l'accueil.
-    const sheets = await page.evaluate(() => [...document.styleSheets].map(s => s.href.split("/").pop() + ":" + (s.cssRules.length > 0)));
-    expect(sheets.filter(s => s.endsWith(":false"))).toEqual([]);
+    await expect.poll(() => page.evaluate(() => [...document.styleSheets].filter(s => s.href && s.cssRules.length === 0).length)).toBe(0);
   });
 
   test("lien profond : la fiche n'apparaît pas sans style", async ({ page }) => {
     await page.goto("/#/recette/quiche-lorraine");
     await expect(page.locator("h1")).toBeVisible();
-    await expect.poll(() => page.locator("link[data-vue]").evaluateAll(ls => ls.every(l => l.media === "all"))).toBe(true);
     // Le héros est dessiné par fiche.css : 240 px de haut, pas la hauteur d'une image nue.
     expect(await page.locator(".hero .visual").evaluate(e => e.getBoundingClientRect().height)).toBe(240);
+    // Les feuilles de la fiche (savoirs, journal) étaient là avant son dessin.
+    expect(await page.evaluate(() => ["savoirs.css", "journal.css"].every(n => [...document.styleSheets].some(s => s.href && s.href.endsWith(n) && s.cssRules.length > 0)))).toBe(true);
   });
 
   test("les vues hors accueil sont stylées : menu, courses, savoirs, cuisine", async ({ page }) => {
     await page.goto("/");
-    await expect.poll(() => page.locator("link[data-vue]").evaluateAll(ls => ls.every(l => l.media === "all"))).toBe(true);
     for (const [route, regle] of [["#/menu", "menu.css"], ["#/courses", "courses.css"], ["#/fondamentaux", "savoirs.css"], ["#/recette/quiche-lorraine/cuisine/0", "cuisine.css"]]) {
       await page.evaluate(r => { location.hash = r; }, route);
       await expect(page.locator("#app > *").first()).toBeVisible();
-      expect(await page.evaluate(n => [...document.styleSheets].some(s => s.href.endsWith(n) && s.cssRules.length > 0), regle)).toBe(true);
+      expect(await page.evaluate(n => [...document.styleSheets].some(s => s.href && s.href.endsWith(n) && s.cssRules.length > 0), regle)).toBe(true);
     }
   });
 });
 
 test.describe("vignettes de l'accueil", () => {
-  test("les premières sont demandées avant même que main.js ait répondu", async ({ page }) => {
+  test("la première est demandée avant même que main.js ait répondu", async ({ page }) => {
     const vues = [];
     let mainRepondu = 0;
     await page.route("**/js/main.js", async route => {
@@ -49,10 +49,10 @@ test.describe("vignettes de l'accueil", () => {
     await page.goto("/");
     await expect(page.locator(".card").first()).toBeVisible();
     const avant = vues.filter(v => v.t < mainRepondu);
-    expect(avant.length).toBe(4);
-    // Les mêmes que celles des quatre premières cartes : rien de gaspillé.
-    const cartes = await page.locator(".card .visual img").evaluateAll(is => is.slice(0, 4).map(i => i.src));
-    expect(avant.map(v => v.url).sort()).toEqual(cartes.sort());
+    expect(avant.length).toBe(1);
+    // C'est celle de la première carte : la plus grande du premier écran, donc le LCP.
+    const premiere = await page.locator(".card .visual img").first().evaluate(i => i.src);
+    expect(avant[0].url).toBe(premiere);
   });
 });
 

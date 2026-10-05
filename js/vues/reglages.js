@@ -7,73 +7,33 @@ import {
   apercu, contenuExport, instantane, lireSauvegarde, nomFichier, remplacerEtat, restaurerEtat
 } from "../core/sauvegarde.js";
 import { confirmer, fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { chargerSync } from "../ui/scripts.js";
 import { route } from "../ui/routeur.js";
 import { choisirTheme, modeTheme } from "../ui/theme.js";
 import { toast, updateBadge } from "../ui/toast.js";
-
-const ICONE_REGLAGES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="9" cy="17" r="2"/></svg>';
-
-const ETATS = {
-  off: "Pas connecté",
-  attente: "Connexion…",
-  ok: "Connecté",
-  hors: "Hors ligne"
-};
+import { ETATS, majPoints } from "./reglages-entree.js";
 
 /* ---------- La synchro, vue d'ici ---------- */
 
-/* sync.js est importé à la demande, et sa présence vérifiée : le carnet doit
+/* sync.js (avec sa configuration) est chargé à la demande, et sa présence vérifiée : le carnet doit
    rester utilisable si le module manque ou n'expose pas l'interface attendue. */
 let promesseSync = null;
 export function synchro() {
-  promesseSync ??= import("../sync.js").then(m => m.carnetSync || null).catch(() => null);
+  promesseSync ??= chargerSync().then(m => m.carnetSync || null).catch(() => null);
   return promesseSync;
 }
 
 const disponible = cs => !!cs && (typeof cs.disponible === "function" ? cs.disponible() : cs.disponible);
 
-let etatSync = "off";
-
-/* Le point de couleur du bouton : vert connecté, doré hors ligne, rien sinon. */
-function majPoints(etat) {
-  etatSync = etat in ETATS ? etat : "off";
-  document.querySelectorAll("[data-reglages]").forEach(b => {
-    b.dataset.sync = etatSync;
-    b.setAttribute("aria-label", libelleBouton());
-  });
-}
-
-const libelleBouton = () =>
-  etatSync === "off" ? "Réglages" : `Réglages — carnet partagé : ${ETATS[etatSync].toLowerCase()}`;
-
-/* À glisser dans l'en-tête de l'accueil : il défile avec la page. */
-export function boutonReglages() {
-  return html`<button type="button" class="reglages-btn" data-reglages data-sync="${etatSync}" aria-label="${libelleBouton()}">${raw(ICONE_REGLAGES)}<span class="reglages-point" aria-hidden="true"></span></button>`;
-}
-
-/* Appelée une fois par main.js. */
+/* Appelée une fois par main.js, après le premier affichage : le point de couleur
+   du bouton suit l'état de la synchro. L'ouverture de la feuille, elle, est
+   branchée par main.js dès le départ (le module n'est peut-être pas encore là). */
 export function initialiserReglages() {
-  document.addEventListener("click", e => {
-    if (e.target.closest("[data-reglages]")) ouvrirReglages();
-  });
-  demanderPersistance();
   synchro().then(cs => {
     if (!disponible(cs)) return;
     majPoints(cs.etat());
     cs.surEtat(() => majPoints(cs.etat()));
   });
-}
-
-/* Le navigateur peut vider les données d'un site quand l'appareil manque de
-   place ; sans cette demande, un carnet non synchronisé serait le premier à
-   partir. Une seule fois, pour tout le monde : la synchro n'est plus la seule
-   à y tenir. */
-function demanderPersistance() {
-  const appareil = (state.reglages ??= {});
-  if (appareil.persistanceDemandee) return;
-  appareil.persistanceDemandee = true;
-  save();
-  try { navigator.storage?.persist?.(); } catch {}
 }
 
 /* ---------- La feuille ---------- */

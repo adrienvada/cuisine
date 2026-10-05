@@ -75,8 +75,8 @@ test("chargement : naviguer pendant le chargement d'une vue ne dessine jamais la
   await expect(page.locator("h1")).toHaveText("Liste de courses");
 });
 
-test("chargement : une vue attend ses feuilles de style non bloquantes", async ({ page }) => {
-  await indexAllege(page, { feuilles: ["menu"] });
+test("chargement : une vue attend sa feuille de style, qui vient avec son module", async ({ page }) => {
+  await indexAllege(page);
   await page.route("**/css/menu.css", async route => {
     await new Promise(r => setTimeout(r, 900));
     await route.continue();
@@ -85,7 +85,7 @@ test("chargement : une vue attend ses feuilles de style non bloquantes", async (
   await expect(page.locator(CARTES)).toHaveCount(20);
   await page.evaluate(() => { location.hash = "#/menu"; });
   await expect(page.locator("h1")).toHaveText("Au menu");
-  expect(await page.evaluate(() => document.querySelector('link[href="css/menu.css"]').media)).toBe("all");
+  expect(await page.evaluate(() => { const l = document.querySelector('link[href="css/menu.css"]'); return l.media + ":" + !!l.sheet; })).toBe(":true");
 });
 
 /* ---------- n° 52 : titre et focus ---------- */

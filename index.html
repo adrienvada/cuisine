@@ -27,26 +27,21 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Cuisine">
-  <link rel="preload" as="font" type="font/woff2" href="fonts/caveat.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/caveat-titre.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="fonts/cormorant.woff2" crossorigin>
   <!-- Bloquantes : ce que l'accueil dessine (polices, base avec la barre d'onglets,
        les feuilles et les toasts, accueil, fiche dont il emprunte les étiquettes des
        cartes), le plateau de minuteurs, visible dès l'ouverture quand un minuteur
-       court, et le bouton des réglages de l'en-tête. Les autres feuilles (une vue
-       chacune) se chargent sans bloquer le premier rendu : media="print" les met de
-       côté, onload les applique. Le routeur attend celles de data-vue avant de
-       dessiner une autre vue que l'accueil (js/ui/styles.js). L'ordre des liens
-       reste celui d'origine : la cascade ne change pas. -->
+       court, et le bouton des réglages de l'en-tête. Les feuilles des autres vues
+       (cuisine, menu, courses, savoirs, journal) n'y sont plus : le routeur les
+       demande avec le module de la vue, à leur place dans la cascade
+       (js/ui/styles.js), et le carnet les tire au repos après le premier affichage.
+       Sans JavaScript, le bloc noscript ci-dessous les donne. -->
   <link rel="stylesheet" href="css/polices.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/accueil.css">
   <link rel="stylesheet" href="css/fiche.css">
-  <link rel="stylesheet" href="css/cuisine.css" data-vue media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="css/menu.css" data-vue media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="css/courses.css" data-vue media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/minuteurs.css">
-  <link rel="stylesheet" href="css/savoirs.css" data-vue media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="css/journal.css" data-vue media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/reglages.css">
   <noscript>
     <link rel="stylesheet" href="css/cuisine.css">
@@ -62,7 +57,6 @@
   <!-- >>> modulepreload généré par tools/version-sw.mjs — ne pas modifier à la main -->
   <link rel="modulepreload" href="js/core/adaptation.js">
   <link rel="modulepreload" href="js/core/courses.js">
-  <link rel="modulepreload" href="js/core/cuisine.js">
   <link rel="modulepreload" href="js/core/etat.js">
   <link rel="modulepreload" href="js/core/fonds.js">
   <link rel="modulepreload" href="js/core/format.js">
@@ -70,7 +64,6 @@
   <link rel="modulepreload" href="js/core/icones.js">
   <link rel="modulepreload" href="js/core/liens.js">
   <link rel="modulepreload" href="js/core/menu.js">
-  <link rel="modulepreload" href="js/core/planning.js">
   <link rel="modulepreload" href="js/core/recettes.js">
   <link rel="modulepreload" href="js/core/recherche.js">
   <link rel="modulepreload" href="js/core/sauvegarde.js">
@@ -78,25 +71,21 @@
   <link rel="modulepreload" href="js/main.js">
   <link rel="modulepreload" href="js/ui/annonces.js">
   <link rel="modulepreload" href="js/ui/feuilles.js">
-  <link rel="modulepreload" href="js/ui/minuteurs.js">
-  <link rel="modulepreload" href="js/ui/partage.js">
   <link rel="modulepreload" href="js/ui/routeur.js">
+  <link rel="modulepreload" href="js/ui/scripts.js">
   <link rel="modulepreload" href="js/ui/styles.js">
   <link rel="modulepreload" href="js/ui/theme.js">
   <link rel="modulepreload" href="js/ui/toast.js">
   <link rel="modulepreload" href="js/ui/typo.js">
   <link rel="modulepreload" href="js/ui/visuel.js">
   <link rel="modulepreload" href="js/vues/accueil.js">
-  <link rel="modulepreload" href="js/vues/reglages.js">
+  <link rel="modulepreload" href="js/vues/reglages-entree.js">
   <!-- <<< fin du bloc généré -->
   <!-- Les premières vignettes de l'accueil partent sans attendre l'exécution des
        modules : sinon, comme elles sont en loading="lazy", elles ne sont demandées
        qu'une fois les cartes dessinées, et la plus grande d'entre elles fait le LCP. -->
   <!-- >>> vignettes de l'accueil générées par tools/version-sw.mjs — ne pas modifier à la main -->
   <link rel="preload" as="image" href="img/v/focaccia-romarin.webp" type="image/webp">
-  <link rel="preload" as="image" href="img/v/torsades-pesto.webp" type="image/webp">
-  <link rel="preload" as="image" href="img/v/dip-chevre-herbes.webp" type="image/webp">
-  <link rel="preload" as="image" href="img/v/houmous-petits-pois-menthe.webp" type="image/webp">
   <!-- <<< fin du bloc généré -->
   <script>
     (function () {
@@ -148,9 +137,7 @@
   <script src="js/placard.js"></script>
   <script src="js/allergenes.js"></script>
   <script src="js/saisons.js"></script>
-  <script src="js/substitutions.js"></script>
   <script src="js/illos.js"></script>
-  <script src="js/sync-config.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

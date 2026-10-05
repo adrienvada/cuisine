@@ -9,7 +9,8 @@ import { byId } from "../core/recettes.js";
 import { autoResumeStep } from "../core/seance.js";
 import { rafraichirFoins, renderHome } from "../vues/accueil.js";
 import { closeSheets } from "./feuilles.js";
-import { stylesDejaPrets, stylesPrets } from "./styles.js";
+import { chargerScript, scriptCharge, scriptsDes } from "./scripts.js";
+import { feuillesDes, stylesDejaPrets, stylesPrets } from "./styles.js";
 import { updateBadge } from "./toast.js";
 
 /* La zone où les vues se dessinent. */
@@ -228,6 +229,9 @@ function annoncerVue(titre, avecFocus, surPlace) {
    vue déjà chargée se dessine tout de suite, sans attendre. */
 export function route({ garderDefilement = false } = {}) {
   const defilement = window.scrollY;
+  /* Le tout premier dessin ne se fond pas (css/accueil.css) : le fondu de 0,22 s
+     retarde d'autant ce que l'on voit à l'ouverture, alors que la page est vide. */
+  app.classList.toggle("premier-affichage", premierAffichage);
   if (modules.cuisine) modules.cuisine.stopCookMode();
   closeSheets();
   setEntreeCourante(null);
@@ -341,14 +345,17 @@ export function route({ garderDefilement = false } = {}) {
      l'accueil, le menu et les courses s'en passent et s'affichent tout de suite. */
   const besoinFonds = parts[0] === "fondamentaux" || parts[0] === "fondamental" || recette;
   const fondsLa = !besoinFonds || fondamentauxCharges();
-  if (fondsLa && noms.every(n => modules[n]) && (!noms.length || stylesDejaPrets())) return dessiner(true);
+  /* Les feuilles de style de ces vues viennent avec leurs modules : index.html n'en porte plus aucune. */
+  const feuilles = feuillesDes(noms);
+  const scripts = scriptsDes(noms);
+  if (fondsLa && noms.every(n => modules[n]) && stylesDejaPrets(feuilles) && scripts.every(scriptCharge)) return dessiner(true);
 
   if (besoinFonds && !fondsLa && !recette) afficherAttenteSavoirs();
   const fonds = fondsLa ? Promise.resolve(true) : chargerFondamentaux().then(() => true, () => false);
   const fondsOuDelai = recette && !fondsLa
     ? Promise.race([fonds, new Promise(fin => setTimeout(() => fin(false), DELAI_FONDS))])
     : fonds;
-  const vue = Promise.all([...noms.map(charger), noms.length ? stylesPrets() : null]).then(() => true, () => false);
+  const vue = Promise.all([...noms.map(charger), ...scripts.map(chargerScript), feuilles.length ? stylesPrets(feuilles) : null]).then(() => true, () => false);
   return Promise.all([vue, fondsOuDelai]).then(([vueOk, fondsOk]) => {
     if (numero !== dessin) return;
     if (!vueOk) return afficherIndisponible("Cette page ne s'est pas chargée.");

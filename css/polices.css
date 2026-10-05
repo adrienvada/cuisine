@@ -1,30 +1,73 @@
-/* Polices hébergées (sous-ensemble latin, polices variables) : plus aucun appel à Google,
-   et le carnet garde sa typographie hors ligne. */
+/* Polices hébergées : plus aucun appel à Google, et le carnet garde sa typographie hors ligne.
+   Fichier écrit par tools/polices.mjs (sous-ensembles des polices d'origine) : ne pas modifier à la main. */
 
-@font-face {
-  font-family: "Caveat";
-  font-style: normal;
-  font-weight: 500 700;
-  font-display: swap;
-  src: url("../fonts/caveat.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
+/* Les titres des cartes : préchargée (index.html). */
 @font-face {
   font-family: "Cormorant Garamond";
   font-style: normal;
   font-weight: 500 700;
   font-display: swap;
   src: url("../fonts/cormorant.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0020-007E, U+00A0, U+00AB, U+00B0-00B1, U+00B7, U+00BB-00BE, U+00C0, U+00C2, U+00C4, U+00C6-00CB, U+00CE-00CF, U+00D4, U+00D6-00D7, U+00D9, U+00DB-00DC, U+00E0, U+00E2, U+00E4, U+00E6-00EB, U+00EE-00EF, U+00F4, U+00F6, U+00F9, U+00FB-00FC, U+00FF, U+0152-0153, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+20AC, U+2122, U+2212;
 }
 
-/* Seul l'italique 500 est utilisé */
+/* Seul l'italique 500 est utilisé. */
 @font-face {
   font-family: "Cormorant Garamond";
   font-style: italic;
   font-weight: 500;
   font-display: swap;
   src: url("../fonts/cormorant-italique.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0020-007E, U+00A0, U+00AB, U+00B0-00B1, U+00B7, U+00BB-00BE, U+00C0, U+00C2, U+00C4, U+00C6-00CB, U+00CE-00CF, U+00D4, U+00D6-00D7, U+00D9, U+00DB-00DC, U+00E0, U+00E2, U+00E4, U+00E6-00EB, U+00EE-00EF, U+00F4, U+00F6, U+00F9, U+00FB-00FC, U+00FF, U+0152-0153, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+20AC, U+2122, U+2212;
+}
+
+/* Les annotations manuscrites des vues : jamais préchargée, la page la demande
+   à l'ouverture d'une vue (main.js la tire au repos après le premier affichage). */
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../fonts/caveat.woff2") format("woff2");
+  unicode-range: U+0020-007E, U+00A0, U+00AB, U+00B0-00B1, U+00B7, U+00BB-00BE, U+00C0, U+00C2, U+00C4, U+00C6-00CB, U+00CE-00CF, U+00D4, U+00D6-00D7, U+00D9, U+00DB-00DC, U+00E0, U+00E2, U+00E4, U+00E6-00EB, U+00EE-00EF, U+00F4, U+00F6, U+00F9, U+00FB-00FC, U+00FF, U+0152-0153, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+20AC, U+2122, U+2212;
+}
+
+/* Le reste du latin (lettres accentuées rares) : jamais préchargée, demandée seulement si un de ces caractères s'écrit. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../fonts/cormorant-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B4, U+00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
+/* Idem, en italique. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/cormorant-italique-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B4, U+00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
+/* Idem, pour les annotations manuscrites. */
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../fonts/caveat-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0102, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
+/* Le bandeau de l'accueil seulement : préchargée, `block` (voir tools/polices.mjs). */
+@font-face {
+  font-family: "Caveat Titre";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: block;
+  src: url("../fonts/caveat-titre.woff2") format("woff2");
+  unicode-range: U+0020, U+0027, U+0043, U+0045, U+0061, U+0064-0065, U+0069, U+006E, U+0072-0073, U+0075-0076, U+2019;
 }

@@ -14,6 +14,9 @@
   color: var(--green);
 }
 
+/* Le tout premier dessin ne se fond pas (le fondu .fade-in est dans css/base.css ; la classe vient de js/ui/routeur.js) : 0,22 s de page vide en plus à l'ouverture. */
+#app.premier-affichage .fade-in { animation: none; }
+
 .mast-row svg { width: 44px; height: 15px; opacity: 0.85; }
 
 .masthead .eyebrow {
@@ -45,6 +48,12 @@
   align-items: center;
   gap: 7px;
 }
+
+/* « Caveat Titre » : les seuls glyphes du bandeau de l'accueil, préchargés (css/polices.css).
+   Seulement ici : Savoirs a le même bandeau avec d'autres mots, et Caveat change de glyphes
+   selon les lettres voisines, ce qui ne marche pas à cheval sur deux fichiers de police. */
+.masthead-accueil h1,
+.masthead-accueil .byline { font-family: "Caveat Titre", var(--script); }
 
 .masthead .byline .u { border-bottom: 1.5px solid var(--gold-deco); padding-bottom: 1px; }
 
