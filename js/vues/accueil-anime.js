@@ -56,9 +56,18 @@ function equiperRecherche() {
    celles du premier écran (c'est le LCP, il ne se fond pas). */
 function photoArrivee(e) {
   const img = e.target;
-  if (!(img instanceof HTMLImageElement) || (window.scrollY < 8 && img.getBoundingClientRect().top < innerHeight)) return;
-  img.classList.add("photo-arrive");
+  if (!(img instanceof HTMLImageElement)) return;
+  enAttente.push(img);
+  // Vingt photos qui arrivent d'un coup (un retour à l'accueil, tout en cache) : une seule mesure
+  // de mise en page pour toutes, au prochain dessin, et non une par photo (44 ms à 4× plus lent).
+  if (enAttente.length === 1) requestAnimationFrame(() => {
+    const liste = enAttente.splice(0);
+    const defile = window.scrollY >= 8;
+    const premiers = liste.map(i => !defile && i.getBoundingClientRect().top < innerHeight);
+    liste.forEach((i, k) => { if (!premiers[k]) i.classList.add("photo-arrive"); });
+  });
 }
+const enAttente = [];
 
 /* La rangée défile pour montrer la puce choisie, centrée autant que la rangée le permet.
    (Pas scrollIntoView : il ferait aussi défiler la page.) */
