@@ -103,7 +103,7 @@ const ICONE_MICRO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 /* Le soulignement manuscrit du titre d'étape, tracé à l'encre à chaque nouvelle étape :
    la classe .trace (base.css) suffit, l'élément étant recréé avec l'étape. */
-const FLOURISH = ILLO.D.flourish.replace(/<path /g, '<path pathLength="1" ');
+const FLOURISH = ILLO.D.flourish;
 
 export function stopCookMode() {
   if (nettoyage) { nettoyage(); nettoyage = null; }

@@ -57,7 +57,7 @@ const POIGNEE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
 
 /* La coche et le trait de crayon sont des tracés (pathLength="1") : la feuille de style
    les dessine d'un trait en passant de décoché à coché, et les efface en plus court. */
-const TICK = ICON.check.replace("<path ", '<path pathLength="1" ');
+const TICK = ICON.checkTrace;
 const RATURE = '<svg class="rature" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M1 4.7C13 3.3 22 6 38 4.4S66 2.9 99 4.2"/></svg>';
 
 const articleLibre = nom => state.extras.push({ id: Date.now().toString(36), name: nom });
@@ -68,12 +68,11 @@ const versElement = texte => {
   return modele.content.firstElementChild;
 };
 
-/* La branche d'olivier du bandeau, ILLO.D.olive rendue traçable sans toucher à
-   js/illos.js : le rameau se dessine, puis les feuilles et les olives poussent. */
+/* La branche d'olivier du bandeau : le rameau (traçable, js/illos.js) se dessine, puis les
+   feuilles et les olives poussent. */
 function oliveTracable() {
   let k = 0;
   return ILLO.D.olive
-    .replace('<path d="M4 20', '<path pathLength="1" d="M4 20')
     // Chaque feuille entre dans un <g> qui, lui, pousse : l'ellipse porte déjà sa rotation (attribut transform).
     .replace(/<(ellipse|circle)\b[^>]*\/>/g, forme => `<g class="o-f" style="--k:${k++}">${forme}</g>`);
 }
@@ -274,7 +273,7 @@ function dessiner(arrivee) {
     app.innerHTML = html`
       <div id="courses-root" data-forme="vide">
       ${raw(ENTETE(tracee))}
-      <div class="empty-illo cheers trace">${raw(ILLO.D.cheers.replace(/<path /g, '<path pathLength="1" '))}</div>
+      <div class="empty-illo cheers trace">${raw(ILLO.D.cheers)}</div>
       <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
       <div style="text-align:center;margin-bottom:14px"><a class="btn-icon" href="#/">${raw(ICON.back)} Voir les recettes</a></div>
       ${raw(FORMULAIRE())}

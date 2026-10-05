@@ -59,7 +59,7 @@
   margin-top: 6px;
   padding-top: 2px;
   border-top: 1px solid rgba(66, 96, 58, 0.16);
-  animation: fade 0.22s ease;
+  animation: fade var(--d-moyenne) var(--e-sortie);
 }
 
 @media not (prefers-reduced-motion: reduce) {

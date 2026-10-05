@@ -43,7 +43,10 @@
   /* ---------- Jetons de mouvement ----------
      Durées : l'appui d'un doigt, un état (couleur), un élément qui bouge, une vue
      ou une feuille, le tracé d'un trait. JS les lit dans js/core/ressort.js
-     (DUREES, COURBES) : un test vérifie qu'on y dit la même chose. */
+     (DUREES, COURBES) : un test vérifie qu'on y dit la même chose.
+     Seules échappent aux jetons les boucles qui respirent, battent ou secouent (leur
+     période est celle du geste, 1 à 5 s, et elles s'arrêtent en mouvement réduit) et les
+     décalages d'échelonnement (35 ou 60 ms entre deux éléments) : un test garde la liste. */
   --d-appui: 90ms;
   --d-courte: 160ms;
   --d-moyenne: 260ms;
@@ -130,7 +133,7 @@ body {
   background: var(--paper);
   min-height: 100%;
   overscroll-behavior-y: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color var(--d-courte) var(--e-standard), color var(--d-courte) var(--e-standard);
 }
 
 /* Grain papier, comme une page de carnet */
@@ -379,7 +382,7 @@ body.avec-minuteurs:not(.cooking) .toast { bottom: calc(96px + var(--plateau-h, 
   .toast, .toast.visible { transition: none; animation: none; translate: 0 0; }
 }
 
-.fade-in { animation: fade 0.22s ease; }
+.fade-in { animation: fade var(--d-moyenne) var(--e-sortie); }
 
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
 
@@ -521,7 +524,7 @@ html[data-theme="dark"] .tip.beige:not(.cook .tip) .s-lien { color: #7A5A1C; }
 }
 
 /* Les pastilles de choix de fiche.css ont déjà des transitions de couleur : on les garde. */
-html .chip.pick { transition: scale var(--ressort-vif-duree) var(--ressort-vif), background 0.15s ease, border-color 0.15s ease; }
+html .chip.pick { transition: scale var(--ressort-vif-duree) var(--ressort-vif), background var(--d-courte) var(--e-standard), border-color var(--d-courte) var(--e-standard); }
 
 .btn:active:not(:disabled), .btn-icon:active:not(:disabled), .chip:active:not(:disabled),
 .tabbar a:active, .link-danger:active:not(:disabled), .toast-action:active,

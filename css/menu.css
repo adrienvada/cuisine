@@ -15,7 +15,7 @@
 /* Toute la carte ouvre la recette : elle réagit donc comme une vignette. */
 .menu-card {
   cursor: pointer;
-  transition: transform 0.12s ease;
+  transition: transform var(--d-appui) var(--e-sortie);
   position: relative;
   display: flex;
   gap: 13px;
@@ -244,7 +244,7 @@ html[data-theme="dark"] .rp-champ { color-scheme: dark; }
   border-right: 2px solid var(--muted);
   border-bottom: 2px solid var(--muted);
   transform: rotate(45deg);
-  transition: transform 0.18s ease;
+  transition: transform var(--d-courte) var(--e-standard);
 }
 
 .alg[open] summary::after, .passes[open] summary::after { transform: rotate(-135deg); }
@@ -528,7 +528,7 @@ html[data-theme="dark"] .alg-chip[aria-pressed="true"] { color: #1C2019; }
     animation-delay: calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4);
   }
   .frise[data-trace="joue"] .fr-table .fr-pt::after {
-    animation: fr-point var(--d-moyenne) var(--ressort-vif) both, fr-pouls 700ms var(--e-sortie) both;
+    animation: fr-point var(--d-moyenne) var(--ressort-vif) both, fr-pouls calc(var(--d-longue) * 1.65) var(--e-sortie) both;
     animation-delay: calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4), calc(var(--r, 0) * var(--pas) + var(--pas) * 0.4 + var(--d-moyenne) - 60ms);
   }
 }

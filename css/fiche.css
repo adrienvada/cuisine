@@ -314,7 +314,7 @@
 /* L'écart entre rangées (12 px) est celui des deux halos de contact des puces : elles ne se disputent pas le même doigt. */
 .pick-row { display: flex; flex-wrap: wrap; gap: 12px 8px; }
 
-.chip.pick { padding: 8px 14px; transition: background 0.15s ease, border-color 0.15s ease; }
+.chip.pick { padding: 8px 14px; transition: background var(--d-courte) var(--e-standard), border-color var(--d-courte) var(--e-standard); }
 
 /* La puce fait 34 px : son halo la porte à 44 px de contact sans l'agrandir à l'œil. */
 .chip.pick::before { content: ""; position: absolute; inset: -7px 0; }

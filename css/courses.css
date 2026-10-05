@@ -210,7 +210,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 /* ---------- Avancement et outils ---------- */
 
-.avance-bloc { position: relative; display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.avance-bloc { position: relative; display: flex; align-items: center; gap: 12px; margin-top: 24px; }
 
 .avance { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-deep); border: 1px solid var(--line); overflow: hidden; }
 
@@ -286,7 +286,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   transform: rotate(45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--d-moyenne) var(--e-standard);
 }
 
 .panier[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }

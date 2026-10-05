@@ -181,7 +181,7 @@ function observer(options, quand, elements) {
 }
 
 /* Une coche qui se trace d'un trait (la classe .trace de base.css, sur le conteneur). */
-const COCHE_TRACEE = ICON.check.replace("<path ", '<path pathLength="1" ');
+const COCHE_TRACEE = ICON.checkTrace;
 
 /* Un retrait du menu depuis la fiche recharge la fiche : le nouveau bouton le sait et
    se pose en douceur (l'inverse, plus sobre, de l'ajout). */

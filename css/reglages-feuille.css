@@ -222,16 +222,16 @@ html[data-theme="dark"] .btn.primary.danger { color: var(--sur-vert); }
 /* ---------- Bascule clair / sombre : le cercle ----------
    theme.js pose html[data-vt="theme"] et l'origine (--vt-x, --vt-y) puis le rayon qui atteint
    le coin le plus éloigné (--vt-r). L'ancien thème reste là, immobile ; le nouveau
-   s'ouvre par-dessus en 450 ms. Rien de tout cela ne vaut en mouvement réduit : theme.js ne
+   s'ouvre par-dessus en 420 ms (--d-longue). Rien de tout cela ne vaut en mouvement réduit : theme.js ne
    lance alors pas la transition. */
 @media not (prefers-reduced-motion: reduce) {
   /* L'ancien thème reste entier, sans le fondu par défaut, le temps que le cercle le recouvre. */
-  html[data-vt="theme"]::view-transition-old(root) { animation: theme-ancien 450ms linear both; mix-blend-mode: normal; }
+  html[data-vt="theme"]::view-transition-old(root) { animation: theme-ancien var(--d-longue) linear both; mix-blend-mode: normal; }
   html[data-vt="theme"]::view-transition-new(root) {
-    animation: theme-cercle 450ms var(--e-standard) both;
+    animation: theme-cercle var(--d-longue) var(--e-standard) both;
     mix-blend-mode: normal;
   }
-  /* Pendant les 450 ms la page reste utilisable : les clics passent à travers les images. */
+  /* Pendant les 420 ms la page reste utilisable : les clics passent à travers les images. */
   html[data-vt="theme"]::view-transition { pointer-events: none; }
 }
 
