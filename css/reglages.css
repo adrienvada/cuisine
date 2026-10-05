@@ -286,13 +286,18 @@ html[data-theme="dark"] .btn.primary.danger { color: var(--sur-vert); }
    s'ouvre par-dessus en 450 ms. Rien de tout cela ne vaut en mouvement réduit : theme.js ne
    lance alors pas la transition. */
 @media not (prefers-reduced-motion: reduce) {
-  html[data-vt="theme"]::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
+  /* L'ancien thème reste entier, sans le fondu par défaut, le temps que le cercle le recouvre. */
+  html[data-vt="theme"]::view-transition-old(root) { animation: theme-ancien 450ms linear both; mix-blend-mode: normal; }
   html[data-vt="theme"]::view-transition-new(root) {
     animation: theme-cercle 450ms var(--e-standard) both;
     mix-blend-mode: normal;
   }
   /* Pendant les 450 ms la page reste utilisable : les clics passent à travers les images. */
   html[data-vt="theme"]::view-transition { pointer-events: none; }
+}
+
+@keyframes theme-ancien {
+  from, to { opacity: 1; }
 }
 
 @keyframes theme-cercle {

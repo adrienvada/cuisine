@@ -360,7 +360,7 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
    En mouvement réduit le trait est simplement là. */
 .f-orne { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px auto 0; color: var(--gold); }
 .f-orne svg { display: block; width: 110px; height: auto; max-width: 40%; }
-.f-orne-fin { margin: 30px auto 4px; }
+.f-orne-fin { margin: 30px auto 28px; }
 .f-orne-fin svg { width: 56px; }
 .f-orne-fin svg:nth-child(2) { width: 22px; }
 

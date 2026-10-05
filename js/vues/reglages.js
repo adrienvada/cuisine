@@ -7,7 +7,7 @@ import {
   apercu, contenuExport, instantane, lireSauvegarde, nomFichier, remplacerEtat, restaurerEtat
 } from "../core/sauvegarde.js";
 import { confirmer, fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
-import { tracer } from "../ui/mouvement.js";
+import { mouvementReduit, tracer } from "../ui/mouvement.js";
 import { reglerVibrations, vibrationsActives, vibrer } from "../ui/geste.js";
 import { chargerSync } from "../ui/scripts.js";
 import { route } from "../ui/routeur.js";
@@ -63,6 +63,37 @@ function majChoixTheme(zone) {
   const actuel = modeTheme();
   zone.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === actuel)));
   zone.querySelector(".reg-choix").style.setProperty("--n", MODES.findIndex(([id]) => id === actuel));
+}
+
+/* Le nouveau thème s'étend en cercle depuis `origine` (le bouton touché). C'est une transition de
+   vue, repérée par html[data-vt="theme"] (css/reglages.css en règle le cercle) ; elle grandit
+   jusqu'au coin le plus éloigné (--vt-r). Le routeur a ses propres types : on ne démarre pas par-dessus
+   l'un des siens. Sans l'API ou en mouvement réduit, on rend false et theme.js pose le thème
+   d'un coup (la mise à jour de la page arrive sinon à l'image suivante). */
+function enCercle(origine) {
+  return appliquer => {
+    const racine = document.documentElement;
+    if (typeof document.startViewTransition !== "function" || mouvementReduit() || racine.dataset.vt) return false;
+    const r = origine.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    racine.dataset.vt = "theme";
+    racine.style.setProperty("--vt-x", x + "px");
+    racine.style.setProperty("--vt-y", y + "px");
+    racine.style.setProperty("--vt-r", Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) + "px");
+    const fin = () => {
+      if (racine.dataset.vt !== "theme") return;
+      delete racine.dataset.vt;
+      ["--vt-x", "--vt-y", "--vt-r"].forEach(k => racine.style.removeProperty(k));
+    };
+    try {
+      document.startViewTransition(appliquer).finished.then(fin, fin);
+    } catch {
+      appliquer();
+      fin();
+    }
+    return true;
+  };
 }
 
 /* Un interrupteur : un vrai bouton role="switch" (Espace et Entrée le basculent, les
@@ -123,7 +154,7 @@ export function ouvrirReglages() {
     if (e.target === backdrop || e.target.closest("[data-fermer]")) return fermerFeuille();
     const mode = e.target.closest("[data-mode]");
     if (mode) {
-      choisirTheme(mode.dataset.mode, mode);   // le cercle part du bouton touché
+      choisirTheme(mode.dataset.mode, enCercle(mode));   // le cercle part du bouton touché
       majChoixTheme(q("#reg-theme"));
       return;
     }
