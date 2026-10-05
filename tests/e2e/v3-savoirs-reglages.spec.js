@@ -147,6 +147,9 @@ test("vibrations : un interrupteur accessible, lu et écrit dans le stockage de 
   const feuille = await ouvrirReglages(page);
   const interrupteur = feuille.getByRole("switch", { name: "Vibrations" });
   await expect(interrupteur).toHaveAttribute("aria-checked", "true");          // activées par défaut
+  // La feuille arrive en glissant : on mesure la cible une fois posée (en vol, la
+  // translation fractionnaire donne 43,99997 px pour 44).
+  await pageStable(page);
   const boite = await interrupteur.boundingBox();
   expect(boite.height).toBeGreaterThanOrEqual(44);
   expect(boite.width).toBeGreaterThanOrEqual(44);

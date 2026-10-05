@@ -422,6 +422,15 @@ for (const reduit of [false, true]) {
         document.head.append(st);
         document.body.prepend(b);
       });
+      // L'anneau ne dure que 160 ms : sur une machine chargée, il pourrait être fini avant
+      // qu'on le lise. On ralentit le temps des animations de la page (CDP), pas l'appli.
+      // (En mouvement réduit, rien à rattraper : on laisse le temps tel quel, sinon les
+      // animations ramenées à 0,01 ms vivraient assez pour être comptées.)
+      if (!reduit) {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send("Animation.enable");
+        await cdp.send("Animation.setPlaybackRate", { playbackRate: 0.05 });
+      }
       // Un focus venu du clavier (:focus-visible) : Tab d'abord, puis le bouton reçoit le focus.
       await page.keyboard.press("Tab");
       await page.locator("#bouton-test").focus();
