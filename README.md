@@ -360,7 +360,8 @@ css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignet
 css/accueil-anime.css   Le mouvement de l'accueil (pastille des filtres, arrivée des cartes, loupe…), chargé au repos avec js/vues/accueil-anime.js
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/minuteurs.css       Plateau des bulles de minuteur
-css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
+css/reglages.css        Réglages, la part de l'accueil : le bouton de l'en-tête et son point d'état
+css/reglages-feuille.css  Réglages : la feuille, la question à deux issues, le cercle du thème (au repos)
   (les feuilles qui suivent sont celles des vues chargées à la demande : elles ne sont plus dans index.html, hors du repli <noscript> ; le routeur les demande avec le module de la vue, à leur place dans la cascade, et js/ui/styles.js le fait attendre)
 css/cuisine.css         Mode cuisine plein écran
 css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas

@@ -10,8 +10,13 @@ const DELAI_MAX = 3000;
 
 /* L'ordre des <link> d'origine : la cascade ne doit pas dépendre de celle qui arrive
    la première. Chaque feuille ajoutée se range à sa place dans cet ordre. */
-const ORDRE = ["polices", "base", "accueil", "fiche", "cuisine", "menu", "courses", "minuteurs", "savoirs", "journal", "reglages"];
+const ORDRE = ["polices", "base", "accueil", "fiche", "cuisine", "menu", "courses", "minuteurs", "savoirs", "journal", "reglages", "reglages-feuille"];
 export const FEUILLES_DES_VUES = ["cuisine", "menu", "courses", "savoirs", "journal"];
+
+/* Les feuilles qui ne sont pas celles d'une vue mais que l'accueil ne dessine pas non plus :
+   la feuille des réglages (aussi celle de la question à deux issues, confirmer()) et la
+   bascule de thème. Posée au repos comme les autres, attendue avant d'être ouverte. */
+export const FEUILLE_REGLAGES = "reglages-feuille";
 
 /* Ce qu'une vue dessine avec chaque module : la fiche écrit le journal du plat, le
    mode cuisine aussi (fin de recette), et la vue Menu emprunte les boutons d'action de
@@ -30,7 +35,7 @@ export const feuillesDes = noms => [...new Set(noms.flatMap(n => PAR_MODULE[n] |
 
 const liens = () => [...document.querySelectorAll("link[rel=stylesheet][data-vue]")];
 
-const rang = href => ORDRE.indexOf((href.match(/([a-z]+)\.css(?:\?.*)?$/) || [])[1]);
+const rang = href => ORDRE.indexOf((href.match(/([a-z-]+)\.css(?:\?.*)?$/) || [])[1]);
 
 /* Le <link> de cette feuille, créé à sa place s'il n'existe pas encore. */
 function lienDe(nom) {
@@ -113,5 +118,5 @@ export function stylesPrets(noms) {
    leur téléchargement. Elles ne changent rien à l'accueil (aucune de leurs règles ne
    s'applique à lui). */
 export function preparerFeuilles() {
-  for (const nom of FEUILLES_DES_VUES) lienDe(nom);
+  for (const nom of [...FEUILLES_DES_VUES, FEUILLE_REGLAGES]) lienDe(nom);
 }

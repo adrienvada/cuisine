@@ -11,7 +11,7 @@ test.describe("feuilles CSS", () => {
     await page.goto("/");
     const liens = page.locator("link[rel=stylesheet][data-vue]");
     await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.getAttribute("href").split("/").pop()).sort()))
-      .toEqual(["courses.css", "cuisine.css", "journal.css", "menu.css", "savoirs.css"]);
+      .toEqual(["courses.css", "cuisine.css", "journal.css", "menu.css", "reglages-feuille.css", "savoirs.css"]);
     await expect.poll(() => liens.evaluateAll(ls => ls.every(l => l.media === "" || l.media === "all"))).toBe(true);
     // Toutes les règles sont bien là : celles des vues comme celles de l'accueil.
     await expect.poll(() => page.evaluate(() => [...document.styleSheets].filter(s => s.href && s.cssRules.length === 0).length)).toBe(0);

@@ -29,7 +29,7 @@
      --sw                 seconde visite, service worker actif
      --detail             liste des requêtes du dernier passage
      --json               sortie lisible par une machine
-     --port <n>           de 4561 à 4569 (défaut 4561)
+     --port <n>           de 4561 à 4569, ou 4551 (défaut 4561)
    Usage :  npm run mesurer   (ou node tools/mesurer-accueil.mjs --retour) */
 
 import { chromium } from "@playwright/test";
@@ -68,7 +68,7 @@ function lireOptions(argv) {
     else if (a === "--json") o.json = true;
     else { console.error(`Option inconnue : ${a}`); process.exit(2); }
   }
-  if (!(o.port >= 4561 && o.port <= 4569)) { console.error("Le port doit être entre 4561 et 4569."); process.exit(2); }
+  if (!(o.port >= 4561 && o.port <= 4569) && o.port !== 4551) { console.error("Le port doit être entre 4561 et 4569 (ou 4551, celui du lot d'harmonisation)."); process.exit(2); }
   return o;
 }
 

@@ -61,8 +61,8 @@ test("savoirs.css : barre de lecture et cartes pilotées par le défilement sous
   assert.doesNotMatch(css, /!important/);
 });
 
-test("reglages.css : le cercle de thème est réservé au mouvement normal et laisse la page cliquable", () => {
-  const css = lire("css/reglages.css");
+test("reglages-feuille.css : le cercle de thème est réservé au mouvement normal et laisse la page cliquable", () => {
+  const css = lire("css/reglages-feuille.css");
   const bloc = css.slice(css.indexOf("Bascule clair / sombre"));
   assert.match(bloc, /@media not \(prefers-reduced-motion: reduce\)/);
   assert.match(bloc, /html\[data-vt="theme"\]::view-transition-new\(root\)/);
@@ -71,9 +71,9 @@ test("reglages.css : le cercle de thème est réservé au mouvement normal et la
   assert.doesNotMatch(css, /!important/);
 });
 
-test("reglages.css : l'interrupteur fait au moins 44 px et le point ne respire qu'en mouvement normal", () => {
+test("l'interrupteur (reglages-feuille.css) fait au moins 44 px ; le point (reglages.css) ne respire qu'en mouvement normal", () => {
+  assert.match(lire("css/reglages-feuille.css"), /\.reg-switch \{[^}]*width: 56px;[^}]*height: 44px;/);
   const css = lire("css/reglages.css");
-  assert.match(css, /\.reg-switch \{[^}]*width: 56px;[^}]*height: 44px;/);
   const respire = css.slice(css.indexOf("Pendant la connexion"), css.indexOf("@keyframes reglages-respire"));
   assert.match(respire, /@media not \(prefers-reduced-motion: reduce\)/);
   assert.match(respire, /infinite/);

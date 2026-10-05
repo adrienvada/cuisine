@@ -4,11 +4,14 @@
 
 import { esc } from "../core/html.js";
 import { fermerFeuille, ouvrirFeuille } from "./feuilles.js";
+import { FEUILLE_REGLAGES, stylesDejaPrets, stylesPrets } from "./styles.js";
 
 /* `detail` est du balisage déjà sûr (le résultat d'un html`…`) ; le titre et le
    texte sont échappés ici. La réponse arrive une fois la feuille retirée de la
    navigation, par quelque chemin qu'elle se soit fermée — le geste de retour vaut « non ». */
-export function confirmer({ titre, texte, detail = "", oui = "Confirmer", non = "Annuler", danger = false }) {
+export async function confirmer({ titre, texte, detail = "", oui = "Confirmer", non = "Annuler", danger = false }) {
+  // Son habillage (css/reglages-feuille.css) n'est pas dans la page de l'accueil : on l'attend.
+  if (!stylesDejaPrets([FEUILLE_REGLAGES])) await stylesPrets([FEUILLE_REGLAGES]);
   return new Promise(resolve => {
     const backdrop = document.createElement("div");
     backdrop.className = "sheet-backdrop confirmation";
