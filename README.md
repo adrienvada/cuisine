@@ -388,6 +388,7 @@ js/vues/accueil.js      Accueil : grille, recherche, filtres (la seule vue charg
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
 js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
 js/vues/cuisine.js      Mode cuisine
+js/vues/cuisine-gestes.js  Mode cuisine : ce que décide le lâcher du doigt (page qui tourne ou qui revient), bornes de l'élastique
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/courses-gestes.js Décisions pures de la liste : signature d'une ligne, seuil du balayage, géométrie du glisser-déposer des rayons

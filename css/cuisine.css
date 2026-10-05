@@ -69,32 +69,39 @@
 /* Le micro allumé se voit à sa couleur, pas seulement à son état */
 .cook-micro[aria-pressed="true"] { background: var(--gold); color: #33270D; }
 
+/* Les segments : un rail pâle, et par-dessus le remplissage doré (::before) que cuisine.js
+   fait grandir de gauche à droite, ou rentrer à l'envers, au passage d'une étape. */
 .cook-progress { display: flex; gap: 5px; margin: 12px 0 4px; }
 
-.cook-progress i { flex: 1; height: 3px; border-radius: 2px; background: rgba(244, 239, 224, 0.22); }
+.cook-progress i { position: relative; flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(244, 239, 224, 0.2); }
 
-.cook-progress i.done { background: var(--gold); }
+.cook-progress i::before { content: ""; position: absolute; inset: 0; background: var(--gold); transform-origin: left; scale: 0 1; }
+
+.cook-progress i.done::before { scale: 1 1; }
 
 /* Le texte commence en haut : centré, le titre sautait d'une étape à l'autre
    selon la longueur de la consigne. `pan-y` laisse le balayage horizontal au carnet. */
-.cook-body { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 10px 0; touch-action: pan-y; }
+.cook-body { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 10px 0; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
+/* L'étape entre du côté d'où elle vient, dans le prolongement du geste (260 ms, décélération) ;
+   un bouton ou une flèche la font entrer plus court (.court). */
 @media (prefers-reduced-motion: no-preference) {
-  .cook-etape.vers-suivant { animation: cook-vers-suivant 0.22s ease-out; }
-  .cook-etape.vers-precedent { animation: cook-vers-precedent 0.22s ease-out; }
+  .cook-etape.vers-suivant { animation: cook-vers-suivant var(--d-moyenne) var(--e-sortie) both; }
+  .cook-etape.vers-precedent { animation: cook-vers-precedent var(--d-moyenne) var(--e-sortie) both; }
+  .cook-etape.court { animation-duration: var(--d-courte); }
 }
 
-@keyframes cook-vers-suivant { from { opacity: 0; transform: translateX(28px); } }
+@keyframes cook-vers-suivant { from { opacity: 0; translate: 44px 0; } }
 
-@keyframes cook-vers-precedent { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes cook-vers-precedent { from { opacity: 0; translate: -44px 0; } }
 
-.cook-step-label { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.cook-step-label { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 
-.cook-body h2 { font-family: var(--serif); font-size: 31px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.1; }
+.cook-body h2 { font-family: var(--serif); font-size: 32px; color: #FDFBF3; margin: 6px 0 4px; line-height: 1.08; letter-spacing: 0.005em; }
 
 .cook-flourish { display: block; width: 88px; height: 12px; color: var(--gold); margin: 0 0 12px; opacity: 0.9; }
 
-.cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #E9E4D2; }
+.cook-body .txt { font-size: 18.5px; line-height: 1.6; color: #F1ECDC; }
 
 .cook.taille-0 .txt { font-size: 16.5px; }
 .cook.taille-2 .txt { font-size: 22.5px; line-height: 1.55; }
@@ -170,7 +177,7 @@
 
 .cook-chauffe > button svg { width: 17px; height: 17px; }
 
-.cook .tip { background: rgba(244, 239, 224, 0.1); color: #DCD6C0; margin-top: 18px; }
+.cook .tip { background: rgba(244, 239, 224, 0.1); color: #DCD6C0; margin-top: 18px; border-left-color: var(--gold); }
 
 .cook .tip b { color: var(--gold); }
 
@@ -210,7 +217,17 @@
   letter-spacing: 0.03em;
 }
 
-.cook-timer .clock.flash { animation: flash 0.8s infinite; }
+/* « Prêt ! » : le compte se retire à moitié et revient, sans clignoter ; en mouvement réduit il
+   prend une pastille dorée, que la couleur suffit à lire. */
+.cook-timer .clock { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cook-timer .clock.flash { animation: souffle 1.4s var(--e-standard) infinite; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cook-timer .clock.flash { color: #33270D; background: var(--gold); border-radius: 10px; padding: 0 10px; }
+}
 
 .cook-timer .clock.en-pause { opacity: 0.55; }
 
@@ -223,15 +240,15 @@
 .cook-nav button {
   flex: 1;
   border-radius: 14px;
-  padding: 15px;
-  font-size: 16px;
+  padding: 16px;
+  font-size: 16.5px;
   font-weight: 600;
   border: 1px solid rgba(244, 239, 224, 0.3);
   background: transparent;
   color: #F4EFE0;
 }
 
-.cook-nav button.main { background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; }
+.cook-nav button.main { flex: 1.25; background: #F4EFE0; color: var(--green-deep); border-color: #F4EFE0; box-shadow: 0 4px 14px rgba(10, 20, 8, 0.28); }
 
 .cook-nav button:disabled { opacity: 0.35; }
 
@@ -281,7 +298,15 @@ body.cooking .addon-note {
   letter-spacing: 0.02em;
 }
 
-.addon-timer .clock.flash { animation: flash 0.8s infinite; }
+.addon-timer .clock { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .addon-timer .clock.flash { animation: souffle 1.4s var(--e-standard) infinite; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addon-timer .clock.flash { color: #33270D; background: var(--gold-tint); border-radius: 8px; padding: 0 8px; }
+}
 
 .addon-timer .clock.en-pause { opacity: 0.55; }
 
@@ -316,3 +341,125 @@ html[data-theme="dark"] .ing-ligne input { color-scheme: dark; }
 .ing-ligne input:checked ~ .ing-nom { text-decoration: line-through; opacity: 0.5; }
 
 .ing-fermer { width: 100%; margin-top: 18px; }
+
+/* ---------- Entrée et sortie du mode cuisine ----------
+   Le routeur pose html[data-vt="cuisine"] à l'entrée et "cuisine-sortie" à la sortie, avec
+   --vt-x / --vt-y au centre du bouton touché. L'écran vert s'ouvre en cercle depuis
+   « Cuisiner » (420 ms, décélération) et se referme vers la croix, plus vite. Le rayon qui
+   couvre l'écran se calcule depuis le coin le plus loin ; sans hypot() on prend un rayon
+   largement suffisant. Rien en mouvement réduit : le routeur ne lance alors aucune transition. */
+@media not (prefers-reduced-motion: reduce) {
+  html[data-vt="cuisine"]::view-transition-old(root),
+  html[data-vt="cuisine-sortie"]::view-transition-new(root) { animation: cuisine-reste var(--d-longue) linear both; mix-blend-mode: normal; }
+
+  html[data-vt="cuisine"]::view-transition-new(root) {
+    animation: cuisine-ouvre var(--d-longue) var(--e-sortie) both;
+    mix-blend-mode: normal;
+  }
+
+  /* À la sortie l'écran vert est l'ancienne vue : il doit rester dessus pendant qu'il se referme. */
+  html[data-vt="cuisine-sortie"]::view-transition-old(root) {
+    animation: cuisine-ferme calc(var(--d-longue) * 0.7) var(--e-entree) both;
+    mix-blend-mode: normal;
+    z-index: 2;
+  }
+}
+
+html { --vt-rayon: 150vmax; }
+
+@supports (width: hypot(1px, 1px)) {
+  html { --vt-rayon: hypot(max(var(--vt-x, 50vw), 100vw - var(--vt-x, 50vw)), max(var(--vt-y, 50vh), 100vh - var(--vt-y, 50vh))); }
+}
+
+/* L'autre vue ne bouge pas : elle reste telle quelle (sans fondu) pendant que le cercle passe. */
+@keyframes cuisine-reste { from, to { opacity: 1; } }
+
+@keyframes cuisine-ouvre {
+  from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(var(--vt-rayon) at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
+
+@keyframes cuisine-ferme {
+  from { clip-path: circle(var(--vt-rayon) at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
+
+/* ---------- Le minuteur de l'étape : un anneau, le compte, les gestes ---------- */
+
+.cook-timer { align-items: center; }
+
+.cook-anneau { display: inline-flex; flex: none; border-radius: 50%; background: rgba(244, 239, 224, 0.1); border: 1px solid rgba(244, 239, 224, 0.28); }
+
+.cook-anneau .anneau { width: 68px; height: 68px; }
+
+.cook-anneau .anneau > svg:not(.cercle) { position: relative; width: 26px; height: 26px; color: var(--gold); }
+
+.cook-anneau .anneau > svg.coche { width: 30px; height: 30px; }
+
+.cook-anneau .anneau circle { stroke-width: 2.4; }
+
+.cook-anneau.petit .anneau { width: 46px; height: 46px; }
+
+.cook-anneau.petit .anneau > svg:not(.cercle) { width: 19px; height: 19px; }
+
+.cook-anneau.done { background: var(--gold); border-color: var(--gold); }
+
+.cook-anneau.done .anneau, .cook-anneau.done .anneau > svg { color: #33270D; }
+
+.cook-anneau .anneau .jauge { stroke: var(--gold); }
+
+.cook-anneau.done .anneau .jauge { stroke-dashoffset: 1; }
+
+/* Le compte, et sous lui (repos) ce qu'on attend */
+.cook-reste { display: flex; flex-direction: column; min-width: 0; flex: 1 1 130px; }
+
+.cook-rappel { font-size: 14px; line-height: 1.35; color: #CBD3B8; }
+
+.cook-rappel b { color: var(--gold); font-weight: 700; }
+
+/* Un repos se reconnaît : son filet pointillé doré, son anneau qui respire lentement */
+#timer-zone.repos { padding: 12px 14px; border-radius: 18px; border: 1px dashed rgba(193, 145, 63, 0.7); background: rgba(193, 145, 63, 0.1); }
+
+#timer-zone.repos:empty { display: none; }
+
+.cook-bouton-nom { font-weight: 500; opacity: 0.85; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cook-anneau.repos:not(.done) { animation: respire-large 4.6s ease-in-out infinite; }
+
+  /* La flamme du préchauffage ondule doucement tant que le four chauffe */
+  .cook-chauffe.chauffe .cook-anneau.four .anneau > svg:not(.cercle) { transform-origin: 50% 90%; animation: ondule 2.2s ease-in-out infinite; }
+}
+
+@keyframes respire-large { 50% { scale: 1.06; } }
+
+@keyframes ondule { 0%, 100% { rotate: -3deg; scale: 1 1; } 50% { rotate: 4deg; scale: 0.96 1.1; } }
+
+/* ---------- La fin : le tampon ---------- */
+
+.cook-tampon {
+  position: fixed; left: 50%; top: 36%; z-index: 300;
+  translate: -50% -50%;
+  opacity: 0; pointer-events: none;
+  padding: 14px 26px;
+  border: 3px double var(--terra);
+  border-radius: 14px;
+  color: var(--terra);
+  background: rgb(255 253 247 / 0.86);
+  font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 34px; line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .cook-tampon { color: #E0A06F; border-color: #E0A06F; background: rgb(28 32 25 / 0.88); }
+
+/* Le minuteur de l'étape reste au bas de l'écran tant qu'on lit une longue consigne : le compte
+   se lit de loin, sans faire défiler. Un fond plein (et un fondu au-dessus) le détache du texte. */
+.cook-etape > #timer-zone {
+  position: sticky; bottom: 0; z-index: 2;
+  margin-top: 14px; padding-top: 8px; padding-bottom: 2px;
+  background-color: var(--green-deep);
+  box-shadow: 0 -14px 12px -2px var(--green-deep);
+}
+
+.cook-etape > #timer-zone.repos { padding-bottom: 12px; background-image: linear-gradient(rgba(193, 145, 63, 0.1), rgba(193, 145, 63, 0.1)); box-shadow: 0 -10px 10px 6px var(--green-deep); }
