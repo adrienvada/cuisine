@@ -355,7 +355,8 @@ r/  f/                  Pages d'aperçu des recettes et des fondamentaux (géné
 
 css/polices.css         Polices locales (@font-face) : rien n'est demandé à un serveur de polices
 css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), jetons de mouvement et d'élévation, retour d'appui, utilitaires (.arrive, .trace, .rouler), mise en page, onglets, boutons, toast, feuilles
-css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
+css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes (et le bloc généré des couleurs dominantes)
+css/accueil-anime.css   Le mouvement de l'accueil (pastille des filtres, arrivée des cartes, loupe…), chargé au repos avec js/vues/accueil-anime.js
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/minuteurs.css       Plateau des bulles de minuteur
 css/reglages.css        Réglages : bouton de l'accueil et son point d'état, feuille, confirmations
@@ -420,6 +421,7 @@ js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocale
 js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres (la seule vue chargée avec le premier affichage)
+js/vues/accueil-anime.js  Le mouvement de l'accueil : pastille qui glisse, grille par flip, nombres qui roulent ; tiré au repos, après le chargement
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
 js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes
 js/vues/cuisine.js      Mode cuisine

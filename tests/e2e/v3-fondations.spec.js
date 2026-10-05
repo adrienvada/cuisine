@@ -118,6 +118,7 @@ test("animer : une animation annulée de l'extérieur ne fait jamais rejeter la 
 
 /* ---------- flip ---------- */
 
+/* Les animations pilotées par le défilement (l'arrivée des cartes de l'accueil, vague 3 « accueil ») durent tant que la page existe : elles ne sont pas des animations « en cours ». */
 test("flip : les éléments partent de leur ancienne place et finissent à la nouvelle, sans transform résiduel", async ({ page }) => {
   await ouvrir(page);
   await bac(page, '<div id="l">' + ["A", "B", "C", "D"].map(c => `<div class="r" style="height:40px;margin-bottom:6px;background:#eee">${c}</div>`).join("") + "</div>");
@@ -131,7 +132,7 @@ test("flip : les éléments partent de leur ancienne place et finissent à la no
     const pendant = haut(a);                   // juste après : encore à sa place d'origine
     const enCours = a.getAnimations().length;
     await fini;
-    return { avant, pendant, enCours, apres: haut(a), attendu: haut(l.children[3]), anims: document.getAnimations().length, style: a.getAttribute("style"), transform: getComputedStyle(a).transform };
+    return { avant, pendant, enCours, apres: haut(a), attendu: haut(l.children[3]), anims: document.getAnimations().filter(a => !(a.timeline instanceof ViewTimeline)).length, style: a.getAttribute("style"), transform: getComputedStyle(a).transform };
   }, MOUVEMENT);
   expect(r.pendant).toBe(r.avant);
   expect(r.enCours).toBe(1);
@@ -159,7 +160,7 @@ test("flip : un élément qui arrive est animé, et en mouvement réduit tout es
     const { flip } = await import(src);
     const l = document.getElementById("l");
     await flip(l, () => l.append(l.firstElementChild));
-    return document.getAnimations().length;
+    return document.getAnimations().filter(a => !(a.timeline instanceof ViewTimeline)).length;
   }, MOUVEMENT);
   expect(reduit).toBe(0);
 });
@@ -583,7 +584,7 @@ test("glisser : un geste annulé (pointercancel) revient au point de départ et 
   await page.mouse.move(b.x + 120, b.y + 40, { steps: 5 });
   await page.evaluate(() => document.getElementById("g").dispatchEvent(new PointerEvent("pointercancel", { pointerId: window.__j.id, bubbles: true })));
   expect((await page.evaluate(() => window.__j.fin)).annule).toBe(true);
-  await page.waitForFunction(() => document.getElementById("g").style.translate === "" && document.getAnimations().length === 0);
+  await page.waitForFunction(() => document.getElementById("g").style.translate === "" && document.getAnimations().filter(a => !(a.timeline instanceof ViewTimeline)).length === 0);
   await page.mouse.up();
 });
 

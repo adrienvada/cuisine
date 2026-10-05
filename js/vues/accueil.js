@@ -53,6 +53,42 @@ const criteres = new Set();
 const jai = new Set();
 let foins = new Map();
 
+/* Le mouvement (accueil-anime.js, le socle et sa feuille) vient au repos, page chargée ; sans lui,
+   les filtres s'appliquent d'un coup, comme en mouvement réduit. */
+let anime = null;
+let demande = null;
+const chargerAnime = () => (demande ??= import("./accueil-anime.js").then(m => {
+  anime = m;
+  armerGrille();
+}, () => null));
+const armerGrille = () => {
+  const grid = document.getElementById("grid");
+  if (!anime || !grid) return;
+  grid.setAttribute("data-anime", "");
+  anime.equiper(grid);
+};
+const auRepos = suite => ("requestIdleCallback" in window ? requestIdleCallback(suite, { timeout: 3000 }) : setTimeout(suite, 1500));
+const armer = () => {
+  if (anime || REDUCE_MOTION.matches) return;
+  if (document.readyState === "complete") auRepos(chargerAnime);
+  else window.addEventListener("load", () => auRepos(chargerAnime), { once: true });
+};
+
+/* Le bandeau s'écrit à l'encre une fois par session. */
+let encreFaite = false;
+function encrePremiere() {
+  if (encreFaite || REDUCE_MOTION.matches) return false;
+  encreFaite = true;
+  try {
+    if (sessionStorage.getItem("accueil-encre")) return false;
+    sessionStorage.setItem("accueil-encre", "1");
+  } catch { /* stockage refusé : une fois par chargement de la page suffit */ }
+  return true;
+}
+
+/* Brin prêt à se tracer : chaque trait mesure 1 (pathLength) et part après le précédent. */
+const brin = svg => { let i = 0; return svg.replace(/<path /g, () => `<path pathLength="1" style="--i:${Math.min(i++, 5)}" `); };
+
 /* Le foin de chaque recette, normalisé une fois pour toute la visite. Les
    fondamentaux, eux, arrivent après le premier affichage (core/fonds.js) : leur
    titre n'entre dans le foin qu'à ce moment-là, d'où rafraichirFoins(). */
@@ -72,10 +108,11 @@ export function renderHome() {
   const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(RECIPES.map(r => r.category))].sort(byCategoryOrder)];
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   calculerFoins();
+  const encre = encrePremiere();
   app.innerHTML = `
-    <header class="masthead masthead-accueil fade-in">
+    <header class="masthead masthead-accueil fade-in${encre ? " encre" : ""}">
       ${boutonReglages()}
-      <div class="mast-row">${ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${ILLO.D.sprigR}</div>
+      <div class="mast-row${encre ? " trace" : ""}">${encre ? brin(ILLO.D.sprig) : ILLO.D.sprig}<p class="eyebrow">Le carnet de</p>${encre ? brin(ILLO.D.sprigR) : ILLO.D.sprigR}</div>
       <h1>Cuisine</h1>
       <p class="byline"><span>d'<span class="u">Evadri</span></span> ${ILLO.D.heart}</p>
     </header>
@@ -93,7 +130,7 @@ export function renderHome() {
       ${FILTRES.map(f => `<button class="chip ${criteres.has(f.id) ? "on" : ""}" data-critere="${f.id}" aria-pressed="${criteres.has(f.id)}">${f.label}</button>`).join("")}
     </div>
     <p class="jai-etat" id="jai-etat" hidden>
-      <span id="jai-resume"></span>
+      <span><span id="jai-nb">0</span> <span id="jai-mot">recettes</span> avec <span id="jai-ing"></span> de ta sélection</span>
       <button type="button" class="jai-efface" id="jai-efface">Effacer</button>
     </p>
     <div class="grid fade-in" id="grid">
@@ -109,11 +146,13 @@ export function renderHome() {
     const b = e.target.closest(".chip");
     if (!b) return;
     state.filter = b.dataset.cat; save();
+    const ancienne = document.querySelector("#chips .chip.on");
     document.querySelectorAll("#chips .chip").forEach(c => {
       c.classList.toggle("on", c === b);
       c.setAttribute("aria-pressed", String(c === b));
     });
-    rebondir(b);
+    anime?.glisserPastille(b.parentElement, ancienne, b);
+    anime?.montrerPuce(b);
     applyFilter(true);
   });
   /* Les critères se cumulent : chacun resserre la grille un peu plus. */
@@ -124,13 +163,16 @@ export function renderHome() {
     if (!criteres.delete(id)) criteres.add(id);
     b.classList.toggle("on", criteres.has(id));
     b.setAttribute("aria-pressed", String(criteres.has(id)));
-    if (criteres.has(id)) rebondir(b);
+    if (criteres.has(id)) { anime?.rebondir(b); anime?.montrerPuce(b); }
     applyFilter(true);
   });
   document.getElementById("jai-ouvrir").addEventListener("click", ouvrirJai);
   document.getElementById("jai-efface").addEventListener("click", () => { jai.clear(); majJai(); applyFilter(true); });
-  document.getElementById("grid").addEventListener("click", partagerDepuisCarte);
+  const grid = document.getElementById("grid");
+  armerGrille();
+  grid.addEventListener("click", partagerDepuisCarte);
   applyFilter(false);
+  armer();
 }
 
 /* Le module de partage (avec le calcul qu'il emporte) ne vient pas avec l'accueil :
@@ -154,13 +196,6 @@ function partagerDepuisCarte(e) {
   else preparerPartage().then(partager, () => toast("Le partage ne s'est pas chargé"));
 }
 
-function rebondir(b) {
-  if (REDUCE_MOTION.matches) return;
-  b.classList.remove("pop");
-  void b.offsetWidth;
-  b.classList.add("pop");
-}
-
 /* Le bouton « J'ai… » et la ligne qui rappelle la sélection : ils disent
    pourquoi la grille est réduite, et la défont d'un geste sans rouvrir la feuille. */
 function majJai() {
@@ -171,7 +206,16 @@ function majJai() {
   bouton.innerHTML = `J'ai…${n ? ` <span class="jai-n">${n}</span>` : ""}`;
   bouton.setAttribute("aria-label", n ? `J'ai… (${n} ingrédient${s} choisi${s})` : "J'ai… : choisir les ingrédients que tu as");
   document.getElementById("jai-etat").hidden = n === 0;
-  document.getElementById("jai-resume").textContent = `Recettes avec ${n} ingrédient${s} de ta sélection`;
+  document.getElementById("jai-ing").textContent = `${n} ingrédient${s}`;
+}
+
+/* Le nombre de recettes possibles sous les filtres : il roule quand il change. */
+function majNombre(n, animer) {
+  const nb = document.getElementById("jai-nb");
+  if (!nb) return;
+  document.getElementById("jai-mot").textContent = n > 1 ? "recettes" : "recette";
+  if (animer && anime && !document.getElementById("jai-etat").hidden) anime.rouler(nb, n);
+  else nb.textContent = n;
 }
 
 /* ---------- « J'ai… » : la feuille des ingrédients ---------- */
@@ -208,7 +252,9 @@ function ouvrirJai() {
   const rafraichir = () => {
     const n = visibles().length;
     vider.disabled = jai.size === 0;
-    ok.textContent = !jai.size ? "Fermer" : n === 0 ? "Aucune recette" : n === 1 ? "Voir la recette" : `Voir les ${n} recettes`;
+    const nb = ok.querySelector(".jai-nb");
+    if (jai.size && n > 1 && nb && anime) { anime.rouler(nb, n); return; }
+    ok.innerHTML = !jai.size ? "Fermer" : n === 0 ? "Aucune recette" : n === 1 ? "Voir la recette" : `Voir les <span class="jai-nb">${n}</span> recettes`;
   };
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop || e.target.closest("#jai-ok")) return fermerFeuille();
@@ -219,7 +265,7 @@ function ouvrirJai() {
     }
     const b = e.target.closest(".jai-chip");
     if (!b) return;
-    if (!jai.delete(b.dataset.cle)) jai.add(b.dataset.cle);
+    if (!jai.delete(b.dataset.cle)) { jai.add(b.dataset.cle); anime?.rebondir(b); }
     b.classList.toggle("on", jai.has(b.dataset.cle));
     b.setAttribute("aria-pressed", String(jai.has(b.dataset.cle)));
     rafraichir();
@@ -279,7 +325,7 @@ function cardHtml(r) {
      (cf. accueil.css) ; le bouton, frère du lien, passe au-dessus. */
   return `
     <article class="card" data-id="${r.id}">
-      <div class="visual" style="background:${r.color}22">${visuel(r, { genre: "vignette" })}
+      <div class="visual" data-vt-photo="${r.id}" style="--c:${r.color}22">${visuel(r, { genre: "vignette" })}
         <span class="card-cat">${r.category}</span>
         <button class="card-share" data-share="${r.id}" aria-label="Partager ${r.title}">${ICON.share}</button>
         ${estDeSaison(r, new Date().getMonth() + 1) ? `<span class="card-saison">De saison</span>` : ""}
@@ -322,20 +368,20 @@ export function burstHeart(btn) {
   }
 }
 
-/* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée. */
+/* Une carte en cours de sortie retourne au repos, cachée (jamais retirée du DOM, cf. ordonner). */
 function finishLeave(el) {
-  clearTimeout(el._lv);
   if (!el.classList.contains("card-leave")) return;
+  anime?.annuler(el, "sortie");
   el.classList.remove("card-leave");
+  el.inert = false;
+  el.removeAttribute("aria-hidden");
   el.style.position = el.style.left = el.style.top = el.style.width = el.style.margin = "";
   el.classList.add("gone");
 }
 
-/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal
-   placées. Tout ré-attacher (appendChild de chacune) coûte une mise en page, et
-   détache les vignettes : le navigateur oublie celle qu'il comptait pour le plus grand
-   élément peint, et le fondu d'une carte déjà là repartirait. Au premier dessin comme à
-   l'arrivée des fondamentaux (rafraichirFoins), l'ordre est déjà le bon : rien ne bouge. */
+/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal placées :
+   tout ré-attacher coûte une mise en page et détache les vignettes (le navigateur oublie son
+   plus grand élément peint). Au premier dessin comme à l'arrivée des fondamentaux, rien ne bouge. */
 function ordonner(grid, voulues) {
   let suivante = grid.firstElementChild;
   for (const el of voulues) {
@@ -346,9 +392,8 @@ function ordonner(grid, voulues) {
   if (grid.lastElementChild !== vide) grid.appendChild(vide);
 }
 
-/* Filtre la grille façon FLIP : les cartes écartées s'estompent sur place,
-   les survivantes glissent vers leur nouvelle position, les entrantes
-   apparaissent en fondu. Aucune reconstruction du DOM. */
+/* Filtre la grille : les cartes écartées sortent sur place, les autres changent de place par
+   flip() (anime.filtrer). Sans mouvement (réduit, ou pas encore arrivé), tout se pose d'un coup. */
 function applyFilter(animate) {
   const grid = document.getElementById("grid");
   if (!grid) return;
@@ -358,6 +403,7 @@ function applyFilter(animate) {
      (« Coups de cœur » n'est pas une catégorie : la pastille y garde son sens.) */
   grid.classList.toggle("no-cat", !(state.filter === "Toutes" || state.filter === FAV_FILTER || state.filter === "table"));
   grid.querySelector(".grid-empty").hidden = list.length > 0;
+  majNombre(list.length, animate);
   /* Filtrer masque des cartes sans rien déplacer sous le focus : sans cette phrase,
      on ne saurait pas combien de recettes restent. Le premier dessin ne dit rien. */
   if (animate) annoncer(list.length ? `${list.length} recette${list.length > 1 ? "s" : ""}` : "Aucune recette ne correspond");
@@ -378,69 +424,16 @@ function applyFilter(animate) {
   const wantedSet = new Set(wanted);
   const cards = [...cardOf.values()];
 
-  if (!animate || REDUCE_MOTION.matches) {
+  if (!animate || !anime || REDUCE_MOTION.matches) {
     for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
     ordonner(grid, wanted);
     return;
   }
 
-  /* FIRST — positions actuelles des cartes visibles */
-  const visible = cards.filter(el => !el.classList.contains("gone") && !el.classList.contains("card-leave"));
-  const gridBox = grid.getBoundingClientRect();
-  const first = new Map(visible.map(el => [el, el.getBoundingClientRect()]));
-
-  const leavers = visible.filter(el => !wantedSet.has(el));
-  const enterers = wanted.filter(el => !first.has(el));
-  const stayers = wanted.filter(el => first.has(el));
-
-  /* Sortantes : figées en absolu à leur place, elles s'estompent sans gêner
-     le reflow, puis retournent au repos (display:none). */
-  for (const el of leavers) {
-    const r0 = first.get(el);
-    el.style.position = "absolute";
-    el.style.margin = "0";
-    el.style.width = r0.width + "px";
-    el.style.left = r0.left - gridBox.left + "px";
-    el.style.top = r0.top - gridBox.top + "px";
-    el.classList.add("card-leave");
-    el._lv = setTimeout(() => finishLeave(el), 240);
-  }
-
-  /* Entrantes : réaffichées tout de suite mais transparentes */
-  for (const el of enterers) {
-    finishLeave(el);
-    el.classList.remove("gone");
-    el.classList.add("card-enter", "no-anim");
-  }
-
-  /* Ordre cible (le tri des coups de cœur déplace aussi les survivantes) */
-  ordonner(grid, wanted);
-
-  /* LAST + INVERT — chaque survivante repart de son ancienne position… */
-  const movers = [];
-  for (const el of stayers) {
-    const r0 = first.get(el), r1 = el.getBoundingClientRect();
-    const dx = r0.left - r1.left, dy = r0.top - r1.top;
-    if (!dx && !dy) continue;
-    el.classList.add("no-anim");
-    el.style.transform = `translate(${dx}px, ${dy}px)`;
-    movers.push(el);
-  }
-
-  /* PLAY — …et glisse vers la nouvelle au prochain rendu */
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    for (const el of movers) {
-      el.classList.remove("no-anim");
-      el.classList.add("card-move");
-      el.style.transform = "";
-      clearTimeout(el._mv);
-      el._mv = setTimeout(() => el.classList.remove("card-move"), 340);
-    }
-    for (const el of enterers) {
-      el.classList.remove("no-anim", "card-enter");
-      el.classList.add("card-move");
-      clearTimeout(el._mv);
-      el._mv = setTimeout(() => el.classList.remove("card-move"), 340);
-    }
-  }));
+  /* Les cartes à l'écran : ni cachées, ni déjà en train de sortir. */
+  const alEcran = () => cards.filter(el => !el.classList.contains("gone") && !el.classList.contains("card-leave"));
+  anime.filtrer(alEcran, () => alEcran().filter(el => !wantedSet.has(el)), grid, () => {
+    for (const el of wanted) { finishLeave(el); el.classList.remove("gone"); }
+    ordonner(grid, wanted);
+  }, finishLeave);
 }
