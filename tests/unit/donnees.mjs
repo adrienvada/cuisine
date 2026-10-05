@@ -15,8 +15,10 @@ const charger = (fichier, noms) =>
 
 const recettes = charger("js/recipes.js", "RECIPES, RAYONS, RECIPE_RENAMES");
 const fondamentaux = charger("js/fondamentaux.js", "FONDAMENTAUX, FAMILLES, FONDAMENTAL_RENAMES");
+const figures = charger("js/figures.js", "FIGURES, THERMOMETRE");
 
-Object.assign(globalThis, recettes, fondamentaux);
+Object.assign(globalThis, recettes, fondamentaux, figures);
 
 export const { RECIPES, RAYONS, RECIPE_RENAMES } = recettes;
 export const { FONDAMENTAUX, FAMILLES, FONDAMENTAL_RENAMES } = fondamentaux;
+export const { FIGURES, THERMOMETRE } = figures;

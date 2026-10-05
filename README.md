@@ -13,7 +13,7 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 - **Mode cuisine** — étapes plein écran, gros texte lisible les mains dans la farine, l'écran reste allumé. Les minuteurs (sonnerie + vibration) continuent de tourner où qu'on aille dans le carnet : leurs bulles restent affichées en bas et un appui ramène à l'étape concernée, la croix les arrête.
 - **Reprise** — l'étape en cours est retenue : en rouvrant la recette, le bouton propose « Reprendre — étape 3 / 5 » (ou « Repartir du début »). Si un minuteur de cette recette tourne, le mode cuisine se rouvre directement. Oubliée à la fin de la recette, ou d'elle-même au bout de 12 h.
 - **Liste de courses** — calculée à partir du menu : les ingrédients fusionnent par rayon, dans l'ordre d'un parcours de supermarché (fruits & légumes, crèmerie, épicerie…), quantités additionnées. Le fond de placard (sel, huiles, épices…) est présenté à part, « à vérifier ». Cochable au magasin, partageable par message, articles libres en plus.
-- **Savoirs** — les *fondamentaux* : les mécanismes qui reviennent d'une recette à l'autre (l'émulsion, Maillard, l'osmose du sel), expliqués une fois pour toutes. Une pastille dorée sous l'astuce d'une étape les ouvre sans quitter la recette, même en mode cuisine. L'onglet les réunit, la recherche les fouille, et chacun se partage par lien.
+- **Savoirs** — les *fondamentaux* : les mécanismes qui reviennent d'une recette à l'autre (l'émulsion, Maillard, l'osmose du sel), expliqués une fois pour toutes, et illustrés de schémas, courbes et échelles (voir « Figures des savoirs »). Une pastille dorée sous l'astuce d'une étape les ouvre sans quitter la recette, même en mode cuisine. L'onglet les réunit, la recherche les fouille, et chacun se partage par lien.
 - **Partage** — depuis la vignette, la fiche recette ou le mode cuisine : un résumé (temps, ingrédients aux portions affichées) et le lien vers la recette illustrée, envoyés via la feuille de partage du téléphone. « Partager le repas » envoie le menu entier d'un coup. Un fondamental se partage de la même façon.
 - **PWA** — installable sur l'écran d'accueil (Safari : Partager → « Sur l'écran d'accueil »), fonctionne hors ligne.
 
@@ -126,6 +126,41 @@ alors pour toutes les options), et sur le `step` d'un supplément.
 **Renommer un fondamental** suit exactement la règle des recettes : une entrée dans
 `FONDAMENTAL_RENAMES`, jamais retirée — son identifiant est parti dans des liens partagés.
 
+## Figures des savoirs
+
+Chaque fondamental peut s'illustrer de **schémas, courbes, échelles et étapes** : de quoi *voir* le mécanisme que le texte explique. Les données vivent dans [`js/figures.js`](js/figures.js) (`FIGURES["maillard"] = [ … ]`, une section par famille entre des repères `/* ===== Famille ===== */`, pour que plusieurs auteurs y travaillent sans conflit), le dessin dans [`js/ui/figures.js`](js/ui/figures.js) (des fonctions pures : une figure entre, une chaîne SVG sort), la palette dans [`css/figures.css`](css/figures.css). Le fichier de données est chargé avec `fondamentaux.js` mais n'est qu'un bonus : s'il manque, les fiches s'affichent comme avant.
+
+**Le format** (détaillé, avec un exemple copiable de chaque type, en tête de `js/figures.js`) : une figure a un `ou` (`tete` après l'accroche, `cas` après « Selon les cas », `reperes` dans « À retenir », `pourquoi` + `apres: n` dans « Pourquoi ça marche »), un `titre`, une `legende` qui dit quoi lire, un `alt` complet pour les lecteurs d'écran, et un `type` :
+
+| `type` | pour | paramètres |
+|---|---|---|
+| `courbe` | une grandeur qui varie | `x`, `y` (`label`, `unite`, `min`, `max`, `graduations`, `extremites`), `series`, `zones` (bandes verticales), `zonesY` (bandes horizontales), `reperes` (`{ x }` ou `{ y, ancre }`), `notes`, `qualitative` |
+| `echelle` | une règle graduée (température, pH, %…) | `min`, `max`, `unite`, `zones`, `marqueurs` (zones et marqueurs : `cote: "haut" \| "bas"`), `graduations`, `coupures: [{ de, a }]` (axe interrompu, signe //), `rangees: true` (zones qui se chevauchent sur des pistes parallèles) |
+| `barres` | des quantités comparées | `barres: [{ label, valeur, texte, note, ton }]` ou une plage `{ label, de, a }` (segment à deux bornes), `unite`, `min`, `max` |
+| `etapes` | un processus de 2 à 5 cases | `etapes: [{ libelle, desc, emoji, ton }]` |
+| `svg` | un vrai schéma dessiné à la main | `vb` (viewBox, 320 de large), `corps` (le contenu SVG, avec ses symboles partagés) |
+| `comparaison` | avant/après, bon/mauvais | `panneaux: [{ label, sous, ton, vb, corps }]` (2 ou 3), `fleche`, `colonnes: 1 \| 2 \| 3` |
+
+**Guide pour dessiner une figure**
+
+1. **Lire la fiche, puis choisir ce que le dessin apporte** : un ordre de grandeur sur une règle, une allure sur une courbe, un mécanisme en `svg`. Une figure qui répète le texte ne sert à rien.
+2. **Ne rien inventer.** Tout chiffre dessiné vient du texte de la fiche. Quand on ne connaît que l'allure, la courbe est `qualitative: true` (axes sans graduations chiffrées) et la légende dit « allure qualitative » ; une illustration le dit aussi. Le vérificateur le contrôle.
+3. **Aucune couleur dans les données** : des `ton` (`vert`, `or`, `terra`, `bleu`, `encre`, `doux`) pour les types calculés, des classes `fg-t-…` (traits), `fg-f-…` (aplats), `fg-txt-…` (textes) pour un SVG libre. Elles lisent les variables du thème : une figure est lisible en clair comme en sombre. Les flèches : `marker-end="url(#fg-fl-encre)"` à l'arrivée, `marker-start="url(#fg-fd-encre)"` au départ (une cote à double flèche) ; un `<path>` à plusieurs `M` ne porte qu'**une** pointe par bout, et un `<g class="fg-t-…">` propage son trait à ses enfants. Le noir de brûlé (sucs, croûte) est `fg-f-suie` : sombre dans les deux thèmes, liseré clair en sombre — `fg-f-encre` devient crème en sombre. Le sens des tons : `terra` = chaleur, coloration brune, amertume et danger ; `or-l` = chair crue, gras, sucres ; une nuance plus pâle ne veut pas dire « moins » si le texte ne le dit pas ; un pourcentage nomme toujours sa base (« dans la chair », « dans la phase aqueuse »).
+3 bis. **Les symboles partagés** : une bibliothèque de petits dessins (poêle, casserole, flamme, vapeur, goutte, bulle, couteau, thermomètre ; cellule, grain de sel, cristal, bactérie, larve, œuf, feuille, émulsifiant, ions…) que le `corps` d'un SVG appelle par `<use href="#fg-sym-flamme" x="10" y="20" width="24" height="30"/>` (ou avec un `transform`) ; la classe de ton du `<use>` (`class="fg-sy-bleu"`) les recolore. Le cadre n'injecte que les `<symbol>` utilisés, avec des identifiants propres à la figure ; le vérificateur n'autorise `<use>` que pour un symbole qui existe. La liste complète est en tête de `js/figures.js` ; `node tools/planche-symboles.mjs [dossier]` en fait une planche (clair et sombre) à regarder.
+4. **Largeur de conception : 320.** Textes de 11,5 minimum, marges de 8 à 10 sur les bords, un `<tspan>` par ligne dans un SVG libre ; les types calculés coupent et répartissent leurs étiquettes eux-mêmes.
+5. **Regarder le résultat** : `node tools/capturer-savoir.mjs <id> [dossier]` sert l'appli, photographie `#/fondamental/<id>` à 360 px en clair et en sombre (page entière, puis chaque figure), et signale texte trop petit, texte coupé, chevauchements, bouton de zoom sans cible de 44 px ou posé sur le dessin, et (à part, `signalements`) un texte barré par un tracé de courbe ou par une ligne de repère. Ouvrir les PNG, corriger, recommencer. `--strict` : code de sortie 1 au moindre signalement.
+6. **Vérifier** : `npm run verifier` (clés, types, titres, `alt`, `ou`, `apres`, aucune couleur en dur, balises SVG fermées, classes connues), `npm test`, puis `npm run sw`. Un appui sur une figure l'ouvre en grand (bouton dans la ligne du titre, à droite, jamais sur le dessin ; cible de 44 px ; Échap) : rien à écrire pour cela. Sur un écran plus étroit que la figure agrandie, elle défile, avec une ombre sur le bord droit et une ligne d'indication.
+
+**Arrivée tardive.** `js/figures.js` n'attend que 1,2 s derrière les fondamentaux. S'il arrive après, la page (ou la feuille) déjà ouverte se complète d'elle-même : les figures sont *insérées* à leurs places (`completerFigures` dans `js/vues/savoirs.js`), sans rien redessiner, le défilement et le focus restent où ils sont. La recherche des Savoirs fouille aussi les titres et les légendes des figures, et son cache se refait quand elles arrivent.
+
+**Le thermomètre du carnet** : une figure transversale, hors des fiches. Sous l'introduction de l'onglet Savoirs (`#/fondamentaux`), un encart replié (`<details>`, dessiné à la première ouverture) déroule une grande échelle verticale de −40 à 220 °C qui rassemble les températures-repères citées dans **toutes** les fiches : congélation anti-Anisakis, réfrigérateur, arrêt de croissance des salmonelles, pasteurisation de l'œuf, prise du blanc, Maillard, friture, pyrolyse… Chaque repère est un lien (focalisable) vers sa fiche, `#/fondamental/<id>`. L'encart se masque pendant une recherche.
+
+- **Les données** : `const THERMOMETRE = [ { de, a?, label, fond, ton, ancre?, ouvert? } ]`, dans la section « Vue d'ensemble » de `js/figures.js` (le format y est documenté). `de` est la température, `a` le haut d'une plage, `fond` l'id de la fiche. Un chiffre n'y figure que s'il est dans le texte de cette fiche : un test relit chaque nombre ; un autre exige un repère pour toute fiche qui cite des °C. `npm run verifier` contrôle que chaque `fond` existe.
+- **Une plage est un dégradé**, jamais un bord franc : les fiches répètent qu'il n'y a pas de seuil net. Un point (un plafond, un cap) est un disque sur l'axe. Chaque étiquette est précédée de l'**emoji de sa fiche** ; l'axe est un tube dont le **réservoir**, en bas, a la couleur froide ; les graduations sont légères (les bornes de chaque tronçon et quelques valeurs rondes) ; des repères de même température dans la **même fiche** se rangent sous un seul point.
+- **L'échelle n'est pas linéaire, et le dit** : l'axe se rompt (//) là où plus de 12 °C séparent deux repères, et chaque tronçon a sa propre hauteur de degré (les repères serrés, 55 à 70 °C, ont la place qu'il leur faut ; les déserts, presque rien). La légende l'indique.
+- **Accessibilité** : le SVG est un groupe de vrais liens `<a>`, du plus chaud au plus froid, chacun nommé « 55 à 85 °C : … Fiche : … » ; au clavier, un anneau de focus entoure l'étiquette. Replié, l'encart ne met aucun lien dans l'ordre de tabulation.
+- **Le code** : `thermometreMise()` (mise en page pure : tronçons, rangées de plages, étiquettes sans chevauchement) et `thermometreHtml()` dans `js/ui/figures.js`, testées sous Node ; l'encart dans `js/vues/savoirs.js` ; le style dans `css/figures.css` (le dessin) et `css/savoirs.css` (l'encart). Tests : `tests/unit/figures.test.mjs` et `tests/e2e/thermometre.spec.js`. Sans `js/figures.js`, l'encart n'existe pas.
+
 ## Illustrations & photos
 
 Chaque recette a une **illustration dessinée** (SVG « gouache ») définie dans [`js/illos.js`](js/illos.js) — clé = identifiant de la recette. Si une recette n'a pas d'illustration, son emoji prend le relais ; si elle a une **photo** (`image: "img/….jpg"`), la photo gagne.
@@ -223,11 +258,13 @@ css/cuisine.css         Mode cuisine plein écran
 css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+css/figures.css         Figures des savoirs : cadre, palette des schémas (classes fg-…, clair et sombre), apparition des tracés, zoom
 css/journal.css         Journal des recettes cuisinées : feuille d'ajout, photos, liste
 
 js/recipes.js           Données : les recettes
 js/placard.js           Données : le fond de placard (cid des produits « à vérifier » en courses)
 js/fondamentaux.js      Données : le catalogue des mécanismes
+js/figures.js           Données : les schémas, courbes et échelles des fondamentaux (format documenté en tête du fichier)
 js/illos.js             Données : les illustrations dessinées
 js/allergenes.js        Données : allergènes, produits non végétariens
 js/saisons.js           Données : mois de saison des fruits, légumes et herbes
@@ -271,6 +308,7 @@ js/ui/miseajour.js      Enregistrement du service worker (au repos, après le pr
 js/ui/theme.js          Thème automatique/clair/sombre, mouvement réduit
 js/ui/voix.js           Mains libres : lecture à voix haute et commandes vocales (module autonome, chargé à la demande)
 js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.js
+js/ui/figures.js        Figures des savoirs : des données de js/figures.js vers du SVG (module pur, testé sous Node)
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres (la seule vue chargée avec le premier affichage)
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
@@ -282,7 +320,7 @@ js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, a
 js/vues/journal.js      Journal des recettes cuisinées : feuille d'ajout, photos (IndexedDB), liste
 js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import
 
-tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker
+tools/                  Vérificateur de recettes, pages de partage, génération de photos, vignettes WebP, version du service worker, captures des savoirs (capturer-savoir.mjs)
 tests/                  Tests unitaires (unit/) et de bout en bout (e2e/), serveur de test, page de la voix (fixtures/)
 ```
 
@@ -313,7 +351,7 @@ Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, 
 **Les familles de tests.** Chaque thème a ses deux étages, `tests/unit/<thème>.test.mjs` (sous Node) et `tests/e2e/<thème>.spec.js` (dans Chromium) :
 
 - le tronc du carnet : `accueil` (recherche, critères, « J'ai… »), `accueil-fiche`, `fiche`, `recettes`, `format`, `html`, `core` (la règle « core/ sans DOM ») ;
-- le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `culinaire` (logique de cuisinier : un `cid` est un produit) ;
+- le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `figures` (le moteur de rendu des schémas, sa palette et ses données), `thermometre` (la figure transversale des Savoirs), `culinaire` (logique de cuisinier : un `cid` est un produit) ;
 - le menu et les courses : `menu`, `menu-courses`, `courses` (`outils-courses.js`) ;
 - le carnet lui-même : `journal`, `reglages` (`outils-reglages.js`), `synchro` (`outils-synchro.js` : le faux Supabase), `navigation` ;
 - le chargement : `images` (service worker, vignettes ; `outils-images.js`) ;

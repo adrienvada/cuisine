@@ -10,8 +10,8 @@ test.describe("feuilles CSS", () => {
   test("celles des vues se chargent sans bloquer, puis s'appliquent toutes", async ({ page }) => {
     await page.goto("/");
     const liens = page.locator("link[rel=stylesheet][data-vue]");
-    expect(await liens.count()).toBe(5);
-    await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.media))).toEqual(Array(5).fill("all"));
+    expect(await liens.count()).toBe(6);
+    await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.media))).toEqual(Array(6).fill("all"));
     // Toutes les règles sont bien là : celles des vues comme celles de l'accueil.
     const sheets = await page.evaluate(() => [...document.styleSheets].map(s => s.href.split("/").pop() + ":" + (s.cssRules.length > 0)));
     expect(sheets.filter(s => s.endsWith(":false"))).toEqual([]);
