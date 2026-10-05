@@ -153,5 +153,25 @@ test("les polices servies sont des sous-ensembles : bien plus légères que les 
     assert.ok(servie < source * 0.9, `${police.fichier} : ${servie} octets pour ${source}`);
   }
   const total = readdirSync(join(RACINE, "fonts")).reduce((s, f) => s + statSync(join(RACINE, "fonts", f)).size, 0);
-  assert.ok(total < 120 * 1024, `fonts/ pèse ${total} octets`);
+  // Les fichiers « étendus » (ñ, ß…) ne sont jamais préchargés : ils ne pèsent que si un de ces caractères s'écrit.
+  assert.ok(total < 150 * 1024, `fonts/ pèse ${total} octets`);
+});
+
+test("un nom de plat ou une note écrits à la main (jalapeño, più, Ærø, ß) restent dans la police du carnet, sans préchargement", async () => {
+  const css = sansCommentaires(lire("css/polices.css"));
+  const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/g)].map(m => m[1]);
+  const couvert = (famille, c) => faces.some(f => f.includes(`font-family: "${famille}"`)
+    && [...f.match(/unicode-range:([^;]*);/)[1].matchAll(/U\+([0-9A-F]+)(?:-([0-9A-F]+))?/g)]
+      .some(([, a, b]) => c >= parseInt(a, 16) && c <= parseInt(b || a, 16)));
+  for (const famille of ["Cormorant Garamond", "Caveat"]) {
+    for (const lettre of "ñíóúáãõìòßøåÁÑ") {
+      assert.ok(couvert(famille, lettre.codePointAt(0)), `${famille} : ${lettre}`);
+    }
+  }
+  // Les fichiers étendus dessinent ces glyphes, et index.html ne les précharge pas.
+  for (const f of ["cormorant-etendu", "cormorant-italique-etendu", "caveat-etendu"]) {
+    const servis = await caracteresDe(readFileSync(join(RACINE, "fonts", `${f}.woff2`)));
+    assert.ok(servis.has("ñ".codePointAt(0)) && servis.has("ß".codePointAt(0)), f);
+    assert.ok(!index.includes(`fonts/${f}.woff2`), `${f} ne doit pas être préchargée`);
+  }
 });

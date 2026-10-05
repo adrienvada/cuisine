@@ -42,12 +42,23 @@ export const FONCTIONNALITES = ["ccmp", "locl", "mark", "mkmk", "calt", "clig", 
 /* Ce qui peut s'écrire dans ces polices, quel que soit le texte : l'ASCII, les
    lettres du français (accents, cédille, tréma, œ æ, majuscules comprises), l'espace
    insécable, « », °, ±, ¼ ½ ¾, ×, le point médian, les tirets, les guillemets et
-   apostrophes typographiques, •, …, €, ™, −. Un autre caractère (ñ, ß, une flèche)
-   s'écrit dans la police de secours du système, glyphe par glyphe. */
+   apostrophes typographiques, •, …, €, ™, −. Le reste du latin (ñ, ß…) est
+   dans les fichiers « étendus » (voir ETENDU) ; au-delà, c'est la police de secours du système. */
 export const BASE = [...new Set(
   Array.from({ length: 0x7e - 0x20 + 1 }, (_, i) => 0x20 + i)
     .concat([..."\u00a0«»°±¼½¾×·àâäçéèêëîïôöùûüÿÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸœŒæÆ–—‘’“”•…€™−"].map(c => c.codePointAt(0)))
 )];
+
+/* Le reste du latin (Latin-1 et Latin étendu A : á ñ ß ø ł…) plus quelques ponctuations :
+   ce qu'un nom de plat ou une note écrits à la main peuvent contenir sans que le code
+   le contienne (« jalapeño », « più »). Fichier à part, jamais préchargé : le navigateur
+   ne le télécharge que si un de ces caractères s'affiche, et la même famille le sert,
+   glyphe par glyphe, sans repli sur une police du système. */
+export const ETENDU = [
+  ...Array.from({ length: 0xff - 0xa1 + 1 }, (_, i) => 0xa1 + i),
+  ...Array.from({ length: 0x17f - 0x100 + 1 }, (_, i) => 0x100 + i),
+  ...[0x2010, 0x2011, 0x201a, 0x201e, 0x2039, 0x203a, 0x2192]
+];
 
 /* Les glyphes du bandeau de l'accueil (« Cuisine », « d'Evadri »), apostrophes droite
    et typographique comprises. */
@@ -57,6 +68,9 @@ export const POLICES = [
   { fichier: "cormorant", source: "cormorant", texte: "base" },
   { fichier: "cormorant-italique", source: "cormorant-italique", texte: "base" },
   { fichier: "caveat", source: "caveat", texte: "base" },
+  { fichier: "cormorant-etendu", source: "cormorant", texte: "etendu" },
+  { fichier: "cormorant-italique-etendu", source: "cormorant-italique", texte: "etendu" },
+  { fichier: "caveat-etendu", source: "caveat", texte: "etendu" },
   { fichier: "caveat-titre", source: "caveat", texte: "titre" }
 ];
 
@@ -144,9 +158,12 @@ export function plages(ensemble) {
 export async function jeuDe(police, racine = RACINE) {
   const source = readFileSync(join(racine, "tools", "sources-polices", `${police.source}.woff2`));
   const dessinables = await caracteresDe(source);
+  const base = new Set([...BASE, ...caracteresDuCarnet(racine)].filter(c => c >= 0x20 && c < 0x2e80));
   const voulus = police.texte === "titre"
     ? new Set([...TEXTE_TITRE].map(c => c.codePointAt(0)))
-    : new Set([...BASE, ...caracteresDuCarnet(racine)].filter(c => c >= 0x20 && c < 0x2e80));
+    : police.texte === "etendu"
+      ? new Set(ETENDU.filter(c => !base.has(c)))
+      : base;
   return { source, jeu: new Set([...voulus].filter(c => dessinables.has(c))) };
 }
 
@@ -154,6 +171,9 @@ const FACES = [
   { famille: "Cormorant Garamond", style: "normal", poids: "500 700", affichage: "swap", police: "cormorant", note: "Les titres des cartes : préchargée (index.html)." },
   { famille: "Cormorant Garamond", style: "italic", poids: "500", affichage: "swap", police: "cormorant-italique", note: "Seul l'italique 500 est utilisé." },
   { famille: "Caveat", style: "normal", poids: "500 700", affichage: "swap", police: "caveat", note: "Les annotations manuscrites des vues : jamais préchargée, la page la demande\n   à l'ouverture d'une vue (main.js la tire au repos après le premier affichage)." },
+  { famille: "Cormorant Garamond", style: "normal", poids: "500 700", affichage: "swap", police: "cormorant-etendu", note: "Le reste du latin (lettres accentuées rares) : jamais préchargée, demandée seulement si un de ces caractères s'écrit." },
+  { famille: "Cormorant Garamond", style: "italic", poids: "500", affichage: "swap", police: "cormorant-italique-etendu", note: "Idem, en italique." },
+  { famille: "Caveat", style: "normal", poids: "500 700", affichage: "swap", police: "caveat-etendu", note: "Idem, pour les annotations manuscrites." },
   { famille: "Caveat Titre", style: "normal", poids: "500 700", affichage: "block", police: "caveat-titre", note: "Le bandeau de l'accueil seulement : préchargée, `block` (voir tools/polices.mjs)." }
 ];
 

@@ -32,6 +32,36 @@
   unicode-range: U+0020-007E, U+00A0, U+00AB, U+00B0-00B1, U+00B7, U+00BB-00BE, U+00C0, U+00C2, U+00C4, U+00C6-00CB, U+00CE-00CF, U+00D4, U+00D6-00D7, U+00D9, U+00DB-00DC, U+00E0, U+00E2, U+00E4, U+00E6-00EB, U+00EE-00EF, U+00F4, U+00F6, U+00F9, U+00FB-00FC, U+00FF, U+0152-0153, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+20AC, U+2122, U+2212;
 }
 
+/* Le reste du latin (lettres accentuées rares) : jamais préchargée, demandée seulement si un de ces caractères s'écrit. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../fonts/cormorant-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B4, U+00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
+/* Idem, en italique. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/cormorant-italique-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B4, U+00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
+/* Idem, pour les annotations manuscrites. */
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../fonts/caveat-etendu.woff2") format("woff2");
+  unicode-range: U+00A1-00AA, U+00AC-00AF, U+00B2-00B6, U+00B8-00BA, U+00BF, U+00C1, U+00C3, U+00C5, U+00CC-00CD, U+00D0-00D3, U+00D5, U+00D8, U+00DA, U+00DD-00DF, U+00E1, U+00E3, U+00E5, U+00EC-00ED, U+00F0-00F3, U+00F5, U+00F7-00F8, U+00FA, U+00FD-00FE, U+0102, U+0131, U+201A, U+201E, U+2039-203A;
+}
+
 /* Le bandeau de l'accueil seulement : préchargée, `block` (voir tools/polices.mjs). */
 @font-face {
   font-family: "Caveat Titre";

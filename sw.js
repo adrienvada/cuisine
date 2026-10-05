@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "dfbfed6752";
+const VERSION = "9e8023e994";
 
 const CORE = [
   "./",
@@ -31,8 +31,11 @@ const CORE = [
   "css/savoirs.css",
   "favicon.ico",
   "fonts/LICENCE.txt",
+  "fonts/caveat-etendu.woff2",
   "fonts/caveat-titre.woff2",
   "fonts/caveat.woff2",
+  "fonts/cormorant-etendu.woff2",
+  "fonts/cormorant-italique-etendu.woff2",
   "fonts/cormorant-italique.woff2",
   "fonts/cormorant.woff2",
   "icons/apple-touch-icon.png",
