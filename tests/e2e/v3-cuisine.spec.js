@@ -37,6 +37,29 @@ async function glisser(page, dx, { dy = 0, lacher = true, pas = 8 } = {}) {
   if (lacher) await page.mouse.up();
 }
 
+/* Un lancer dont le rythme est tenu dans la page : un mouvement toutes les 12 ms
+   (attente active, pour que l'horodatage des événements ne dépende pas de la charge de
+   la machine), le lâcher aussitôt après le dernier. À la souris de Playwright, une
+   machine chargée peut relâcher plus de 100 ms après le dernier mouvement : le doigt
+   « s'est arrêté » et la vitesse est nulle, à raison — ce n'est plus un lancer. */
+async function lancer(page, dx, { images = 3 } = {}) {
+  await page.evaluate(([dx, images]) => {
+    const el = document.querySelector(".cook-body");
+    const r = el.getBoundingClientRect();
+    const y = r.top + 120;
+    let x = r.left + r.width / 2;
+    const ev = (type, px) => new PointerEvent(type, { pointerId: 91, isPrimary: true, pointerType: "touch", bubbles: true, clientX: px, clientY: y });
+    el.dispatchEvent(ev("pointerdown", x));
+    for (let i = 0; i < images; i++) {
+      const t0 = performance.now();
+      while (performance.now() - t0 < 12) { /* attente active : un pas de 12 ms */ }
+      x += dx / images;
+      el.dispatchEvent(ev("pointermove", x));
+    }
+    el.dispatchEvent(ev("pointerup", x));
+  }, [dx, images]);
+}
+
 const translation = page => page.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".cook-body")).translate) || 0);
 const etiquette = page => page.locator(".cook-step-label");
 const segmentsRemplis = page => page.locator(".cook-progress i.done");
@@ -71,7 +94,7 @@ test("glisser franc : l'étape suivante entre du côté d'où elle vient, puis l
 test("glisser rapide et bref : un lancer suffit à tourner la page", async ({ page }) => {
   await page.goto(CUISINE + "/0");
   // 45 px seulement (moins que le seuil de distance) mais d'un coup : la vitesse du doigt compte.
-  await glisser(page, -45, { pas: 3 });
+  await lancer(page, -45);
   await expect(etiquette(page)).toHaveText("Étape 2 / 5");
 });
 

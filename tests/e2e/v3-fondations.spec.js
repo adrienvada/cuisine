@@ -528,10 +528,34 @@ test("glisser : suit le geste à la souris, verrouille l'axe, résiste au-delà 
   await page.mouse.up();
   const j = await page.evaluate(() => window.__j);
   expect(j.fin.annule).toBe(false);
-  expect(j.fin.vx).toBeGreaterThan(100);
-  expect(j.fin.vx).toBeLessThan(50000);
-  expect(Math.abs(j.fin.vy)).toBeLessThan(j.fin.vx);
   expect(j.clics).toBe(0);   // un geste qui a déplacé n'est pas un clic
+  /* La vitesse du lâcher se lit sur les ~80 dernières ms du geste : à la souris de
+     Playwright, une machine chargée peut relâcher plus de 100 ms après le dernier
+     mouvement (le doigt « s'est arrêté » : vitesse nulle, à raison). On rejoue donc un
+     lancer dont le rythme est tenu dans la page : un mouvement toutes les 12 ms (attente
+     active, pour que l'horodatage ne dépende pas de la charge), le lâcher aussitôt
+     après le dernier. */
+  const lancer = await page.evaluate(() => {
+    const g = document.getElementById("g");
+    const b = g.getBoundingClientRect();
+    const y = b.top + 40;
+    const ev = (type, x) => new PointerEvent(type, { pointerId: 77, isPrimary: true, pointerType: "touch", bubbles: true, clientX: x, clientY: y });
+    window.__j.fin = null;
+    g.dispatchEvent(ev("pointerdown", b.left + 20));
+    let x = b.left + 20;
+    for (let i = 0; i < 6; i++) {
+      const t0 = performance.now();
+      while (performance.now() - t0 < 12) { /* attente active : un pas de 12 ms */ }
+      x += 12;
+      g.dispatchEvent(ev("pointermove", x));
+    }
+    g.dispatchEvent(ev("pointerup", x));
+    return window.__j.fin;
+  });
+  expect(lancer.annule).toBe(false);
+  expect(lancer.vx).toBeGreaterThan(100);
+  expect(lancer.vx).toBeLessThan(50000);
+  expect(Math.abs(lancer.vy)).toBeLessThan(lancer.vx);
 });
 
 test("glisser : un mouvement plutôt vertical sur un axe x ne démarre pas (le défilement garde la main)", async ({ page }) => {
