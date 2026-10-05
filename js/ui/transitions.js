@@ -120,6 +120,9 @@ export function jouer({ type, origine, photo }, rendre) {
     t = document.startViewTransition(() => {
       // Une vue qui n'a rien changé (une redirection) : la transition n'a rien à montrer.
       if (rendre() === false) return t.skipTransition();
+      // La transition fait déjà entrer la vue : son fondu propre (.fade-in) jouerait en plus,
+      // et la page mettrait deux fois plus longtemps à se poser.
+      for (const el of document.querySelectorAll("#app .fade-in")) el.classList.remove("fade-in");
       if (photo) nommer(photoDe(document, photo.id, null));
     });
   } catch {

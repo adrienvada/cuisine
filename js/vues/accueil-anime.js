@@ -23,6 +23,7 @@ const VIDE = `<svg class="vide-illo trace" viewBox="0 0 64 48" fill="none" strok
 
 /* La grille vient d'être dessinée : son état vide prend son illustration, et ses photos leur fondu. */
 export function equiper(grid) {
+  dessinee = performance.now();
   const vide = grid.querySelector(".grid-empty");
   if (vide && !vide.querySelector(".vide-illo")) vide.insertAdjacentHTML("afterbegin", VIDE);
   grid.addEventListener("load", photoArrivee, true);
@@ -53,10 +54,14 @@ function equiperRecherche() {
 }
 
 /* Une photo qui arrive en retard, une fois la page défilée, se fond sur sa couleur : jamais
-   celles du premier écran (c'est le LCP, il ne se fond pas). */
+   celles du premier écran (c'est le LCP, il ne se fond pas), ni celles qui arrivent dans la
+   foulée du dessin de la grille (un retour à l'accueil, tout en cache : elles étaient déjà là,
+   les refondre ferait clignoter la page qu'on retrouve). */
+const EN_RETARD = 600;
+let dessinee = 0;
 function photoArrivee(e) {
   const img = e.target;
-  if (!(img instanceof HTMLImageElement)) return;
+  if (!(img instanceof HTMLImageElement) || performance.now() - dessinee < EN_RETARD) return;
   enAttente.push(img);
   // Vingt photos qui arrivent d'un coup (un retour à l'accueil, tout en cache) : une seule mesure
   // de mise en page pour toutes, au prochain dessin, et non une par photo (44 ms à 4× plus lent).

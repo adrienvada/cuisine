@@ -93,3 +93,31 @@ test("rouler dans une région live : la valeur n'est écrite qu'une fois, le dé
   expect(r.ajouts.filter(a => a !== "decor")).toEqual(["valeur"]);
   expect(r).toMatchObject({ texte: "9", decor: false, zone: "9 personnes" });
 });
+
+/* Retour à l'accueil depuis une fiche : la transition de vue fait entrer la page ; ni son
+   fondu propre (.fade-in), ni un nouveau fondu des photos déjà vues (tout est en cache) ne
+   doivent jouer en plus — la page se poserait deux fois plus tard, en clignotant. */
+test("retour à l'accueil : la transition seule, sans fondu de la vue ni des photos déjà vues", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForFunction(() => document.documentElement.hasAttribute("data-nav-pret") && document.getElementById("grid")?.hasAttribute("data-anime"));
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await page.evaluate(() => { location.hash = "#/recette/focaccia-romarin"; });
+  await page.waitForSelector(".hero");
+  await pageStable(page);
+  const vu = await page.evaluate(() => new Promise(fin => {
+    const noms = new Set();
+    history.back();
+    const t0 = performance.now();
+    const v = () => {
+      for (const a of document.getAnimations()) if (a.animationName) noms.add(a.animationName);
+      if (document.querySelector(".card .photo-arrive")) noms.add("photo-arrive (classe)");
+      if (performance.now() - t0 > 1500) return fin({ noms: [...noms], vt: document.documentElement.dataset.vt || null });
+      requestAnimationFrame(v);
+    };
+    requestAnimationFrame(v);
+  }));
+  expect(vu.noms).not.toContain("fade");
+  expect(vu.noms).not.toContain("photo-arrive");
+  expect(vu.noms).not.toContain("photo-arrive (classe)");
+  expect(vu.vt).toBe(null);   // la transition est finie et nettoyée
+});
