@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "620e676b23";
+const VERSION = "549c911236";
 
 const CORE = [
   "./",
@@ -27,6 +27,7 @@ const CORE = [
   "css/journal.css",
   "css/menu.css",
   "css/minuteurs.css",
+  "css/navigation.css",
   "css/polices.css",
   "css/reglages.css",
   "css/savoirs.css",
@@ -106,6 +107,7 @@ const CORE = [
   "js/core/ressort.js",
   "js/core/sauvegarde.js",
   "js/core/seance.js",
+  "js/core/sens.js",
   "js/fondamentaux.js",
   "js/illos.js",
   "js/main.js",
@@ -116,10 +118,13 @@ const CORE = [
   "js/sync-config.js",
   "js/sync.js",
   "js/ui/annonces.js",
+  "js/ui/confirmation.js",
   "js/ui/effets.js",
+  "js/ui/feuilles-geste.js",
   "js/ui/feuilles.js",
   "js/ui/focus.js",
   "js/ui/geste.js",
+  "js/ui/lien-recu.js",
   "js/ui/minuteurs.js",
   "js/ui/miseajour.js",
   "js/ui/mouvement.js",
@@ -130,7 +135,9 @@ const CORE = [
   "js/ui/scripts.js",
   "js/ui/styles.js",
   "js/ui/theme.js",
+  "js/ui/toast-mouvement.js",
   "js/ui/toast.js",
+  "js/ui/transitions.js",
   "js/ui/typo.js",
   "js/ui/visuel.js",
   "js/ui/voix.js",

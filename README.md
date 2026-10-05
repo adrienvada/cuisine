@@ -355,6 +355,7 @@ r/  f/                  Pages d'aperçu des recettes et des fondamentaux (géné
 
 css/polices.css         Polices locales (@font-face) : rien n'est demandé à un serveur de polices
 css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), jetons de mouvement et d'élévation, retour d'appui, utilitaires (.arrive, .trace, .rouler), mise en page, onglets, boutons, toast, feuilles
+css/navigation.css      Ce qui bouge entre les écrans (transitions de vue, pastille et icônes des onglets, badges, sortie des feuilles, trait des messages), posée après le premier affichage par js/ui/transitions.js
 css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes (et le bloc généré des couleurs dominantes)
 css/accueil-anime.css   Le mouvement de l'accueil (pastille des filtres, arrivée des cartes, loupe…), chargé au repos avec js/vues/accueil-anime.js
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
@@ -397,10 +398,16 @@ js/core/cuisine.js      Mode cuisine, côté calcul : taille du texte, ingrédie
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
 js/core/journal.js      Journal, côté pur : dates en clair et tri des entrées d'une recette
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
+js/core/sens.js         Le sens d'une navigation (pur) : onglet, détail ou mode cuisine, d'où le type de transition de vue
 js/core/ressort.js      Le ressort amorti (pur) : durée, points, linear() ; durées et courbes du mouvement, résistance élastique, vitesse d'un geste
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
+js/ui/toast-mouvement.js  Mouvement des messages (trait du temps restant, écarter du doigt) et des pastilles (chiffre qui roule, saut), chargé au repos
+js/ui/lien-recu.js      Applique la version d'une recette portée par un lien partagé, chargé à la réception d'un tel lien
+js/ui/confirmation.js   La question à deux issues (confirmer()), chargée à la première question
+js/ui/feuilles-geste.js Glisser la poignée d'une feuille pour la fermer, chargé à l'ouverture d'une feuille
+js/ui/transitions.js    Transitions de vue (View Transitions), photo partagée, pastille et icônes de la barre d'onglets, chargé après le premier affichage
 js/ui/annonces.js       L'unique région live : annoncer(texte)
 js/ui/focus.js          garderFocus() : le focus clavier à travers un redessin
 js/ui/typo.js           Typographie française de tout ce qui s'affiche (espaces insécables), par typo() de core/format.js
