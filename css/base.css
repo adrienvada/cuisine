@@ -172,7 +172,7 @@ a { color: var(--green); }
 
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .tabbar {
-    background: color-mix(in srgb, var(--card) 86%, transparent);
+    background: color-mix(in srgb, var(--card) 90%, transparent);
     -webkit-backdrop-filter: blur(16px) saturate(1.15);
     backdrop-filter: blur(16px) saturate(1.15);
     box-shadow: 0 -10px 24px -14px rgb(44 51 38 / 0.22);

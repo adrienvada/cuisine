@@ -82,13 +82,6 @@
 
 .empty { text-wrap: balance; }
 
-/* L'anneau de focus se resserre sur l'élément quand le focus arrive (le trait, lui, est
-   tout de suite là : on ne perd jamais de vue où l'on est). Un élément qui a déjà sa propre
-   animation, plus loin dans la cascade, garde la sienne. */
-:focus-visible { animation: anneau var(--d-courte) var(--e-sortie); }
-
-@keyframes anneau { from { outline-offset: 6px; } }
-
 /* Le message se pose au-dessus de la barre d'actions de la fiche (.actions, en papier calque,
    64 px de haut, collée au-dessus des onglets) plutôt que dessus, et au-dessus du plateau des
    minuteurs quand il y en a un. */

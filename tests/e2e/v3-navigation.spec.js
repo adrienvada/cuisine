@@ -409,6 +409,33 @@ for (const reduit of [false, true]) {
       await expect(toast).not.toHaveClass(/visible/);
     });
 
+    test("focus clavier : l'anneau se resserre (outline-offset seul) sans remplacer l'animation propre de l'élément ; rien en mouvement réduit", async ({ page }) => {
+      await page.goto("/");
+      await navPret(page);
+      // Un bouton qui a déjà sa propre animation CSS : le focus ne doit pas la remplacer.
+      await page.evaluate(() => {
+        const st = document.createElement("style");
+        st.textContent = "@keyframes propre { to { opacity: 0.99; } } #bouton-test { animation: propre 5s linear infinite; }";
+        const b = document.createElement("button");
+        b.id = "bouton-test";
+        b.textContent = "Test";
+        document.head.append(st);
+        document.body.prepend(b);
+      });
+      // Un focus venu du clavier (:focus-visible) : Tab d'abord, puis le bouton reçoit le focus.
+      await page.keyboard.press("Tab");
+      await page.locator("#bouton-test").focus();
+      await expect(page.locator("#bouton-test")).toBeFocused();
+      const anims = await page.locator("#bouton-test").evaluate(e => e.getAnimations().map(a => ({
+        css: a instanceof CSSAnimation ? a.animationName : null,
+        proprietes: a.effect.getKeyframes().flatMap(k => Object.keys(k).filter(n => !["offset", "easing", "composite", "computedOffset"].includes(n)))
+      })));
+      // En mouvement réduit, la règle générale coupe toute animation CSS : la sienne n'existe plus.
+      expect(anims.some(a => a.css === "propre")).toBe(!reduit);
+      expect(anims.some(a => a.css === "anneau")).toBe(false);
+      expect(anims.some(a => a.proprietes.includes("outlineOffset"))).toBe(!reduit);
+    });
+
     test("message : sur la fiche, il se pose au-dessus de la barre d'actions, sans la recouvrir", async ({ page }) => {
       await page.goto(`/#/recette/${QUICHE}`);
       await navPret(page);

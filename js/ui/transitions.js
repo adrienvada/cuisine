@@ -192,6 +192,20 @@ export function onglet(nom, { anime = true } = {}) {
   actif = nom;
 }
 
+/* ---------- L'anneau de focus ---------- */
+
+/* L'anneau se resserre sur l'élément quand le focus clavier y arrive (le trait, lui, est tout
+   de suite là : on ne perd jamais de vue où l'on est). C'est une animation web sur le seul
+   outline-offset, et non une règle CSS sur :focus-visible : celle-ci aurait remplacé toute
+   animation propre à l'élément qui prend le focus. */
+if (typeof document !== "undefined") {
+  document.addEventListener("focusin", e => {
+    const el = e.target;
+    if (!(el instanceof Element) || mouvementReduit() || !el.matches(":focus-visible") || typeof el.animate !== "function") return;
+    el.animate([{ outlineOffset: "6px" }, {}], { duration: 160, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
+  });
+}
+
 /* Le mouvement des messages et des pastilles (gestes, chiffres qui roulent) arrive au repos,
    après la feuille de style, jamais sur le chemin de l'accueil. <html data-nav-pret> dit que
    tout est là : les transitions, la pastille d'onglet, les badges et les messages animés. */
