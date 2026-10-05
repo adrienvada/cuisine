@@ -26,6 +26,30 @@ export function equiper(grid) {
   const vide = grid.querySelector(".grid-empty");
   if (vide && !vide.querySelector(".vide-illo")) vide.insertAdjacentHTML("afterbegin", VIDE);
   grid.addEventListener("load", photoArrivee, true);
+  equiperRecherche();
+}
+
+/* La croix d'effacement de la recherche : celle du navigateur ne se laisse pas animer (Chrome ignore
+   `animation` sur ce pseudo-élément), la nôtre se pose en grandissant chaque fois que le champ cesse
+   d'être vide. Avant ce module, ou en mouvement réduit, c'est la croix du navigateur qui sert. */
+function equiperRecherche() {
+  const barre = document.querySelector(".search-row .searchbar");
+  const champ = barre?.querySelector("input");
+  if (!champ || barre.querySelector(".search-clear")) return;
+  const croix = document.createElement("button");
+  croix.type = "button";
+  croix.className = "search-clear";
+  croix.setAttribute("aria-label", "Effacer la recherche");
+  croix.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+  const etat = () => barre.classList.toggle("a-texte", champ.value !== "");
+  champ.addEventListener("input", etat);
+  croix.addEventListener("click", () => {
+    champ.value = "";
+    champ.dispatchEvent(new Event("input", { bubbles: true }));
+    champ.focus();
+  });
+  barre.append(croix);
+  etat();
 }
 
 /* Une photo qui arrive en retard, une fois la page défilée, se fond sur sa couleur : jamais
@@ -50,6 +74,9 @@ export function montrerPuce(b) {
    l'arrivée ; le décor part alors, et la puce rebondit. */
 export function glisserPastille(rangee, ancienne, nouvelle) {
   if (REDUCE_MOTION.matches || !ancienne || ancienne === nouvelle) return;
+  /* D'abord la classe, avant toute mesure : lire offsetLeft force un calcul de style, et la puce choisie
+     changerait alors de couleur sur-le-champ (texte crème sur fond encore vide, le temps du vol). */
+  rangee.classList.add("en-vol");
   let p = rangee.querySelector(".pastille");
   /* Où est la pastille en ce moment : celle en vol, sinon l'ancienne puce. */
   let gauche = ancienne.offsetLeft, largeur = ancienne.offsetWidth;
@@ -63,7 +90,6 @@ export function glisserPastille(rangee, ancienne, nouvelle) {
     p.setAttribute("aria-hidden", "true");
     rangee.prepend(p);
   }
-  rangee.classList.add("en-vol");
   p.style.transition = "none";
   p.style.width = nouvelle.offsetWidth + "px";
   p.style.height = nouvelle.offsetHeight + "px";

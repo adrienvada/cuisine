@@ -169,6 +169,76 @@ for (const reduit of [false, true]) {
   });
 }
 
+test("la puce choisie garde un texte lisible tant que la pastille n'est pas arrivée sous elle", async ({ page }) => {
+  await page.goto("/");
+  await armee(page);
+  // Tout de suite après le clic : la puce n'a pas encore son fond (la pastille le porte), son texte ne doit pas déjà être crème.
+  const r = await page.evaluate(() => {
+    const b = [...document.querySelectorAll("#chips .chip")].find(c => c.textContent === "Soupes");
+    b.click();
+    const s = getComputedStyle(b);
+    return { fond: s.backgroundColor, couleur: s.color, pastille: !!document.querySelector(".pastille") };
+  });
+  expect(r.pastille).toBe(true);
+  expect(r.fond).toBe("rgba(0, 0, 0, 0)");
+  expect(r.couleur).not.toBe("rgb(253, 251, 243)");
+  await pageStable(page);
+  expect(await page.locator("#chips .chip.on").evaluate(c => getComputedStyle(c).color)).toBe("rgb(253, 251, 243)");
+});
+
+test("la croix d'effacement se pose en grandissant, efface et rend le champ au clavier (44 px)", async ({ page }) => {
+  await page.goto("/");
+  await armee(page);
+  const croix = page.getByRole("button", { name: "Effacer la recherche" });
+  await expect(croix).toBeHidden();
+  await page.locator("#search").fill("pesto");
+  await expect(croix).toBeVisible();
+  expect(await croix.evaluate(c => c.getAnimations({ subtree: true }).some(a => a.animationName === "croix"))).toBe(true);
+  const boite = await croix.boundingBox();
+  expect(boite.width).toBeGreaterThanOrEqual(44);
+  expect(boite.height).toBeGreaterThanOrEqual(44);
+  await pageStable(page);
+  await croix.click();
+  await expect(page.locator("#search")).toHaveValue("");
+  await expect(page.locator("#search")).toBeFocused();
+  await expect(croix).toBeHidden();
+  await pageStable(page);
+  await expect(page.locator(CARTES)).toHaveCount(20);
+});
+
+test("en mouvement réduit la croix d'effacement reste celle du navigateur", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.locator("#search").fill("pesto");
+  expect(await page.locator(".search-clear").count()).toBe(0);
+});
+
+test("des frappes rapprochées laissent la grille à sa place finale, sans résidu", async ({ page }) => {
+  await page.goto("/");
+  await armee(page);
+  await page.locator("#search").focus();
+  await page.keyboard.type("pesto", { delay: 30 });
+  await page.keyboard.press("Backspace");
+  await page.keyboard.press("Backspace");
+  await pageStable(page);
+  const voulues = await ids(page);
+  expect(voulues.length).toBeGreaterThan(0);
+  expect(await residus(page)).toEqual([]);
+  expect(await page.locator(".card.card-leave").count()).toBe(0);
+  await page.locator("#search").fill("pes");
+  await pageStable(page);
+  expect(await ids(page)).toEqual(voulues);
+});
+
+test("l'état vide attend que la dernière carte soit partie avant de se poser", async ({ page }) => {
+  await page.goto("/");
+  await armee(page);
+  await page.locator("#search").fill("zzzzzz");
+  const vide = page.locator(".grid-empty");
+  await expect(vide).toBeVisible();
+  expect(await vide.evaluate(v => v.getAnimations().some(a => a.animationName === "vide-entre"))).toBe(true);
+});
+
 test("l'appui sur une carte la soulève (ombre et taille), et le relâcher hors de la carte n'ouvre rien", async ({ page }) => {
   await page.goto("/");
   await armee(page);

@@ -5,14 +5,22 @@
 
 /* La loupe cherche pendant la frappe (la classe vient de main.js) : elle se balance autour de
    son centre, au rythme des jetons ; en mouvement réduit, elle reste immobile (base.css). */
-.searchbar.typing svg { animation: loupe calc(var(--d-longue) * 1.2) var(--e-standard) infinite; }
+.searchbar.typing > svg { animation: loupe calc(var(--d-longue) * 1.2) var(--e-standard) infinite; }
 @keyframes loupe {
   25% { rotate: -16deg; scale: 1.08; }
   75% { rotate: 16deg; scale: 1.08; }
 }
 
-/* La croix d'effacement se pose en grandissant, chaque fois que le champ cesse d'être vide. */
-input[type="search"]::-webkit-search-cancel-button { animation: croix var(--d-moyenne) var(--ressort-vif); }
+/* La croix d'effacement (équiper() de accueil-anime.js remplace celle du navigateur, qui ne s'anime pas) :
+   absente tant que le champ est vide, elle se pose en grandissant dès qu'il ne l'est plus. Même zone
+   de 44 px et même trait que l'ancienne. */
+.searchbar:has(.search-clear) input[type="search"]::-webkit-search-cancel-button { display: none; }
+.searchbar:has(.search-clear) { position: relative; }
+.searchbar.a-texte input[type="search"] { padding-right: 44px; }
+.search-clear { display: none; position: absolute; inset: 0 0 0 auto; width: 44px; padding: 0; border: 0; background: none; color: var(--muted); align-items: center; justify-content: center; cursor: pointer; }
+.search-clear svg { width: 14px; height: 14px; }
+.searchbar.a-texte .search-clear { display: flex; }
+.searchbar.a-texte .search-clear svg { animation: croix var(--d-moyenne) var(--ressort-vif); }
 @keyframes croix { from { opacity: 0; scale: 0.4; } }
 
 /* La pastille de la puce active glisse d'une puce à l'autre (glisserPastille) : un décor sous les puces,
@@ -73,6 +81,11 @@ input[type="search"]::-webkit-search-cancel-button { animation: croix var(--d-mo
 .share-pulse { animation: share-pulse var(--ressort-rebond-duree) var(--ressort-rebond); transform-box: fill-box; transform-origin: center; }
 @keyframes share-pulse { from { scale: 1.4; } }
 
+/* Le message attend que la dernière carte soit partie (sa sortie dure --d-courte) avant de se poser :
+   sans cela il s'écrit par-dessus la carte qui s'efface. */
+.grid[data-anime] .grid-empty:not([hidden]) { animation: vide-entre var(--d-moyenne) var(--e-sortie) var(--d-courte) backwards; }
+@keyframes vide-entre { from { opacity: 0; } }
+
 /* L'état vide : un bol fumant dessiné au trait, qui se trace à chaque apparition. */
 .vide-illo { display: block; width: 64px; height: 48px; margin: 8px auto 12px; color: var(--gold-deco); }
 
@@ -82,5 +95,5 @@ input[type="search"]::-webkit-search-cancel-button { animation: croix var(--d-mo
   .card { animation: none; }
   .card:active:not(:has(.card-share:active)) { scale: none; }
   .chips .pastille { display: none; }
-  .searchbar.typing svg { animation: none; }
+  .searchbar.typing > svg { animation: none; }
 }
