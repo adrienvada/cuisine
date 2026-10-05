@@ -601,9 +601,10 @@ for (const largeur of [320, 375]) {
     await expect(page.locator("#timer-zone .cook-anneau")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     expect(await page.evaluate(() => document.querySelector(".cook-body").scrollWidth > document.querySelector(".cook-body").clientWidth)).toBe(false);
+    // Les boutons du minuteur arrivent en échelon (échelle) : on mesure leur taille posée.
     for (const b of await page.locator(".cook-outils button, .cook-top button, .cook-nav button, #timer-zone button").all()) {
+      await expect.poll(async () => (await b.boundingBox()).height).toBeGreaterThanOrEqual(43.5);
       const boite = await b.boundingBox();
-      expect(boite.height).toBeGreaterThanOrEqual(43.5);
       expect(boite.x + boite.width).toBeLessThanOrEqual(largeur + 0.5);
     }
     await expect(page.locator("#timer-zone .clock")).toBeInViewport();
