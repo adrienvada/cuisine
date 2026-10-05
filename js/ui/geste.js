@@ -61,6 +61,7 @@ export function glisser(el, { axe = "xy", limites, elastique = true, portee = 30
     const geste = g;
     g = null;
     if (!geste.verrou) return;
+    selection(true);
     try { el.releasePointerCapture(geste.id); } catch {}
     // Un geste qui a déplacé quelque chose ne doit pas devenir un clic sur ce qu'il portait.
     const avaler = ev => { ev.stopPropagation(); ev.preventDefault(); };
@@ -82,7 +83,9 @@ export function glisser(el, { axe = "xy", limites, elastique = true, portee = 30
       if (Math.max(dx, dy) < seuil) return;
       if ((axe === "x" && dy > dx) || (axe === "y" && dx > dy)) { g = null; return; }
       g.verrou = true;
-      el.setPointerCapture(e.pointerId);
+      // Un pointeur synthétique (ou déjà relâché) refuse la capture : le geste continue sans.
+      try { el.setPointerCapture(e.pointerId); } catch {}
+      selection(false);
       // Le geste reprend un élément en plein relâchement là où il est, sans saut.
       g.depart = traduction(el);
       annuler(el, "relache");
@@ -103,7 +106,16 @@ export function glisser(el, { axe = "xy", limites, elastique = true, portee = 30
   el.addEventListener("pointerup", e => { if (g && e.pointerId === g.id) fin(e, false); }, { signal });
   el.addEventListener("pointercancel", e => { if (g && e.pointerId === g.id) fin(e, true); }, { signal });
   el.addEventListener("lostpointercapture", e => { if (g?.verrou && e.pointerId === g.id) fin(e, true); }, { signal });
-  return { detruire: () => ctl.abort() };
+  return { detruire: () => { if (g?.verrou) selection(true); g = null; ctl.abort(); } };
+}
+
+/* À la souris, tirer un élément sélectionnerait le texte qu'il traverse : pendant le
+   geste, plus de sélection (celle qui avait commencé avant le seuil s'efface), puis tout
+   redevient sélectionnable. */
+function selection(permise) {
+  const style = document.documentElement.style;
+  style.userSelect = style.webkitUserSelect = permise ? "" : "none";
+  if (!permise) getSelection()?.removeAllRanges();
 }
 
 /* relacher(el, vers, vitesse, options) — termine un mouvement : `el` va de là où il est
