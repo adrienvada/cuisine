@@ -40,6 +40,23 @@ test("css : les décalages d'échelonnement tiennent en 35 ou 60 ms, comme l'éc
   assert.match(base, /\* 60ms/);
 });
 
+test("js : les courbes viennent de COURBES (core/ressort.js) ; les durées des gestes viennent de DUREES ou se justifient", () => {
+  const fautes = [];
+  const parcourir = dossier => readdirSync(path.join(racine, dossier)).forEach(n => {
+    const chemin = `${dossier}/${n}`;
+    if (statSync(path.join(racine, chemin)).isDirectory()) { if (n !== "vendor") parcourir(chemin); return; }
+    if (!n.endsWith(".js") || chemin === "js/core/ressort.js") return;
+    lire(chemin).split("\n").forEach((ligne, i) => {
+      const code = ligne.replace(/\/\*.*?\*\//g, "").replace(/\/\/.*$/, "");
+      // transitions.js est sur le chemin de l'accueil : il redit la courbe « sortie » en commentaire plutôt que d'importer ressort.js.
+      if (/cubic-bezier\(/.test(code) && chemin !== "js/ui/transitions.js") fautes.push(`${chemin}:${i + 1}  ${ligne.trim()}`);
+    });
+  });
+  parcourir("js");
+  assert.deepEqual(fautes, []);
+  assert.match(lire("js/ui/toast-mouvement.js"), /duration: DUREES\.courte, easing: COURBES\.entree/);
+});
+
 /* ---------- Les tracés ---------- */
 
 test("la coche traçable est écrite une fois (core/icones.js) et les vues ne réécrivent plus pathLength", () => {

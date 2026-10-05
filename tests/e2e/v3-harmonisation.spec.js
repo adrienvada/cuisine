@@ -191,3 +191,26 @@ test("mouvement réduit : « Terminer » n'attend ni transition ni effets, et ne
   await expect(page.locator(".cook-tampon")).toHaveCount(0);
   expect(demandes).toEqual([]);
 });
+
+/* ---------- Clavier : le focus n'est jamais perdu après une animation ---------- */
+
+test("clavier : la feuille des réglages rend le focus au bouton qui l'a ouverte, le toast d'une suppression prend le focus et Annuler le laisse dans la liste", async ({ page, context }) => {
+  await preremplir(context, { carnet: { extras: LIBRES } });
+  await page.goto("/");
+  await page.locator("[data-reglages]").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".reglages-sheet")).toBeVisible();
+  await expect(page.locator(".reglages-sheet .sheet")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".reglages-sheet")).toHaveCount(0);
+  await expect(page.locator("[data-reglages]")).toBeFocused();
+
+  await page.goto("/#/courses");
+  await pageStable(page);
+  await page.locator("[data-remove-extra]").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".toast-action")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("li.libre")).toHaveCount(2);
+  await expect.poll(() => page.evaluate(() => document.activeElement?.closest("#app") !== null)).toBe(true);
+});
