@@ -7,7 +7,7 @@ import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
 import { figureHtml, figuresA, nombreFr, observerFigures, thermometreHtml, thermometreMise } from "../ui/figures.js";
-import { flip, tracer } from "../ui/mouvement.js";
+import { flip, mouvementReduit, tracer } from "../ui/mouvement.js";
 import { shareFond } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 
@@ -54,13 +54,27 @@ export function basculerSavoirs(porteur) {
   const ouvert = porteur.classList.toggle("ouvert");
   porteur.querySelectorAll(".s-cue").forEach(b => b.setAttribute("aria-expanded", String(ouvert)));
   /* En mode cuisine, l'étape défile dans sa propre zone, au-dessus du bandeau
-     Précédent / Terminer : dépliée en bas d'une étape, la liste resterait hors de la
-     vue, à moitié coupée. On la fait donc entrer, d'un défilement juste suffisant. */
+     Précédent / Terminer, et le minuteur de l'étape reste collé au bas de cette zone
+     (#timer-zone, css/cuisine.css) : dépliée en bas d'une étape, la liste resterait
+     dessous, à moitié coupée. On la fait donc entrer, d'un défilement juste suffisant,
+     une fois ouverte : elle s'ouvre en hauteur (css/savoirs.css), sa taille finale n'est
+     connue qu'à la fin. */
   const liste = porteur.querySelector(".s-liste");
-  if (ouvert && liste && porteur.closest(".cook-body")) {
-    const sobre = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    liste.scrollIntoView({ block: "nearest", behavior: sobre ? "auto" : "smooth" });
-  }
+  const corps = porteur.closest(".cook-body");
+  if (!ouvert || !liste || !corps) return;
+  const sobre = mouvementReduit();
+  const montrer = () => {
+    if (!porteur.classList.contains("ouvert") || !porteur.isConnected) return;
+    const bas = liste.getBoundingClientRect().bottom;
+    const colle = porteur.closest(".cook-etape")?.querySelector("#timer-zone");
+    const limite = Math.min(
+      corps.getBoundingClientRect().bottom - (parseFloat(getComputedStyle(corps).scrollPaddingBottom) || 0),
+      colle && colle.offsetHeight ? colle.getBoundingClientRect().top - 8 : Infinity);
+    if (bas > limite) corps.scrollBy({ top: bas - limite, behavior: sobre ? "auto" : "smooth" });
+  };
+  const ouverture = sobre ? 0 : (parseFloat(getComputedStyle(liste).transitionDuration) || 0) * 1000;
+  if (ouverture) setTimeout(montrer, ouverture + 30);
+  else montrer();
 }
 
 /* L'astuce reste ce qu'elle est ; l'appel au savoir se glisse à sa suite, dans
