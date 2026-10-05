@@ -95,8 +95,9 @@ const effacerNoms = () => { nommees.forEach(e => { e.style.viewTransitionName = 
 let jeton = 0;
 
 /* jouer({ type, origine, photo: { id, cible } }, rendre) — échange le DOM par `rendre()` à
-   l'intérieur d'une transition de vue (si `rendre()` rend false, rien n'a changé : on la saute). `type` va sur <html data-vt>, `origine` ({ x, y })
-   dans --vt-x / --vt-y, avant tout. `photo.id` est la recette dont la photo voyage : on
+   l'intérieur d'une transition de vue (si `rendre()` rend false, rien n'a changé : on la
+   saute). `type` va sur <html data-vt>, `origine` ({ x, y }) dans --vt-x / --vt-y, avant
+   tout. `photo.id` est la recette dont la photo voyage : on
    nomme sa photo visible dans la vue qu'on quitte (celle que `cible`, l'élément touché, désigne
    s'il y en a deux) et, une fois la nouvelle dessinée, la sienne. Rend la promesse de
    l'échange, ou null si aucune transition n'a lieu (alors rien n'a été appelé : le routeur
