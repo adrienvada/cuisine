@@ -376,10 +376,19 @@ function evenements(lignes, table) {
     /* Le repos entier, jusqu'à sa fin : « Temps libre » n'est dit que si aucun autre
        plat ne demande les mains tant qu'il dure (un repos qui croise la préparation
        d'un autre plat se lit sans promesse). */
-    if (ev[i].type === "repos") ev[i].libreTout = bornes.filter(x => x >= ev[i].t && x < ev[i].fin).every(libreA);
+    if (ev[i].type === "repos") {
+      ev[i].libreTout = bornes.filter(x => x >= ev[i].t && x < ev[i].fin).every(libreA);
+      /* Le four ne prend pas les mains, mais il appelle : préchauffer, régler, enfourner,
+         sortir, et le départ d'un autre plat. Un tel geste au milieu du repos laisse les mains
+         libres entre-temps, mais on ne peut pas s'absenter : on reste à côté. */
+      ev[i].appel = ev.some(e => APPELS.has(e.type) && e.t > ev[i].t && e.t < ev[i].fin);
+    }
   }
   return ev;
 }
+
+/* Les événements qui demandent quelqu'un dans la cuisine, à l'heure dite. */
+const APPELS = new Set(["prechauffage", "regler", "enfourner", "sortir", "debut"]);
 
 /* ---------- Phrases ---------- */
 
@@ -420,9 +429,10 @@ export function texteEvenement(e) {
 }
 
 /* Les lignes qui suivent un repos : « Levée : 2 h 50, jusqu'à 17 h 30 », puis ce
-   qu'il libère. Passé un quart d'heure, on peut s'absenter ; en deçà, on reste à
-   côté mais les mains sont libres. Quand le repos finit un autre jour que celui
-   où il commence (la marinade du soir), on le dit. */
+   qu'il libère. Passé un quart d'heure, on peut s'absenter ; en deçà, ou si un geste
+   tombe au milieu (le four d'un autre plat à sortir), on reste à côté mais les mains
+   sont libres. Quand le repos finit un autre jour que celui où il commence (la
+   marinade du soir), on le dit. */
 export function detailRepos(e) {
   const libelle = e.libelle && e.libelle.trim().toLowerCase() !== "repos" ? `${e.libelle} : ` : "";
   const autreJour = (e.jourFin ?? 0) - (e.jour ?? 0);
@@ -430,7 +440,7 @@ export function detailRepos(e) {
   const duree = `${libelle}${fmtTime(e.duree)}, jusqu'à ${heureFr(e.fin)}${quand}`;
   /* Un autre plat occupe les mains pendant ce repos : on ne promet rien. */
   if (e.libreTout === false) return [duree];
-  return [duree, e.duree >= SEUIL_LIBRE ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."];
+  return [duree, e.duree >= SEUIL_LIBRE && !e.appel ? "Temps libre : tu peux t'absenter." : "Mains libres : reste à côté."];
 }
 
 /* La ligne qui suit une attente « pendant » : de quelle recette, combien de

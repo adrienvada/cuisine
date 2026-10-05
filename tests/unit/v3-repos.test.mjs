@@ -240,6 +240,29 @@ test("salade méditerranéenne : le repos de l'assemblage bloque, le trempage de
   assert.deepEqual([trempage.duree, trempage.libelle], [10, "Oignon dans l'eau glacée"]);
 });
 
+test("un geste du four au milieu d'un repos : les mains restent libres, mais on reste à côté", () => {
+  // Le menu de la frise : focaccia, quiche à la pâte maison, salade méditerranéenne, à table à 20 h.
+  vide();
+  ajouter("focaccia-romarin");
+  ajouter("quiche-lorraine", { choices: { pate: "maison" } });
+  ajouter("salade-mediterraneenne");
+  const p = plan();
+  const [levee, pate, salade] = reposDeLaFrise(p);
+  const gestes = e => p.evenements.filter(x => ["prechauffage", "regler", "enfourner", "sortir", "debut"].includes(x.type) && x.t > e.t && x.t < e.fin)
+    .map(x => `${heure(x.t)} ${texteEvenement(x)}`);
+  // La levée : le préchauffage tombe à sa fin, pas au milieu ; on peut s'absenter.
+  assert.deepEqual(gestes(levee), []);
+  assert.equal(levee.appel, false);
+  assert.equal(detailRepos(levee)[1], "Temps libre : tu peux t'absenter.");
+  // La pâte au frais : la focaccia sort du four pendant ce temps.
+  assert.ok(gestes(pate).some(g => /Sors du four : Focaccia/.test(g)), gestes(pate).join(", "));
+  assert.equal(pate.appel, true);
+  assert.equal(detailRepos(pate)[1], "Mains libres : reste à côté.");
+  // Le repos de la salade : la quiche sort du four juste avant la table.
+  assert.ok(gestes(salade).some(g => /Sors du four : Quiche/.test(g)), gestes(salade).join(", "));
+  assert.equal(detailRepos(salade)[1], "Mains libres : reste à côté.");
+});
+
 test("mi-cuit : le refroidissement avant démoulage vient après le four, pas dedans", () => {
   vide();
   ajouter("mi-cuit-chocolat-suzy-palatin");
