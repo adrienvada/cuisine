@@ -73,8 +73,7 @@ function squeletteHtml() {
         ${ICON.chev}
       </button>`;
     }).join("")}
-  </div>
-  <p class="sq-libre">Rien d'obligatoire là-dedans : un apéro seul fait très bien l'affaire.</p>`;
+  </div>`;
 }
 
 /* « samedi 10 octobre », ou « aujourd'hui » / « demain » quand c'est le cas. */
@@ -237,7 +236,7 @@ export function renderMenu() {
         <h1>Au menu</h1>
       </header>
       <div class="empty-illo cheers">${ILLO.D.cheers}</div>
-      <p class="empty">Rien encore au menu.<br>Un repas se compose souvent comme ça — touche un moment pour aller y choisir.</p>
+      <p class="empty">Rien encore au menu.</p>
       ${squeletteHtml()}
       ${passesHtml()}
       <div style="text-align:center"><a class="btn-icon" href="#/">${ICON.back} Voir toutes les recettes</a></div>
