@@ -499,6 +499,21 @@ test("journal : la suppression sort la ligne en glissant, le focus passe à sa v
   await expect(page.locator("[data-suppr='a2']")).toBeFocused();
 });
 
+test("journal : « Annuler » pendant la sortie de la ligne la remet, et elle y reste", async ({ page, context }) => {
+  await preremplir(context, { carnet: { journal: [entreeJournal("a1", "2026-09-20", "Première"), entreeJournal("a2", "2026-08-02", "Ancienne")] } });
+  await ouvrirFiche(page);
+  // les deux gestes dans le même tour : la sortie de la ligne n'a pas fini quand « Annuler » arrive
+  await page.evaluate(() => {
+    document.querySelector("[data-suppr='a1']").click();
+    document.querySelector("#toast .toast-action").click();
+  });
+  await page.waitForFunction(() => [...document.querySelectorAll(".jr-entree")].every(l => l.getAnimations().length === 0));
+  await expect(page.locator(".jr-entree")).toHaveCount(2);
+  await expect(page.locator(".jr-entree").first()).toContainText("Première");
+  await expect(page.locator(".jr-entree[inert]")).toHaveCount(0);
+  expect((await lireCarnet(page)).journal.map(e => e.id)).toEqual(["a1", "a2"]);
+});
+
 test("journal : la ligne qui sort est inerte et masquée aux lecteurs d'écran dès le départ", async ({ page, context }) => {
   await preremplir(context, { carnet: { journal: [entreeJournal("a1", "2026-09-20", "Première"), entreeJournal("a2", "2026-08-02")] } });
   await ouvrirFiche(page);

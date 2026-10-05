@@ -204,7 +204,9 @@ function actualiser() {
   const ul = zone.querySelector(".jr-liste");
   const liste = entreesDe(r.id);
   if (!ul || !liste.length) return dessinerJournal(zone, r);
-  const existantes = new Map([...ul.children].map(li => [li.dataset.id, li]));
+  /* Une ligne en train de sortir (inerte) n'est jamais reprise : si « Annuler » arrive pendant sa
+     sortie, l'entrée revient dans une ligne neuve, que la fin de la sortie ne retirera pas. */
+  const existantes = new Map([...ul.children].filter(li => !li.inert).map(li => [li.dataset.id, li]));
   const modele = document.createElement("template");
   modele.innerHTML = liste.map(ligneHtml).join("");
   const voulues = [...modele.content.children].map(n => existantes.get(n.dataset.id) ?? n);
