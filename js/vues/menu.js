@@ -1,6 +1,7 @@
-/* L'onglet Au menu : le repas (convives, heure, allergies), son rétroplanning, les recettes retenues avec leurs portions, la structure d'un repas à compléter et les repas passés. */
+/* L'onglet Au menu : le repas (convives, heure, allergies), son rétroplanning, les recettes retenues avec leurs portions, ce qui manque pour un repas complet, la structure d'un repas à compléter et les repas passés. */
 
 import { CONVIVES_MAX, PORTIONS_MAX, PORTIONS_MIN } from "../core/adaptation.js";
+import { ETIQUETTES, analyser, phrase, suggerer } from "../core/completude.js";
 import { courseTodo } from "../core/courses.js";
 import { save, state } from "../core/etat.js";
 import { libellePortions } from "../core/format.js";
@@ -8,6 +9,7 @@ import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import {
   MOMENTS,
+  ajouterAuMenu,
   allergenesDeEntree,
   basculerExclu,
   catDuMoment,
@@ -93,6 +95,102 @@ function squeletteHtml() {
       </button>`;
     }).join("")}
   </div>`;
+}
+
+/* ---------- Ce qui manque pour un repas complet ----------
+   Une autre façon de compléter le menu que ses moments : celle-ci regarde ce qu'il y a
+   dans les assiettes (core/completude.js). Elle se tait quand le menu n'est pas encore
+   un repas, ou quand il ne manque rien. */
+
+/* Les manques qu'on a écartés pour ce repas (« Ça me va comme ça ») : retenus sur
+   l'appareil, oubliés quand le menu est vidé. Le stockage peut manquer (navigation
+   privée) : on fait alors sans. */
+const CLE_TUS = "manques-tus";
+function lireTus() {
+  try { const v = JSON.parse(localStorage.getItem(CLE_TUS) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+function ecrireTus(liste) {
+  try { if (liste.length) localStorage.setItem(CLE_TUS, JSON.stringify(liste)); else localStorage.removeItem(CLE_TUS); } catch {}
+}
+
+/* La version qu'on ajouterait : celle qu'on a composée sur la fiche, s'il y en a une. */
+const versionAjoutee = rid => ({ choices: state.choices[rid] || {}, addons: state.addons[rid] || [] });
+
+const recoHtml = ({ r, comble }) => html`<li class="mq-reco">
+  <a class="mq-carte" href="#/recette/${r.id}">
+    <span class="mq-visuel" data-vt-photo="${r.id}" style="background:${r.color}22">${raw(visuel(r, { genre: "carre" }))}</span>
+    <span class="mq-texte"><b>${r.title}</b><small>${comble.map(m => ETIQUETTES[m]).join(" · ")}</small></span>
+  </a>
+  <button class="mq-ajout appui" data-ajout="${r.id}" aria-label="Ajouter ${r.title} au menu">+</button>
+</li>`;
+
+function manquesHtml(list, repas) {
+  const analyse = analyser(list);
+  const tus = lireTus();
+  const manques = analyse.manques.filter(m => !tus.includes(m));
+  if (!analyse.actif || !manques.length) return "";
+  const recos = suggerer(list, manques, { exclus: repas.exclus, compo: versionAjoutee, mois: new Date().getMonth() + 1 });
+  const aucune = `Aucune recette du carnet ne le comble${repas.exclus.length ? " sans ce que tes invités évitent" : ""}.`;
+  return html`<section class="manques${entree()}" aria-labelledby="mq-phrase">
+    <p class="mq-phrase" id="mq-phrase">${phrase({ manques, riches: analyse.riches })}</p>
+    ${recos.length ? raw(html`<ul class="mq-liste">${recos.map(x => raw(recoHtml(x)))}</ul>`) : raw(html`<p class="mq-aucune">${aucune}</p>`)}
+    <button class="mq-taire" data-taire="${manques.join(" ")}" aria-label="Ça me va comme ça : ne plus signaler ces manques pour ce repas">Ça me va comme ça</button>
+  </section>`;
+}
+
+/* Le bloc suit le menu sans redessiner la page : il arrive, change d'un fondu court,
+   ou se replie quand il ne manque plus rien. */
+function majManques() {
+  const zone = document.getElementById("manques-zone");
+  if (!zone) return;
+  const ancien = zone.querySelector(".manques:not([inert])");
+  enRedessin = true;
+  let neuf;
+  try { neuf = manquesHtml(menuEntrees(), lireRepas()); } finally { enRedessin = false; }
+  if (!neuf) {
+    if (ancien) sortir(ancien);
+    return;
+  }
+  const gabarit = document.createElement("template");
+  gabarit.innerHTML = neuf;
+  const bloc = gabarit.content.firstElementChild;
+  if (ancien && ancien.outerHTML === bloc.outerHTML) return;
+  if (ancien) {
+    ancien.replaceWith(bloc);
+    animer(bloc, [{ opacity: 0.35 }], { duree: "courte", cle: "fondu", reprise: false });
+  } else {
+    zone.replaceChildren(bloc);
+    animer(bloc, [{ opacity: 0, translate: "0 8px" }], { easing: "sortie", cle: "arrivee", reprise: false });
+  }
+}
+
+/* « + » : la recette rejoint le menu dans sa version par défaut (ou celle composée sur sa
+   fiche). Sa carte arrive à sa place, les autres s'écartent, et ce qui manque se met à
+   jour. Le focus suit la recette ajoutée. */
+function ajouterSuggestion(rid, bouton) {
+  const r = byId(rid);
+  if (!r) return;
+  const auClavier = bouton && bouton === document.activeElement;
+  const e = ajouterAuMenu(rid);
+  // Comme depuis la fiche : le brouillon est désormais dans l'entrée, il repart à neuf.
+  delete state.choices[rid]; delete state.addons[rid]; delete state.portions[rid];
+  save();
+  vibrer("tic");
+  revenirCarte(e.k);
+  if (auClavier) carteDe(e.k)?.querySelector(".mc-title")?.focus({ preventScroll: false });
+  toast(`Au menu : ${nomCourt(r.title)}`, { action: "Annuler", surAction: () => {
+    if (!retirerDuMenu(e.k)) return;
+    updateBadge();
+    if (document.getElementById("menu-root")) sortirCartes([carteDe(e.k)]);
+  } });
+}
+
+/* « Ça me va comme ça » : ces manques ne reviennent plus pour ce repas. */
+function taireManques(ids) {
+  const avant = lireTus();
+  ecrireTus([...new Set([...avant, ...ids])]);
+  majManques();
+  toast("Le carnet n'en parlera plus pour ce repas", { action: "Annuler", surAction: () => { ecrireTus(avant); majManques(); } });
 }
 
 /* « samedi 10 octobre ». */
@@ -278,6 +376,7 @@ export function renderMenu() {
   planCourant = null;
 
   if (!list.length) {
+    ecrireTus([]);   // un menu vidé, c'est un autre repas : ce qu'on avait laissé de côté peut revenir
     app.innerHTML = `
       <div id="menu-root">
       <header class="page-head courses-head${entree()}">
@@ -313,6 +412,7 @@ export function renderMenu() {
       ${list.map(x => carteHtml(x, repas)).join("")}
     </div>
     <p class="sq-label">Compléter le repas</p>
+    <div id="manques-zone">${manquesHtml(list, repas)}</div>
     ${squeletteHtml()}
     <div class="course-actions">
       <button class="btn secondary" id="share-menu">${ICON.share} Partager le repas</button>
@@ -416,6 +516,7 @@ function majPartiel() {
   const zone = racine.querySelector("#retro-zone");
   zone.innerHTML = retroZone(list, lireRepas());
   activerRetro(zone, "fondu");
+  majManques();
 }
 
 function brancher() {
@@ -430,6 +531,10 @@ function brancher() {
     if (resume && !resume.parentElement.open) resume.parentElement.classList.add("vient");
     const rm = e.target.closest("[data-remove]");
     if (rm) return retirer(rm.dataset.remove);
+    const ajout = e.target.closest("[data-ajout]");
+    if (ajout) return ajouterSuggestion(ajout.dataset.ajout, ajout);
+    const taire = e.target.closest("[data-taire]");
+    if (taire) return taireManques(taire.dataset.taire.split(" "));
     const mom = e.target.closest("[data-moment]");
     if (mom) { state.filter = mom.dataset.moment; save(); location.hash = "#/"; return; }
     const conv = e.target.closest("[data-conv]");

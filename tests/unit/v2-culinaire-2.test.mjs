@@ -100,7 +100,7 @@ test("le vérificateur refuse une option dont le minuteur dépasse le temps anno
     cpSync(path.join(racine, "js/core/html.js"), path.join(tmp, "js/core/html.js"));
     cpSync(path.join(racine, "js/ui/figures.js"), path.join(tmp, "js/ui/figures.js"));
     cpSync(path.join(racine, "css/figures.css"), path.join(tmp, "css/figures.css"));
-    for (const f of ["recipes", "placard", "fondamentaux", "figures", "allergenes", "saisons", "substitutions"]) {
+    for (const f of ["recipes", "placard", "fondamentaux", "figures", "allergenes", "saisons", "substitutions", "apports"]) {
       cpSync(path.join(racine, `js/${f}.js`), path.join(tmp, `js/${f}.js`));
     }
     writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');

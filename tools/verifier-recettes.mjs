@@ -54,6 +54,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SINGULIERS_PORTIONS } from "../js/core/format.js";
 import { EMPLACEMENTS, TONS as TONS_FIGURES, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml, usagesInvalides } from "../js/ui/figures.js";
+import { APPORTS } from "../js/apports.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -608,6 +609,28 @@ for (const [cid, valeurs] of entiersParCid) {
   if (valeurs.size > 1) ko(`${cid} : \`entier: true\` n'est pas posé sur tous ses ingrédients — une quantité s'arrondirait à la pièce dans une recette et pas dans l'autre`);
 }
 
+/* Les apports au repas (js/apports.js) : chaque recette a son entrée, même vide, avec
+   les mots du vocabulaire ; un supplément nommé existe dans la recette. Une entrée
+   sans recette est un reste d'un renommage. */
+const MOTS_APPORTS = ["legumes", "proteines", "feculents", "frais", "riche"];
+const listeApports = (v, ou) => {
+  if (!Array.isArray(v)) return ko(`${ou} : une liste d'apports est attendue`);
+  for (const m of v) if (!MOTS_APPORTS.includes(m)) ko(`${ou} : « ${m} » n'est pas un apport connu (${MOTS_APPORTS.join(", ")})`);
+  if (new Set(v).size !== v.length) ko(`${ou} : un apport est répété`);
+};
+for (const r of RECIPES) {
+  const a = APPORTS[r.id];
+  if (a === undefined) { ko(`${r.id} : pas d'entrée dans js/apports.js — ce que la recette apporte à un repas (liste vide si rien)`); continue; }
+  if (Array.isArray(a)) { listeApports(a, `apports de ${r.id}`); continue; }
+  if (!a || typeof a !== "object") { ko(`apports de ${r.id} : une liste, ou { base, supplements }`); continue; }
+  listeApports(a.base, `apports de ${r.id} (base)`);
+  for (const [id, v] of Object.entries(a.supplements || {})) {
+    if (!(r.addons || []).some(x => x.id === id)) ko(`apports de ${r.id} : le supplément « ${id} » n'existe pas dans la recette`);
+    listeApports(v, `apports de ${r.id} (supplément ${id})`);
+  }
+}
+for (const id of Object.keys(APPORTS)) if (!RECIPES.some(r => r.id === id)) ko(`js/apports.js : « ${id} » n'est pas une recette du carnet`);
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
@@ -616,7 +639,7 @@ if (erreurs.length) {
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
 console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
 console.log(`${nbFigures} figure(s) vérifiée(s) pour ${Object.keys(FIGURES).length} fondamental(aux) : types, titres, alt, emplacements, aucune couleur en dur ; ${THERMOMETRE.length} repère(s) du thermomètre.`);
-console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions.`);
+console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions, les apports au repas des ${Object.keys(APPORTS).length} recettes.`);
 
 /* Pour information seulement — jamais une erreur. Un fondamental sans recette
    est une astuce croisée dans la vie qui attend la sienne, et c'est prévu. */
