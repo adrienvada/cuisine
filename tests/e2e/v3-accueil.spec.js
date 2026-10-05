@@ -69,6 +69,10 @@ for (const reduit of [false, true]) {
         // Décor seulement : cachés aux lecteurs d'écran, et le titre est déjà là.
         await expect(page.locator(".mast-row svg").first()).toHaveAttribute("aria-hidden", "true");
       }
+      // Le décor posé, plus aucune animation (même finie) ne reste sur le bandeau : le trait est le style normal.
+      await pageStable(page);
+      expect(await page.evaluate(() => document.querySelector(".masthead").getAnimations({ subtree: true }).length)).toBe(0);
+      expect(await page.locator(".mast-row path").first().evaluate(p => getComputedStyle(p).strokeDashoffset)).toBe("0px");
       await page.reload();
       await page.waitForFunction(() => document.getElementById("app")?.childElementCount > 0);
       expect(await traces()).toBe(0);

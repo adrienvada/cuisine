@@ -60,8 +60,9 @@
 .masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
 
 /* Première fois de la session (.encre, jamais en mouvement réduit) : les brins se tracent
-   (.trace, base.css), le trait sous « Evadri » se tire, le cœur bat une fois. Décor seul. */
-.mast-row.trace [pathLength="1"] { animation-delay: calc(0.12s + var(--i, 0) * 60ms); }
+   (.trace, base.css), le trait sous « Evadri » se tire, le cœur bat une fois. Décor seul, sans fill
+   après la fin : une fois tracé, plus aucune animation ne reste sur la page. */
+.mast-row.trace [pathLength="1"] { animation-delay: calc(0.12s + var(--i, 0) * 60ms); animation-fill-mode: backwards; }
 
 .encre .byline .u { border-bottom-color: transparent; position: relative; }
 
@@ -72,7 +73,7 @@
   height: 1.5px;
   background: var(--gold-deco);
   transform-origin: left;
-  animation: souligne var(--d-trace) var(--e-sortie) 0.55s both;
+  animation: souligne var(--d-trace) var(--e-sortie) 0.55s backwards;
 }
 
 .encre .byline svg { animation: coeur-bat var(--d-longue) var(--e-standard) 0.95s; }

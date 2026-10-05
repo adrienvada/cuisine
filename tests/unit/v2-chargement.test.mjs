@@ -74,7 +74,8 @@ test("feuilles CSS : seules celles de l'accueil sont dans la page, celles des vu
   }
   assert.deepEqual(bloquantes, ["css/polices.css", "css/base.css", "css/accueil.css", "css/fiche.css", "css/minuteurs.css", "css/reglages.css"]);
   // Aucune feuille oubliée : celles des vues sont dans le repli sans JavaScript.
-  const tous = readdirSync(join(RACINE, "css")).map(f => `css/${f}`).sort();
+  // (accueil-anime.css, le mouvement décoratif de l'accueil, est tirée par js/vues/accueil-anime.js : la page ne la porte pas.)
+  const tous = readdirSync(join(RACINE, "css")).filter(f => f !== "accueil-anime.css").map(f => `css/${f}`).sort();
   assert.deepEqual([...new Set(liens.map(l => l[1]))].sort(), tous);
   for (const nom of ["cuisine", "menu", "courses", "savoirs", "journal"]) assert.ok(dansNoscript.includes(`css/${nom}.css`), `${nom}.css : repli <noscript> manquant`);
 });
