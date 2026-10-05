@@ -307,7 +307,8 @@ function retirerBulle(tray, el) {
   el.setAttribute("aria-hidden", "true");
   el.classList.add("sort");
   const fin = () => {
-    if (!el.isConnected) return;
+    // Rétablie entre-temps (« Annuler ») : la bulle reste.
+    if (!el.isConnected || !el.dataset.sortie) return;
     avecFlip(tray, () => el.remove());
     // Le plateau ne se cache qu'une fois sa dernière bulle partie.
     if (!state.timers.length && !tray.querySelector(".sort")) tray.hidden = true;
@@ -333,6 +334,16 @@ export function drawTray() {
   tray.hidden = !state.timers.length && !tray.querySelector(".sort");
   // Ce qui sonne passe devant : c'est ce qu'on doit voir et éteindre en premier.
   const ordre = [...state.timers].sort((a, b) => estFini(b) - estFini(a));
+  // Un minuteur rétabli pendant que sa bulle s'efface (« Annuler ») la reprend telle quelle :
+  // on n'en dessine pas une seconde à côté de celle qui part.
+  for (const e of [...tray.children]) {
+    if (e.dataset.sortie && state.timers.some(t => t.id === e.dataset.timer)) {
+      delete e.dataset.sortie;
+      e.inert = false;
+      e.removeAttribute("aria-hidden");
+      e.classList.remove("sort");
+    }
+  }
   const presentes = new Map([...tray.children].filter(e => !e.dataset.sortie).map(e => [e.dataset.timer, e]));
   avecFlip(tray, () => {
     let precedent = null;

@@ -410,6 +410,22 @@ test("arrivée et départ d'une bulle : elle se pose, puis s'efface en étant d�
   await expect(page.locator("#timer-tray .timer-pill")).toHaveCount(0);
 });
 
+test("« Annuler » pendant que la bulle s'efface la reprend : une seule bulle, vivante", async ({ page }) => {
+  await page.goto(CUISINE + "/1");
+  await page.getByRole("button", { name: /Minuteur 20 min/ }).click();
+  await page.getByRole("button", { name: "Suivant" }).click();
+  await expect(page.locator("#timer-tray .timer-pill")).toBeVisible();
+  // La croix puis « Annuler » dans le même battement : la bulle partait à peine.
+  const etat = await page.evaluate(async () => {
+    document.querySelector("#timer-tray .t-x").click();
+    document.querySelector("#toast button").click();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const bulles = [...document.querySelectorAll("#timer-tray .timer-pill")];
+    return { n: bulles.length, inerte: bulles[0]?.inert, cachee: bulles[0]?.getAttribute("aria-hidden"), sort: bulles[0]?.classList.contains("sort") };
+  });
+  expect(etat).toEqual({ n: 1, inerte: false, cachee: null, sort: false });
+});
+
 test("« +1 » saute et le temps roule ; le texte reste une seule valeur lisible", async ({ page, context }) => {
   await espionner(context);
   await page.goto(CUISINE + "/1");
