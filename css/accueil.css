@@ -96,6 +96,7 @@
   border-radius: 14px;
   padding: 11px 14px;
   margin: 18px 0 12px;
+  box-shadow: var(--ombre-0);
 }
 
 /* La recherche et « J'ai… » partagent une ligne : le champ prend ce qui reste. */
@@ -119,6 +120,7 @@
   font-size: 14.5px;
   font-weight: 600;
   white-space: nowrap;
+  box-shadow: var(--ombre-0);
 }
 
 .jai-btn.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
@@ -329,6 +331,9 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .card .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Un filet d'ombre sous la photo la détache du papier de la carte. */
+.card .visual::after { content: ""; position: absolute; inset: auto 0 0; height: 1px; background: rgb(44 51 38 / 0.1); pointer-events: none; }
 
 /* Une photo qui arrive après coup (hors du premier écran) se fond sur sa couleur. */
 .card .visual img.photo-arrive { animation: photo-arrive var(--d-moyenne) var(--e-sortie) both; }
