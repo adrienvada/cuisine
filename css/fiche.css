@@ -575,35 +575,6 @@ html .pick-row .chip.pick {
 .portions .val .nb { display: inline-block; font-variant-numeric: tabular-nums; }
 .timechip .rouler, .ing-list .qty .rouler, .moule-lib .rouler { vertical-align: bottom; }
 
-/* « Pourquoi ça marche » (la ligne de savoirs.js, sous les astuces) s'ouvre en hauteur
-   fluide : la feuille de savoirs.css la montre par display, ici elle devient une hauteur
-   qui s'interpole (interpolate-size) ; sans cela elle s'ouvre d'un coup, comme avant. */
-.steps { interpolate-size: allow-keywords; }
-
-@media not (prefers-reduced-motion: reduce) {
-  .steps li .a-savoirs .s-liste {
-    display: block;
-    height: 0;
-    margin-top: 0;
-    padding-top: 0;
-    overflow: hidden;
-    visibility: hidden;
-    border-top-width: 0;
-    animation: none;
-    transition: height var(--d-moyenne) var(--e-sortie), margin-top var(--d-moyenne) var(--e-sortie),
-      visibility 0s linear var(--d-moyenne);
-  }
-
-  .steps li .a-savoirs.ouvert .s-liste {
-    height: auto;
-    margin-top: 6px;
-    padding-top: 2px;
-    visibility: visible;
-    border-top-width: 1px;
-    transition-delay: 0s;
-  }
-}
-
 /* Les lignes et les étapes qui ne sont pas à l'écran au premier dessin attendent d'y entrer
    (js/vues/fiche.js les marque, puis les libère avec .arrive). */
 [data-attend] { opacity: 0; translate: 0 10px; }

@@ -35,13 +35,21 @@ function appliquer() {
   if (meta) meta.setAttribute("content", dark ? "#15180F" : "#42603A");
 }
 
-export function choisirTheme(mode) {
+/* `englober(appliquer)` est facultatif : une vue qui veut animer le changement (le cercle des
+   réglages, js/vues/reglages.js) reçoit la fonction qui pose le thème et rend true si elle s'en
+   charge ; sinon, ou si l'aspect ne change pas (Automatique quand le système est déjà dans ce
+   thème), le thème est posé à l'instant. Ce module est sur le chemin de l'accueil : l'animation
+   elle-même n'y est pas. */
+export function choisirTheme(mode, englober) {
+  const avant = document.documentElement.getAttribute("data-theme") === "dark";
   try {
     if (mode === "sombre") localStorage.setItem("theme", "dark");
     else if (mode === "clair") localStorage.setItem("theme", "light");
     else localStorage.removeItem("theme");
   } catch {}
+  if (englober && themeSombre(mode) !== avant && englober(appliquer)) return true;
   appliquer();
+  return false;
 }
 
 export function initialiserTheme() {

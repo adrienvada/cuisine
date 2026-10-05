@@ -84,7 +84,8 @@ test("thème : Clair et Sombre sont des choix fermes, que le système ne défait
   const feuille = await ouvrirReglages(page);
 
   await feuille.getByRole("button", { name: "Sombre" }).click();
-  expect(await themeAffiche(page)).toBe("sombre");
+  /* La bascule se fait en cercle (transition de vue) : le thème est posé à l'image suivante. */
+  await expect.poll(() => themeAffiche(page)).toBe("sombre");
   await expect(feuille.getByRole("button", { name: "Sombre" })).toHaveAttribute("aria-pressed", "true");
   expect(await page.evaluate(() => localStorage.getItem("theme"))).toBe("dark");
 
@@ -93,14 +94,14 @@ test("thème : Clair et Sombre sont des choix fermes, que le système ne défait
   expect(await themeAffiche(page)).toBe("sombre");     // choix explicite : le système n'y change rien
 
   await feuille.getByRole("button", { name: "Clair" }).click();
-  expect(await themeAffiche(page)).toBe("clair");
+  await expect.poll(() => themeAffiche(page)).toBe("clair");
   expect(await page.evaluate(() => localStorage.getItem("theme"))).toBe("light");
   await page.emulateMedia({ colorScheme: "dark" });
   expect(await themeAffiche(page)).toBe("clair");
 
   await feuille.getByRole("button", { name: "Automatique" }).click();
   expect(await page.evaluate(() => localStorage.getItem("theme"))).toBeNull();
-  expect(await themeAffiche(page)).toBe("sombre");     // le système est sombre : Automatique le rejoint
+  await expect.poll(() => themeAffiche(page)).toBe("sombre");     // le système est sombre : Automatique le rejoint
 });
 
 test("thème : le choix survit au rechargement, sans éclair du mauvais thème", async ({ page }) => {

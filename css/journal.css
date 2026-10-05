@@ -30,6 +30,10 @@
 }
 
 .jr-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* La vignette est un support papier, la photo s'y pose (fondu dans journal.js) ; l'entrée qui
+   arrive ou s'en va est animée par flip() et sortir(), la ligne ne gagne qu'un peu de relief. */
+.jr-entree { box-shadow: var(--ombre-0); }
 .jr-photo.absente { cursor: default; }
 .jr-attente { display: flex; flex-direction: column; align-items: center; padding: 4px; font-size: 10.5px; line-height: 1.2; text-align: center; }
 .jr-attente svg { width: 22px; height: 22px; }
@@ -55,7 +59,11 @@
 .jr-suppr svg { width: 19px; height: 19px; }
 .jr-suppr:hover, .jr-suppr:focus-visible { color: var(--terra); }
 
-.jr-vide { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+/* L'état vide : une feuille au trait qui se dessine au-dessus de la phrase. */
+.jr-vide { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 10px 0 0; padding: 18px 14px 6px; text-align: center; }
+.jr-vide p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.jr-vide-illo { display: block; width: 44px; height: 40px; color: var(--green); }
+.jr-vide-illo svg { display: block; width: 100%; height: 100%; }
 .jr-ajout { width: 100%; margin-top: 12px; min-height: 48px; }
 
 /* La feuille d'ajout */

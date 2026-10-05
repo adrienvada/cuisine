@@ -9,35 +9,40 @@ const FOOD = {};
 
 /* ---------- Décors (stroke: currentColor → colorable en CSS) ---------- */
 
+/* Les traits sont traçables : chaque <path> dessiné au trait porte pathLength="1"
+   (sa longueur devient 1 quelle que soit sa forme), ce que .trace et tracer() de
+   js/ui/mouvement.js attendent. Seuls les remplissages (fill-opacity, ellipses, cercles)
+   n'en ont pas : ils ne se tracent pas. Le dessin ne change pas. */
+
 /* Brin de romarin horizontal */
 D.sprig = `<svg viewBox="0 0 56 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
-  <path d="M3 10 Q28 4 53 9"/>
-  <path d="M9 9 l-3 -5 M9 9 l-4 3"/>
-  <path d="M16 8 l-2 -6 M16 8 l-3 5"/>
-  <path d="M23 7 l-1 -6 M23 7 l-2 6"/>
-  <path d="M30 6.6 l0 -6 M30 6.6 l-1 6.4"/>
-  <path d="M37 6.6 l1 -6 M37 6.6 l0 6.4"/>
-  <path d="M44 7.2 l2 -5.5 M44 7.2 l1 5.8"/>
-  <path d="M50 8.2 l3 -4.5 M50 8.2 l2.5 4"/>
+  <path pathLength="1" d="M3 10 Q28 4 53 9"/>
+  <path pathLength="1" d="M9 9 l-3 -5 M9 9 l-4 3"/>
+  <path pathLength="1" d="M16 8 l-2 -6 M16 8 l-3 5"/>
+  <path pathLength="1" d="M23 7 l-1 -6 M23 7 l-2 6"/>
+  <path pathLength="1" d="M30 6.6 l0 -6 M30 6.6 l-1 6.4"/>
+  <path pathLength="1" d="M37 6.6 l1 -6 M37 6.6 l0 6.4"/>
+  <path pathLength="1" d="M44 7.2 l2 -5.5 M44 7.2 l1 5.8"/>
+  <path pathLength="1" d="M50 8.2 l3 -4.5 M50 8.2 l2.5 4"/>
 </svg>`;
 
 /* Le même, retourné */
 D.sprigR = `<svg viewBox="0 0 56 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
   <g transform="translate(56 0) scale(-1 1)">
-    <path d="M3 10 Q28 4 53 9"/>
-    <path d="M9 9 l-3 -5 M9 9 l-4 3"/>
-    <path d="M16 8 l-2 -6 M16 8 l-3 5"/>
-    <path d="M23 7 l-1 -6 M23 7 l-2 6"/>
-    <path d="M30 6.6 l0 -6 M30 6.6 l-1 6.4"/>
-    <path d="M37 6.6 l1 -6 M37 6.6 l0 6.4"/>
-    <path d="M44 7.2 l2 -5.5 M44 7.2 l1 5.8"/>
-    <path d="M50 8.2 l3 -4.5 M50 8.2 l2.5 4"/>
+    <path pathLength="1" d="M3 10 Q28 4 53 9"/>
+    <path pathLength="1" d="M9 9 l-3 -5 M9 9 l-4 3"/>
+    <path pathLength="1" d="M16 8 l-2 -6 M16 8 l-3 5"/>
+    <path pathLength="1" d="M23 7 l-1 -6 M23 7 l-2 6"/>
+    <path pathLength="1" d="M30 6.6 l0 -6 M30 6.6 l-1 6.4"/>
+    <path pathLength="1" d="M37 6.6 l1 -6 M37 6.6 l0 6.4"/>
+    <path pathLength="1" d="M44 7.2 l2 -5.5 M44 7.2 l1 5.8"/>
+    <path pathLength="1" d="M50 8.2 l3 -4.5 M50 8.2 l2.5 4"/>
   </g>
 </svg>`;
 
 /* Branche d'olivier (couleurs propres, pour fonds papier) */
 D.olive = `<svg viewBox="0 0 96 30" fill="none" aria-hidden="true">
-  <path d="M4 20 Q48 8 92 16" stroke="#7B916A" stroke-width="1.5" stroke-linecap="round"/>
+  <path pathLength="1" d="M4 20 Q48 8 92 16" stroke="#7B916A" stroke-width="1.5" stroke-linecap="round"/>
   <ellipse cx="16" cy="13" rx="7" ry="2.8" fill="#8FA478" transform="rotate(-24 16 13)"/>
   <ellipse cx="30" cy="10.5" rx="7" ry="2.8" fill="#7B916A" transform="rotate(-14 30 10.5)"/>
   <ellipse cx="46" cy="9" rx="7.5" ry="3" fill="#8FA478" transform="rotate(-4 46 9)"/>
@@ -50,26 +55,26 @@ D.olive = `<svg viewBox="0 0 96 30" fill="none" aria-hidden="true">
 
 /* Fioriture calligraphique */
 D.flourish = `<svg viewBox="0 0 110 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-  <path d="M4 9 C 26 2, 40 13, 56 7 C 64 4, 64 2, 69 5 C 74 9, 88 8, 106 6"/>
+  <path pathLength="1" d="M4 9 C 26 2, 40 13, 56 7 C 64 4, 64 2, 69 5 C 74 9, 88 8, 106 6"/>
 </svg>`;
 
 /* Petit cœur dessiné */
 D.heart = `<svg viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M9 13.6 C 2.4 9.2 1.2 4.6 4.8 2.8 C 7.2 1.7 8.8 3.6 9 4.8 C 9.2 3.6 10.8 1.7 13.2 2.8 C 16.8 4.6 15.6 9.2 9 13.6 Z"/>
+  <path pathLength="1" d="M9 13.6 C 2.4 9.2 1.2 4.6 4.8 2.8 C 7.2 1.7 8.8 3.6 9 4.8 C 9.2 3.6 10.8 1.7 13.2 2.8 C 16.8 4.6 15.6 9.2 9 13.6 Z"/>
 </svg>`;
 
 /* Trois feuilles de basilic */
 D.leaf = `<svg viewBox="0 0 22 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M11 18 V 9"/>
-  <path d="M11 9 C 6 9 3.4 5.6 3.8 2.4 C 7.4 2 10.6 4.4 11 9 Z"/>
-  <path d="M11 9 C 16 9 18.6 5.6 18.2 2.4 C 14.6 2 11.4 4.4 11 9 Z"/>
-  <path d="M11 13.4 C 8 13.6 6.4 12 6.2 10 C 8.6 9.8 10.6 11 11 13.4 Z"/>
+  <path pathLength="1" d="M11 18 V 9"/>
+  <path pathLength="1" d="M11 9 C 6 9 3.4 5.6 3.8 2.4 C 7.4 2 10.6 4.4 11 9 Z"/>
+  <path pathLength="1" d="M11 9 C 16 9 18.6 5.6 18.2 2.4 C 14.6 2 11.4 4.4 11 9 Z"/>
+  <path pathLength="1" d="M11 13.4 C 8 13.6 6.4 12 6.2 10 C 8.6 9.8 10.6 11 11 13.4 Z"/>
 </svg>`;
 
 /* Petit citron */
 D.lemon = `<svg viewBox="0 0 34 26" aria-hidden="true">
   <ellipse cx="18" cy="15" rx="12.5" ry="8.6" fill="#EAC54F" stroke="#C79B33" stroke-width="1.4"/>
-  <path d="M30.2 14 q 3 0.6 2.6 2.6" fill="none" stroke="#C79B33" stroke-width="1.4" stroke-linecap="round"/>
+  <path pathLength="1" d="M30.2 14 q 3 0.6 2.6 2.6" fill="none" stroke="#C79B33" stroke-width="1.4" stroke-linecap="round"/>
   <ellipse cx="9" cy="6.4" rx="5.4" ry="2.4" fill="#7B916A" transform="rotate(-28 9 6.4)"/>
 </svg>`;
 
@@ -77,13 +82,13 @@ D.lemon = `<svg viewBox="0 0 34 26" aria-hidden="true">
 D.cheers = `<svg viewBox="0 0 46 42" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <g transform="rotate(-14 12 20)">
     <path d="M5 7 Q 13 20 21 7 Z" fill="currentColor" fill-opacity="0.14"/>
-    <path d="M5 7 Q 13 20 21 7"/>
-    <path d="M13 16 V 30 M 8 31 H 18"/>
+    <path pathLength="1" d="M5 7 Q 13 20 21 7"/>
+    <path pathLength="1" d="M13 16 V 30 M 8 31 H 18"/>
   </g>
   <g transform="rotate(14 34 20)">
     <path d="M25 7 Q 33 20 41 7 Z" fill="currentColor" fill-opacity="0.14"/>
-    <path d="M25 7 Q 33 20 41 7"/>
-    <path d="M33 16 V 30 M 28 31 H 38"/>
+    <path pathLength="1" d="M25 7 Q 33 20 41 7"/>
+    <path pathLength="1" d="M33 16 V 30 M 28 31 H 38"/>
   </g>
   <circle cx="22.5" cy="3.4" r="0.9" fill="currentColor" stroke="none"/>
   <circle cx="18.5" cy="6.6" r="0.8" fill="currentColor" stroke="none"/>
@@ -92,19 +97,19 @@ D.cheers = `<svg viewBox="0 0 46 42" fill="none" stroke="currentColor" stroke-wi
 
 /* Plume (gestes techniques) */
 D.plume = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M3.4 16.8 C 6.4 7.4 12.6 3.2 17 3 C 16.2 8.6 11.4 14.6 5.6 15.8 Z"/>
-  <path d="M3.4 16.8 L 10.4 8.6"/>
+  <path pathLength="1" d="M3.4 16.8 C 6.4 7.4 12.6 3.2 17 3 C 16.2 8.6 11.4 14.6 5.6 15.8 Z"/>
+  <path pathLength="1" d="M3.4 16.8 L 10.4 8.6"/>
 </svg>`;
 
 /* Toque du chef (astuces) */
 D.toque = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M6 13.9 A 4 4 0 0 1 7.4 6 a 5.1 5.1 0 0 1 1.1 -1.5 a 5 5 0 0 1 7 0 A 5.1 5.1 0 0 1 16.6 6 A 4 4 0 0 1 18 13.9 V 19 H 6 Z"/>
-  <path d="M6 16 h12"/>
+  <path pathLength="1" d="M6 13.9 A 4 4 0 0 1 7.4 6 a 5.1 5.1 0 0 1 1.1 -1.5 a 5 5 0 0 1 7 0 A 5.1 5.1 0 0 1 16.6 6 A 4 4 0 0 1 18 13.9 V 19 H 6 Z"/>
+  <path pathLength="1" d="M6 16 h12"/>
 </svg>`;
 
 /* Branche pour les coins (posée en diagonale) */
 D.corner = `<svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
-  <path d="M6 58 Q 18 38 42 22" stroke="#6F8A5B" stroke-width="1.6" stroke-linecap="round"/>
+  <path pathLength="1" d="M6 58 Q 18 38 42 22" stroke="#6F8A5B" stroke-width="1.6" stroke-linecap="round"/>
   <ellipse cx="16" cy="43" rx="6.4" ry="2.6" fill="#8FA478" transform="rotate(-52 16 43)"/>
   <ellipse cx="26" cy="34" rx="6.4" ry="2.6" fill="#7B916A" transform="rotate(-42 26 34)"/>
   <ellipse cx="37" cy="26.5" rx="6.2" ry="2.5" fill="#8FA478" transform="rotate(-32 37 26.5)"/>
