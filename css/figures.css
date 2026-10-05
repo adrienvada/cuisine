@@ -1,0 +1,313 @@
+/* Figures des savoirs : le cadre, la palette des schémas, l'apparition des tracés
+   et le zoom. Le balisage vient de js/ui/figures.js, les données de js/figures.js.
+
+   Aucun SVG ne porte une couleur : tout passe par les classes ci-dessous, qui lisent
+   les variables du thème (css/base.css). Clair et sombre se règlent donc ici, une
+   seule fois, et un schéma écrit pour l'un est lisible dans l'autre.
+
+   Les classes se combinent : un trait est « fg-t-vert fg-t-epais », un aplat
+   « fg-f-or-l fg-t-or », un texte « fg-txt fg-txt-b fg-txt-terra ». */
+
+/* ---------- Le cadre : <figure class="fg"> ---------- */
+
+.fg { margin: 16px 0 6px; padding: 0; }
+
+.fg-cadre {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px 4px 4px;
+}
+
+/* Largeur de la page, hauteur qui suit : un SVG à viewBox se met à l'échelle seul.
+   `overflow: hidden` (le défaut) rogne ce qui dépasserait du cadre : le texte du
+   dessin ne déborde donc jamais de la page, même s'il est mal calibré. */
+.fg-svg { display: block; width: 100%; height: auto; max-width: 100%; }
+
+.fg figcaption { padding: 8px 4px 0; }
+/* Titre à gauche, bouton d'agrandissement à droite sur la même ligne, légende dessous. Le
+   bouton n'est jamais sur le dessin : il vit dans la légende (voir « Zoom » plus bas). */
+.fg:not(.fg-thermo) figcaption { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; }
+.fg:not(.fg-thermo) .fg-titre { grid-column: 1; grid-row: 1; }
+.fg:not(.fg-thermo) .fg-legende { grid-column: 1 / -1; grid-row: 2; }
+
+/* Titre en petites capitales, légende en dessous : on dit quoi lire. */
+.fg-titre {
+  display: block;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.fg-legende {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------- Textes ---------- */
+
+.fg-txt { font-family: var(--sans); font-size: 13px; fill: var(--ink); }
+.fg-txt-s { font-size: 11.5px; fill: var(--ink-soft); }   /* petit : jamais sous 11,5 */
+.fg-txt-b { font-weight: 700; }                           /* gras */
+.fg-txt-script {                                          /* annotation « faite main » */
+  font-family: var(--script);
+  font-size: 17px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+.fg-txt-serif { font-family: var(--serif); font-size: 17px; font-weight: 600; fill: var(--green-deep); }
+.fg-txt-xl { font-size: 26px; font-weight: 600; }   /* un signe : « + », « → » */
+.fg-emoji { font-size: 22px; }
+
+/* Le ton du texte : l'encre « profonde » de chaque famille, mesurée à 4,5:1 sur le
+   papier, la carte et la teinte claire du même ton, en clair comme en sombre. */
+.fg-txt-vert { fill: var(--green-deep); }
+.fg-txt-or { fill: var(--gold-deep); }
+.fg-txt-terra { fill: var(--terra-deep); }
+.fg-txt-bleu { fill: var(--bleu-deep); }
+.fg-txt-doux { fill: var(--muted); }
+.fg-txt-encre { fill: var(--ink); }
+/* Texte posé sur un aplat plein vert (pastille numérotée). */
+.fg-txt-sur { fill: var(--sur-vert); }
+
+/* Un liseré de la couleur du fond autour d'un texte posé sur un tracé : il le détache. */
+.fg-halo { paint-order: stroke; stroke: var(--card); stroke-width: 3.5px; stroke-linejoin: round; }
+
+/* ---------- Traits ---------- */
+
+/* Un trait est toujours sans remplissage : les aplats (fg-f-…), plus bas dans la
+   feuille, le surchargent quand on combine les deux sur une même forme. */
+.fg-t-encre, .fg-t-doux, .fg-t-vert, .fg-t-or, .fg-t-terra, .fg-t-bleu, .fg-t-axe, .fg-t-grille {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fg-t-encre { stroke: var(--ink); }
+.fg-t-doux { stroke: var(--line); }
+.fg-t-vert { stroke: var(--green); }
+.fg-t-or { stroke: var(--gold-deco); }
+.fg-t-terra { stroke: var(--terra); }
+.fg-t-bleu { stroke: var(--bleu); }
+.fg-t-axe { stroke: var(--ink-soft); stroke-width: 1.4; }     /* axes, tiges, flèches */
+.fg-t-grille { stroke: var(--line-soft); stroke-width: 1; }   /* quadrillage très discret */
+/* Épaisseur et style, à ajouter à un fg-t-… */
+.fg-t-fin { stroke-width: 1; }
+.fg-t-epais { stroke-width: 2.6; }
+.fg-t-tres-epais { stroke-width: 4; }
+.fg-tirets { stroke-dasharray: 4 3; }
+.fg-pointilles { stroke-dasharray: 1 4; }
+
+/* ---------- Remplissages ---------- */
+
+.fg-f-encre { fill: var(--ink); }
+.fg-f-vert { fill: var(--green); }
+.fg-f-or { fill: var(--gold-deco); }
+.fg-f-terra { fill: var(--terra); }
+.fg-f-bleu { fill: var(--bleu); }
+/* Teintés : ils portent du texte (4,5:1 avec l'encre « profonde » du même ton). */
+.fg-f-vert-l { fill: var(--green-tint); }
+.fg-f-or-l { fill: var(--gold-tint); }
+.fg-f-terra-l { fill: var(--terra-tint); }
+.fg-f-bleu-l { fill: var(--bleu-tint); }
+.fg-f-papier { fill: var(--paper); }
+.fg-f-doux { fill: var(--paper-deep); }
+.fg-f-carte { fill: var(--card); }
+.fg-f-aucun { fill: none; }
+/* Le noir de brûlé (sucs, croûte, charbon) : sombre dans les DEUX thèmes, avec un liseré clair
+   en sombre. fg-f-encre devient crème en sombre : un « fond noir » y deviendrait blanc. */
+.fg-f-suie { fill: var(--suie); stroke: var(--suie-bord); stroke-width: 1.2; }
+
+/* Un point posé sur un tracé : un liseré de la couleur de la carte le détache. */
+.fg-pt { stroke: var(--card); stroke-width: 2px; }
+.fg-bande { opacity: 0.85; }
+.fg-aire { opacity: 0.55; stroke: none; }
+
+/* ---------- Pointes de flèche ---------- */
+
+/* Les <marker> sont posés par le cadre (un jeu par figure) : dans un SVG libre,
+   marker-end="url(#fg-fl-vert)" — encre, vert, or, terra, bleu ou doux. */
+.fg-mk-encre { fill: var(--ink-soft); }
+.fg-mk-vert { fill: var(--green); }
+.fg-mk-or { fill: var(--gold-deco); }
+.fg-mk-terra { fill: var(--terra); }
+.fg-mk-bleu { fill: var(--bleu); }
+.fg-mk-doux { fill: var(--muted); }
+
+/* ---------- Apparition des tracés ---------- */
+
+/* Un tracé se dessine quand sa figure entre à l'écran (savoirs.js pose fg-pret
+   puis fg-vu). Sans le script, ou sous « mouvement réduit », tout est visible.
+   C'est l'encre du carnet (--d-trace, base.css), en plus long : une courbe se lit en
+   se dessinant, une coche se coche. */
+@keyframes fg-trace {
+  from { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  to { stroke-dasharray: 1; stroke-dashoffset: 0; }
+}
+
+.fg-pret .fg-trace { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.fg-pret.fg-vu .fg-trace { animation: fg-trace calc(var(--d-trace) * 3.5) var(--e-standard) both; animation-delay: 100ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fg-pret .fg-trace { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
+  .fg-pret.fg-vu .fg-trace { animation: none; }
+}
+
+/* ---------- Zoom ---------- */
+
+/* Le bouton d'agrandissement : dans la ligne du titre, à droite du dessin — jamais dessus.
+   Cible de 44 px ; la pastille visible n'en fait que 30, et les marges négatives gardent la
+   ligne du titre mince. */
+.fg-agrandir {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin: -12px -8px -12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--green);
+  cursor: zoom-in;
+}
+.fg-agrandir::before {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.fg-agrandir svg { position: relative; }
+.fg-agrandir:active::before { background: var(--paper-deep); }
+.fg-agrandir:focus-visible { outline: 2px solid var(--green); outline-offset: -3px; }
+
+/* Sur la page, toucher le dessin l'agrandit aussi (le bouton reste la voie du clavier). */
+.fg:not(.fg-zoomee) .fg-svg { cursor: zoom-in; }
+
+/* La feuille de zoom : plus haute que les autres, la figure y défile si elle est plus large que l'écran. */
+.fg-zoom .sheet { max-width: 900px; max-height: 92vh; }
+.fg-zoom-boite { position: relative; margin: 0 -4px; }
+.fg-zoom-corps { overflow: auto; padding-bottom: 4px; }
+/* Sur un écran plus étroit que la figure agrandie (560 px), elle défile : une ombre sur le bord
+   droit et une ligne d'indication le disent (savoirs.js pose fg-defile, puis fg-fin au bout). */
+.fg-zoom-boite.fg-defile::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: var(--fg-ombre-h, 100%);
+  width: 26px;
+  pointer-events: none;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(to left, color-mix(in srgb, var(--ink) 28%, transparent), transparent);
+  transition: opacity var(--d-courte) var(--e-standard);
+}
+.fg-zoom-boite.fg-defile.fg-fin::after { opacity: 0; }
+.fg-zoom-indice { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); text-align: center; }
+.fg-zoom-indice[hidden] { display: none; }
+.fg-zoomee { margin-top: 4px; }
+.fg-zoomee .fg-svg { width: clamp(560px, 100%, 760px); max-width: none; }
+.fg-zoomee figcaption { padding-top: 10px; }
+
+/* Dans la page ou la feuille d'un savoir, une figure ne touche pas son voisin. */
+.f-bloc + .fg, .fg + .f-bloc { margin-top: 18px; }
+.f-bloc .fg:first-of-type { margin-top: 12px; }
+
+/* ---------- Symboles partagés (<use href="#fg-sym-…">) ---------- */
+
+/* La classe de ton d'un <use> pose deux variables : --sy-t (le trait, ou le plein) et --sy-f
+   (la teinte claire). Sans classe, le cadre pose celle que le symbole a par défaut. Les
+   formes du symbole lisent ces variables, que la balise <use> leur transmet. */
+.fg-sy-encre { --sy-t: var(--ink-soft); --sy-f: var(--card); }
+.fg-sy-vert { --sy-t: var(--green); --sy-f: var(--green-tint); }
+.fg-sy-or { --sy-t: var(--gold-deco); --sy-f: var(--gold-tint); }
+.fg-sy-terra { --sy-t: var(--terra); --sy-f: var(--terra-tint); }
+.fg-sy-bleu { --sy-t: var(--bleu); --sy-f: var(--bleu-tint); }
+.fg-sy-doux { --sy-t: var(--muted); --sy-f: var(--paper-deep); }
+/* Les formes : trait, aplat clair cerné, plein, plein clair. */
+.fg-sy-t { fill: none; stroke: var(--sy-t, currentColor); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.fg-sy-f { fill: var(--sy-f, var(--card)); stroke: var(--sy-t, currentColor); stroke-width: 1.4; stroke-linejoin: round; }
+.fg-sy-p { fill: var(--sy-t, currentColor); stroke: none; }
+.fg-sy-i { fill: var(--sy-f, var(--card)); stroke: none; }
+/* Épais, fin : à ajouter à une forme. */
+.fg-sy-e { stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.fg-sy-fin { stroke-width: 1; }
+/* Les détails qui gardent leur couleur : un signe ou un reflet clair, un contour neutre
+   (le thermomètre), la vacuole bleue d'une cellule, la queue grasse d'un émulsifiant. */
+.fg-sy-s { fill: none; stroke: var(--card); stroke-width: 1.8; stroke-linecap: round; }
+.fg-sy-k { fill: var(--card); stroke: none; }
+.fg-sy-n { fill: var(--card); stroke: var(--ink-soft); stroke-width: 1.2; stroke-linecap: round; }
+.fg-sy-v { fill: var(--bleu-tint); stroke: var(--bleu); stroke-width: 1.2; }
+.fg-sy-sucre { fill: var(--gold-tint); stroke: var(--gold-deco); stroke-width: 1; }
+.fg-sy-q { fill: none; stroke: var(--gold-deco); stroke-width: 2.4; stroke-linecap: round; }
+
+/* Le signe // d'un axe interrompu (échelle : coupures). */
+.fg-rupture { stroke-width: 2.2; }
+
+/* Les panneaux d'une comparaison : le dessin est mis à l'échelle de sa carte (--fg-k, posé par
+   le cadre), le texte NON — sa taille nominale est celle des autres figures. */
+.fg-pn .fg-txt { font-size: calc(13px / var(--fg-k, 1)); }
+.fg-pn .fg-txt-s { font-size: calc(11.5px / var(--fg-k, 1)); }
+.fg-pn .fg-txt-script, .fg-pn .fg-txt-serif { font-size: calc(17px / var(--fg-k, 1)); }
+.fg-pn .fg-txt-xl { font-size: calc(26px / var(--fg-k, 1)); }
+.fg-pn .fg-emoji { font-size: calc(22px / var(--fg-k, 1)); }
+.fg-pn .fg-halo { stroke-width: calc(3.5px / var(--fg-k, 1)); }
+
+/* ---------- Le thermomètre du carnet (onglet Savoirs) ---------- */
+
+/* Les dégradés du SVG (<stop class="fg-st-…">) lisent les mêmes variables que les traits :
+   clair et sombre se règlent ici, une fois. */
+.fg-st-vert { stop-color: var(--green); }
+.fg-st-or { stop-color: var(--gold-deco); }
+.fg-st-terra { stop-color: var(--terra); }
+.fg-st-bleu { stop-color: var(--bleu); }
+.fg-st-encre { stop-color: var(--ink); }
+.fg-st-doux { stop-color: var(--muted); }
+
+/* Une grande figure verticale : elle garde une largeur lisible sur un écran large, et rien
+   de l'agrandissement des autres figures (le dessin y est déjà à sa taille). */
+.fg.fg-thermo { margin-top: 4px; }
+.fg.fg-thermo .fg-cadre { padding: 0 2px; }
+.fg.fg-thermo figcaption { padding: 4px 4px 10px; }
+.fg.fg-thermo .fg-svg { max-width: 480px; margin: 0 auto; cursor: default; }
+
+.th-tube { opacity: 0.9; }
+.th-bulbe { stroke: none; }
+.th-reflet { stroke: none; opacity: 0.55; }
+.th-emoji { font-size: 11.5px; }
+.th-barre { opacity: 0.95; }
+.th-rupture { stroke-width: 2.2; }
+.th-guide { stroke-width: 1; opacity: 0.55; }
+.th-num { fill: var(--muted); }
+
+/* Un repère est un lien : la zone qui entoure son étiquette s'éclaire au toucher, au survol
+   et au clavier. */
+.th-lien { cursor: pointer; outline: none; }
+.th-zone { fill: transparent; stroke: transparent; stroke-width: 1.6; }
+.th-lien:hover .th-zone { fill: var(--paper-deep); }
+.th-lien:focus-visible .th-zone { fill: var(--paper-deep); stroke: var(--green); }
+
+/* La légende des tons : une puce par famille de repères. */
+.th-cles { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.th-cle { display: inline-flex; align-items: center; gap: 6px; }
+.th-puce { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.th-puce-vert { background: var(--green); }
+.th-puce-or { background: var(--gold-deco); }
+.th-puce-terra { background: var(--terra); }
+.th-puce-bleu { background: var(--bleu); }
+.th-puce-doux { background: var(--muted); }
+.th-puce-encre { background: var(--ink); }

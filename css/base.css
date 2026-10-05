@@ -23,9 +23,22 @@
   --gold-tint: #F4EAD5;
   --gold-deep: #6E5018;
   --terra: #A0532A;
+  /* Teintes des figures des savoirs (css/figures.css) : le bleu de l'eau et du
+     froid, le terracotta en aplat clair, et le terracotta des textes posés sur
+     ces aplats. Chacun tient 4,5:1 (texte) ou 3:1 (trait) sur la carte. */
+  --terra-tint: #F5E7DE;
+  --terra-deep: #8A4521;
+  --bleu: #2F6486;
+  --bleu-tint: #E1ECF2;
+  --bleu-deep: #234D69;
   /* Texte posé sur un fond --green : crème en clair, encre en sombre (le vert
      clair du mode sombre ne porte pas du crème : 2,8:1). */
   --sur-vert: #FDFBF3;
+  /* Le noir de brûlé des figures (fg-f-suie : sucs, croûte, charbon) : il reste SOMBRE dans
+     les deux thèmes — fg-f-encre, lui, devient crème en sombre — et son liseré clair, en
+     sombre, le détache de la carte. */
+  --suie: #2B2520;
+  --suie-bord: #2B2520;
   /* Doré des petits textes posés sur le vert profond fixe (mode cuisine, bulles
      de minuteur) : --gold, foncé pour la crème, n'y tient plus. */
   --or-sur-fond-vert: #E8C889;
@@ -89,7 +102,14 @@ html[data-theme="dark"] {
   --gold-tint: #362E1D;
   --gold-deep: #E8C889;
   --terra: #D68E5F;
+  --terra-tint: #33241C;
+  --terra-deep: #E6A97F;
+  --bleu: #7FB0D0;
+  --bleu-tint: #1F2D36;
+  --bleu-deep: #A9CDE4;
   --sur-vert: #15180F;
+  --suie: #0E0C0A;
+  --suie-bord: #9A9D8D;
   --line: #383E31;
   --line-soft: #2E3327;
   --champ-bord: #7C8070;

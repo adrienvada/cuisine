@@ -72,8 +72,9 @@ test("une globale d'un script reporté n'est lue par aucun module du graphe de l
 test("chaque vue demande les feuilles de ce qu'elle dessine, et toutes sont dans le repli noscript", () => {
   assert.deepEqual(feuillesDes(["menu"]), ["menu", "courses"]);
   assert.deepEqual(feuillesDes(["courses"]), ["courses"]);
-  assert.deepEqual(feuillesDes(["cuisine"]), ["cuisine", "savoirs", "journal"]);
-  assert.deepEqual(feuillesDes(["fiche", "cuisine"]), ["savoirs", "journal", "cuisine"]);
+  assert.deepEqual(feuillesDes(["cuisine"]), ["cuisine", "savoirs", "figures", "journal"]);
+  assert.deepEqual(feuillesDes(["fiche", "cuisine"]), ["savoirs", "figures", "journal", "cuisine"]);
+  assert.deepEqual(feuillesDes(["savoirs"]), ["savoirs", "figures"]);
   assert.deepEqual(feuillesDes([]), []);
   const noscript = index.slice(index.indexOf("<noscript>"), index.indexOf("</noscript>"));
   for (const nom of FEUILLES_DES_VUES) {

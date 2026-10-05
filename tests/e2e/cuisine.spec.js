@@ -488,3 +488,29 @@ test("page rouverte avec un minuteur : le premier toucher réveille le son", asy
   const journal = await page.evaluate(() => window.__audio);
   expect(journal.some(e => e.type === "create" && e.geste), JSON.stringify(journal)).toBe(true);
 });
+
+/* « Pourquoi ça marche », déplié en bas de la dernière étape : la liste des liens doit entrer
+   dans la zone qui défile, pas rester coupée sous le bandeau Précédent / Terminer. */
+test("mode cuisine : à la dernière étape, « Pourquoi ça marche » déplié laisse voir et toucher le dernier lien", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await page.goto(CUISINE + "/4");
+  await expect(page.locator(".cook-step-label")).toHaveText("Étape 5 / 5");
+  const etape = page.locator(".cook-etape");
+  await etape.locator(".s-cue").first().click();
+  const liens = etape.locator(".s-lien");
+  expect(await liens.count()).toBeGreaterThan(1);
+  const dernier = liens.last();
+  await expect(dernier).toBeVisible();
+
+  // Entièrement dans la zone qui défile, donc au-dessus du bandeau du bas, et non recouvert.
+  await expect.poll(async () => dernier.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    const corps = document.querySelector(".cook-body").getBoundingClientRect();
+    const nav = document.querySelector(".cook-nav").getBoundingClientRect();
+    const haut = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return r.top >= corps.top - 0.5 && r.bottom <= corps.bottom + 0.5 && r.bottom <= nav.top + 0.5 && (haut === el || el.contains(haut));
+  })).toBe(true);
+
+  await dernier.click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+});

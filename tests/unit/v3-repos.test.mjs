@@ -31,6 +31,8 @@ function verifierAvec(abime) {
   try {
     cpSync(path.join(racine, "js"), path.join(dossier, "js"), { recursive: true });
     cpSync(path.join(racine, "tools"), path.join(dossier, "tools"), { recursive: true });
+    // Le vérificateur lit aussi la feuille des figures des savoirs (classes écrites par les données).
+    cpSync(path.join(racine, "css/figures.css"), path.join(dossier, "css/figures.css"));
     cpSync(path.join(racine, "package.json"), path.join(dossier, "package.json"));
     const fichier = path.join(dossier, "js/recipes.js");
     const avant = readFileSync(fichier, "utf8");

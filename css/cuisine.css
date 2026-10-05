@@ -81,7 +81,7 @@
 
 /* Le texte commence en haut : centré, le titre sautait d'une étape à l'autre
    selon la longueur de la consigne. `pan-y` laisse le balayage horizontal au carnet. */
-.cook-body { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 10px 0; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.cook-body { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 10px 0 28px; scroll-padding-bottom: 28px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
 /* L'étape entre du côté d'où elle vient, dans le prolongement du geste (260 ms, décélération) ;
    un bouton ou une flèche la font entrer plus court (.court). */

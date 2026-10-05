@@ -103,7 +103,13 @@ test("le vérificateur refuse deux libellés de courses pour un même cid", () =
     mkdirSync(path.join(tmp, "js/core"));
     cpSync(path.join(racine, "js/core/format.js"), path.join(tmp, "js/core/format.js"));     // la table des singuliers de portions
     cpSync(path.join(racine, "tools/verifier-recettes.mjs"), path.join(tmp, "tools/verifier-recettes.mjs"));
-    for (const f of ["recipes", "placard", "fondamentaux", "allergenes", "saisons", "substitutions"]) {
+    // Les figures : le vérificateur les dessine (ui/figures.js, qui lit core/html.js) et lit les classes de leur feuille de style.
+    mkdirSync(path.join(tmp, "js/ui"));
+    mkdirSync(path.join(tmp, "css"));
+    cpSync(path.join(racine, "js/core/html.js"), path.join(tmp, "js/core/html.js"));
+    cpSync(path.join(racine, "js/ui/figures.js"), path.join(tmp, "js/ui/figures.js"));
+    cpSync(path.join(racine, "css/figures.css"), path.join(tmp, "css/figures.css"));
+    for (const f of ["recipes", "placard", "fondamentaux", "figures", "allergenes", "saisons", "substitutions"]) {
       cpSync(path.join(racine, `js/${f}.js`), path.join(tmp, `js/${f}.js`));
     }
     writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');

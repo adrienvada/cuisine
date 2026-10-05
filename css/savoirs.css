@@ -319,7 +319,11 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
   color: var(--ink-soft);
   margin-top: 2px;
 }
-.f-item-meta { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); }
+.f-item-bas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 5px; }
+.f-item-meta { display: block; font-size: 12px; color: var(--muted); }
+/* « 3 schémas » : discret, un pictogramme de courbe devant, la teinte des repères. */
+.f-item-fig { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--green-deep); }
+.f-item-fig::before { content: ""; width: 12px; height: 9px; background: currentColor; opacity: 0.8; clip-path: polygon(0 100%, 0 70%, 25% 40%, 50% 55%, 78% 0, 100% 20%, 100% 100%); }
 .f-item > svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
 
 .f-compte { margin: 26px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
@@ -372,3 +376,40 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 
 /* Le cadre de focus de la feuille elle-même n'aide personne : le focus y est posé par le code, pas visé. */
 .fond-sheet .sheet:focus { outline: none; }
+
+/* ---------- Le thermomètre du carnet : l'encart replié sous l'introduction ---------- */
+
+.th-encart {
+  margin: 0 0 16px;
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+}
+.th-encart[hidden] { display: none; }
+
+.th-encart summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.th-encart summary::-webkit-details-marker { display: none; }
+.th-encart summary:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: var(--radius); }
+
+.th-ico { font-size: 26px; line-height: 1; flex: none; }
+.th-sum { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.th-sum b { font-family: var(--serif); font-size: 20px; font-weight: 600; line-height: 1.2; color: var(--ink); }
+.th-sum small { font-size: 13.5px; line-height: 1.4; color: var(--ink-soft); }
+.th-encart summary > svg { flex: none; width: 16px; height: 16px; color: var(--green); transform: rotate(90deg); transition: transform var(--d-moyenne) var(--e-standard); }
+.th-encart[open] summary > svg { transform: rotate(-90deg); }
+
+.th-corps { padding: 0 2px 12px; }
+/* La carte de l'encart tient lieu de cadre : la figure s'y pose à nu, pour garder toute la largeur
+   (le texte du dessin ne doit pas rétrécir sous 360 px). */
+.th-corps .fg-cadre { border: 0; background: transparent; padding: 0; }
+.th-corps .fg { margin: 0; }
+.th-corps figcaption { padding: 2px 12px 8px; }
+@media (prefers-reduced-motion: reduce) { .th-encart summary > svg { transition: none; } }

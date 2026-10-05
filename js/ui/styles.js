@@ -10,8 +10,8 @@ const DELAI_MAX = 3000;
 
 /* L'ordre des <link> d'origine : la cascade ne doit pas dépendre de celle qui arrive
    la première. Chaque feuille ajoutée se range à sa place dans cet ordre. */
-const ORDRE = ["polices", "base", "accueil", "fiche", "cuisine", "menu", "courses", "minuteurs", "savoirs", "journal", "reglages", "reglages-feuille"];
-export const FEUILLES_DES_VUES = ["cuisine", "menu", "courses", "savoirs", "journal"];
+const ORDRE = ["polices", "base", "accueil", "fiche", "cuisine", "menu", "courses", "minuteurs", "savoirs", "figures", "journal", "reglages", "reglages-feuille"];
+export const FEUILLES_DES_VUES = ["cuisine", "menu", "courses", "savoirs", "figures", "journal"];
 
 /* Les feuilles qui ne sont pas celles d'une vue mais que l'accueil ne dessine pas non plus :
    la feuille des réglages (aussi celle de la question à deux issues, confirmer()) et la
@@ -19,15 +19,15 @@ export const FEUILLES_DES_VUES = ["cuisine", "menu", "courses", "savoirs", "jour
 export const FEUILLE_REGLAGES = "reglages-feuille";
 
 /* Ce qu'une vue dessine avec chaque module : la fiche écrit le journal du plat, le
-   mode cuisine aussi (fin de recette), et la vue Menu emprunte les boutons d'action de
-   la liste de courses. tests/e2e/v3-chemin-critique.spec.js vérifie dans le DOM qu'aucune
+   mode cuisine aussi (fin de recette), un savoir montre ses schémas (figures) partout où
+   il s'ouvre, et la vue Menu emprunte les boutons d'action de la liste de courses. tests/e2e/v3-chemin-critique.spec.js vérifie dans le DOM qu'aucune
    feuille non demandée n'aurait servi. */
 const PAR_MODULE = {
-  fiche: ["savoirs", "journal"],
-  cuisine: ["cuisine", "savoirs", "journal"],
+  fiche: ["savoirs", "figures", "journal"],
+  cuisine: ["cuisine", "savoirs", "figures", "journal"],
   menu: ["menu", "courses"],
   courses: ["courses"],
-  savoirs: ["savoirs"]
+  savoirs: ["savoirs", "figures"]
 };
 
 /* Les feuilles qu'il faut avoir pour dessiner ces modules, sans doublon. */
