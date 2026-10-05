@@ -67,3 +67,29 @@ test("glisser à la souris : pas de texte sélectionné pendant le geste, sélec
   // pas à la souris : on lit le style calculé plutôt que de tirer une sélection).
   expect(await page.evaluate(() => getComputedStyle(document.getElementById("avant")).userSelect)).not.toBe("none");
 });
+
+test("rouler dans une région live : la valeur n'est écrite qu'une fois, le décor seul s'en va", async ({ page }) => {
+  await ouvrir(page);
+  const r = await page.evaluate(async () => {
+    document.getElementById("bac")?.remove();
+    const b = document.createElement("div");
+    b.id = "bac";
+    b.innerHTML = '<p id="zone" aria-live="polite" aria-atomic="true"><span id="n">8</span> personnes</p>';
+    document.body.append(b);
+    const { rouler } = await import("/js/ui/mouvement.js");
+    const n = document.getElementById("n");
+    const ajouts = [];
+    const obs = new MutationObserver(liste => liste.forEach(m => {
+      if (m.type === "characterData") ajouts.push("texte");
+      m.addedNodes.forEach(x => ajouts.push(x.nodeType === 3 ? "texte" : x.getAttribute("aria-hidden") ? "decor" : "valeur"));
+    }));
+    obs.observe(n, { childList: true, characterData: true, subtree: true });
+    await rouler(n, 9);
+    await new Promise(res => setTimeout(res, 0));
+    obs.disconnect();
+    return { ajouts, texte: n.textContent, decor: !!n.querySelector('[aria-hidden="true"]'), zone: document.getElementById("zone").textContent };
+  });
+  // Une seule écriture de la valeur (au début) ; rien n'est réécrit à la fin.
+  expect(r.ajouts.filter(a => a !== "decor")).toEqual(["valeur"]);
+  expect(r).toMatchObject({ texte: "9", decor: false, zone: "9 personnes" });
+});

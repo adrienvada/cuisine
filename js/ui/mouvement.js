@@ -237,7 +237,15 @@ export function rouler(el, valeur, { duree = DUREES.moyenne } = {}) {
     visuel.append(c);
   }
   el.replaceChildren(vrai, visuel);
-  const fin = () => { rouleaux.delete(el); el.textContent = apres; };
+  /* Dans une région live (les portions de la fiche), réécrire le texte à la fin le
+     ferait relire : la valeur reste dans le même nœud, rendu visible, et seul le décor
+     (caché aux lecteurs) s'en va. Ailleurs, l'élément retrouve son simple texte. */
+  const vivante = !!el.closest("[aria-live]");
+  const fin = () => {
+    rouleaux.delete(el);
+    if (vivante && vrai.parentNode === el) { visuel.remove(); vrai.removeAttribute("class"); }
+    else el.textContent = apres;
+  };
   rouleaux.set(el, fin);
   const options = { duree, easing: "sortie", reprise: false };
   const toutes = colonnes.flatMap((c, i) => {
