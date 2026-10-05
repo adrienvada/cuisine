@@ -51,6 +51,10 @@ for (const theme of ["clair", "sombre"]) {
     if (theme === "sombre") await sombre(page);
     const appel = page.locator(".s-cue").first();
     await expect(appel).toBeVisible();
+    // Les étapes hors de l'écran arrivent quand on y vient : on mesure une fois qu'elle est posée.
+    await appel.scrollIntoViewIfNeeded();
+    await expect(appel.locator("xpath=ancestor::li")).not.toHaveAttribute("data-attend", "");
+    await pageStable(page);
     expect(await ratio(appel)).toBeGreaterThanOrEqual(4.5);
     await appel.click();
     await expect(page.locator(".a-savoirs.ouvert").first()).toBeVisible();

@@ -48,6 +48,9 @@ import { VERDICTS, byId, cookedOf, totalTimeText, verdictOf, versionSummary } fr
 import { cookHref, cookingStep } from "../core/seance.js";
 import { annoncer } from "../ui/annonces.js";
 import { garderFocus } from "../ui/focus.js";
+import { vibrer } from "../ui/geste.js";
+import { animer, flip, mouvementReduit, secouer, sortir } from "../ui/mouvement.js";
+import { nombreHtml, rejouerNombre } from "../ui/nombre.js";
 import { onShareClick, shareMenu } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 import { toast, updateBadge } from "../ui/toast.js";
@@ -60,7 +63,20 @@ const ouvert = { allergies: false, passes: false };
 /* Ce que le dernier dessin a calculé, pour le bouton « Ajouter au calendrier ». */
 let planCourant = null;
 
+/* Un redessin sur place (un convive de plus, une allergie cochée) n'est pas une
+   arrivée : les cartes n'y rejouent pas leur fondu d'entrée et la frise n'y repart pas
+   de zéro. Posé par redessiner(), le temps du rendu. */
+let enRedessin = false;
+const entree = () => (enRedessin ? "" : " fade-in");
+
+/* Les notes de conflit ou de retard que le dernier dessin montrait : elles ne secouent
+   qu'à leur arrivée, pas à chaque redessin qui les redit. */
+let signatureNotes = "";
+
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
+
+/* Une coche qui se trace d'un trait (.trace de base.css sur le conteneur). */
+const COCHE_TRACEE = ICON.check.replace("<path ", '<path pathLength="1" ');
 
 /* La structure d'un repas, présente en permanence sur la page — vide ou pas.
    Chaque ligne compte les recettes de la page où elle mène : annoncer un
@@ -94,12 +110,12 @@ function jourFr(date, aujourdhui) {
 
 function repasHtml(repas) {
   const nbExclus = repas.exclus.length;
-  return html`<section class="repas fade-in" aria-label="Le repas">
+  return html`<section class="repas${entree()}" aria-label="Le repas">
     <div class="rp-ligne">
       <span class="rp-lib" id="rp-conv">Pour combien&nbsp;?</span>
       <span class="portions" role="group" aria-labelledby="rp-conv">
         <button data-conv="-1" aria-label="Un convive de moins">−</button>
-        <span class="val" id="rp-conv-val">${pluriel(repas.convives, "convive")}</span>
+        <span class="val" id="rp-conv-val">${raw(nombreHtml(pluriel(repas.convives, "convive")))}</span>
         <button data-conv="1" aria-label="Un convive de plus">+</button>
       </span>
     </div>
@@ -171,7 +187,7 @@ function retroHtml(plan, inst, versions) {
       ? html`<li class="fr-jour"><b>${e.jour < 0 ? jourRelatif(e.jour) : "Le jour du repas"}</b> <span>${dateLongue(decomposer(e.t).date)}</span></li>` : "";
     return raw(jour + ligne(e, tous[i - 1]));
   });
-  return html`<section class="retro fade-in" aria-label="Rétroplanning">
+  return html`<section class="retro${entree()}" aria-label="Rétroplanning">
     <h2 class="retro-titre">À table à ${heureFr(plan.table)} <small>${jourFr(inst.date, aujourdhui)}</small></h2>
     ${plan.conflits.slice(0, CONFLITS_VISIBLES).map(noteConflit)}
     ${plan.conflits.length > CONFLITS_VISIBLES ? raw(html`<details class="retro-plus"><summary>${plan.conflits.length - CONFLITS_VISIBLES} autre${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} conflit${plan.conflits.length - CONFLITS_VISIBLES > 1 ? "s" : ""} de four</summary>${plan.conflits.slice(CONFLITS_VISIBLES).map(noteConflit)}</details>`) : ""}
@@ -186,15 +202,15 @@ function retroHtml(plan, inst, versions) {
    porter un fichier (l'appli Calendrier s'ouvre alors d'un geste), sinon il se
    télécharge. */
 async function ajouterAuCalendrier() {
-  if (!planCourant) return;
+  if (!planCourant) return false;
   const { plan, convives } = planCourant;
   const horodatage = new Date().toISOString().replace(/[-:]|\.\d{3}/g, "");
   const contenu = icsRepas(plan, { horodatage, convives });
   const nom = `repas-${decomposer(plan.tableReelle).date}.ics`;
   const fichier = new File([contenu], nom, { type: "text/calendar" });
   if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
-    try { await navigator.share({ files: [fichier], title: "Repas" }); return; }
-    catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.share({ files: [fichier], title: "Repas" }); return true; }
+    catch (e) { if (e && e.name === "AbortError") return false; }
   }
   const url = URL.createObjectURL(fichier);
   const a = document.createElement("a");
@@ -205,6 +221,7 @@ async function ajouterAuCalendrier() {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast("Fichier du calendrier téléchargé");
+  return true;
 }
 
 /* ---------- Les repas passés ---------- */
@@ -233,8 +250,8 @@ function carteHtml({ e, r }, repas) {
   const lien = `#/recette/${r.id}/m/${e.k}`;
   const version = versionSummary(r, e);
   const alertes = allergenesDeEntree(r, e, repas.exclus);
-  return html`<article class="menu-card fade-in" data-open="${e.k}">
-    <a class="mc-visual" style="background:${r.color}22" href="${lien}" aria-label="${r.title}">${raw(visuel(r, { genre: "carre" }))}</a>
+  return html`<article class="menu-card${entree()}" data-open="${e.k}">
+    <a class="mc-visual" data-vt-photo="${r.id}" style="background:${r.color}22" href="${lien}" aria-label="${r.title}">${raw(visuel(r, { genre: "carre" }))}</a>
     <div class="mc-body">
       <a class="mc-title" href="${lien}"><h3>${r.title}</h3></a>
       <div class="meta">${raw(ICON.clock)} ${totalTimeText(r, e)}
@@ -245,7 +262,7 @@ function carteHtml({ e, r }, repas) {
       ${alertes.map(a => raw(html`<p class="mc-alerte" role="note"><span aria-hidden="true">⚠️</span><span>Contient ${a.phrase} : ${a.ingredients.join(", ")}</span></p>`))}
       <span class="portions mc-portions">
         <button data-minus="${e.k}" aria-label="Moins de portions">−</button>
-        <span class="val">${libellePortions(portionsOf(r, e), r.portions.label)}</span>
+        <span class="val">${raw(nombreHtml(libellePortions(portionsOf(r, e), r.portions.label)))}</span>
         <button data-plus="${e.k}" aria-label="Plus de portions">+</button>
       </span>
       <div class="mc-actions">
@@ -264,7 +281,7 @@ export function renderMenu() {
   if (!list.length) {
     app.innerHTML = `
       <div id="menu-root">
-      <header class="page-head courses-head fade-in">
+      <header class="page-head courses-head${entree()}">
         <div class="head-branch">${ILLO.D.olive}</div>
         <h1>Au menu</h1>
       </header>
@@ -276,6 +293,7 @@ export function renderMenu() {
       </div>
     `;
     brancher();
+    decorerVide();
     return;
   }
 
@@ -284,11 +302,11 @@ export function renderMenu() {
 
   app.innerHTML = `
     <div id="menu-root">
-    <header class="page-head courses-head fade-in">
+    <header class="page-head courses-head${entree()}">
       <div class="head-branch">${ILLO.D.olive}</div>
       <h1>Au menu</h1>
-      <p>${list.length} recette${list.length > 1 ? "s" : ""} · ${todo ? `${todo} article${todo > 1 ? "s" : ""} à prendre` : "courses terminées"}</p>
-      ${list.length > 1 ? `<p class="menu-order">Dans l'ordre où s'y mettre : la plus longue en premier.</p>` : ""}
+      <p id="menu-entete">${enteteMenu(list, todo)}</p>
+      <p class="menu-order" id="menu-ordre"${list.length > 1 ? "" : " hidden"}>Dans l'ordre où s'y mettre : la plus longue en premier.</p>
     </header>
     ${repasHtml(repas)}
     <div id="retro-zone">${retroZone(list, repas)}</div>
@@ -306,6 +324,63 @@ export function renderMenu() {
     </div>
   `;
   brancher();
+  if (!enRedessin) signatureNotes = "";   // une arrivée : les notes ont le droit de secouer
+  activerRetro(document.getElementById("retro-zone"), enRedessin ? "fixe" : "trace");
+}
+
+const enteteMenu = (list, todo) => `${list.length} recette${list.length > 1 ? "s" : ""} · ${todo ? `${todo} article${todo > 1 ? "s" : ""} à prendre` : "courses terminées"}`;
+
+/* L'état vide : l'illustration se trace au trait, le reste arrive en douceur. */
+function decorerVide() {
+  if (enRedessin || mouvementReduit()) return;
+  const illo = document.querySelector("#menu-root .empty-illo");
+  if (illo) {
+    illo.querySelectorAll("svg path:not([fill-opacity])").forEach(p => p.setAttribute("pathLength", "1"));
+    illo.classList.add("trace");
+  }
+  arriveeDouce(document.getElementById("menu-root"), ".empty, .sq-row, .sq-libre, .passes");
+}
+
+/* Arrivée douce, échelonnée ; la classe est retirée une fois jouée (elle garderait sinon
+   l'état final et la propriété scale, qui gêne le retour d'appui). */
+function arriveeDouce(racine, selecteur) {
+  racine.querySelectorAll(selecteur).forEach((e, i) => {
+    e.style.setProperty("--i", Math.min(i + 1, 7));
+    e.classList.add("arrive");
+    e.addEventListener("animationend", () => e.classList.remove("arrive"), { once: true });
+  });
+}
+
+/* La frise, une fois posée dans sa zone. `mode` :
+   - "trace" : le dessin de la vue (le fil se trace de haut en bas puis les points, quand la
+     frise entre dans l'écran — une seule fois) ;
+   - "fondu" : un changement (l'heure du repas, un menu qui perd une carte) ; un fondu court,
+     pas un nouveau tracé ;
+   - "fixe" : un redessin sur place ; rien ne bouge.
+   Les notes de conflit ou de retard secouent une fois quand elles arrivent ou changent.
+   Tout est neutre en mouvement réduit : la frise est directement dans son état final. */
+function activerRetro(zone, mode) {
+  if (!zone) return;
+  const notes = [...zone.querySelectorAll(".retro-note.conflit, .retro-note.retard")];
+  const signature = notes.map(n => n.textContent).join("|");
+  const change = signature !== signatureNotes;
+  signatureNotes = signature;
+  if (mouvementReduit()) return;
+  if (change) notes.forEach(secouer);
+  const frise = zone.querySelector(".frise");
+  if (!frise) return;
+  if (mode === "fondu") { animer(zone, [{ opacity: 0.35 }], { duree: "courte", cle: "fondu", reprise: false }); return; }
+  if (mode !== "trace") return;
+  /* Tout tient en 900 ms, quel que soit le nombre de lignes : le pas d'une ligne à l'autre
+     se resserre quand la frise s'allonge. */
+  const lignes = [...frise.querySelectorAll(".fr")];
+  lignes.forEach((l, i) => l.style.setProperty("--r", i));
+  frise.style.setProperty("--pas", `${Math.max(14, Math.min(70, Math.floor(480 / Math.max(1, lignes.length))))}ms`);
+  frise.dataset.trace = "attend";
+  const jouer = () => { frise.dataset.trace = "joue"; };
+  if (typeof IntersectionObserver === "undefined") return jouer();
+  const o = new IntersectionObserver(([x]) => { if (x.isIntersecting) { o.disconnect(); jouer(); } }, { threshold: 0.05 });
+  o.observe(frise);
 }
 
 /* La frise (ou l'invitation à donner l'heure), seule : elle se redessine sans
@@ -319,10 +394,30 @@ function retroZone(list, repas) {
 }
 
 /* Redessiner sur place, sans revenir en haut de page ni perdre le focus clavier. */
-function redessiner() {
+function redessiner({ rejouer = [], arrivee = false } = {}) {
   const y = window.scrollY;
-  garderFocus(app, renderMenu);
+  // Les nombres que le redessin va changer : leur texte d'avant, pour que le chiffre roule.
+  const avant = rejouer.map(sel => [sel, document.querySelector(sel)?.textContent]);
+  enRedessin = !arrivee;   // une arrivée (l'état vide après un menu vidé) rejoue ses entrées
+  try { garderFocus(app, renderMenu); } finally { enRedessin = false; }
   window.scrollTo(0, y);
+  avant.forEach(([sel, texte]) => { if (texte) rejouerNombre(document.querySelector(sel), texte); });
+}
+
+const carteDe = k => document.querySelector(`#menu-root .menu-card[data-open="${CSS.escape(k)}"]`);
+const nombresDesCartes = () => menuEntrees().map(({ e }) => `.menu-card[data-open="${CSS.escape(e.k)}"] .mc-portions .val`);
+
+/* La frise, les phrases d'en-tête, bref ce que le menu dit de ses cartes, mis à jour sans
+   redessiner la page : une carte qui part ou qui revient ne doit pas faire sauter les autres. */
+function majPartiel() {
+  const racine = document.getElementById("menu-root");
+  const list = menuEntrees();
+  if (!racine || !list.length) return;
+  racine.querySelector("#menu-entete").textContent = enteteMenu(list, courseTodo());
+  racine.querySelector("#menu-ordre").hidden = list.length < 2;
+  const zone = racine.querySelector("#retro-zone");
+  zone.innerHTML = retroZone(list, lireRepas());
+  activerRetro(zone, "fondu");
 }
 
 function brancher() {
@@ -332,6 +427,9 @@ function brancher() {
 
   racine.addEventListener("click", e => {
     onShareClick(e);
+    // Les repas passés qu'on déplie arrivent l'un après l'autre (jamais à un redessin qui les rend ouverts).
+    const resume = e.target.closest("#passes > summary");
+    if (resume && !resume.parentElement.open) resume.parentElement.classList.add("vient");
     const rm = e.target.closest("[data-remove]");
     if (rm) return retirer(rm.dataset.remove);
     const mom = e.target.closest("[data-moment]");
@@ -339,8 +437,9 @@ function brancher() {
     const conv = e.target.closest("[data-conv]");
     if (conv) {
       const n = lireRepas().convives + Number(conv.dataset.conv);
-      if (n < 1 || n > CONVIVES_MAX) return;
-      setConvives(n); updateBadge(); redessiner();
+      if (n < 1 || n > CONVIVES_MAX) { secouer(conv.closest(".portions")); return; }
+      // Les convives changent peut-être les portions des cartes : leurs chiffres roulent aussi.
+      setConvives(n); updateBadge(); redessiner({ rejouer: ["#rp-conv-val", ...nombresDesCartes()] });
       // La vue est redessinée : une région live posée dedans ne dirait rien.
       annoncer(pluriel(n, "convive"));
       return;
@@ -348,7 +447,8 @@ function brancher() {
     const exclu = e.target.closest("[data-exclu]");
     if (exclu) { basculerExclu(exclu.dataset.exclu); redessiner(); return; }
     if (e.target.closest("[data-date-clear]")) { setDateRepas(""); redessiner(); return; }
-    if (e.target.closest("#ajout-calendrier")) { ajouterAuCalendrier(); return; }
+    const cal = e.target.closest("#ajout-calendrier");
+    if (cal) { ajouterAuCalendrier().then(ok => { if (ok) confirmerCalendrier(cal); }); return; }
     const refaire = e.target.closest("[data-refaire]");
     if (refaire) return remettreLeRepas(refaire.dataset.refaire);
     const step = e.target.closest("[data-minus], [data-plus]");
@@ -357,9 +457,9 @@ function brancher() {
       const r = ent && byId(ent.rid);
       if (!r) return;
       const p = portionsOf(r, ent) + (step.dataset.plus ? 1 : -1);
-      if (p < PORTIONS_MIN || p > PORTIONS_MAX) return;
+      if (p < PORTIONS_MIN || p > PORTIONS_MAX) { secouer(step.closest(".portions")); return; }
       ent.portions = p;
-      save(); updateBadge(); redessiner();
+      save(); updateBadge(); redessiner({ rejouer: [`.menu-card[data-open="${CSS.escape(ent.k)}"] .mc-portions .val`] });
       annoncer(`${r.title} : ${libellePortions(p, r.portions.label)}`);
       return;
     }
@@ -379,8 +479,10 @@ function brancher() {
          repartirait sur le segment des heures à chaque minute changée. */
       setHeureRepas(e.target.value);
       const zone = document.getElementById("retro-zone");
-      if (zone) zone.innerHTML = retroZone(menuEntrees(), lireRepas());
-      else redessiner();
+      if (zone) {
+        zone.innerHTML = retroZone(menuEntrees(), lireRepas());
+        activerRetro(zone, "fondu");   // un fondu court, pas un nouveau tracé à chaque minute changée
+      } else redessiner();
     } else if (e.target.id === "repas-date") {
       setDateRepas(e.target.value); redessiner();
     }
@@ -399,19 +501,90 @@ const apresAnnulation = () => {
   if (document.getElementById("menu-root")) renderMenu();
 };
 
+/* Les cartes retirées se replient (glisser, puis hauteur) : les autres, et tout ce qui
+   suit, remontent avec elles. La frise et les phrases d'en-tête sont mises à jour sur
+   place. Menu vidé, la page de l'état vide arrive une fois le repli fini. En mouvement
+   réduit, on redessine comme avant. */
+function sortirCartes(cartes) {
+  const racine = document.getElementById("menu-root");
+  const sortantes = cartes.filter(Boolean);
+  if (!racine || !sortantes.length || mouvementReduit()) return redessiner();
+  // Le focus qu'une carte portait revient à sa voisine (sortir() le laisse à l'appelant).
+  if (sortantes.some(c => c.contains(document.activeElement))) {
+    const voisine = [...racine.querySelectorAll(".menu-card")].find(c => !sortantes.includes(c) && !c.inert);
+    const cible = voisine?.querySelector(".mc-x") ?? racine.querySelector("h1");
+    if (cible && !cible.matches("button, a, input")) cible.setAttribute("tabindex", "-1");
+    cible?.focus({ preventScroll: true });
+  }
+  const finies = sortantes.map(c => sortir(c));
+  if (menuEntrees().length) majPartiel();
+  else Promise.all(finies).then(() => { if (document.getElementById("menu-root") && !menuEntrees().length) redessiner({ arrivee: true }); });
+}
+
+/* Annuler : la carte revient à sa place avec un ressort, les autres s'écartent (flip). */
+function revenirCarte(k) {
+  updateBadge();
+  const racine = document.getElementById("menu-root");
+  if (!racine) return;
+  const liste = menuEntrees();
+  const rang = liste.findIndex(x => x.e.k === k);
+  const cont = racine.querySelector(".menu-list");
+  const retour = carte => animer(carte, [{ opacity: 0, scale: "0.9", translate: "0 -12px" }], { easing: "ressort", cle: "retour", reprise: false });
+  if (rang < 0 || !cont || mouvementReduit() || carteDe(k)) {
+    redessiner();
+    const c = carteDe(k);
+    if (c) retour(c);
+    return;
+  }
+  const gabarit = document.createElement("template");
+  enRedessin = true;
+  try { gabarit.innerHTML = carteHtml(liste[rang], lireRepas()); } finally { enRedessin = false; }
+  const carte = gabarit.content.firstElementChild;
+  const vivantes = [...cont.children].filter(c => !c.inert);
+  flip(cont, () => cont.insertBefore(carte, vivantes[rang] ?? null), { arrivees: false });
+  retour(carte);
+  majPartiel();
+}
+
+/* Annuler un menu vidé : toutes les cartes reviennent, l'une après l'autre. */
+function revenirTout() {
+  updateBadge();
+  if (!document.getElementById("menu-root")) return;
+  redessiner();
+  document.querySelectorAll("#menu-root .menu-card").forEach((c, i) => {
+    animer(c, [{ opacity: 0, scale: "0.94", translate: "0 10px" }], { easing: "ressort", delai: Math.min(i, 7) * 35, cle: "retour", reprise: false });
+  });
+}
+
 function retirer(k) {
   const retire = retirerDuMenu(k);
   if (!retire) return;
   updateBadge();
-  redessiner();
-  toast("Retiré du menu", { action: "Annuler", surAction: () => { remettreAuMenu(retire); apresAnnulation(); } });
+  vibrer("tic");
+  sortirCartes([carteDe(k)]);
+  toast("Retiré du menu", { action: "Annuler", surAction: () => { remettreAuMenu(retire); revenirCarte(retire.e.k); } });
 }
 
 function vider() {
   const avant = viderLeMenu();
   updateBadge();
-  redessiner();
-  toast("Menu vidé", { action: "Annuler", surAction: () => { restaurerMenu(avant); apresAnnulation(); } });
+  sortirCartes([...document.querySelectorAll("#menu-root .menu-card")]);
+  toast("Menu vidé", { action: "Annuler", surAction: () => { restaurerMenu(avant); revenirTout(); } });
+}
+
+/* « Ajouter au calendrier » a réussi : la coche se trace dans le bouton, puis il se remet. */
+function confirmerCalendrier(bouton) {
+  const avant = bouton.innerHTML;
+  bouton.classList.add("trace", "fait");
+  bouton.innerHTML = `${COCHE_TRACEE} Ajouté au calendrier`;
+  vibrer("tic");
+  annoncer("Ajouté au calendrier");
+  setTimeout(() => {
+    if (!bouton.isConnected) return;
+    bouton.classList.remove("trace", "fait");
+    bouton.innerHTML = avant;
+    animer(bouton, [{ opacity: 0.35 }], { duree: "courte", cle: "libelle", reprise: false });
+  }, 2200);
 }
 
 function remettreLeRepas(id) {

@@ -377,6 +377,7 @@ js/ui/partage.js        Liens, textes de partage, feuille de partage ou copie
 js/ui/minuteurs.js      Minuteurs, plateau, sonnerie, verrou d'écran
 js/ui/visuel.js         Photo, illustration ou emoji d'une recette
 js/ui/miseajour.js      Enregistrement du service worker (au repos, après le premier affichage), « Nouvelle version — Recharger »
+js/ui/nombre.js         Un nombre qui change (portions, convives) : le chiffre roule, le mot qui le suit reste en place
 js/ui/theme.js          Thème automatique/clair/sombre
 js/ui/mouvement.js      Aides du mouvement : mouvementReduit(), animer, flip, sortir, rebondir, secouer, rouler, tracer
 js/ui/geste.js          Gestes : glisser, relacher (ressort à la vitesse du doigt), vibrer et la préférence de vibrations
