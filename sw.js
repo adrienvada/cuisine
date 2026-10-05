@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "b1915b1459";
+const VERSION = "a2e06f7656";
 
 const CORE = [
   "./",
@@ -129,6 +129,7 @@ const CORE = [
   "js/ui/voix.js",
   "js/vendor/qrcode-generator.js",
   "js/vues/accueil.js",
+  "js/vues/courses-gestes.js",
   "js/vues/courses.js",
   "js/vues/cuisine.js",
   "js/vues/fiche.js",

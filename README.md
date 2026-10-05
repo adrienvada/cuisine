@@ -390,6 +390,7 @@ js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins �
 js/vues/cuisine.js      Mode cuisine
 js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
+js/vues/courses-gestes.js Décisions pures de la liste : signature d'une ligne, seuil du balayage, géométrie du glisser-déposer des rayons
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
 js/vues/journal.js      Journal des recettes cuisinées : feuille d'ajout, photos (IndexedDB), liste
 js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import

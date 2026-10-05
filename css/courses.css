@@ -9,7 +9,7 @@
 html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 /* Le menu en une ligne : le détail vit dans l'onglet Au menu. */
-.menu-ligne { margin: 14px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+.menu-ligne { margin: 24px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
 
 .menu-ligne a {
   display: inline-block;
@@ -66,20 +66,50 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .course-list input:focus-visible + .tick { outline: 3px solid var(--gold); outline-offset: 2px; }
 
+/* Le rond se remplit avec un ressort (un disque qui grandit derrière), la coche se
+   trace à l'encre (pathLength="1"), et le tracé se défait plus vite qu'il ne se fait :
+   décocher est un retour, pas un événement. La coche garde l'encre du thème (--case-coche)
+   en tout temps ; c'est son tracé qui la montre. */
 .tick {
+  position: relative;
   flex: none;
   width: 26px; height: 26px;
   border-radius: 999px;
   border: 2px solid var(--case-bord);
   background: var(--card);
   display: flex; align-items: center; justify-content: center;
-  color: transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  color: var(--case-coche);
+  transition: border-color var(--d-courte) var(--e-sortie);
 }
 
-.tick svg { width: 16px; height: 16px; }
+.tick::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: var(--green);
+  scale: 0;
+  transition: scale var(--d-courte) var(--e-entree);
+}
 
-.course-list input:checked + .tick { background: var(--green); border-color: var(--green); color: var(--case-coche); }
+.tick svg { position: relative; width: 16px; height: 16px; }
+
+.tick path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset var(--d-courte) var(--e-entree), opacity 0s linear var(--d-courte);
+}
+
+.course-list input:checked + .tick { border-color: var(--green); }
+
+.course-list input:checked + .tick::before { scale: 1; transition: scale var(--ressort-vif-duree) var(--ressort-vif); }
+
+.course-list input:checked + .tick path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) var(--d-appui), opacity 0s linear var(--d-appui);
+}
 
 .course-list .lbl { flex: 1; min-width: 0; }
 
@@ -106,9 +136,52 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .course-list .opt { font-size: 11.5px; color: var(--gold-deep); }
 
+.course-list .lbl { transition: color var(--d-courte) var(--e-sortie); }
+
 .course-list input:checked ~ .lbl { color: var(--muted); }
 
-.course-list input:checked ~ .lbl .nom { text-decoration: line-through; }
+/* Le nom est rayé d'un trait de crayon, un peu irrégulier, tracé de gauche à droite
+   (un tracé SVG, pas un line-through) ; le pointillé qui annonçait la provenance s'efface
+   dessous. Il se défait plus vite qu'il ne se trace. */
+.course-list .nom { position: relative; }
+
+.course-list input:checked ~ .lbl .nom { text-decoration-color: transparent; }
+
+/* Sur plusieurs lignes, un line-through remplace le trait de crayon (marquerMultiligne). */
+.course-list .nom.multi .rature { display: none; }
+
+.course-list input:checked ~ .lbl .nom.multi {
+  text-decoration: line-through solid var(--ink-soft) 1.5px;
+}
+
+.rature {
+  position: absolute;
+  left: -1px;
+  width: calc(100% - 4px);
+  top: 50%;
+  height: 9px;
+  margin-top: -4.5px;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--ink-soft);
+}
+
+.rature path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset var(--d-courte) var(--e-entree), opacity 0s linear var(--d-courte);
+}
+
+.course-list input:checked ~ .lbl .rature path {
+  stroke-dashoffset: 0;
+  opacity: 0.85;
+  transition: stroke-dashoffset var(--d-trace) var(--e-sortie) calc(var(--d-appui) * 1.5), opacity 0s linear calc(var(--d-appui) * 1.5);
+}
 
 .course-list .cqty { font-weight: 600; color: var(--green-deep); text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; max-width: 42%; }
 
@@ -129,12 +202,11 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .origine[hidden] { display: none; }
 
+/* Le volet de provenance s'ouvre en hauteur (js/vues/courses.js) : rien ne doit
+   déborder pendant qu'il se plie. */
+.origine { overflow: hidden; }
+
 .course-list .origine li { padding: 2px 0; border: 0; }
-
-/* L'article qui part au panier (ou qui en revient) s'efface avant d'être redessiné. */
-.art.part { animation: art-part 0.24s ease forwards; }
-
-@keyframes art-part { to { opacity: 0; transform: translateX(14px); } }
 
 /* ---------- Avancement et outils ---------- */
 
@@ -142,7 +214,15 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .avance { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-deep); border: 1px solid var(--line); overflow: hidden; }
 
-.avance span { display: block; height: 100%; background: var(--green); border-radius: 999px; transition: width 0.3s ease; }
+/* La barre se découvre de la gauche par un clip-path que le JS anime avec un ressort
+   (js/vues/courses.js) : la largeur ne bouge jamais. Liste terminée : elle passe à l'or. */
+.avance span { display: block; width: 100%; height: 100%; background: var(--green); transition: background-color var(--d-longue) var(--e-standard); }
+
+.avance.complete { border-color: var(--gold-deco); }
+
+.avance.complete span { background: var(--gold-deco); }
+
+.avance-txt .faits { display: inline-block; }
 
 .avance-txt { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--green-deep); white-space: nowrap; }
 
@@ -170,7 +250,19 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .rayon.placard > h2 { color: var(--terra); }
 
-.panier { margin-top: 24px; border-top: 1px solid var(--line); }
+/* Le panier est « rangé » : ce qui y est tombé forme un bloc posé à part, plus calme que
+   la liste (fond de papier plus sombre, texte atténué, pas de pointillés). */
+.panier {
+  margin-top: 24px;
+  padding: 0 14px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.panier .course-list > li { border-bottom-color: var(--line); }
+
+.panier .course-list > li:last-child { border-bottom: 0; }
 
 .panier > summary {
   display: flex;
@@ -332,7 +424,117 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   white-space: nowrap;
 }
 
+/* ---------- Mouvement des lignes : glisser pour supprimer ---------- */
+
+/* Une ligne libre se balaie vers la gauche : la face (le label) glisse sur un fond
+   « Supprimer » qui se découvre avec le doigt (--glisse : 0 à 1). Le défilement vertical
+   garde la main (pan-y). */
+.course-list > li { position: relative; }
+
+.course-list li.libre > label { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+
+.fond-suppr {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--terra);
+  background: color-mix(in srgb, var(--terra) 14%, transparent);
+  border-radius: 10px;
+  opacity: var(--glisse, 0);
+  pointer-events: none;
+}
+
+/* La ligne qu'on tient est une feuille soulevée : papier opaque et ombre qui monte. */
+.course-list li.en-main > label {
+  background: var(--card);
+  border-radius: 10px;
+  box-shadow: var(--ombre-2);
+  transition: box-shadow var(--d-moyenne) var(--e-sortie);
+}
+
+/* ---------- Ranger : la poignée ---------- */
+
+.poignee {
+  flex: none;
+  width: 36px; height: 44px;
+  margin-left: -8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.poignee svg { width: 20px; height: 20px; }
+
+.ranger-liste li { position: relative; }
+
+.ranger-liste li.en-main {
+  z-index: 2;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--ombre-3);
+  scale: 1.02;
+  transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif);
+}
+
+.ranger-liste li.en-main .poignee { cursor: grabbing; color: var(--green-deep); }
+
+/* ---------- Le bandeau : l'olivier et le tampon ---------- */
+
+/* La branche se trace une fois par session (la classe .trace n'est posée qu'au premier
+   dessin) : le rameau d'abord, puis les feuilles et les olives poussent une à une. */
+.head-branch .o-f { transform-box: fill-box; transform-origin: center; }
+
+.head-branch.trace .o-f {
+  animation: o-pousse var(--d-moyenne) var(--e-sortie) both;
+  animation-delay: calc(var(--d-trace) * 0.5 + var(--k, 0) * var(--d-appui) * 0.4);
+}
+
+@keyframes o-pousse { from { opacity: 0; scale: 0.2; } }
+
+/* Le tampon « Tout est dans le panier » : posé en travers du bas du bandeau quand la liste
+   est terminée. Invisible tant qu'elle ne l'est pas ; js/ui/effets.js le fait tomber. */
+.courses-head { position: relative; }
+
+.tampon-fini {
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  translate: -50% 0;
+  max-width: calc(100% - 24px);
+  padding: 4px 12px;
+  border: 2px solid var(--terra);
+  border-radius: 8px;
+  outline: 1px solid var(--terra);
+  outline-offset: 2px;
+  background: var(--paper);
+  color: var(--terra);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  rotate: -6deg;
+  pointer-events: none;
+}
+
+.tampon-fini.pose { opacity: 1; }
+
+/* ---------- La liste vide : l'illustration se trace ---------- */
+
+.empty-illo.trace circle { animation: arrivee var(--d-moyenne) var(--e-sortie) calc(var(--d-trace) * 0.8) both; }
+
 @media (prefers-reduced-motion: reduce) {
-  .art.part { animation: none; }
-  .avance span, .tick, .panier > summary::after { transition: none; }
+  .tick::before, .tick path, .rature path, .avance span, .panier > summary::after, .lbl { transition: none; }
+  .head-branch.trace .o-f, .empty-illo.trace circle { animation: none; }
 }
