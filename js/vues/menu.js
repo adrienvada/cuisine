@@ -102,16 +102,29 @@ function squeletteHtml() {
    dans les assiettes (core/completude.js). Elle se tait quand le menu n'est pas encore
    un repas, ou quand il ne manque rien. */
 
-/* Les manques qu'on a écartés pour ce repas (« Ça me va comme ça ») : retenus sur
-   l'appareil, oubliés quand le menu est vidé. Le stockage peut manquer (navigation
-   privée) : on fait alors sans. */
+/* Les manques qu'on a écartés (« Ça me va comme ça »), avec les entrées du menu à ce
+   moment-là : tant que l'une d'elles y est encore, c'est le même repas (« Annuler » après
+   un menu vidé le rend avec ses clés). Un menu vidé puis rempli, d'ici ou d'ailleurs (les
+   courses, une fiche, un autre appareil), n'a que des entrées neuves : ses manques
+   peuvent revenir. Gardés en mémoire, et sur l'appareil quand le stockage le permet
+   (navigation privée : jusqu'au prochain chargement). */
 const CLE_TUS = "manques-tus";
+let ecartes;   // { cles, manques }, null, ou undefined tant que le stockage n'est pas lu
 function lireTus() {
-  try { const v = JSON.parse(localStorage.getItem(CLE_TUS) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
+  if (ecartes === undefined) {
+    try { ecartes = JSON.parse(localStorage.getItem(CLE_TUS)); } catch { ecartes = null; }
+  }
+  const valables = ecartes && Array.isArray(ecartes.cles) && Array.isArray(ecartes.manques) && ecartes.cles.some(k => entreeDe(k));
+  return valables ? ecartes.manques : [];
 }
-function ecrireTus(liste) {
-  try { if (liste.length) localStorage.setItem(CLE_TUS, JSON.stringify(liste)); else localStorage.removeItem(CLE_TUS); } catch {}
+function ecrireTus(manques) {
+  ecartes = manques.length ? { cles: state.menu.map(e => e.k), manques } : null;
+  try { if (ecartes) localStorage.setItem(CLE_TUS, JSON.stringify(ecartes)); else localStorage.removeItem(CLE_TUS); } catch {}
 }
+
+/* Le geste « Annuler » d'un message vient-il du clavier ? Le doigt et la souris donnent
+   aussi le focus au bouton (Chromium), mais sans l'anneau : le focus ne suit qu'au clavier. */
+const annuleAuClavier = () => !!document.activeElement?.matches(".toast-action:focus-visible");
 
 /* La version qu'on ajouterait : celle qu'on a composée sur la fiche, s'il y en a une. */
 const versionAjoutee = rid => ({ choices: state.choices[rid] || {}, addons: state.addons[rid] || [] });
@@ -137,7 +150,9 @@ function manquesHtml(list, repas) {
     derniere: r => cookedOf(r).last
   });
   const aucune = `Rien à proposer pour l'instant${repas.exclus.length ? " avec ce que tes invités évitent" : " dans le carnet"}.`;
-  return html`<section class="manques${entree()}" aria-labelledby="mq-phrase">
+  // Ce que le bloc dit : deux dessins de même signature sont le même bloc (majManques).
+  const signature = [manques.join(" "), recos.map(x => `${x.r.id}:${x.comble.join(",")}`).join(" "), recos.length ? "" : aucune].join("|");
+  return html`<section class="manques${entree()}" aria-labelledby="mq-phrase" data-signature="${signature}">
     <p class="mq-phrase" id="mq-phrase">${phrase(manques)}</p>
     ${recos.length ? raw(html`<ul class="mq-liste">${recos.map(x => raw(recoHtml(x)))}</ul>`) : raw(html`<p class="mq-aucune">${aucune}</p>`)}
     <button class="mq-taire" data-taire="${manques.join(" ")}" aria-label="Ça me va comme ça : ne plus signaler ces manques pour ce repas">Ça me va comme ça</button>
@@ -145,7 +160,9 @@ function manquesHtml(list, repas) {
 }
 
 /* Le bloc suit le menu sans redessiner la page : il arrive, change d'un fondu court,
-   ou se replie quand il ne manque plus rien. */
+   ou se replie quand il ne manque plus rien. Le focus qu'il portait ne tombe pas dans le
+   vide (sortir() le laisse à l'appelant) : il passe aux moments du repas, juste en
+   dessous, ou reste dans le bloc qui change. */
 function majManques() {
   const zone = document.getElementById("manques-zone");
   if (!zone) return;
@@ -153,16 +170,24 @@ function majManques() {
   enRedessin = true;
   let neuf;
   try { neuf = manquesHtml(menuEntrees(), lireRepas()); } finally { enRedessin = false; }
+  const actif = ancien?.contains(document.activeElement) ? document.activeElement : null;
   if (!neuf) {
-    if (ancien) sortir(ancien);
+    if (!ancien) return;
+    if (actif) zone.parentElement.querySelector(".squelette .sq-row")?.focus({ preventScroll: true });
+    sortir(ancien);
     return;
   }
   const gabarit = document.createElement("template");
   gabarit.innerHTML = neuf;
   const bloc = gabarit.content.firstElementChild;
-  if (ancien && ancien.outerHTML === bloc.outerHTML) return;
+  // La typographie du carnet retouche le texte affiché (espaces insécables) : on compare ce que le bloc dit.
+  if (ancien && ancien.dataset.signature === bloc.dataset.signature) return;
   if (ancien) {
     ancien.replaceWith(bloc);
+    if (actif) {
+      const meme = actif.dataset.ajout && bloc.querySelector(`[data-ajout="${CSS.escape(actif.dataset.ajout)}"]`);
+      (meme || bloc.querySelector("[data-ajout], [data-taire]"))?.focus({ preventScroll: true });
+    }
     animer(bloc, [{ opacity: 0.35 }], { duree: "courte", cle: "fondu", reprise: false });
   } else {
     zone.replaceChildren(bloc);
@@ -172,31 +197,47 @@ function majManques() {
 
 /* « + » : la recette rejoint le menu dans sa version par défaut (ou celle composée sur sa
    fiche). Sa carte arrive à sa place, les autres s'écartent, et ce qui manque se met à
-   jour. Le focus suit la recette ajoutée. */
+   jour. Au clavier, le focus suit la recette ajoutée ; au doigt, la page ne bouge pas.
+   « Annuler » rend tout : le menu, le bloc, le brouillon composé sur la fiche, et au
+   clavier le focus sur le « + ». */
 function ajouterSuggestion(rid, bouton) {
   const r = byId(rid);
   if (!r) return;
-  const auClavier = bouton && bouton === document.activeElement;
+  const auClavier = !!bouton?.matches(":focus-visible");
   const e = ajouterAuMenu(rid);
   // Comme depuis la fiche : le brouillon est désormais dans l'entrée, il repart à neuf.
+  const brouillon = { choices: state.choices[rid], addons: state.addons[rid], portions: state.portions[rid] };
   delete state.choices[rid]; delete state.addons[rid]; delete state.portions[rid];
   save();
   vibrer("tic");
   revenirCarte(e.k);
   if (auClavier) carteDe(e.k)?.querySelector(".mc-title")?.focus({ preventScroll: false });
   toast(`Au menu : ${nomCourt(r.title)}`, { action: "Annuler", surAction: () => {
+    const clavier = annuleAuClavier();
     if (!retirerDuMenu(e.k)) return;
+    // Un brouillon composé depuis (sur la fiche, pendant le message) l'emporte sur l'ancien.
+    for (const [champ, v] of Object.entries(brouillon)) if (v !== undefined && state[champ][rid] === undefined) state[champ][rid] = v;
+    save();
     updateBadge();
-    if (document.getElementById("menu-root")) sortirCartes([carteDe(e.k)]);
+    if (!document.getElementById("menu-root")) return;
+    sortirCartes([carteDe(e.k)]);
+    const bloc = document.querySelector("#manques-zone .manques:not([inert])");
+    if (clavier) bloc?.querySelector(`[data-ajout="${CSS.escape(rid)}"], [data-taire]`)?.focus({ preventScroll: false });
   } });
 }
 
-/* « Ça me va comme ça » : ces manques ne reviennent plus pour ce repas. */
+/* « Ça me va comme ça » : ces manques ne reviennent plus pour ce repas. « Annuler » les
+   rend, et au clavier le focus revient sur le bouton. */
 function taireManques(ids) {
   const avant = lireTus();
   ecrireTus([...new Set([...avant, ...ids])]);
   majManques();
-  toast("Le carnet n'en parlera plus pour ce repas", { action: "Annuler", surAction: () => { ecrireTus(avant); majManques(); } });
+  toast("Le carnet n'en parlera plus pour ce repas", { action: "Annuler", surAction: () => {
+    const clavier = annuleAuClavier();
+    ecrireTus(avant);
+    majManques();
+    if (clavier) document.querySelector("#manques-zone .manques:not([inert]) [data-taire]")?.focus({ preventScroll: false });
+  } });
 }
 
 /* « samedi 10 octobre ». */
@@ -382,7 +423,6 @@ export function renderMenu() {
   planCourant = null;
 
   if (!list.length) {
-    ecrireTus([]);   // un menu vidé, c'est un autre repas : ce qu'on avait laissé de côté peut revenir
     app.innerHTML = `
       <div id="menu-root">
       <header class="page-head courses-head${entree()}">
