@@ -144,14 +144,16 @@
 /* ---------- Apparition des tracés ---------- */
 
 /* Un tracé se dessine quand sa figure entre à l'écran (savoirs.js pose fg-pret
-   puis fg-vu). Sans le script, ou sous « mouvement réduit », tout est visible. */
+   puis fg-vu). Sans le script, ou sous « mouvement réduit », tout est visible.
+   C'est l'encre du carnet (--d-trace, base.css), en plus long : une courbe se lit en
+   se dessinant, une coche se coche. */
 @keyframes fg-trace {
   from { stroke-dasharray: 1; stroke-dashoffset: 1; }
   to { stroke-dasharray: 1; stroke-dashoffset: 0; }
 }
 
 .fg-pret .fg-trace { stroke-dasharray: 1; stroke-dashoffset: 1; }
-.fg-pret.fg-vu .fg-trace { animation: fg-trace 1.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both; }
+.fg-pret.fg-vu .fg-trace { animation: fg-trace calc(var(--d-trace) * 3.5) var(--e-standard) both; animation-delay: 100ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .fg-pret .fg-trace { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
@@ -212,7 +214,7 @@
   pointer-events: none;
   border-radius: 0 14px 14px 0;
   background: linear-gradient(to left, color-mix(in srgb, var(--ink) 28%, transparent), transparent);
-  transition: opacity 0.2s;
+  transition: opacity var(--d-courte) var(--e-standard);
 }
 .fg-zoom-boite.fg-defile.fg-fin::after { opacity: 0; }
 .fg-zoom-indice { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); text-align: center; }

@@ -46,7 +46,7 @@ function fichiersDe(dossier) {
 
 /* Combien de vignettes l'accueil demande avant même que ses modules s'exécutent :
    les cartes visibles sans défiler sur un téléphone (deux colonnes), pas au-delà. */
-const VIGNETTES_PRECHARGEES = 4;
+const VIGNETTES_PRECHARGEES = 1;
 const DEBUT_VIGNETTES = "<!-- >>> vignettes de l'accueil générées par tools/version-sw.mjs — ne pas modifier à la main -->";
 const FIN_VIGNETTES = "<!-- <<< fin du bloc généré -->";
 

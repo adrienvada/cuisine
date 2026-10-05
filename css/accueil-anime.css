@@ -1,0 +1,99 @@
+/* Le mouvement de l'accueil qui n'est pas sur le chemin du premier écran : pastille des filtres, loupe, croix
+   d'effacement, arrivée des cartes au défilement, fondu des photos, nombres qui roulent, état vide, pouls du
+   partage. Chargée avec js/vues/accueil-anime.js, au repos après le chargement (la feuille de l'accueil, elle,
+   porte tout ce qu'il faut au premier affichage) ; sans elle, l'accueil est le même, sans mouvement. */
+
+/* La loupe cherche pendant la frappe (la classe vient de main.js) : elle se balance autour de
+   son centre, au rythme des jetons ; en mouvement réduit, elle reste immobile (base.css). */
+.searchbar.typing > svg { animation: loupe calc(var(--d-longue) * 1.2) var(--e-standard) infinite; }
+@keyframes loupe {
+  25% { rotate: -16deg; scale: 1.08; }
+  75% { rotate: 16deg; scale: 1.08; }
+}
+
+/* La croix d'effacement (équiper() de accueil-anime.js remplace celle du navigateur, qui ne s'anime pas) :
+   absente tant que le champ est vide, elle se pose en grandissant dès qu'il ne l'est plus. Même zone
+   de 44 px et même trait que l'ancienne. */
+.searchbar:has(.search-clear) input[type="search"]::-webkit-search-cancel-button { display: none; }
+.searchbar:has(.search-clear) { position: relative; }
+.searchbar.a-texte input[type="search"] { padding-right: 44px; }
+.search-clear { display: none; position: absolute; inset: 0 0 0 auto; width: 44px; padding: 0; border: 0; background: none; color: var(--muted); align-items: center; justify-content: center; cursor: pointer; }
+.search-clear svg { width: 14px; height: 14px; }
+.searchbar.a-texte .search-clear { display: flex; }
+.searchbar.a-texte .search-clear svg { animation: croix var(--d-moyenne) var(--ressort-vif); }
+@keyframes croix { from { opacity: 0; scale: 0.4; } }
+
+/* La pastille de la puce active glisse d'une puce à l'autre (glisserPastille) : un décor sous les puces,
+   déplacé par translate et scale au ressort vif. Pendant le vol, la puce choisie n'a pas son fond (la
+   pastille le porte) et son texte ne vire au crème qu'au tiers du trajet. */
+.chips .pastille {
+  position: absolute;
+  left: 0;
+  border-radius: 999px;
+  background: var(--green);
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition: translate var(--ressort-vif-duree) var(--ressort-vif), scale var(--ressort-vif-duree) var(--ressort-vif);
+}
+
+.chips.en-vol .chip.on {
+  background: transparent;
+  border-color: transparent;
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), color var(--d-courte) calc(var(--ressort-vif-duree) * 0.3);
+}
+
+/* À l'appui la carte se soulève (ombre, léger zoom) et revient au ressort. Le délai évite qu'un
+   défilement qui démarre la fasse sauter ; le bouton partager a son propre retour. */
+.card:active:not(:has(.card-share:active)) {
+  scale: 1.02;
+  box-shadow: var(--ombre-3);
+  transition-duration: var(--d-courte), var(--d-appui);
+  transition-timing-function: var(--e-sortie);
+  transition-delay: 70ms;
+}
+
+/* Un filet d'ombre sous la photo la détache du papier de la carte. */
+.card .visual::after { content: ""; position: absolute; inset: auto 0 0; height: 1px; background: rgb(44 51 38 / 0.1); pointer-events: none; }
+
+/* Arrivée douce au défilement : la carte qui entre par le bas de l'écran se pose (animation
+   pilotée par le défilement, sans écouteur ni script). Ce qui est déjà à l'écran à l'ouverture
+   est au bout de sa course : rien du premier écran ne part d'une opacité nulle (le début est à
+   0,45, pour une carte coupée par le bas), et le LCP ne l'attend pas. */
+@supports (animation-timeline: view()) {
+  .card {
+    animation: carte-entre linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+@keyframes carte-entre { from { opacity: 0.45; transform: translateY(14px) scale(0.985); } }
+
+/* Une photo qui arrive après coup (hors du premier écran) se fond sur sa couleur. */
+.card .visual img.photo-arrive { animation: photo-arrive var(--d-moyenne) var(--e-sortie) both; }
+@keyframes photo-arrive { from { opacity: 0; } }
+
+/* Les nombres qui roulent gardent leur largeur. */
+.jai-nb, #jai-nb { font-variant-numeric: tabular-nums; }
+
+/* Icône de partage : un battement avant l'action, où qu'elle apparaisse (main.js pose la classe).
+   Le ressort de rebond du socle fait lui-même le dépassement : une seule image de départ. */
+.share-pulse { animation: share-pulse var(--ressort-rebond-duree) var(--ressort-rebond); transform-box: fill-box; transform-origin: center; }
+@keyframes share-pulse { from { scale: 1.4; } }
+
+/* Le message attend que la dernière carte soit partie (sa sortie dure --d-courte) avant de se poser :
+   sans cela il s'écrit par-dessus la carte qui s'efface. */
+.grid[data-anime] .grid-empty:not([hidden]) { animation: vide-entre var(--d-moyenne) var(--e-sortie) var(--d-courte) backwards; }
+@keyframes vide-entre { from { opacity: 0; } }
+
+/* L'état vide : un bol fumant dessiné au trait, qui se trace à chaque apparition. */
+.vide-illo { display: block; width: 64px; height: 48px; margin: 8px auto 12px; color: var(--gold-deco); }
+
+/* Mouvement réduit : tout est posé d'emblée, rien ne glisse (base.css coupe déjà les
+   animations ; ce qui suit est ce que le filet ne couvre pas). */
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+  .card:active:not(:has(.card-share:active)) { scale: none; }
+  .chips .pastille { display: none; }
+  .searchbar.typing > svg { animation: none; }
+}

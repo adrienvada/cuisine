@@ -1,0 +1,123 @@
+/* Vague 3, intégration : ce que l'intégrateur corrige dans le socle partagé après
+   l'avoir vu servir dans les vues (feuilles, mode cuisine, courses). */
+
+import { test, expect, pageStable } from "./outils.js";
+
+const GESTE = "/js/ui/geste.js";
+
+async function ouvrir(page) {
+  await page.goto("/");
+  await pageStable(page);
+}
+
+async function poser(page) {
+  await page.evaluate(async src => {
+    document.getElementById("bac")?.remove();
+    const b = document.createElement("div");
+    b.id = "bac";
+    b.style.cssText = "position:fixed;top:120px;left:20px;width:340px;z-index:10;background:#fff;font-size:16px";
+    b.innerHTML = '<p id="avant">Du texte avant le glisseur, à ne pas sélectionner.</p><div id="g" style="touch-action:none;width:200px;height:80px;background:#ddd">tirer ce texte</div><p id="apres">Du texte après.</p>';
+    document.body.append(b);
+    const { glisser } = await import(src);
+    window.__fin = null;
+    window.__erreurs = 0;
+    window.addEventListener("error", () => window.__erreurs++);
+    glisser(document.getElementById("g"), { axe: "x", surFin: f => { window.__fin = f; } });
+  }, GESTE);
+}
+
+test("glisser : un pointeur que le navigateur refuse de capturer fait quand même glisser", async ({ page }) => {
+  await ouvrir(page);
+  await poser(page);
+  const r = await page.evaluate(() => {
+    const g = document.getElementById("g");
+    const b = g.getBoundingClientRect();
+    const ev = (type, x) => new PointerEvent(type, { pointerId: 4242, isPrimary: true, pointerType: "touch", bubbles: true, clientX: x, clientY: b.top + 20 });
+    let leve = null;
+    try {
+      g.dispatchEvent(ev("pointerdown", b.left + 20));
+      for (let i = 1; i <= 6; i++) g.dispatchEvent(ev("pointermove", b.left + 20 + i * 10));
+      g.dispatchEvent(ev("pointerup", b.left + 80));
+    } catch (e) { leve = String(e); }
+    return { leve, fin: window.__fin, erreurs: window.__erreurs };
+  });
+  expect(r.leve).toBe(null);
+  expect(r.erreurs).toBe(0);
+  expect(r.fin).not.toBe(null);
+  expect(r.fin.annule).toBe(false);
+  expect(r.fin.x).toBeGreaterThan(40);
+});
+
+test("glisser à la souris : pas de texte sélectionné pendant le geste, sélection rendue après", async ({ page }) => {
+  await ouvrir(page);
+  await poser(page);
+  const b = await page.locator("#g").boundingBox();
+  const y = b.y + 30;
+  await page.mouse.move(b.x + 10, y);
+  await page.mouse.down();
+  await page.mouse.move(b.x + 120, y + 4, { steps: 8 });
+  const pendant = await page.evaluate(() => ({ sel: getSelection().toString(), us: document.documentElement.style.userSelect }));
+  expect(pendant.sel).toBe("");
+  expect(pendant.us).toBe("none");
+  await page.mouse.up();
+  const apres = await page.evaluate(() => ({ us: document.documentElement.style.userSelect, fin: window.__fin }));
+  expect(apres.us).toBe("");
+  expect(apres.fin.annule).toBe(false);
+  // Hors geste, le texte redevient sélectionnable (l'émulation mobile ne sélectionne
+  // pas à la souris : on lit le style calculé plutôt que de tirer une sélection).
+  expect(await page.evaluate(() => getComputedStyle(document.getElementById("avant")).userSelect)).not.toBe("none");
+});
+
+test("rouler dans une région live : la valeur n'est écrite qu'une fois, le décor seul s'en va", async ({ page }) => {
+  await ouvrir(page);
+  const r = await page.evaluate(async () => {
+    document.getElementById("bac")?.remove();
+    const b = document.createElement("div");
+    b.id = "bac";
+    b.innerHTML = '<p id="zone" aria-live="polite" aria-atomic="true"><span id="n">8</span> personnes</p>';
+    document.body.append(b);
+    const { rouler } = await import("/js/ui/mouvement.js");
+    const n = document.getElementById("n");
+    const ajouts = [];
+    const obs = new MutationObserver(liste => liste.forEach(m => {
+      if (m.type === "characterData") ajouts.push("texte");
+      m.addedNodes.forEach(x => ajouts.push(x.nodeType === 3 ? "texte" : x.getAttribute("aria-hidden") ? "decor" : "valeur"));
+    }));
+    obs.observe(n, { childList: true, characterData: true, subtree: true });
+    await rouler(n, 9);
+    await new Promise(res => setTimeout(res, 0));
+    obs.disconnect();
+    return { ajouts, texte: n.textContent, decor: !!n.querySelector('[aria-hidden="true"]'), zone: document.getElementById("zone").textContent };
+  });
+  // Une seule écriture de la valeur (au début) ; rien n'est réécrit à la fin.
+  expect(r.ajouts.filter(a => a !== "decor")).toEqual(["valeur"]);
+  expect(r).toMatchObject({ texte: "9", decor: false, zone: "9 personnes" });
+});
+
+/* Retour à l'accueil depuis une fiche : la transition de vue fait entrer la page ; ni son
+   fondu propre (.fade-in), ni un nouveau fondu des photos déjà vues (tout est en cache) ne
+   doivent jouer en plus — la page se poserait deux fois plus tard, en clignotant. */
+test("retour à l'accueil : la transition seule, sans fondu de la vue ni des photos déjà vues", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForFunction(() => document.documentElement.hasAttribute("data-nav-pret") && document.getElementById("grid")?.hasAttribute("data-anime"));
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await page.evaluate(() => { location.hash = "#/recette/focaccia-romarin"; });
+  await page.waitForSelector(".hero");
+  await pageStable(page);
+  const vu = await page.evaluate(() => new Promise(fin => {
+    const noms = new Set();
+    history.back();
+    const t0 = performance.now();
+    const v = () => {
+      for (const a of document.getAnimations()) if (a.animationName) noms.add(a.animationName);
+      if (document.querySelector(".card .photo-arrive")) noms.add("photo-arrive (classe)");
+      if (performance.now() - t0 > 1500) return fin({ noms: [...noms], vt: document.documentElement.dataset.vt || null });
+      requestAnimationFrame(v);
+    };
+    requestAnimationFrame(v);
+  }));
+  expect(vu.noms).not.toContain("fade");
+  expect(vu.noms).not.toContain("photo-arrive");
+  expect(vu.noms).not.toContain("photo-arrive (classe)");
+  expect(vu.vt).toBe(null);   // la transition est finie et nettoyée
+});

@@ -1,5 +1,5 @@
 /* Les figures des savoirs : le moteur de rendu (js/ui/figures.js, pur), le chargement tolérant
-   (core/fonds.js), la palette (css/figures.css, css/base.css) et les données de js/figures.js. */
+   (core/fonds.js, core/savoirs.js), la palette (css/figures.css, css/base.css) et les données de js/figures.js. */
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -226,7 +226,8 @@ test("balisesEquilibrees : repère les balises mal fermées", () => {
 /* ---------- Chargement tolérant ---------- */
 
 test("figuresDe : jamais d'exception, vide sans le fichier, le tableau de la fiche avec", async () => {
-  const { figuresDe, figuresChargees } = await import("../../js/core/fonds.js");
+  const { figuresChargees } = await import("../../js/core/fonds.js");
+  const { figuresDe } = await import("../../js/core/savoirs.js");
   const sauve = globalThis.FIGURES;
   try {
     delete globalThis.FIGURES;

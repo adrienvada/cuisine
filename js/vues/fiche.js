@@ -12,7 +12,7 @@ import {
 } from "../core/adaptation.js";
 import { libelleQuantite } from "../core/cuisine.js";
 import { save, state } from "../core/etat.js";
-import { libellePortions, scaleText, timeText } from "../core/format.js";
+import { libellePortions, scaleText, timeText, typo } from "../core/format.js";
 import { esc, html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import {
@@ -42,6 +42,9 @@ import {
 } from "../core/recettes.js";
 import { cleCuisine, cookHref, cookingStep, forgetCooking } from "../core/seance.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { vibrer } from "../ui/geste.js";
+import { animer, flip, mouvementReduit, rebondir, rouler, secouer, sortir } from "../ui/mouvement.js";
+import { changerNombre, nombreHtml } from "../ui/nombre.js";
 import { shareRecipe } from "../ui/partage.js";
 import { allerEnRemplacant, app, hashPrecedent } from "../ui/routeur.js";
 import { toast, updateBadge } from "../ui/toast.js";
@@ -118,7 +121,7 @@ function openAddSheet(r, done) {
   backdrop.addEventListener("click", e => {
     if (e.target === backdrop) return close(false);
     if (e.target.closest("#sheet-add")) return close(true);
-    if (onPickClick(e, r)) { picks.innerHTML = pickChipsHtml(r); rafraichir(); }
+    if (onPickClick(e, r)) { majPuces(picks, r); rafraichir(); vibrer("tic"); }
   });
   rafraichir();
   ouvrirFeuille(backdrop, () => done(resultat));
@@ -158,17 +161,165 @@ const DELAI_NOTE = 600;
 const tempsHtml = r => {
   const t = tempsDe(r);
   return `
-        ${t.prep || addonTime(r, "prep") ? `<span class="timechip">${ICON.knife} Préparation : ${timeText(t.prep, addonTime(r, "prep"))}</span>` : ""}
-        ${t.repos || addonTime(r, "repos") ? `<span class="timechip">${ICON.zzz} ${r.reposLabel || "Repos"} : ${timeText(t.repos, addonTime(r, "repos"))}</span>` : ""}
-        ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip">${ICON.flame} Cuisson : ${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span>` : `<span class="timechip">${ICON.flame} Sans cuisson</span>`}
+        ${t.prep || addonTime(r, "prep") ? `<span class="timechip" data-t="prep">${ICON.knife} Préparation : <span class="tc-v">${timeText(t.prep, addonTime(r, "prep"))}</span></span>` : ""}
+        ${t.repos || addonTime(r, "repos") ? `<span class="timechip" data-t="repos">${ICON.zzz} ${r.reposLabel || "Repos"} : <span class="tc-v">${timeText(t.repos, addonTime(r, "repos"))}</span></span>` : ""}
+        ${t.cuisson != null || addonTime(r, "cuisson") ? `<span class="timechip" data-t="cuisson">${ICON.flame} Cuisson : <span class="tc-v">${timeText(t.cuisson || 0, addonTime(r, "cuisson"))}</span></span>` : `<span class="timechip" data-t="sans">${ICON.flame} Sans cuisson</span>`}
       `;
 };
+
+/* ---------- Le mouvement de la fiche ---------- */
+
+/* Les observateurs de la fiche affichée (barre compacte, entrées au défilement) : une
+   fiche redessinée ou remplacée lâche ceux de la précédente. */
+let observateurs = [];
+function observer(options, quand, elements) {
+  if (typeof IntersectionObserver === "undefined") return null;
+  const o = new IntersectionObserver(quand, options);
+  elements.forEach(e => o.observe(e));
+  observateurs.push(o);
+  return o;
+}
+
+/* Une coche qui se trace d'un trait (la classe .trace de base.css, sur le conteneur). */
+const COCHE_TRACEE = ICON.checkTrace;
+
+/* Un retrait du menu depuis la fiche recharge la fiche : le nouveau bouton le sait et
+   se pose en douceur (l'inverse, plus sobre, de l'ajout). */
+let retraitRecent = null;
+
+/* La vignette s'envole de la photo de la fiche (ou, si celle-ci a défilé hors de
+   l'écran, du bouton d'ajout) vers l'onglet « Au menu ». effets.js est chargé à la
+   demande, ici seulement : il n'est jamais sur le chemin de l'accueil. */
+async function envolerVersLeMenu(r, bouton) {
+  const cible = document.querySelector('.tabbar [data-tab="menu"] svg');
+  const photo = document.querySelector(".hero .visual");
+  if (!cible || mouvementReduit()) return;
+  const source = photo && photo.getBoundingClientRect().bottom > 80 ? photo : bouton;
+  const image = photo?.querySelector("img")?.currentSrc || "";
+  let amorce = null;
+  if (!image) {
+    // Sans photo : une pastille de l'emoji, posée là le temps d'en prendre la copie.
+    amorce = document.createElement("span");
+    const b = source.getBoundingClientRect();
+    amorce.textContent = r.emoji || "🍽";
+    amorce.style.cssText = `position:fixed;left:${b.left + b.width / 2 - 20}px;top:${b.top + b.height / 2 - 20}px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:26px;border-radius:50%;background:var(--card);border:2px solid var(--card);box-shadow:var(--ombre-2);pointer-events:none;z-index:300`;
+    document.body.append(amorce);
+  }
+  try {
+    const { envoler } = await import("../ui/effets.js");
+    const vol = envoler(amorce || source, cible, image ? { image } : {});
+    amorce?.remove();   // envoler en a déjà pris la copie
+    await vol;
+  } catch (e) {
+    amorce?.remove();
+    console.error("Envol indisponible :", e);
+  }
+}
+
+/* Les entrées au défilement : ingrédients et étapes qui ne sont pas à l'écran au premier
+   dessin arrivent, l'une après l'autre, la première fois qu'ils y entrent. Ce qui est
+   déjà visible n'est jamais touché (le premier écran ne part pas d'une opacité nulle).
+   Ils sont cachés par [data-attend] ; sans IntersectionObserver rien n'est caché. */
+function arrivesAuDefilement(elements) {
+  if (mouvementReduit() || typeof IntersectionObserver === "undefined") return;
+  const bas = window.innerHeight;
+  const attendus = elements.filter(e => e.getBoundingClientRect().top > bas - 24);
+  attendus.forEach(e => e.setAttribute("data-attend", ""));
+  observer({ rootMargin: "0px 0px -6% 0px" }, (entrees, o) => {
+    entrees.filter(x => x.isIntersecting).forEach((x, rang) => {
+      const e = x.target;
+      o.unobserve(e);
+      e.style.setProperty("--i", Math.min(rang, 7));
+      e.removeAttribute("data-attend");
+      e.classList.add("arrive");
+      e.addEventListener("animationend", () => e.classList.remove("arrive"), { once: true });
+    });
+  }, attendus);
+}
+
+/* Les puces de choix et de suppléments se mettent à jour sur place (jamais redessinées) :
+   la couleur glisse, la puce choisie fait un petit saut, le focus clavier reste où il est. */
+function majPuces(zone, r) {
+  const choix = choiceList(r);
+  const retenus = selectedAddons(r);
+  const regler = (b, on) => {
+    const avant = b.classList.contains("on");
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+    if (on && !avant) animer(b, [{ scale: 0.9 }, { scale: 1 }], { easing: "ressort-rebond", cle: "puce", reprise: false });
+  };
+  zone.querySelectorAll("[data-choice]").forEach(b => {
+    const c = choix.find(x => x.id === b.dataset.choice);
+    regler(b, !!c && optionOf(r, c).id === b.dataset.option);
+  });
+  zone.querySelectorAll("[data-addon]").forEach(b => regler(b, retenus.some(x => x.id === b.dataset.addon)));
+}
+
+/* Une liste qui change d'éléments (un supplément coché ajoute un ingrédient, une étape) :
+   ceux qui restent glissent à leur nouvelle place (flip), les nouveaux arrivent, ceux qui
+   partent se replient (sortir). `elements` : [{ cle, ... }] ; `creer(item)` rend un <li> ;
+   `patcher(li, item)` met à jour celui qui reste. Au premier dessin, ou en mouvement
+   réduit, tout est simplement écrit. */
+function majListe(ul, elements, { creer, patcher, anime }) {
+  const existants = new Map([...ul.children].filter(li => !li.inert && li.dataset.cle).map(li => [li.dataset.cle, li]));
+  if (!anime || !existants.size) {
+    ul.replaceChildren(...elements.map(creer));
+    return Promise.resolve(true);
+  }
+  const voulues = new Set(elements.map(x => x.cle));
+  /* Même en mouvement réduit les lignes qui restent sont gardées (et mises à jour sur place) :
+     un volet « Pourquoi ça marche » ouvert ne se referme pas. Seuls flip et sortir sont sautés. */
+  const reduit = mouvementReduit();
+  const ranger = () => {
+    existants.forEach((li, cle) => { if (!voulues.has(cle)) { if (reduit) li.remove(); else sortir(li); } });
+    let pos = ul.firstElementChild;
+    for (const item of elements) {
+      while (pos && pos.inert) pos = pos.nextElementSibling;
+      const li = existants.get(item.cle) ?? creer(item);
+      if (li === pos) pos = pos.nextElementSibling;
+      else ul.insertBefore(li, pos);
+      if (existants.has(item.cle)) patcher(li, item);
+    }
+  };
+  if (reduit) { ranger(); return Promise.resolve(true); }
+  return flip(ul, ranger);
+}
+
+/* Des clés stables : le même texte revenu deux fois reçoit un rang. */
+function cles(textes) {
+  const vus = new Map();
+  return textes.map(t => { const n = vus.get(t) || 0; vus.set(t, n + 1); return `${t}#${n}`; });
+}
+
+const gabaritLi = markup => {
+  const t = document.createElement("template");
+  t.innerHTML = markup.trim();
+  return t.content.firstElementChild;
+};
+
+/* La quantité d'une ligne suit les portions : les chiffres roulent quand le reste du
+   texte (l'unité) ne change pas, sinon un fondu court. La largeur ne saute pas
+   (chiffres tabulaires, largeur minimale de la colonne). */
+const unite = t => t.replace(/^[\d\s,./½¼¾⅓⅔]*/, "");
+function changerQuantite(el, brut) {
+  const texte = typo(brut);
+  if (el.textContent === texte) return;
+  if (unite(el.textContent) === unite(texte) && /\d/.test(texte) && /\d/.test(el.textContent)) { rouler(el, texte); return; }
+  el.textContent = texte;
+  animer(el, [{ opacity: 0.2 }], { duree: "courte", cle: "qte", reprise: false });
+}
+
+/* Ce qui fait l'identité d'un bloc de texte, sans les identifiants que savoirsHtml
+   numérote à chaque appel. */
+const signature = markup => markup.replace(/s-liste-\d+/g, "s-liste");
 
 export function renderRecipe(r) {
   // Étape 1 : rien à reprendre, « Mode cuisine » y mène déjà.
   const resume = cookingStep(r, entreeCourante() || undefined) || null;
   const retour = retourDe();
   poserEcouteurs();
+  observateurs.forEach(o => o.disconnect());
+  observateurs = [];
   app.innerHTML = `
     <div class="topbar fade-in">
       <a class="btn-icon" href="${esc(retour.href)}" data-retour="${esc(retour.href)}">${ICON.back} ${retour.texte}</a>
@@ -177,7 +328,14 @@ export function renderRecipe(r) {
         <button class="btn-icon" id="share-recipe">${ICON.share} Partager</button>
       </div>
     </div>
-    <div class="hero"><div class="visual" style="background:${r.color}33">
+    <div class="fiche-barre" id="fiche-barre" inert>
+      <div class="fb-in">
+        <a class="btn-icon fb-retour" href="${esc(retour.href)}" data-retour="${esc(retour.href)}" aria-label="Retour : ${esc(retour.texte)}">${ICON.back}</a>
+        <span class="fb-titre" aria-hidden="true">${r.title}</span>
+        <button class="btn-icon fb-partage" id="fb-share" aria-label="Partager">${ICON.share}</button>
+      </div>
+    </div>
+    <div class="hero"><div class="visual" data-vt-photo="${r.id}" style="background:${r.color}33">
       ${r.image ? "" : `<span class="corner tl">${ILLO.D.corner}</span><span class="corner tr">${ILLO.D.corner}</span><span class="corner bl">${ILLO.D.corner}</span><span class="corner br">${ILLO.D.corner}</span>`}
       ${visuel(r, { genre: "hero", eager: true })}
     </div></div>
@@ -195,7 +353,7 @@ export function renderRecipe(r) {
       <h2><span class="h-title"><span class="h-deco">${ILLO.D.leaf}</span>Ingrédients</span>
         <span class="portions">
           <button id="p-minus" aria-label="Moins de portions">−</button>
-          <span class="val" id="p-val" aria-live="polite"></span>
+          <span class="val" id="p-val" aria-live="polite" aria-atomic="true"></span>
           <button id="p-plus" aria-label="Plus de portions">+</button>
         </span>
       </h2>
@@ -243,36 +401,82 @@ export function renderRecipe(r) {
      une, celles du brouillon sinon — portionsOf / compo tranchent. */
   const portionsCourantes = () => portionsOf(r);
 
-  const drawIngredients = () => {
+  /* `anime` : le changement vient d'un geste (portions, choix) et non du premier
+     dessin ; les quantités roulent et les lignes qui apparaissent ou partent le font
+     en douceur. */
+  const valPortions = document.getElementById("p-val");
+  const drawIngredients = ({ anime = false } = {}) => {
     const p = portionsCourantes();
     const f = p / r.portions.base;
-    document.getElementById("p-val").textContent = libellePortions(p, r.portions.label);
-    document.getElementById("ing-list").innerHTML = effectiveIngredients(r).map((ing, i) => html`<li>
-      <button type="button" class="ing-ligne" data-i="${i}" aria-haspopup="dialog">
-        <span class="qty">${libelleQuantite(ing, f) || "—"}</span>
-        <span class="ing-nom">${ing.name}${ing.addon ? raw(`<span class="opt sup">supplément</span>`) : ""}${ing.optional ? raw(`<span class="opt">optionnel</span>`) : ""}${ing.note ? raw(html`<span class="note"> — ${scaleText(ing.note, f)}</span>`) : ""}</span>
+    const texte = libellePortions(p, r.portions.label);
+    if (anime) changerNombre(valPortions, texte); else valPortions.innerHTML = nombreHtml(texte);
+    const ings = effectiveIngredients(r);
+    const ids = cles(ings.map(ing => `${ing.name}|${ing.addon ? 1 : 0}`));
+    /* Le nom et la note ne changent qu'avec la version (ou la note, mise à l'échelle) ;
+       la quantité est à part, parce que c'est elle qui roule. */
+    const corps = ing => html`${ing.name}${ing.addon ? raw(`<span class="opt sup">supplément</span>`) : ""}${ing.optional ? raw(`<span class="opt">optionnel</span>`) : ""}${ing.note ? raw(html`<span class="note"> — ${scaleText(ing.note, f)}</span>`) : ""}`;
+    const items = ings.map((ing, i) => ({ cle: ids[i], ing, i, qte: libelleQuantite(ing, f) || "—", corps: corps(ing) }));
+    majListe(document.getElementById("ing-list"), items, {
+      anime,
+      creer: x => {
+        const li = gabaritLi(html`<li data-cle="${x.cle}">
+      <button type="button" class="ing-ligne" data-i="${x.i}" aria-haspopup="dialog">
+        <span class="qty">${typo(x.qte)}</span>
+        <span class="ing-nom">${raw(x.corps)}</span>
         <span class="ing-chev" aria-hidden="true">${raw(ICON.chev)}</span>
       </button>
-    </li>`).join("");
+    </li>`);
+        li.dataset.corps = x.corps;
+        return li;
+      },
+      patcher: (li, x) => {
+        li.firstElementChild.dataset.i = x.i;
+        changerQuantite(li.querySelector(".qty"), x.qte);
+        if (li.dataset.corps !== x.corps) { li.querySelector(".ing-nom").innerHTML = x.corps; li.dataset.corps = x.corps; }
+      }
+    });
   };
 
-  const drawSteps = () => {
+  const drawSteps = ({ anime = false } = {}) => {
     const f = portionsCourantes() / r.portions.base;
-    document.getElementById("steps-list").innerHTML = effectiveSteps(r).map((s, i) => `
-      <li>
-        <span class="num">${i + 1}</span>
-        <div>
+    const etapes = effectiveSteps(r);
+    const ids = cles(etapes.map(s => s.t));
+    const corps = s => `
           <h3>${s.t}</h3>
           <p>${scaleText(s.txt, f)}</p>
           ${scaleText(extrasHtml(s), f)}
           ${scaleText(astuceHtml(s), f)}
-        </div>
-      </li>`).join("");
+        `;
+    const items = etapes.map((s, i) => ({ cle: ids[i], i, corps: corps(s) }));
+    majListe(document.getElementById("steps-list"), items, {
+      anime,
+      creer: x => {
+        const li = gabaritLi(`<li data-cle="${esc(x.cle)}"><span class="num">${x.i + 1}</span><div>${x.corps}</div></li>`);
+        li.dataset.sig = signature(x.corps);
+        return li;
+      },
+      patcher: (li, x) => {
+        const num = li.querySelector(".num");
+        if (num.textContent !== String(x.i + 1)) num.textContent = x.i + 1;
+        if (li.dataset.sig === signature(x.corps)) return;
+        /* Les quantités citées dans le texte ont changé : le bloc est réécrit, mais le
+           volet « Pourquoi ça marche » qu'on avait ouvert reste ouvert. */
+        const ouverts = [...li.querySelectorAll(".a-savoirs")].map(e => e.classList.contains("ouvert"));
+        li.lastElementChild.innerHTML = x.corps;
+        li.querySelectorAll(".a-savoirs").forEach((e, n) => {
+          if (!ouverts[n]) return;
+          e.classList.add("ouvert");
+          e.querySelectorAll(".s-cue").forEach(b => b.setAttribute("aria-expanded", "true"));
+        });
+        li.dataset.sig = signature(x.corps);
+      }
+    });
   };
 
   const drawPicks = () => {
     const zone = document.getElementById("pick-zone");
-    if (zone) zone.innerHTML = pickChipsHtml(r);
+    if (!zone) return;
+    if (zone.firstElementChild) majPuces(zone, r); else zone.innerHTML = pickChipsHtml(r);
   };
 
   /* Un supplément ou un autre choix change les ingrédients, donc les allergènes. */
@@ -291,7 +495,9 @@ export function renderRecipe(r) {
      qu'on ne touche pas aux portions autrement. */
   let diteDuMoule = "";
 
-  const drawMoule = () => {
+  /* Le moule se dessine une fois ; ensuite on ne touche qu'à sa taille (qui roule) et à la
+     phrase, pour que les boutons − / + gardent leur focus et leur retour d'appui. */
+  const drawMoule = ({ anime = false } = {}) => {
     const zone = document.getElementById("moule-zone");
     if (!zone) return;
     const base = r.portions.base, p = portionsCourantes();
@@ -299,25 +505,56 @@ export function renderRecipe(r) {
        à la main depuis, elles ont repris la main et le moule affiché suit. */
     const memo = state.moules?.[r.id];
     const taille = memo && portionsPourMoule(r.moule, base, memo) === p ? memo : tailleEquivalente(r.moule, base, p);
-    zone.innerHTML = html`
+    const libelle = libelleMoule(r.moule, taille);
+    const dit = diteDuMoule || `La recette est écrite pour un moule de ${libelleMoule(r.moule, tailleDeReference(r.moule))}.`;
+    if (!zone.firstElementChild) {
+      zone.innerHTML = html`
       <div class="moule-ligne">
-        <span class="moule-lib">Ton moule : <b>${libelleMoule(r.moule, taille)}</b></span>
+        <span class="moule-lib">Ton moule : <b>${libelle}</b></span>
         <span class="portions">
           <button id="m-minus" aria-label="Moule plus petit">−</button>
           <button id="m-plus" aria-label="Moule plus grand">+</button>
         </span>
       </div>
-      <p class="moule-dit" aria-live="polite">${diteDuMoule || `La recette est écrite pour un moule de ${libelleMoule(r.moule, tailleDeReference(r.moule))}.`}</p>`;
+      <p class="moule-dit" aria-live="polite">${dit}</p>`;
+    } else {
+      const b = zone.querySelector(".moule-lib b");
+      if (anime) rouler(b, typo(libelle)); else b.textContent = libelle;
+      const phrase = zone.querySelector(".moule-dit");
+      if (phrase.textContent !== typo(dit)) {
+        phrase.textContent = dit;
+        if (anime) animer(phrase, [{ opacity: 0 }], { duree: "courte", cle: "dit", reprise: false });
+      }
+    }
     zone.dataset.taille = taille;
   };
 
-  const drawTemps = () => { document.getElementById("timerow").innerHTML = tempsHtml(r); };
+  /* Les trois temps : chaque durée est un texte qui roule quand elle change (le temps
+     total d'une version composée), les puces qui apparaissent ou disparaissent se
+     remplacent d'un fondu. */
+  const drawTemps = ({ anime = false } = {}) => {
+    const rangee = document.getElementById("timerow");
+    const neuf = gabaritLi(`<div>${tempsHtml(r)}</div>`);
+    const anciennes = [...rangee.children];
+    const nouvelles = [...neuf.children];
+    const memeForme = anciennes.length === nouvelles.length && anciennes.every((c, i) => c.dataset.t === nouvelles[i].dataset.t);
+    if (!anime || !memeForme || mouvementReduit()) {
+      rangee.replaceChildren(...nouvelles);
+      if (anime && !memeForme) animer(rangee, [{ opacity: 0.3 }], { duree: "courte", cle: "temps", reprise: false });
+      return;
+    }
+    nouvelles.forEach((n, i) => {
+      const v = anciennes[i].querySelector(".tc-v");
+      const nv = n.querySelector(".tc-v").textContent;
+      if (v.textContent !== typo(nv)) rouler(v, typo(nv));
+    });
+  };
 
-  const drawVersion = () => { drawIngredients(); drawSteps(); drawPicks(); drawAllergenes(); drawMoule(); drawTemps(); };
+  const drawVersion = ({ anime = false } = {}) => { drawIngredients({ anime }); drawSteps({ anime }); drawPicks(); drawAllergenes(); drawMoule({ anime }); drawTemps({ anime }); };
 
   if (customizable(r)) {
     document.getElementById("pick-zone").addEventListener("click", e => {
-      if (onPickClick(e, r)) { drawVersion(); updateBadge(); }
+      if (onPickClick(e, r)) { drawVersion({ anime: true }); updateBadge(); vibrer("tic"); }
     });
   }
 
@@ -327,16 +564,23 @@ export function renderRecipe(r) {
     compo(r.id).portions = p;
     diteDuMoule = dit;
     save();
-    drawIngredients(); drawSteps(); drawMoule();
+    drawIngredients({ anime: true }); drawSteps({ anime: true }); drawMoule({ anime: true });
     updateBadge();   // une entrée du menu change les quantités des courses
+  };
+
+  /* À la borne, le stepper répond : le chiffre rebondit et la pastille secoue un peu. */
+  const butee = () => {
+    rebondir(valPortions);
+    secouer(valPortions.closest(".portions"));
+    vibrer("tic");
   };
   document.getElementById("p-minus").addEventListener("click", () => {
     const p = portionsCourantes();
-    if (p > PORTIONS_MIN) setPortions(p - 1);
+    if (p > PORTIONS_MIN) setPortions(p - 1); else butee();
   });
   document.getElementById("p-plus").addEventListener("click", () => {
     const p = portionsCourantes();
-    if (p < PORTIONS_MAX) setPortions(p + 1);
+    if (p < PORTIONS_MAX) setPortions(p + 1); else butee();
   });
 
   const moulezone = document.getElementById("moule-zone");
@@ -344,7 +588,7 @@ export function renderRecipe(r) {
     const pas = e.target.closest("#m-minus") ? -1 : e.target.closest("#m-plus") ? 1 : 0;
     if (!pas) return;
     const taille = Number(moulezone.dataset.taille) + pas;
-    if (taille < 8 || taille > 60) return;
+    if (taille < 8 || taille > 60) { secouer(moulezone.querySelector(".portions")); return; }
     (state.moules ??= {})[r.id] = taille;
     const p = portionsPourMoule(r.moule, r.portions.base, taille);
     setPortions(p, `moule de ${libelleMoule(r.moule, taille)} → recette pour ${libellePortions(p, r.portions.label)}. ${remarqueCuissonMoule(r.moule, taille)}`.trim());
@@ -385,12 +629,21 @@ export function renderRecipe(r) {
      aux olives, l'autre aux lardons. On retire depuis le menu ou depuis
      l'entrée elle-même. Les libellés sont courts pour tenir sur une ligne ;
      la suite, muette à l'œil, reste lue par les lecteurs d'écran. */
-  const drawAddBtn = () => {
+  let delaiBouton = null;
+  const drawAddBtn = ({ confirme = false, fondu = false } = {}) => {
     const n = entreesDe(r.id).length;
+    clearTimeout(delaiBouton);
     if (entreeCourante()) {
       addBtn.className = "btn added";
       addBtn.innerHTML = `${ICON.check} Au menu`;
       info.innerHTML = `Tu composes la version qui est au menu. <button class="lien-nu" id="menu-retirer">La retirer</button>`;
+    } else if (confirme) {
+      /* Le geste est pris en compte : la coche se trace, le libellé change, puis le
+         bouton redevient « Ajouter une autre version ». */
+      addBtn.className = "btn added trace";
+      addBtn.innerHTML = `${COCHE_TRACEE} <span>Ajouté<span class="fiche-sr"> au menu</span></span>`;
+      info.innerHTML = `${n} version${n > 1 ? "s" : ""} de cette recette déjà <a href="#/menu">au menu</a>.`;
+      delaiBouton = setTimeout(() => { if (addBtn.isConnected) drawAddBtn({ fondu: true }); }, 1600);
     } else {
       addBtn.className = n ? "btn added" : "btn secondary";
       addBtn.innerHTML = n
@@ -400,10 +653,13 @@ export function renderRecipe(r) {
         ? `${n} version${n > 1 ? "s" : ""} de cette recette déjà <a href="#/menu">au menu</a>.`
         : "";
     }
+    if (fondu) animer(addBtn, [{ opacity: 0.35 }], { duree: "courte", cle: "libelle", reprise: false });
     const x = document.getElementById("menu-retirer");
     if (x) x.addEventListener("click", () => {
       retirerDuMenu(entreeCourante());
       updateBadge();
+      vibrer("tic");
+      retraitRecent = r.id;
       toast("Retiré du menu");
       allerEnRemplacant(`#/recette/${r.id}`);
     });
@@ -419,7 +675,9 @@ export function renderRecipe(r) {
     delete state.choices[r.id]; delete state.addons[r.id]; delete state.portions[r.id];
     save();
     diteDuMoule = "";
-    drawVersion(); drawAddBtn();
+    envolerVersLeMenu(r, addBtn);   // la vignette part avant que la fiche ne change
+    drawVersion({ anime: true }); drawAddBtn({ confirme: true });
+    vibrer("tic");
     const combien = entreesDe(r.id).length;
     toast(combien > 1
       ? `Deuxième version au menu — courses à jour`
@@ -427,19 +685,21 @@ export function renderRecipe(r) {
           : "Au menu — courses à jour");
   };
 
-  drawAddBtn();
+  drawAddBtn({ fondu: retraitRecent === r.id });
+  retraitRecent = null;
 
   addBtn.addEventListener("click", () => {
     if (entreeCourante()) return;           // déjà au menu : on retire par le lien
     if (!customizable(r)) return ajouter();
     /* Façon fast-food : composer sa version, ou ajouter tel quel d'un tap. */
     openAddSheet(r, added => {
-      drawVersion(); updateBadge();
+      drawVersion({ anime: true }); updateBadge();
       if (added) ajouter();
     });
   });
 
   document.getElementById("share-recipe").addEventListener("click", () => shareRecipe(r.id));
+  document.getElementById("fb-share").addEventListener("click", () => shareRecipe(r.id));
 
   /* L'impression part de la page telle qu'elle est : la note en cours de frappe
      est d'abord enregistrée et remontée en tête, où la feuille de style la garde. */
@@ -466,8 +726,18 @@ export function renderRecipe(r) {
      sous le doigt qui écrit. */
   const drawNoteTete = () => {
     const txt = noteEnregistree();
+    const apparait = !!txt && teteNote.hidden && teteNote.dataset.vu === "1";
     teteNote.hidden = !txt;
     teteNote.innerHTML = txt ? html`<b>Ma note</b><p>${txt}</p>` : "";
+    teteNote.dataset.vu = "1";
+    // Une note qui apparaît en tête (après un enregistrement) se pose en douceur.
+    if (apparait) animer(teteNote, [{ opacity: 0, translate: "0 -8px" }], { cle: "note", easing: "ressort", reprise: false });
+  };
+
+  /* « Enregistré » arrive en fondu, puis se pose. */
+  const montrerEnregistre = () => {
+    etatNote.textContent = "Enregistré";
+    animer(etatNote, [{ opacity: 0, translate: "0 4px" }], { cle: "etat", easing: "sortie", reprise: false });
   };
 
   /* Seule une frappe réelle écrit la note. Le champ peut être resté sur une
@@ -485,7 +755,7 @@ export function renderRecipe(r) {
       if (txt) (state.notesPerso ??= {})[r.id] = { txt, at: Date.now() };
       else delete state.notesPerso[r.id];
       save();
-      etatNote.textContent = "Enregistré";
+      montrerEnregistre();
     }
     modifiee = false;
     if (afficher) drawNoteTete();
@@ -513,11 +783,22 @@ export function renderRecipe(r) {
   };
   document.addEventListener("carnet-synchro", auSynchro);
 
+  /* Les boutons se dessinent une fois, ensuite seuls leur état change : la couleur
+     glisse (transition), le cœur qui bat et ses petits cœurs ne sont pas coupés. */
   const drawVerdict = () => {
     const cur = verdictOf(r);
-    document.getElementById("verdict-row").innerHTML = VERDICTS.map(v => `
-      <button class="verdict-btn ${cur === v.id ? "on v-" + v.id : ""}" data-verdict="${v.id}" aria-pressed="${cur === v.id}"><span class="vb-heart">♥</span> ${v.label.replace(/^♥\s*/, "")}</button>
+    const rangee = document.getElementById("verdict-row");
+    if (!rangee.firstElementChild) {
+      rangee.innerHTML = VERDICTS.map(v => `
+      <button class="verdict-btn" data-verdict="${v.id}" aria-pressed="false"><span class="vb-heart">♥</span> ${v.label.replace(/^♥\s*/, "")}</button>
     `).join("");
+    }
+    rangee.querySelectorAll("[data-verdict]").forEach(b => {
+      const on = cur === b.dataset.verdict;
+      b.classList.toggle("on", on);
+      b.classList.toggle("v-" + b.dataset.verdict, on);
+      b.setAttribute("aria-pressed", String(on));
+    });
     document.getElementById("cooked-line").textContent = cookedText(r.id);
   };
 
@@ -534,6 +815,7 @@ export function renderRecipe(r) {
       toast("Un coup de cœur de plus ♥");
     }
     save(); drawVerdict();
+    vibrer("tic");
     if (activating) {
       const btn = document.querySelector(`#verdict-row [data-verdict="${v}"]`);
       if (btn) burstHeart(btn);
@@ -542,6 +824,22 @@ export function renderRecipe(r) {
 
   drawVersion();
   drawVerdict();
+
+  /* La barre compacte : dès que le titre est sorti par le haut de l'écran, une barre
+     fine (retour, titre court, partage) se pose en haut. Son titre est aria-hidden
+     (le h1 reste le seul titre pour un lecteur d'écran) et elle est inert tant qu'elle
+     est cachée : ni tabulation ni lecture pour des boutons qu'on ne voit pas. */
+  const barre = document.getElementById("fiche-barre");
+  const poserBarre = visible => {
+    barre.classList.toggle("visible", visible);
+    barre.inert = !visible;
+  };
+  if (!observer({ threshold: 0 }, ([x]) => poserBarre(!x.isIntersecting && x.boundingClientRect.bottom < 0), [document.querySelector(".r-head h1")])) {
+    barre.hidden = true;   // sans IntersectionObserver, pas de barre : la fiche reste complète
+  }
+
+  /* Les ingrédients et les étapes hors de l'écran arrivent quand on y vient. */
+  arrivesAuDefilement([...document.querySelectorAll("#ing-list li, #steps-list > li")]);
 
   /* Le journal est l'affaire d'un autre module, facultatif : sans lui la section
      reste cachée, comme si elle n'existait pas. */

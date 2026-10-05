@@ -63,29 +63,26 @@ test("la CI relance npm run sw et compare sw.js ET index.html", () => {
   assert.match(etape, /git diff --exit-code[^\n]*\bsw\.js\b[^\n]*\bindex\.html\b/);
 });
 
-test("feuilles CSS : l'accueil bloque, les vues se chargent sans bloquer, avec repli noscript", () => {
-  const liens = [...index.matchAll(/<link rel="stylesheet" href="(css\/[a-z]+\.css)"([^>]*)>/g)];
+test("feuilles CSS : seules celles de l'accueil sont dans la page, celles des vues viennent avec leur module, repli noscript", () => {
+  const liens = [...index.matchAll(/<link rel="stylesheet" href="(css\/[a-z-]+\.css)"([^>]*)>/g)];
   const dansNoscript = index.slice(index.indexOf("<noscript>"), index.indexOf("</noscript>"));
   const bloquantes = [];
   for (const [, href, reste] of liens) {
-    if (dansNoscript.includes(`href="${href}"`) && !reste.includes("data-vue")) continue; // le repli
-    if (reste.includes("data-vue")) {
-      // La forme exacte du contrat avec le routeur (js/ui/styles.js).
-      assert.equal(reste, ` data-vue media="print" onload="this.media='all'"`, href);
-      assert.ok(dansNoscript.includes(`href="${href}"`), `${href} : repli <noscript> manquant`);
-    } else {
-      bloquantes.push(href);
-    }
+    if (dansNoscript.includes(`href="${href}"`)) continue; // le repli
+    assert.ok(!reste.includes("data-vue"), `${href} : une feuille de vue n'a rien à faire dans la page (js/ui/styles.js)`);
+    bloquantes.push(href);
   }
   assert.deepEqual(bloquantes, ["css/polices.css", "css/base.css", "css/accueil.css", "css/fiche.css", "css/minuteurs.css", "css/reglages.css"]);
-  // Aucune feuille oubliée.
-  const tous = readdirSync(join(RACINE, "css")).map(f => `css/${f}`).sort();
+  // Aucune feuille oubliée : celles des vues sont dans le repli sans JavaScript.
+  // (accueil-anime.css, le mouvement décoratif de l'accueil, est tirée par js/vues/accueil-anime.js : la page ne la porte pas.)
+  const tous = readdirSync(join(RACINE, "css")).filter(f => f !== "accueil-anime.css").map(f => `css/${f}`).sort();
   assert.deepEqual([...new Set(liens.map(l => l[1]))].sort(), tous);
+  for (const nom of ["cuisine", "menu", "courses", "savoirs", "journal"]) assert.ok(dansNoscript.includes(`css/${nom}.css`), `${nom}.css : repli <noscript> manquant`);
 });
 
-test("les premières vignettes de l'accueil sont préchargées, dans l'ordre des cartes", () => {
+test("la première vignette de l'accueil est préchargée (c'est elle qui fait le LCP)", () => {
   const RECIPES = new Function(lire("js/recipes.js") + ";return RECIPES;")();
-  const attendues = RECIPES.filter(r => /^img\/[^/]+\.jpg$/.test(r.image || "")).slice(0, 4).map(r => `img/v/${r.id}.webp`);
+  const attendues = RECIPES.filter(r => /^img\/[^/]+\.jpg$/.test(r.image || "")).slice(0, 1).map(r => `img/v/${r.id}.webp`);
   const bloc = index.slice(index.indexOf("vignettes de l'accueil générées"), index.indexOf("</head>"));
   const trouvees = [...bloc.matchAll(/<link rel="preload" as="image" href="([^"]+)"/g)].map(m => m[1]);
   assert.deepEqual(trouvees, attendues);

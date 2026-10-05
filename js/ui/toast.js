@@ -16,6 +16,14 @@ if (typeof document !== "undefined") {
 }
 const auClavier = () => dernierClavier && Date.now() - dernierClavier < 1500;
 
+/* Le mouvement des messages et des pastilles (js/ui/toast-mouvement.js) se charge au repos ou
+   au premier message : sans lui, tout marche pareil, sans le geste. */
+let M = null, chargement = null;
+export const prechauffer = () => typeof document === "undefined" ? Promise.resolve() : (chargement ||= import("./toast-mouvement.js").then(m => {
+  M = m;
+  m.brancher({ suspendre: () => clearTimeout(minuterie), reprendre, fermer: () => fermerCourant && fermerCourant(), delai: () => delaiCourant });
+}, () => {}));
+
 let precedent = null;       // ce qui avait le focus avant que le bouton du message le prenne
 let compteur = 0;           // le numéro du message affiché : un message plus ancien ne ferme pas le nouveau
 let fermerCourant = null;
@@ -89,13 +97,19 @@ export function toast(msg, { action, surAction, duree } = {}) {
   // Le bouton ne peut recevoir le focus qu'une fois le message rendu visible.
   if (prendLeFocus) t.querySelector(".toast-action").focus({ preventScroll: true });
   armer(delaiCourant);
+  if (M) M.surMessage(t, !!action, delaiCourant);
+  else prechauffer();
+}
+
+/* Le message reprend son décompte quand on le lâche (3 s au plus : le temps de relire). */
+function reprendre() {
+  if (document.getElementById("toast").classList.contains("visible")) armer(Math.min(delaiCourant, 3000));
 }
 
 /* Tant qu'on lit le message ou qu'on vise son bouton, il ne s'éteint pas. */
 if (typeof document !== "undefined") {
   const t = document.getElementById("toast");
   if (t) {
-    const reprendre = () => { if (t.classList.contains("visible")) armer(Math.min(delaiCourant, 3000)); };
     t.addEventListener("focusin", () => clearTimeout(minuterie));
     t.addEventListener("focusout", e => { if (!t.contains(e.relatedTarget)) reprendre(); });
     // Le survol n'existe qu'à la souris : au doigt, il resterait « survolé » pour toujours.
@@ -107,6 +121,9 @@ if (typeof document !== "undefined") {
 
 function setBadge(id, n) {
   const b = document.getElementById(id);
+  // Le premier affichage, et tout ce qui précède le chargement du mouvement : sans animation.
+  if (M && b.dataset.pret) return M.badge(b, n);
+  b.dataset.pret = "1";
   b.hidden = n === 0;
   b.textContent = n;
 }

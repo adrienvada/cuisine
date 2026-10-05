@@ -14,6 +14,9 @@
   color: var(--green);
 }
 
+/* Le tout premier dessin ne se fond pas (le fondu .fade-in est dans css/base.css ; la classe vient de js/ui/routeur.js) : 0,22 s de page vide en plus à l'ouverture. */
+#app.premier-affichage .fade-in { animation: none; }
+
 .mast-row svg { width: 44px; height: 15px; opacity: 0.85; }
 
 .masthead .eyebrow {
@@ -46,9 +49,43 @@
   gap: 7px;
 }
 
+/* « Caveat Titre » : les seuls glyphes du bandeau de l'accueil, préchargés (css/polices.css).
+   Seulement ici : Savoirs a le même bandeau avec d'autres mots, et Caveat change de glyphes
+   selon les lettres voisines, ce qui ne marche pas à cheval sur deux fichiers de police. */
+.masthead-accueil h1,
+.masthead-accueil .byline { font-family: "Caveat Titre", var(--script); }
+
 .masthead .byline .u { border-bottom: 1.5px solid var(--gold-deco); padding-bottom: 1px; }
 
 .masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
+
+/* Première fois de la session (.encre, jamais en mouvement réduit) : les brins se tracent
+   (.trace, base.css), le trait sous « Evadri » se tire, le cœur bat une fois. Décor seul, sans fill
+   après la fin : une fois tracé, plus aucune animation ne reste sur la page. */
+.mast-row.trace [pathLength="1"] { animation-delay: calc(0.12s + var(--i, 0) * 60ms); animation-fill-mode: backwards; }
+
+.encre .byline .u { border-bottom-color: transparent; position: relative; }
+
+.encre .byline .u::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 1.5px;
+  background: var(--gold-deco);
+  transform-origin: left;
+  animation: souligne var(--d-trace) var(--e-sortie) backwards;
+  animation-delay: 0.55s;   /* après les brins : un seul tracé à la fois */
+}
+
+.encre .byline svg { animation: coeur-bat var(--d-longue) var(--e-standard); animation-delay: 0.95s; }   /* le cœur bat quand le soulignement est tiré */
+
+@keyframes souligne { from { transform: scaleX(0); } }
+
+@keyframes coeur-bat {
+  20% { scale: 1.38; }
+  42% { scale: 1; }
+  62% { scale: 1.22; }
+}
 
 .searchbar {
   display: flex;
@@ -59,6 +96,7 @@
   border-radius: 14px;
   padding: 11px 14px;
   margin: 18px 0 12px;
+  box-shadow: var(--ombre-0);
 }
 
 /* La recherche et « J'ai… » partagent une ligne : le champ prend ce qui reste. */
@@ -82,6 +120,7 @@
   font-size: 14.5px;
   font-weight: 600;
   white-space: nowrap;
+  box-shadow: var(--ombre-0);
 }
 
 .jai-btn.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
@@ -128,10 +167,6 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
 
 .searchbar svg { width: 18px; height: 18px; color: var(--muted); flex: none; transform-box: fill-box; transform-origin: center; }
 
-/* Loupe qui tourne pendant la frappe. */
-.searchbar.typing svg { animation: spin-loupe 0.6s linear infinite; }
-@keyframes spin-loupe { to { transform: rotate(360deg); } }
-
 .searchbar input {
   flex: 1;
   border: none;
@@ -149,11 +184,8 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
    bord à encadrer. */
 .searchbar:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
 
-/* La croix d'effacement du navigateur est bleue : on lui donne la couleur du
-   carnet, sur une zone de contact de 44 px autour d'un trait de 14 px. Celle d'un
-   élément natif ne dépasse pas son champ : c'est donc le champ qui prend les 44 px
-   de hauteur et le bord droit de la barre, qui en perd d'autant de remplissage.
-   Le dessin reste où il était ; la barre ne gagne que ses deux pixels de bordure. */
+/* La croix du navigateur (bleue) prend la couleur du carnet et une zone de 44 px : elle ne
+   dépasse pas son champ, qui prend donc les 44 px de hauteur et le bord droit de la barre. */
 .searchbar:has(input[type="search"]) { padding: 0 0 0 14px; }
 .searchbar input[type="search"] { padding: 13px 0; }
 input[type="search"]::-webkit-search-cancel-button {
@@ -168,7 +200,7 @@ input[type="search"]::-webkit-search-cancel-button {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px no-repeat;
 }
 
-.chips { display: flex; gap: 8px; overflow-x: auto; padding: 7px 0; scrollbar-width: none; }
+.chips { position: relative; display: flex; gap: 8px; overflow-x: auto; padding: 7px 0; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 
 .chip {
@@ -191,32 +223,6 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
 
-/* Sélection d'une chip : petit rebond exagéré, et une feuille qui saute
-   par-dessus avant de retomber en fondu. */
-.chip.pop { animation: chip-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes chip-bounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.16); }
-  65% { transform: scale(0.94); }
-  100% { transform: scale(1); }
-}
-
-.chip.pop::after {
-  content: "🌿";
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  font-size: 14px;
-  line-height: 1;
-  pointer-events: none;
-  animation: leaf-jump 0.55s ease forwards;
-}
-@keyframes leaf-jump {
-  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.6) rotate(-12deg); }
-  35% { opacity: 1; transform: translate(-50%, -16px) scale(1.05) rotate(10deg); }
-  100% { opacity: 0; transform: translate(-50%, -26px) scale(0.9) rotate(0deg); }
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
@@ -225,23 +231,11 @@ input[type="search"]::-webkit-search-cancel-button {
   position: relative; /* ancre les cartes sortantes pendant leur fondu */
 }
 
-/* Filtrage fluide (FLIP) : les cartes ne sont jamais reconstruites —
-   écartées = fondu sur place, survivantes = glissement, entrantes = fondu. */
+/* Filtrage (applyFilter) : les cartes ne sont jamais reconstruites ; écartées, elles sortent sur
+   place puis disparaissent. */
 .card.gone { display: none; }
 
-.card.no-anim { transition: none !important; }
-
-.card.card-move { transition: transform 0.3s cubic-bezier(0.22, 0.72, 0.25, 1), opacity 0.24s ease; }
-
-.card.card-enter { opacity: 0; transform: translateY(10px) scale(0.97); }
-
-.card.card-leave {
-  opacity: 0;
-  transform: scale(0.94);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
-  z-index: 2;
-}
+.card.card-leave { opacity: 0; pointer-events: none; z-index: 2; }
 
 .grid.no-cat .card-cat { display: none; }
 
@@ -256,12 +250,13 @@ input[type="search"]::-webkit-search-cancel-button {
   overflow: hidden;
   text-decoration: none;
   color: var(--ink);
-  transition: transform 0.12s ease;
+  box-shadow: var(--ombre-1);
+  transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif);
 }
 
-.card:active { transform: scale(0.97); }
-
 .card .visual {
+  /* Couleur dominante de la photo (bloc généré), sinon celle de la recette. */
+  background: var(--p, var(--c));
   height: 110px;
   flex: none;
   display: flex;
@@ -377,16 +372,7 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
 
 .card .visual .card-share svg { width: 15px; height: 15px; }
 
-.card-share:active { transform: scale(0.9); background: var(--green-tint); }
-
-/* Icône de partage : un battement avant l'action, où qu'elle apparaisse. */
-.share-pulse { animation: share-pulse 0.4s ease; transform-box: fill-box; transform-origin: center; }
-@keyframes share-pulse {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  55% { transform: scale(0.92); }
-  100% { transform: scale(1); }
-}
+.card-share:active { background: var(--green-tint); }
 
 .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; flex: 1; }
 
@@ -445,3 +431,32 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
 @media (min-width: 480px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 }
+
+/* À 320 px les brins touchaient le bouton des réglages : ils rapetissent. */
+@media (max-width: 340px) {
+  .mast-row { gap: 8px; }
+  .mast-row svg { width: 30px; }
+}
+
+/* >>> couleurs des vignettes générées par tools/generer-vignettes.mjs — ne pas modifier à la main */
+.card[data-id=beignets-brebis-menthe]{--p:#875c36}
+.card[data-id=cake-sale]{--p:#a68553}
+.card[data-id=cocktail-concombre-menthe]{--p:#949360}
+.card[data-id=dip-chevre-herbes]{--p:#afac8a}
+.card[data-id=focaccia-romarin]{--p:#9b7a4a}
+.card[data-id=gravlax-saumon-yaourt-bulgare]{--p:#ba8856}
+.card[data-id=houmous-petits-pois-menthe]{--p:#97914c}
+.card[data-id=mayonnaise-maison]{--p:#bfad84}
+.card[data-id=mi-cuit-chocolat-suzy-palatin]{--p:#705b52}
+.card[data-id=pesto-basilic-maison]{--p:#7c7f49}
+.card[data-id=quiche-lorraine]{--p:#bb8c52}
+.card[data-id=salade-champetre]{--p:#717342}
+.card[data-id=salade-kale-pomme-oeuf]{--p:#897f4f}
+.card[data-id=salade-lentilles-feta]{--p:#86774e}
+.card[data-id=salade-mediterraneenne]{--p:#a8875c}
+.card[data-id=scoopable-cookies]{--p:#85694c}
+.card[data-id=tagliatelles-carotte-carbonara]{--p:#a56835}
+.card[data-id=tartines-figues-chevre-miel]{--p:#8e6b47}
+.card[data-id=torsades-pesto]{--p:#9d7539}
+.card[data-id=veloute-butternut-shiitakes]{--p:#b38633}
+/* <<< fin du bloc généré */

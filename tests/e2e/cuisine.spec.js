@@ -445,10 +445,11 @@ test("375 px : aucun débordement horizontal, le plateau a sa place, zones de co
     return { haut: r.top, bas: r.bottom };
   }));
   expect(plateau.bas).toBeLessThanOrEqual(nav.haut + 1);
+  // Les bulles du plateau arrivent avec une petite mise à l'échelle (vague 3) : on mesure
+  // les cibles une fois posées, le seuil de 44 px ne change pas.
   for (const b of await page.locator(".cook-outils button, .cook-top button, #timer-tray button").all()) {
-    const boite = await b.boundingBox();
-    expect(boite.height).toBeGreaterThanOrEqual(43.5);
-    expect(boite.width).toBeGreaterThanOrEqual(43.5);
+    await expect.poll(async () => (await b.boundingBox()).height).toBeGreaterThanOrEqual(43.5);
+    await expect.poll(async () => (await b.boundingBox()).width).toBeGreaterThanOrEqual(43.5);
   }
 });
 

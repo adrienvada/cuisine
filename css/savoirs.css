@@ -38,12 +38,19 @@
 }
 
 /* Le chevron pointe vers le bas au repos, vers le haut une fois déplié. */
-.s-cue svg { width: 12px; height: 12px; transform: rotate(90deg); transition: transform 0.22s ease; }
+.s-cue svg { width: 12px; height: 12px; transform: rotate(90deg); transition: transform var(--d-moyenne) var(--e-standard); }
 .a-savoirs.ouvert .s-cue svg { transform: rotate(-90deg); }
 
 /* La ligne garde sa hauteur ; la zone de contact, elle, déborde jusqu'à 44 px. */
 .s-cue::after { content: ""; position: absolute; inset: -16px -10px; }
 .s-cue:focus-visible, .s-lien:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
+
+/* La liste s'ouvre en hauteur fluide, partout où l'appel apparaît (étapes de la fiche, mode
+   cuisine, notes de supplément) : fermée, elle a une hauteur nulle et n'est plus ni visible ni
+   focalisable (visibility, retardée de la durée de la fermeture) ; ouverte, sa hauteur passe de
+   0 à « auto » (interpolate-size). Un navigateur qui ne sait pas interpoler « auto » l'ouvre
+   d'un coup, comme avant. Mouvement réduit : l'ancien affichage, sans animation. */
+.a-savoirs { interpolate-size: allow-keywords; }
 
 .s-liste { display: none; }
 
@@ -52,7 +59,31 @@
   margin-top: 6px;
   padding-top: 2px;
   border-top: 1px solid rgba(66, 96, 58, 0.16);
-  animation: fade 0.22s ease;
+  animation: fade var(--d-moyenne) var(--e-sortie);
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  .a-savoirs .s-liste {
+    display: block;
+    height: 0;
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    visibility: hidden;
+    border-top-width: 0;
+    animation: none;
+    transition: height var(--d-moyenne) var(--e-sortie), margin-top var(--d-moyenne) var(--e-sortie),
+      visibility 0s linear var(--d-moyenne);
+  }
+
+  .a-savoirs.ouvert .s-liste {
+    height: auto;
+    margin-top: 6px;
+    padding-top: 2px;
+    visibility: visible;
+    border-top-width: 1px;
+    transition-delay: 0s;
+  }
 }
 
 .s-lien {
@@ -251,7 +282,30 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
   color: inherit;
 }
 
-.f-item:active { background: var(--paper-deep); }
+.f-item {
+  box-shadow: var(--ombre-0);
+  transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif), background-color var(--d-courte) var(--e-standard);
+}
+
+.f-item:active { background: var(--paper-deep); scale: 0.985; box-shadow: none; }
+
+/* Les cartes se posent au défilement : elles arrivent (fondu, un peu de hauteur) pendant qu'elles
+   entrent par le bas de l'écran, pilotées par le défilement lui-même, sans écouteur. Une carte déjà
+   entièrement visible est à son état final. `transform` plutôt que `translate` : flip() (la
+   recherche) se sert de `translate`, les deux se composent. Navigateur sans l'API : rien. */
+@supports (animation-timeline: view()) {
+  @media not (prefers-reduced-motion: reduce) {
+    .f-item {
+      animation: f-entree linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@keyframes f-entree {
+  from { opacity: 0; transform: translateY(16px); }
+}
 .f-item-emoji { font-size: 24px; flex: none; }
 .f-item-txt { flex: 1; min-width: 0; }
 .f-item-txt b { display: block; font-family: var(--serif); font-size: 19px; color: var(--green-deep); }
@@ -279,6 +333,46 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .f-head h1 { margin: 4px 0 0; font-family: var(--serif); font-size: 32px; color: var(--green-deep); }
 .f-head h1 .f-emoji { margin-right: 0.35em; }
 .f-page { margin-top: 10px; }
+
+/* La barre de lecture : un fil vert tout en haut de l'écran qui se remplit pendant qu'on lit,
+   piloté par le défilement de la page (animation-timeline: scroll()). Sans l'API, elle n'existe
+   pas : rien ne la remplace. Hors du flux, sans événement. */
+.f-lecture { display: none; }
+
+@supports (animation-timeline: scroll()) {
+  .f-lecture {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    height: 3px;
+    background: var(--green);
+    transform-origin: 0 50%;
+    scale: 0 1;
+    pointer-events: none;
+    animation: f-lecture linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes f-lecture { to { scale: 1 1; } }
+
+/* Les ornements du savoir : un filet calligraphique sous le titre, un petit bouquet à la fin.
+   Ils se tracent en entrant dans l'écran (savoirs.js) ; avant cela leurs traits sont cachés.
+   En mouvement réduit le trait est simplement là. */
+.f-orne { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px auto 0; color: var(--gold); }
+.f-orne svg { display: block; width: 110px; height: auto; max-width: 40%; }
+.f-orne-fin { margin: 30px auto 28px; }
+.f-orne-fin svg { width: 56px; }
+.f-orne-fin svg:nth-child(2) { width: 22px; }
+
+.f-orne:not(.trace) [pathLength="1"] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .f-orne:not(.trace) [pathLength="1"] { stroke-dashoffset: 0; }
+}
 
 /* Le cadre de focus de la feuille elle-même n'aide personne : le focus y est posé par le code, pas visé. */
 .fond-sheet .sheet:focus { outline: none; }
@@ -309,7 +403,7 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .th-sum { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .th-sum b { font-family: var(--serif); font-size: 20px; font-weight: 600; line-height: 1.2; color: var(--ink); }
 .th-sum small { font-size: 13.5px; line-height: 1.4; color: var(--ink-soft); }
-.th-encart summary > svg { flex: none; width: 16px; height: 16px; color: var(--green); transform: rotate(90deg); transition: transform 0.22s ease; }
+.th-encart summary > svg { flex: none; width: 16px; height: 16px; color: var(--green); transform: rotate(90deg); transition: transform var(--d-moyenne) var(--e-standard); }
 .th-encart[open] summary > svg { transform: rotate(-90deg); }
 
 .th-corps { padding: 0 2px 12px; }
@@ -319,3 +413,18 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .th-corps .fg { margin: 0; }
 .th-corps figcaption { padding: 2px 12px 8px; }
 @media (prefers-reduced-motion: reduce) { .th-encart summary > svg { transition: none; } }
+
+/* L'encart s'ouvre et se ferme en hauteur fluide, comme la liste des savoirs d'une étape :
+   le contenu d'un <details> (::details-content) passe de 0 à « auto » (interpolate-size).
+   Un navigateur qui ne connaît pas l'un des deux l'ouvre d'un coup, comme avant. */
+@media not (prefers-reduced-motion: reduce) {
+  @supports selector(::details-content) {
+    .th-encart { interpolate-size: allow-keywords; }
+    .th-encart::details-content {
+      height: 0;
+      overflow: clip;
+      transition: height var(--d-moyenne) var(--e-sortie), content-visibility var(--d-moyenne) allow-discrete;
+    }
+    .th-encart[open]::details-content { height: auto; }
+  }
+}

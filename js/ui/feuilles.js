@@ -1,7 +1,5 @@
 /* Les feuilles (fenêtres qui montent du bas) : chacune est une entrée d'historique, le geste de retour la referme. */
 
-import { esc } from "../core/html.js";
-
 /* Une feuille est un état, et sur téléphone le geste de retour est la façon de
    refermer un état. Chaque feuille empile donc une entrée d'historique — à la
    même adresse, donc sans réveiller le routeur : le mode cuisine y garde son
@@ -14,7 +12,7 @@ import { esc } from "../core/html.js";
 
 /* La dernière ouverte est celle du dessus : quand une confirmation s'empile sur
    les réglages, c'est elle que le retour, Échap et Tab doivent atteindre. */
-export const feuilleOuverte = () => [...document.querySelectorAll(".sheet-backdrop")].pop() || null;
+export const feuilleOuverte = () => [...document.querySelectorAll(".sheet-backdrop:not(.sort)")].pop() || null;
 
 const FOCALISABLES = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -34,6 +32,9 @@ export function ouvrirFeuille(backdrop, auRetrait) {
   feuille.setAttribute("aria-modal", "true");
   feuille.tabIndex = -1;
   (backdrop.querySelector("[autofocus]") || feuille).focus({ preventScroll: true });
+  /* Glisser la poignée vers le bas ferme la feuille (feuilles-geste.js, chargé ici : sans
+     lui, la croix, le fond et Échap suffisent). */
+  if (feuille.querySelector(".sheet-grip")) import("./feuilles-geste.js").then(m => m.brancher(backdrop, feuille, fermerFeuille), () => {});
 }
 
 /* Toute fermeture passe par le retour — croix, fond, Échap, bouton : un seul
@@ -51,11 +52,24 @@ export function fermerFeuille({ toutes = false } = {}) {
   history.back();
 }
 
-function retirer(f) {
-  f.remove();
-  if (f._auRetrait) f._auRetrait();
-  const avant = f._avant;
-  if (avant && avant.isConnected && typeof avant.focus === "function") avant.focus({ preventScroll: true });
+/* La feuille quitte l'arbre d'accessibilité et la souris dès le début de sa sortie, et le
+   reste (le retrait demandé à l'appelant, le focus rendu) n'attend pas la fin du mouvement :
+   la sortie n'est qu'un décor. Elle descend en s'effaçant (navigation.css), puis le DOM la
+   retire ; `vite` (changement de vue) ou le mouvement réduit la retirent tout de suite. */
+function retirer(f, vite) {
+  if (!f.classList.contains("sort")) {
+    f.classList.add("sort");
+    f.inert = true;
+    f.setAttribute("aria-hidden", "true");
+    if (f._auRetrait) f._auRetrait();
+    const avant = f._avant;
+    if (avant && avant.isConnected && typeof avant.focus === "function") avant.focus({ preventScroll: true });
+  } else if (!vite) return;
+  if (vite || matchMedia("(prefers-reduced-motion: reduce)").matches) { f.remove(); return; }
+  // Un filet si l'animation ne vient pas (feuille de style absente) : la feuille ne reste pas.
+  const fin = e => { if (!e || e.animationName === "sheet-sort") f.remove(); };
+  f.addEventListener("animationend", fin);
+  setTimeout(fin, 450);
 }
 
 window.addEventListener("popstate", () => {
@@ -92,34 +106,9 @@ document.addEventListener("keydown", e => {
    emporte pas. On les referme donc à la main à chaque rendu — sans quoi celle
    de l'ajout au menu survivait à la navigation et bloquait la vue suivante. */
 export function closeSheets() {
-  document.querySelectorAll(".sheet-backdrop").forEach(retirer);
+  document.querySelectorAll(".sheet-backdrop").forEach(f => retirer(f, true));
 }
 
-/* La question à deux issues, sans confirm() : une feuille avec deux boutons.
-   `detail` est du balisage déjà sûr (le résultat d'un html`…`) ; le titre et le
-   texte sont échappés ici. La réponse arrive une fois la feuille réellement retirée, par
-   quelque chemin qu'elle se soit fermée — le geste de retour vaut « non ». */
-export function confirmer({ titre, texte, detail = "", oui = "Confirmer", non = "Annuler", danger = false }) {
-  return new Promise(resolve => {
-    const backdrop = document.createElement("div");
-    backdrop.className = "sheet-backdrop confirmation";
-    backdrop.innerHTML = `
-      <div class="sheet" role="alertdialog" aria-modal="true" aria-label="${esc(titre)}">
-        <div class="sheet-grip"></div>
-        <h3>${esc(titre)}</h3>
-        ${texte ? `<p class="sheet-sub conf-texte">${esc(texte)}</p>` : ""}
-        ${detail}
-        <div class="conf-boutons">
-          <button type="button" class="btn secondary" data-non autofocus>${esc(non)}</button>
-          <button type="button" class="btn primary${danger ? " danger" : ""}" data-oui>${esc(oui)}</button>
-        </div>
-      </div>`;
-    let reponse = false;
-    backdrop.addEventListener("click", e => {
-      if (e.target.closest("[data-oui]")) reponse = true;
-      else if (e.target !== backdrop && !e.target.closest("[data-non]")) return;
-      fermerFeuille();
-    });
-    ouvrirFeuille(backdrop, () => resolve(reponse));
-  });
-}
+/* La question à deux issues, sans confirm() : une feuille avec deux boutons
+   (js/ui/confirmation.js, chargé à la première question). Rend la promesse de la réponse. */
+export const confirmer = options => import("./confirmation.js").then(m => m.confirmer(options));

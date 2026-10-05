@@ -1,15 +1,14 @@
 /* Le routeur : l'adresse (#) dit quelle vue dessiner, et d'où l'on vient pour que les flèches de retour ne mentent pas. */
 
-import { save, state } from "../core/etat.js";
 import { chargerFondamentaux, fondById, fondRenames, fondamentauxCharges } from "../core/fonds.js";
 import { ICON } from "../core/icones.js";
-import { versionDeRequete } from "../core/liens.js";
 import { entreeCourante, entreeDe, setEntreeCourante } from "../core/menu.js";
 import { byId } from "../core/recettes.js";
 import { autoResumeStep } from "../core/seance.js";
 import { rafraichirFoins, renderHome } from "../vues/accueil.js";
 import { closeSheets } from "./feuilles.js";
-import { stylesDejaPrets, stylesPrets } from "./styles.js";
+import { chargerScript, scriptCharge, scriptsDes } from "./scripts.js";
+import { feuillesDes, stylesDejaPrets, stylesPrets } from "./styles.js";
 import { updateBadge } from "./toast.js";
 
 /* La zone où les vues se dessinent. */
@@ -129,6 +128,14 @@ export function retourVers(hash) {
   else allerEnRemplacant(hash);
 }
 
+/* Les transitions de vue : js/ui/transitions.js (T), chargé après le premier affichage ; sans
+   lui, ou sans l'API, la vue s'échange d'un coup. `vueAffichee` : l'adresse de la vue dessinée. */
+let T = null, ongletActuel = null, vueAffichee = null, imposee = null;
+
+/* preparerTransition({ type, origine }) — la prochaine navigation, elle seule, jouera cette
+   transition ("avant", "arriere", "onglet", "cuisine", "cuisine-sortie") depuis { x, y } (px). */
+export function preparerTransition({ type, origine } = {}) { imposee = { type, origine }; }
+
 /* L'onglet actif, pour l'œil (`active`) et pour les lecteurs d'écran
    (`aria-current`). */
 function marquerOnglet(nom) {
@@ -138,22 +145,8 @@ function marquerOnglet(nom) {
     if (actif) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
-}
-
-/* Un lien partagé porte la version de la recette (`?p=8&c=…&a=…`) : elle
-   s'applique au brouillon de la fiche, jamais au menu — ouvrir un lien ne doit
-   pas modifier le repas en préparation. */
-function appliquerVersion(r, requete) {
-  const v = versionDeRequete(r, requete);
-  if (!Object.keys(v).length) return;
-  /* Le lien ne dit que l'écart aux valeurs par défaut : ce qu'il omet vaut le
-     défaut. On repart donc d'un brouillon vierge, sans quoi un réglage resté
-     d'une visite précédente fausserait la version reçue. */
-  delete state.portions[r.id]; delete state.choices[r.id]; delete state.addons[r.id];
-  if (v.portions != null) state.portions[r.id] = v.portions;
-  if (v.choices) state.choices[r.id] = v.choices;
-  if (v.addons) state.addons[r.id] = v.addons;
-  save();
+  ongletActuel = nom;
+  if (T) T.onglet(nom);   // la pastille glisse
 }
 
 /* Un numéro par appel : si l'adresse change pendant qu'un module ou les
@@ -175,7 +168,13 @@ document.addEventListener("fondamentaux-charges", () => {
    qu'après le premier affichage, donc sans retarder l'accueil. Dès qu'il est
    arrivé, la recherche par mécanisme se remet à jour. */
 function demarrerChargementFonds() {
-  const lancer = () => chargerFondamentaux().then(rafraichirFoins, () => {});
+  const lancer = () => {
+    chargerFondamentaux().then(rafraichirFoins, () => {});
+    import("./transitions.js").then(m => m.pret.then(() => {
+      T = m;
+      if (ongletActuel) m.onglet(ongletActuel, { anime: false });
+    }), () => {});
+  };
   requestAnimationFrame(() => setTimeout(lancer, 0));
 }
 
@@ -228,6 +227,9 @@ function annoncerVue(titre, avecFocus, surPlace) {
    vue déjà chargée se dessine tout de suite, sans attendre. */
 export function route({ garderDefilement = false } = {}) {
   const defilement = window.scrollY;
+  /* Le tout premier dessin ne se fond pas (css/accueil.css) : le fondu de 0,22 s
+     retarde d'autant ce que l'on voit à l'ouverture, alors que la page est vide. */
+  app.classList.toggle("premier-affichage", premierAffichage);
   if (modules.cuisine) modules.cuisine.stopCookMode();
   closeSheets();
   setEntreeCourante(null);
@@ -261,7 +263,8 @@ export function route({ garderDefilement = false } = {}) {
   // Paramètres inconnus ou invalides : ignorés. Dans tous les cas l'adresse est nettoyée.
   if (parts[0] === "recette" && requete) {
     const r = byId(parts[1]);
-    if (r && parts[2] !== "m") appliquerVersion(r, requete);
+    // Un lien partagé porte la version de la recette : js/ui/lien-recu.js l'applique (chargé pour l'occasion seulement).
+    if (r && parts[2] !== "m") return import("./lien-recu.js").then(m => m.appliquerVersion(r, requete), () => {}).then(() => { if (numero === dessin) allerEnRemplacant(chemin); });
     return allerEnRemplacant(chemin);
   }
 
@@ -320,10 +323,25 @@ export function route({ garderDefilement = false } = {}) {
     // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
     touche = false;
     fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;
+    vueAffichee = chemin || "#/";
     if (premierAffichage) {
       premierAffichage = false;
       demarrerChargementFonds();
     }
+  };
+
+  /* Le même dessin, dans une transition de vue s'il y en a une (jamais au premier affichage ni
+     sur place). Une redirection n'a rien changé à la page : on saute la transition. */
+  const dessinerAvecTransition = fondsOk => {
+    const demandee = garderDefilement ? null : imposee;
+    if (!garderDefilement) imposee = null;
+    const plan = garderDefilement || premierAffichage || !T ? null : T.planifier({ de: vueAffichee, vers: chemin || "#/", nouvelle: arrivee, demandee });
+    const echanger = () => {
+      if (numero === dessin) dessiner(fondsOk);
+      if (remplacement) imposee = demandee;
+      return !remplacement;
+    };
+    return (plan && T.jouer(plan, echanger)) || void echanger();
   };
 
   /* Les modules dont la vue a besoin : le premier affichage de chaque route les
@@ -341,17 +359,20 @@ export function route({ garderDefilement = false } = {}) {
      l'accueil, le menu et les courses s'en passent et s'affichent tout de suite. */
   const besoinFonds = parts[0] === "fondamentaux" || parts[0] === "fondamental" || recette;
   const fondsLa = !besoinFonds || fondamentauxCharges();
-  if (fondsLa && noms.every(n => modules[n]) && (!noms.length || stylesDejaPrets())) return dessiner(true);
+  /* Les feuilles de style de ces vues viennent avec leurs modules : index.html n'en porte plus aucune. */
+  const feuilles = feuillesDes(noms);
+  const scripts = scriptsDes(noms);
+  if (fondsLa && noms.every(n => modules[n]) && stylesDejaPrets(feuilles) && scripts.every(scriptCharge)) return dessinerAvecTransition(true);
 
   if (besoinFonds && !fondsLa && !recette) afficherAttenteSavoirs();
   const fonds = fondsLa ? Promise.resolve(true) : chargerFondamentaux().then(() => true, () => false);
   const fondsOuDelai = recette && !fondsLa
     ? Promise.race([fonds, new Promise(fin => setTimeout(() => fin(false), DELAI_FONDS))])
     : fonds;
-  const vue = Promise.all([...noms.map(charger), noms.length ? stylesPrets() : null]).then(() => true, () => false);
+  const vue = Promise.all([...noms.map(charger), ...scripts.map(chargerScript), feuilles.length ? stylesPrets(feuilles) : null]).then(() => true, () => false);
   return Promise.all([vue, fondsOuDelai]).then(([vueOk, fondsOk]) => {
     if (numero !== dessin) return;
     if (!vueOk) return afficherIndisponible("Cette page ne s'est pas chargée.");
-    dessiner(fondsOk);
+    dessinerAvecTransition(fondsOk);
   });
 }
