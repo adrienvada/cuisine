@@ -155,11 +155,10 @@ const menuLigne = ids => ids.length
   ? html`<p class="menu-ligne" data-n="${ids.length}"><span>${ids.length} recette${ids.length > 1 ? "s" : ""} au menu</span> · <a href="#/menu">Modifier</a></p>`
   : `<p class="menu-ligne" data-n="0">Articles ajoutés à la main</p>`;
 
-const ENTETE = (termine, tracee) => html`
+const ENTETE = tracee => html`
   <header class="page-head courses-head fade-in">
     <div class="head-branch${tracee ? " trace" : ""}">${raw(tracee ? oliveTracable() : ILLO.D.olive)}</div>
     <h1>Liste de courses</h1>
-    <div class="tampon-fini${termine ? " pose" : ""}" aria-hidden="true">Tout est dans le panier</div>
   </header>`;
 
 /* Les blocs de la liste, dans l'ordre où ils s'affichent. Chacun porte sa clé
@@ -186,6 +185,7 @@ function blocs(liste) {
       <div class="avance-bloc">
         <div class="avance${complet(liste) ? " complete" : ""}" role="progressbar" aria-label="Avancement des courses" aria-valuemin="0" aria-valuemax="${liste.total}" aria-valuenow="${liste.faits}"><span style="clip-path:${clipBarre(pct)}"></span></div>
         <p class="avance-txt"><strong><span class="faits">${liste.faits}</span> / ${liste.total}</strong></p>
+        <div class="tampon-fini${complet(liste) ? " pose" : ""}" aria-hidden="true">Tout est dans le panier</div>
       </div>`, { fixe: true }));
   }
   if (liste.total || liste.placard.length) {
@@ -196,7 +196,7 @@ function blocs(liste) {
       </div>`));
   }
   for (const g of liste.rayons) liste_.push(section("r:" + g.rayon, "", g.rayon, g.items));
-  if (liste.total && !liste.rayons.length) liste_.push(bloc("fini", `<p class="fini">Tout est dans le panier.</p>`));
+  if (liste.total && !liste.rayons.length) liste_.push(bloc("fini", `<p class="fini">Plus rien à acheter, bonne cuisine !</p>`));
   if (liste.placard.length) {
     liste_.push(section("placard", "placard", "À vérifier au placard", liste.placard,
       `<p class="placard-aide">Coche ce que tu as déjà : ça ne compte pas dans ce qu'il te reste à acheter.</p>`));
@@ -273,7 +273,7 @@ function dessiner(arrivee) {
     celebree = false;
     app.innerHTML = html`
       <div id="courses-root" data-forme="vide">
-      ${raw(ENTETE(false, tracee))}
+      ${raw(ENTETE(tracee))}
       <div class="empty-illo cheers trace">${raw(ILLO.D.cheers.replace(/<path /g, '<path pathLength="1" '))}</div>
       <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
       <div style="text-align:center;margin-bottom:14px"><a class="btn-icon" href="#/">${raw(ICON.back)} Voir les recettes</a></div>
@@ -291,7 +291,7 @@ function dessiner(arrivee) {
 
   app.innerHTML = html`
     <div id="courses-root" data-forme="${modeRanger ? "ranger" : "liste"}">
-    ${raw(ENTETE(celebree, tracee))}
+    ${raw(ENTETE(tracee))}
     ${raw(menuLigne(ids))}
     ${modeRanger
       ? raw(ecranRanger(liste))

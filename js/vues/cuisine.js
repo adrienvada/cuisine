@@ -38,6 +38,30 @@ import { decisionPage, limitesPage } from "./cuisine-gestes.js";
 import { extrasHtml } from "./fiche.js";
 import { astuceHtml } from "./savoirs.js";
 
+/* Les effets de la fin de recette (feuilles, tampon) : un seul import(), tiré dès la dernière
+   étape pour que « Terminer » n'attende rien. */
+let effetsP = null;
+const effetsPrets = () => (effetsP ??= import("../ui/effets.js").catch(e => { effetsP = null; throw e; }));
+
+/* Résolue quand la transition de vue en cours (le cercle de sortie du mode cuisine) est finie.
+   Appelée juste après le changement d'adresse : si aucune transition ne démarre dans les
+   600 ms (navigateur sans l'API, onglet caché), on n'attend pas plus ; si elle ne finit pas,
+   2 s au plus. Voir js/ui/transitions.js (html[data-vt]). */
+function finDeTransition() {
+  const racine = document.documentElement;
+  return new Promise(fin => {
+    let vue = !!racine.dataset.vt;
+    const fini = () => { observateur.disconnect(); clearTimeout(depart); clearTimeout(garde); fin(); };
+    const observateur = new MutationObserver(() => {
+      if (racine.dataset.vt) vue = true;
+      else if (vue) fini();
+    });
+    observateur.observe(racine, { attributes: true, attributeFilter: ["data-vt"] });
+    const depart = setTimeout(() => { if (!vue) fini(); }, 600);
+    const garde = setTimeout(fini, 2000);
+  });
+}
+
 let cookIdx = 0;
 
 /* Ce que la séance en cours doit défaire en partant (clavier, balayage, micro) :
@@ -149,6 +173,8 @@ export function renderCook(r, step) {
       history.replaceState(history.state, "", `${prefixeCook}/cuisine/${cookIdx}`);
       noterAdresseCourante();
     }
+    // La fin approche : les feuilles et le tampon sont prêts à jaillir dès « Terminer ».
+    if (last && !REDUCE_MOTION.matches) effetsPrets().catch(() => {});
     const repere = reperer(app, document.activeElement);
     libererPlateau();
     if (glisseur) { glisseur.detruire(); glisseur = null; }
@@ -243,11 +269,12 @@ export function renderCook(r, step) {
     // La célébration part du bouton touché : sa place se lit avant que la page change.
     const bouton = document.getElementById("next");
     const rect = bouton && bouton.getBoundingClientRect();
-    celebrer(rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null);
+    const origine = rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
     markCooked(r.id);
     forgetCooking(cleSeance);
     cochesParSeance.delete(cleSeance);
     location.hash = prefixeCook;
+    celebrer(origine);
     const message = first ? "Bon appétit ! Un coup de cœur ?" : "Bon appétit !";
     // Le journal est un module à part : absent, le message reste celui d'avant.
     const journal = await import("./journal.js").catch(() => null);
@@ -257,14 +284,17 @@ export function renderCook(r, step) {
   };
 
   /* La dernière page est célébrée, une seule fois (terminer() ne repasse pas) : une vibration de
-     réussite, des feuilles qui jaillissent du bouton et un tampon « Bon appétit » encré par-dessus
-     la fiche où l'on atterrit. Les effets lourds se chargent à la demande ; en mouvement réduit
-     il ne reste que la vibration, que seul le réglage « Vibrations » gouverne. */
+     réussite tout de suite, puis des feuilles qui jaillissent du bouton et un tampon « Bon appétit »
+     encré par-dessus la fiche où l'on atterrit. Le cercle de sortie (navigation) se referme d'abord,
+     environ 300 ms : la fête attend sa fin, sinon ses premières images seraient cachées sous
+     l'ancienne vue. Les effets lourds se chargent à la demande (dès la dernière page, pour être
+     prêts) ; en mouvement réduit il ne reste que la vibration, que seul le réglage « Vibrations »
+     gouverne. */
   const celebrer = async origine => {
     vibrer("succes");
     if (REDUCE_MOTION.matches) return;
     try {
-      const effets = await import("../ui/effets.js");
+      const [effets] = await Promise.all([effetsPrets(), finDeTransition()]);
       effets.feuilles(origine || undefined);
       const marque = document.createElement("div");
       marque.className = "cook-tampon";

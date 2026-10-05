@@ -9,7 +9,7 @@
 html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 /* Le menu en une ligne : le détail vit dans l'onglet Au menu. */
-.menu-ligne { margin: 24px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+.menu-ligne { margin: 14px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
 
 .menu-ligne a {
   display: inline-block;
@@ -210,7 +210,7 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 /* ---------- Avancement et outils ---------- */
 
-.avance-bloc { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.avance-bloc { position: relative; display: flex; align-items: center; gap: 12px; margin-top: 16px; }
 
 .avance { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-deep); border: 1px solid var(--line); overflow: hidden; }
 
@@ -500,16 +500,20 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 @keyframes o-pousse { from { opacity: 0; scale: 0.2; } }
 
-/* Le tampon « Tout est dans le panier » : posé en travers du bas du bandeau quand la liste
-   est terminée. Invisible tant qu'elle ne l'est pas ; js/ui/effets.js le fait tomber. */
-.courses-head { position: relative; }
-
+/* Le tampon « Tout est dans le panier » : posé en travers de la barre quand la liste est
+   terminée, là où l'œil est déjà (il ne couvre ni le titre ni le texte du bandeau). Invisible
+   tant qu'elle ne l'est pas ; js/ui/effets.js le fait tomber. Il est dans le bloc de la barre,
+   qui n'est jamais redessiné : il y reste d'un dessin à l'autre. La ligne manuscrite sous la
+   liste dit autre chose que lui (ce qu'il reste à faire), pour ne pas répéter. */
 .tampon-fini {
   position: absolute;
-  left: 50%;
-  bottom: -16px;
-  translate: -50% 0;
-  max-width: calc(100% - 24px);
+  top: 50%;
+  left: 0;
+  right: 64px;               /* le compteur (« 12 / 13 ») reste lisible à droite */
+  margin-inline: auto;
+  width: max-content;
+  max-width: calc(100% - 64px);
+  translate: 0 -50%;
   padding: 4px 12px;
   border: 2px solid var(--terra);
   border-radius: 8px;
@@ -517,9 +521,9 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
   outline-offset: 2px;
   background: var(--paper);
   color: var(--terra);
-  font-size: 12.5px;
+  font-size: clamp(10px, 3.4vw, 12.5px);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;

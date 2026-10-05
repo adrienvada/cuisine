@@ -68,7 +68,7 @@ test("tout est coché : la liste le dit", async ({ page, context }) => {
   await preremplir(context, { carnet: { extras: [{ id: "e1", name: "Éponges" }] } });
   await page.goto("/#/courses");
   await basculer(page, "x-e1");
-  await expect(page.locator(".fini")).toHaveText("Tout est dans le panier.");
+  await expect(page.locator(".fini")).toHaveText("Plus rien à acheter, bonne cuisine !");
   await expect(page.locator(".avance-txt")).toHaveText("1 / 1");
 });
 
