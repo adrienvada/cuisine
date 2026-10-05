@@ -46,9 +46,11 @@ test("l'arrivée au défilement est sous @supports et coupée en mouvement rédu
 
 test("l'ancienne mécanique de filtrage (FLIP maison, rebond maison) a disparu", () => {
   const js = sansCommentaires(accueil + anime), feuille = sansCommentaires(css + cssAnime);
-  for (const mort of ["card-move", "card-enter", "no-anim", "requestAnimationFrame", "_lv", "_mv"]) assert.ok(!js.includes(mort) && !feuille.includes(mort), mort);
+  for (const mort of ["card-move", "card-enter", "no-anim", "_lv", "_mv"]) assert.ok(!js.includes(mort) && !feuille.includes(mort), mort);
   assert.ok(!feuille.includes("chip-bounce") && !feuille.includes("leaf-jump") && !feuille.includes(".pop"));
   assert.match(js, /flip\(alEcran/);
+  // Un seul requestAnimationFrame, non répété : la mesure groupée des photos qui arrivent (pas une boucle).
+  assert.ok((js.match(/requestAnimationFrame/g) || []).length <= 1);
 });
 
 test("aucune durée ni courbe en dur dans les animations de l'accueil", () => {

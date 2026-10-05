@@ -29,6 +29,7 @@ import {
   setRefreshZone,
   startTimer
 } from "../ui/minuteurs.js";
+import { DUREES } from "../core/ressort.js";
 import { animer, rouler } from "../ui/mouvement.js";
 import { shareRecipe } from "../ui/partage.js";
 import { app, noterAdresseCourante, retourVers } from "../ui/routeur.js";
@@ -304,7 +305,7 @@ export function renderCook(r, step) {
       // Même si une animation se perd, le tampon ne reste jamais.
       setTimeout(() => marque.remove(), 3000);
       await effets.tampon(marque);
-      await animer(marque, [{ opacity: 1 }, { opacity: 0 }], { duree: 260, delai: 650, fill: "forwards", reprise: false });
+      await animer(marque, [{ opacity: 1 }, { opacity: 0 }], { duree: DUREES.moyenne, delai: 650, fill: "forwards", reprise: false });
       marque.remove();
     } catch {}
   };
@@ -468,7 +469,7 @@ export function renderCook(r, step) {
         const cible = cookIdx + sens;
         if (!sens || cible < 0 || cible >= steps.length) { relacher(corps, { x: 0, y: 0 }, { x: vx, y: 0 }); return; }
         const mon = ++jeton;
-        // La page poursuit son chemin en s'effaçant (vite : ce qui part est plus rapide que ce qui arrive).
+        // La page poursuit son chemin en s'effaçant. 110 ms, moins que la sortie ordinaire (70 % de --d-moyenne) : le doigt a déjà fait le plus gros du chemin, la page suivante ne doit pas attendre.
         animer(corps, [{ translate: `${x}px 0`, opacity: 1 }, { translate: `${x - sens * 70}px 0`, opacity: 0 }],
           { duree: 110, easing: "entree", cle: "page-sortie", fill: "forwards", reprise: false })
           .then(() => { if (mon === jeton) aller(sens); });

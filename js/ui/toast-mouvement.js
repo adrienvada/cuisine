@@ -4,6 +4,7 @@
    et la disparition. Tout est décor : le délai, le focus, Échap et la voix (annonces.js)
    restent ceux de toast.js. */
 
+import { COURBES, DUREES } from "../core/ressort.js";
 import { glisser, relacher } from "./geste.js";
 import { mouvementReduit, rebondir, rouler } from "./mouvement.js";
 
@@ -59,7 +60,7 @@ function ecarter(t) {
       const fin = () => { t.classList.remove("en-main"); t.style.translate = ""; };
       if (mouvementReduit()) fin();
       else {
-        const a = t.animate([{ translate: `${x}px ${y}px`, opacity: 1 }, { translate: vers, opacity: 0 }], { duration: 180, easing: "cubic-bezier(0.5, 0, 0.9, 0.45)" });
+        const a = t.animate([{ translate: `${x}px ${y}px`, opacity: 1 }, { translate: vers, opacity: 0 }], { duration: DUREES.courte, easing: COURBES.entree });
         a.finished.then(fin, fin);
       }
       api.fermer();

@@ -292,7 +292,8 @@ function avecFlip(tray, muter) {
     const dx = p.left - d.left, dy = p.top - d.top;
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
     e.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], {
-      duration: 320, easing: getComputedStyle(document.documentElement).getPropertyValue("--ressort-vif").trim() || "ease-out"
+      duration: 320,   // = --ressort-vif-duree, lu avec la courbe
+      easing: getComputedStyle(document.documentElement).getPropertyValue("--ressort-vif").trim() || "ease-out"
     });
   }
 }
@@ -505,6 +506,7 @@ function beep(premiere = false) {
 /* La sonnerie secoue la bulle (ou, dans l'étape affichée, l'anneau) : une secousse
    brève à chaque reprise du son, jamais une agitation continue. Rien en mouvement
    réduit : l'état « sonne » se lit à la couleur et au texte. */
+/* 520 ms : un geste de sonnerie plus long que secouer() (380 ms), pour qu'il se remarque sans insister. */
 function secouerBulle(id) {
   if (REDUCE_MOTION.matches) return;
   const cibles = [...document.querySelectorAll(`.timer-pill[data-timer="${id}"], .cook-anneau[data-sonne="${id}"]`)]
