@@ -21,7 +21,7 @@ test("chaque carte porte data-vt-photo sur sa photo (contrat du routeur) et sa c
 });
 
 test("le bloc des couleurs se relit tel qu'il s'écrit", () => {
-  const couleurs = new Map([["a-b", ["#010203", "#a0b0c0"]], ["9zut", ["#ffffff", "#000000"]]]);
+  const couleurs = new Map([["a-b", "#010203"], ["9zut", "#ffffff"]]);
   const bloc = blocCouleurs(couleurs);
   assert.ok(bloc.startsWith(DEBUT_COULEURS) && bloc.endsWith(FIN_COULEURS));
   assert.match(bloc, /\.card\[data-id=a-b\]\{--p:#010203,#a0b0c0\}/);

@@ -53,10 +53,8 @@ const criteres = new Set();
 const jai = new Set();
 let foins = new Map();
 
-/* Le mouvement des filtres (accueil-anime.js, avec le socle js/ui/mouvement.js et sa feuille) n'est
-   pas sur le chemin du premier écran : on le tire au repos, une fois la page chargée. Tant qu'il n'est
-   pas là (ou s'il ne vient jamais), les filtres s'appliquent d'un coup, ce qui est exactement ce que
-   fait le mouvement réduit. */
+/* Le mouvement (accueil-anime.js, le socle et sa feuille) vient au repos, page chargée ; sans lui,
+   les filtres s'appliquent d'un coup, comme en mouvement réduit. */
 let anime = null;
 let demande = null;
 const chargerAnime = () => (demande ??= import("./accueil-anime.js").then(m => {
@@ -76,7 +74,7 @@ const armer = () => {
   else window.addEventListener("load", () => auRepos(chargerAnime), { once: true });
 };
 
-/* Le bandeau s'écrit à l'encre la première fois de la session, pas à chaque retour. */
+/* Le bandeau s'écrit à l'encre une fois par session. */
 let encreFaite = false;
 function encrePremiere() {
   if (encreFaite || REDUCE_MOTION.matches) return false;
@@ -88,7 +86,7 @@ function encrePremiere() {
   return true;
 }
 
-/* Un brin d'herbes prêt à se tracer : chaque trait mesure 1 (pathLength) et part un peu après le précédent. */
+/* Brin prêt à se tracer : chaque trait mesure 1 (pathLength) et part après le précédent. */
 const brin = svg => { let i = 0; return svg.replace(/<path /g, () => `<path pathLength="1" style="--i:${Math.min(i++, 5)}" `); };
 
 /* Le foin de chaque recette, normalisé une fois pour toute la visite. Les
@@ -211,8 +209,7 @@ function majJai() {
   document.getElementById("jai-ing").textContent = `${n} ingrédient${s}`;
 }
 
-/* Le nombre de recettes possibles, sous les filtres : il roule quand il change (et se pose d'un coup
-   tant que la ligne est cachée ou le mouvement pas prêt). */
+/* Le nombre de recettes possibles sous les filtres : il roule quand il change. */
 function majNombre(n, animer) {
   const nb = document.getElementById("jai-nb");
   if (!nb) return;
@@ -255,7 +252,6 @@ function ouvrirJai() {
   const rafraichir = () => {
     const n = visibles().length;
     vider.disabled = jai.size === 0;
-    /* Le nombre de recettes possibles roule quand il change ; le bouton garde une seule phrase pour les lecteurs d'écran. */
     const nb = ok.querySelector(".jai-nb");
     if (jai.size && n > 1 && nb && anime) { anime.rouler(nb, n); return; }
     ok.innerHTML = !jai.size ? "Fermer" : n === 0 ? "Aucune recette" : n === 1 ? "Voir la recette" : `Voir les <span class="jai-nb">${n}</span> recettes`;
@@ -372,8 +368,7 @@ export function burstHeart(btn) {
   }
 }
 
-/* Une carte en cours de sortie retourne au repos : styles nettoyés, cachée, de nouveau
-   lisible si elle revient. Elle ne quitte jamais le DOM (cf. ordonner). */
+/* Une carte en cours de sortie retourne au repos, cachée (jamais retirée du DOM, cf. ordonner). */
 function finishLeave(el) {
   if (!el.classList.contains("card-leave")) return;
   anime?.annuler(el, "sortie");
@@ -384,11 +379,9 @@ function finishLeave(el) {
   el.classList.add("gone");
 }
 
-/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal
-   placées. Tout ré-attacher (appendChild de chacune) coûte une mise en page, et
-   détache les vignettes : le navigateur oublie celle qu'il comptait pour le plus grand
-   élément peint, et le fondu d'une carte déjà là repartirait. Au premier dessin comme à
-   l'arrivée des fondamentaux (rafraichirFoins), l'ordre est déjà le bon : rien ne bouge. */
+/* Range les cartes voulues dans l'ordre voulu en ne déplaçant que celles qui sont mal placées :
+   tout ré-attacher coûte une mise en page et détache les vignettes (le navigateur oublie son
+   plus grand élément peint). Au premier dessin comme à l'arrivée des fondamentaux, rien ne bouge. */
 function ordonner(grid, voulues) {
   let suivante = grid.firstElementChild;
   for (const el of voulues) {
@@ -399,10 +392,8 @@ function ordonner(grid, voulues) {
   if (grid.lastElementChild !== vide) grid.appendChild(vide);
 }
 
-/* Filtre la grille. Les cartes restent dans le DOM (cf. ordonner) : écartées, elles sortent
-   sur place puis sont cachées ; les autres changent d'ordre et de place (anime.filtrer, qui
-   passe par flip() du socle). Mouvement réduit, ou mouvement pas encore arrivé : tout se pose
-   d'un coup. */
+/* Filtre la grille : les cartes écartées sortent sur place, les autres changent de place par
+   flip() (anime.filtrer). Sans mouvement (réduit, ou pas encore arrivé), tout se pose d'un coup. */
 function applyFilter(animate) {
   const grid = document.getElementById("grid");
   if (!grid) return;

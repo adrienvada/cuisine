@@ -11,13 +11,13 @@
   75% { rotate: 16deg; scale: 1.08; }
 }
 
-/* La croix se pose en grandissant depuis rien, chaque fois que le champ cesse d'être vide. */
+/* La croix d'effacement se pose en grandissant, chaque fois que le champ cesse d'être vide. */
+input[type="search"]::-webkit-search-cancel-button { animation: croix var(--d-moyenne) var(--ressort-vif); }
 @keyframes croix { from { opacity: 0; scale: 0.4; } }
 
-/* La pastille de la puce active glisse d'une puce à l'autre (glisserPastille, accueil.js) :
-   un décor posé sous les puces, déplacé par translate et scale avec le ressort vif. Pendant
-   le vol, la puce choisie n'a pas encore son fond (c'est la pastille qui le porte) et son
-   texte ne vire au crème qu'au tiers du trajet, quand la pastille arrive dessous. */
+/* La pastille de la puce active glisse d'une puce à l'autre (glisserPastille) : un décor sous les puces,
+   déplacé par translate et scale au ressort vif. Pendant le vol, la puce choisie n'a pas son fond (la
+   pastille le porte) et son texte ne vire au crème qu'au tiers du trajet. */
 .chips .pastille {
   position: absolute;
   left: 0;
@@ -34,13 +34,18 @@
   transition: scale var(--ressort-vif-duree) var(--ressort-vif), color var(--d-courte) calc(var(--ressort-vif-duree) * 0.3);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  gap: 14px;
-  padding-bottom: 10px;
-  position: relative; /* ancre les cartes sortantes pendant leur fondu */
+/* À l'appui la carte se soulève (ombre, léger zoom) et revient au ressort. Le délai évite qu'un
+   défilement qui démarre la fasse sauter ; le bouton partager a son propre retour. */
+.card:active:not(:has(.card-share:active)) {
+  scale: 1.02;
+  box-shadow: var(--ombre-3);
+  transition-duration: var(--d-courte), var(--d-appui);
+  transition-timing-function: var(--e-sortie);
+  transition-delay: 70ms;
 }
+
+/* Un filet d'ombre sous la photo la détache du papier de la carte. */
+.card .visual::after { content: ""; position: absolute; inset: auto 0 0; height: 1px; background: rgb(44 51 38 / 0.1); pointer-events: none; }
 
 /* Arrivée douce au défilement : la carte qui entre par le bas de l'écran se pose (animation
    pilotée par le défilement, sans écouteur ni script). Ce qui est déjà à l'écran à l'ouverture
@@ -75,6 +80,7 @@
    animations ; ce qui suit est ce que le filet ne couvre pas). */
 @media (prefers-reduced-motion: reduce) {
   .card { animation: none; }
+  .card:active:not(:has(.card-share:active)) { scale: none; }
   .chips .pastille { display: none; }
   .searchbar.typing svg { animation: none; }
 }

@@ -41,13 +41,13 @@ test("les cartes portent data-vt-photo et une couleur dominante posée avant la 
   await page.goto("/");
   const infos = await page.evaluate(() => [...document.querySelectorAll(".card")].map(c => {
     const v = c.querySelector(".visual");
-    return { id: c.dataset.id, vt: v.dataset.vtPhoto, p: getComputedStyle(c).getPropertyValue("--p").trim(), fond: getComputedStyle(v).backgroundImage };
+    return { id: c.dataset.id, vt: v.dataset.vtPhoto, p: getComputedStyle(c).getPropertyValue("--p").trim(), fond: getComputedStyle(v).backgroundColor };
   }));
   expect(infos).toHaveLength(20);
   for (const i of infos) {
     expect(i.vt).toBe(i.id);
-    expect(i.p, i.id).toMatch(/^#[0-9a-f]{6},#[0-9a-f]{6}$/);
-    expect(i.fond, i.id).toContain("linear-gradient");
+    expect(i.p, i.id).toMatch(/^#[0-9a-f]{6}$/);
+    expect(i.fond, i.id).not.toBe("rgba(0, 0, 0, 0)");
   }
 });
 
@@ -167,6 +167,7 @@ for (const reduit of [false, true]) {
 
 test("l'appui sur une carte la soulève (ombre et taille), et le relâcher hors de la carte n'ouvre rien", async ({ page }) => {
   await page.goto("/");
+  await armee(page);
   const carte = page.locator(".card").nth(1);
   const repos = await carte.evaluate(c => getComputedStyle(c).boxShadow);
   const boite = await carte.boundingBox();

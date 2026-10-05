@@ -17,8 +17,8 @@
    des vignettes plus nettes), sinon img/<id>.jpg.
 
    Couleurs dominantes : chaque vignette laisse aussi, dans un bloc généré de
-   css/accueil.css, les deux couleurs (moyenne de sa moitié haute et de sa moitié basse)
-   sur lesquelles la photo se pose pendant son chargement. Un bloc de CSS, plutôt qu'une
+   css/accueil.css, la couleur moyenne de la vignette
+   sur laquelle la photo se pose pendant son chargement. Un bloc de CSS, plutôt qu'une
    donnée dans recipes.js ou un module : la feuille de l'accueil est déjà sur le chemin
    critique, et le bloc ne lui coûte qu'une ligne par photo.
 
@@ -97,32 +97,31 @@ const hex = ([r, v, b]) => "#" + [r, v, b].map(n => n.toString(16).padStart(2, "
    tel quel en CSS. */
 const selecteur = id => `.card[data-id${/^[a-z_][a-z0-9_-]*$/i.test(id) ? `=${id}` : `="${id}"`}]`;
 
-/* Le bloc complet, repères compris. `couleurs` : Map id → [haut, bas] en hexadécimal. */
+/* Le bloc complet, repères compris. `couleurs` : Map id → couleur en hexadécimal. */
 export function blocCouleurs(couleurs) {
-  const lignes = [...couleurs].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, [haut, bas]]) => `${selecteur(id)}{--p:${haut},${bas}}`);
+  const lignes = [...couleurs].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, couleur]) => `${selecteur(id)}{--p:${couleur}}`);
   return [DEBUT_COULEURS, ...lignes, FIN_COULEURS].join("\n");
 }
 
-/* Moyenne de la moitié haute et de la moitié basse de la vignette : sharp réduit l'image
-   à une colonne de deux pixels, ce qui est exactement cette moyenne. */
-async function couleursDe(id) {
+/* La couleur moyenne de la vignette : sharp la réduit à un seul pixel. */
+async function couleurDe(id) {
   const sharp = (await import("sharp")).default;
-  const { data } = await sharp(chemin("v", id)).resize(1, 2, { fit: "fill" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  return [hex([...data.subarray(0, 3)]), hex([...data.subarray(3, 6)])];
+  const { data } = await sharp(chemin("v", id)).resize(1, 1, { fit: "fill" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  return hex([...data.subarray(0, 3)]);
 }
 
-/* Les couleurs déjà écrites dans la feuille : id → [haut, bas]. */
+/* Les couleurs déjà écrites dans la feuille : id → couleur. */
 export function couleursEcrites(css = readFileSync(FEUILLE, "utf8")) {
   const debut = css.indexOf(DEBUT_COULEURS), fin = css.indexOf(FIN_COULEURS);
   const lues = new Map();
   if (debut < 0 || fin < debut) return lues;
-  for (const m of css.slice(debut, fin).matchAll(/\.card\[data-id="?([^"\]]+)"?\]\{--p:(#[0-9a-f]{6}),(#[0-9a-f]{6})\}/g)) lues.set(m[1], [m[2], m[3]]);
+  for (const m of css.slice(debut, fin).matchAll(/\.card\[data-id="?([^"\]]+)"?\]\{--p:(#[0-9a-f]{6})\}/g)) lues.set(m[1], m[2]);
   return lues;
 }
 
 async function ecrireCouleurs() {
   const couleurs = new Map();
-  for (const id of photos()) if (existsSync(chemin("v", id))) couleurs.set(id, await couleursDe(id));
+  for (const id of photos()) if (existsSync(chemin("v", id))) couleurs.set(id, await couleurDe(id));
   const css = readFileSync(FEUILLE, "utf8");
   const debut = css.indexOf(DEBUT_COULEURS), fin = css.indexOf(FIN_COULEURS);
   if (debut < 0 || fin < debut) {

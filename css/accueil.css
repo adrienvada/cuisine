@@ -59,10 +59,8 @@
 
 .masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
 
-/* La première fois de la session (.encre, posée par js/vues/accueil.js ; jamais en mouvement
-   réduit), le bandeau s'écrit : les brins se tracent (base.css, .trace, un instant après le
-   titre), le trait sous « Evadri » se tire de gauche à droite, le cœur bat une fois. Le titre
-   n'attend rien : tout est décor, et rien ne change de place. */
+/* Première fois de la session (.encre, jamais en mouvement réduit) : les brins se tracent
+   (.trace, base.css), le trait sous « Evadri » se tire, le cœur bat une fois. Décor seul. */
 .mast-row.trace [pathLength="1"] { animation-delay: calc(0.12s + var(--i, 0) * 60ms); }
 
 .encre .byline .u { border-bottom-color: transparent; position: relative; }
@@ -184,11 +182,8 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
    bord à encadrer. */
 .searchbar:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
 
-/* La croix d'effacement du navigateur est bleue : on lui donne la couleur du
-   carnet, sur une zone de contact de 44 px autour d'un trait de 14 px. Celle d'un
-   élément natif ne dépasse pas son champ : c'est donc le champ qui prend les 44 px
-   de hauteur et le bord droit de la barre, qui en perd d'autant de remplissage.
-   Le dessin reste où il était ; la barre ne gagne que ses deux pixels de bordure. */
+/* La croix du navigateur (bleue) prend la couleur du carnet et une zone de 44 px : elle ne
+   dépasse pas son champ, qui prend donc les 44 px de hauteur et le bord droit de la barre. */
 .searchbar:has(input[type="search"]) { padding: 0 0 0 14px; }
 .searchbar input[type="search"] { padding: 13px 0; }
 input[type="search"]::-webkit-search-cancel-button {
@@ -226,9 +221,16 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
 
-/* Filtrage (flip() du socle, applyFilter dans accueil.js) : les cartes ne sont jamais
-   reconstruites. Écartées, elles sortent sur place (le script les pose en absolu et les anime)
-   puis disparaissent ; le reste glisse de sa place à la nouvelle en `translate`. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 14px;
+  padding-bottom: 10px;
+  position: relative; /* ancre les cartes sortantes pendant leur fondu */
+}
+
+/* Filtrage (applyFilter) : les cartes ne sont jamais reconstruites ; écartées, elles sortent sur
+   place puis disparaissent. */
 .card.gone { display: none; }
 
 .card.card-leave { opacity: 0; pointer-events: none; z-index: 2; }
@@ -250,22 +252,9 @@ input[type="search"]::-webkit-search-cancel-button {
   transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif);
 }
 
-/* À l'appui la carte se soulève : son ombre monte, elle grandit un rien, et revient avec le
-   ressort vif. Un court délai avant de la soulever : un doigt qui part en défilement ne la fait
-   pas sauter (le navigateur annule :active dès que le défilement prend la main). Le bouton
-   partager, posé sur la carte, a son propre retour : appuyer dessus ne soulève pas la carte. */
-.card:active:not(:has(.card-share:active)) {
-  scale: 1.02;
-  box-shadow: var(--ombre-3);
-  transition-duration: var(--d-courte), var(--d-appui);
-  transition-timing-function: var(--e-sortie);
-  transition-delay: 70ms;
-}
-
 .card .visual {
-  /* Posée sur la couleur dominante de sa photo (bloc généré plus bas) pendant le chargement ;
-     --c, la couleur de la recette, quand la photo n'a pas la sienne. */
-  background: linear-gradient(var(--p, var(--c), var(--c)));
+  /* Couleur dominante de la photo (bloc généré), sinon celle de la recette. */
+  background: var(--p, var(--c));
   height: 110px;
   flex: none;
   display: flex;
@@ -277,9 +266,6 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .card .visual img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Un filet d'ombre sous la photo la détache du papier de la carte. */
-.card .visual::after { content: ""; position: absolute; inset: auto 0 0; height: 1px; background: rgb(44 51 38 / 0.1); pointer-events: none; }
 
 /* Variante WebP absente : le JPEG entier revient, recadré par le zoom comme avant les vignettes. */
 .card .visual img.zoom { transform: scale(3); }
@@ -450,30 +436,25 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
   .mast-row svg { width: 30px; }
 }
 
-/* Mouvement réduit : l'appui ne change pas la taille de la carte (le reste est dans accueil-anime.css). */
-@media (prefers-reduced-motion: reduce) {
-  .card:active:not(:has(.card-share:active)) { scale: none; }
-}
-
 /* >>> couleurs des vignettes générées par tools/generer-vignettes.mjs — ne pas modifier à la main */
-.card[data-id=beignets-brebis-menthe]{--p:#a07449,#6d4423}
-.card[data-id=cake-sale]{--p:#9b7e49,#b08b5b}
-.card[data-id=cocktail-concombre-menthe]{--p:#968f60,#90965e}
-.card[data-id=dip-chevre-herbes]{--p:#aba686,#b5b28e}
-.card[data-id=focaccia-romarin]{--p:#a78554,#8e6d40}
-.card[data-id=gravlax-saumon-yaourt-bulgare]{--p:#ba9060,#ba824b}
-.card[data-id=houmous-petits-pois-menthe]{--p:#92844d,#9a9e4a}
-.card[data-id=mayonnaise-maison]{--p:#a18f6e,#ddcb9a}
-.card[data-id=mi-cuit-chocolat-suzy-palatin]{--p:#9c877d,#442d25}
-.card[data-id=pesto-basilic-maison]{--p:#7a8644,#7c764e}
-.card[data-id=quiche-lorraine]{--p:#bd9052,#b6894f}
-.card[data-id=salade-champetre]{--p:#757745,#6c6f40}
-.card[data-id=salade-kale-pomme-oeuf]{--p:#8e8651,#84794d}
-.card[data-id=salade-lentilles-feta]{--p:#908556,#7a6844}
-.card[data-id=salade-mediterraneenne]{--p:#ad9067,#a47f52}
-.card[data-id=scoopable-cookies]{--p:#7f6447,#8a6b52}
-.card[data-id=tagliatelles-carotte-carbonara]{--p:#a16d38,#a96230}
-.card[data-id=tartines-figues-chevre-miel]{--p:#8b6846,#906b46}
-.card[data-id=torsades-pesto]{--p:#b48e52,#855b20}
-.card[data-id=veloute-butternut-shiitakes]{--p:#bb8e33,#a97e33}
+.card[data-id=beignets-brebis-menthe]{--p:#875c36}
+.card[data-id=cake-sale]{--p:#a68553}
+.card[data-id=cocktail-concombre-menthe]{--p:#949360}
+.card[data-id=dip-chevre-herbes]{--p:#afac8a}
+.card[data-id=focaccia-romarin]{--p:#9b7a4a}
+.card[data-id=gravlax-saumon-yaourt-bulgare]{--p:#ba8856}
+.card[data-id=houmous-petits-pois-menthe]{--p:#97914c}
+.card[data-id=mayonnaise-maison]{--p:#bfad84}
+.card[data-id=mi-cuit-chocolat-suzy-palatin]{--p:#705b52}
+.card[data-id=pesto-basilic-maison]{--p:#7c7f49}
+.card[data-id=quiche-lorraine]{--p:#bb8c52}
+.card[data-id=salade-champetre]{--p:#717342}
+.card[data-id=salade-kale-pomme-oeuf]{--p:#897f4f}
+.card[data-id=salade-lentilles-feta]{--p:#86774e}
+.card[data-id=salade-mediterraneenne]{--p:#a8875c}
+.card[data-id=scoopable-cookies]{--p:#85694c}
+.card[data-id=tagliatelles-carotte-carbonara]{--p:#a56835}
+.card[data-id=tartines-figues-chevre-miel]{--p:#8e6b47}
+.card[data-id=torsades-pesto]{--p:#9d7539}
+.card[data-id=veloute-butternut-shiitakes]{--p:#b38633}
 /* <<< fin du bloc généré */
