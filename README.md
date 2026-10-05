@@ -380,14 +380,14 @@ Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télé
 
 | Médiane de 7 passages, même machine | avant (ad67ed3) | après |
 |---|---|---|
-| Cartes dessinées | 2 612 ms | 1 728 ms (1 548 ms à la meilleure série) |
-| LCP (première photo) | 2 612 ms | 1 740 ms |
+| Cartes dessinées | 2 612 ms | 1 636 ms |
+| LCP (première photo) | 2 612 ms | 1 636 ms |
 | CLS | 0 | 0 |
-| Octets avant les cartes | 327,7 Ko | 171,2 Ko |
-| Requêtes avant les cartes | 56 | 42 |
-| Temps de script avant les cartes | 389 ms | 233 ms |
-| Retour à l'accueil depuis une fiche (processeur ×4, en cache) | 93 ms | 102 ms (bruit : de 56 à 172 ms avant, de 62 à 125 ms après) |
-| Seconde visite, service worker actif : cartes | 904 ms | 672 ms |
+| Octets avant les cartes | 327,7 Ko | 179,4 Ko |
+| Requêtes avant les cartes | 56 | 41 |
+| Temps de script avant les cartes | 389 ms | 244 ms |
+| Retour à l'accueil depuis une fiche (processeur ×4, en cache ; l'outil n'attend plus les animations pilotées par le défilement, qui ne finissent jamais) | 301 ms (396651d, même outil) | 246 ms (de 213 à 267 ms) |
+| Seconde visite, service worker actif : cartes | 904 ms | 212 ms (LCP 508 ms) |
 
 **Ce qui a gagné** (chaque poste a été mesuré seul) : les polices servies sont des sous-ensembles (`npm run polices`, voir plus bas) et seules deux sont préchargées, 31 Ko au lieu de 112 Ko ; les cinq feuilles des vues (13,5 Ko) ne se téléchargent plus au démarrage ; `substitutions.js` et `sync-config.js` ne se chargent qu'au besoin ; le graphe de modules de `js/main.js` perd les minuteurs, le partage, le calcul du rétroplanning, la feuille des réglages et la synchro (25 modules au lieu de 28, 61,6 Ko gzip au lieu de 79,4 Ko) ; une seule vignette est préchargée (celle du LCP) ; l'accueil ne se redessine plus à l'arrivée des fondamentaux (les cartes ne sont plus détachées puis rattachées : c'était le « candidat LCP qui disparaît ») ; le tout premier dessin ne se fond pas (0,22 s de page vide en moins).
 
@@ -403,7 +403,7 @@ Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télé
 - deux polices préchargées au plus, une vignette ;
 - la synchro, le service worker, les feuilles et les modules reportés partent après le premier affichage, jamais avant.
 
-**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 171 Ko. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
+**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 179,4 Ko, soit 0,6 Ko de marge : la vague « mouvement » a fait entrer sur le chemin de l'accueil le bandeau tracé, le soulignement, les brins et les jetons de mouvement (181,1 Ko avant que la feuille des réglages, `css/reglages-feuille.css`, n'en sorte). Chaque octet de plus se paie : un lot qui ajoute au chemin retire d'abord autre chose. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
 
 ## Développement
 
