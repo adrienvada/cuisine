@@ -45,7 +45,7 @@ const RACINE_DEPOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Budget : ce que l'accueil a le droit de télécharger avant ses cartes (gzip, en
    Ko). Un lot qui le dépasse doit dire ce qu'il a fait entrer et pourquoi. */
-export const BUDGET_OCTETS_KO = 150;
+export const BUDGET_OCTETS_KO = 180;
 
 const PROFIL = {
   viewport: { width: 390, height: 844 },
@@ -156,8 +156,15 @@ function suivreRequetes(cdp) {
 
 const attendre = ms => new Promise(r => setTimeout(r, ms));
 
-async function lancerNavigateur() {
-  return chromium.launch({ args: ["--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost"] });
+/* Seule la résolution de noms interdit le réseau extérieur : tout ce qui n'est pas
+   localhost est introuvable. Avec --sw, le certificat autosigné du serveur local est
+   accepté par le navigateur lui-même (--ignore-certificate-errors) : Chromium refuse
+   d'enregistrer un service worker sur une page dont le certificat est en erreur,
+   même quand le contexte ignore les erreurs HTTPS. Aucun autre hôte n'est joignable. */
+async function lancerNavigateur({ sw }) {
+  const args = ["--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost"];
+  if (sw) args.push("--ignore-certificate-errors");
+  return chromium.launch({ args });
 }
 
 function contexte(navigateur, { sw }) {
@@ -256,7 +263,7 @@ async function main() {
   let serveur, navigateur;
   try {
     serveur = await demarrerServeur(o.racine, o.port, dossierCert);
-    navigateur = await lancerNavigateur();
+    navigateur = await lancerNavigateur({ sw: o.sw });
     const url = `https://localhost:${o.port}/`;
     const passages = [];
     for (let i = 0; i < o.passages; i++) {

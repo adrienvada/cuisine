@@ -142,7 +142,11 @@ tenter("persistance du stockage", demanderPersistance);
    n'est pas encore arrivé : le bouton le dit (aria-busy) le temps qu'il vienne. Le
    module est tiré dès le premier affichage passé : en pratique, il est déjà là. */
 let reglagesChargement = null;
-const chargerReglages = () => (reglagesChargement ??= import("./vues/reglages.js").catch(e => { reglagesChargement = null; throw e; }));
+let reglagesEchecs = 0;
+/* Un import() échoué reste échoué pour la même adresse : le nouvel essai en demande une neuve
+   (comme js/ui/routeur.js ; le service worker ignore la requête pour retrouver le module). */
+const chargerReglages = () => (reglagesChargement ??= import("./vues/reglages.js" + (reglagesEchecs ? `?essai=${reglagesEchecs}` : ""))
+  .catch(e => { reglagesChargement = null; reglagesEchecs++; throw e; }));
 document.addEventListener("click", e => {
   const bouton = e.target.closest("[data-reglages]");
   if (!bouton) return;

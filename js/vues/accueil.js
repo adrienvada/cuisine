@@ -138,7 +138,10 @@ export function renderHome() {
    déjà là partage dans le même tour (navigator.share exige le geste de l'utilisateur,
    que les navigateurs ne gardent pas toujours à travers un import). */
 let partage = null;
-export const preparerPartage = () => import("../ui/partage.js").then(m => (partage = m));
+let echecsPartage = 0;
+/* Un import() échoué reste échoué pour la même adresse : le nouvel essai en demande une neuve. */
+export const preparerPartage = () => import("../ui/partage.js" + (echecsPartage ? `?essai=${echecsPartage}` : ""))
+  .then(m => (partage = m), e => { echecsPartage++; throw e; });
 
 /* Posé sur une vignette, le bouton partager ne doit pas ouvrir la recette. */
 function partagerDepuisCarte(e) {
