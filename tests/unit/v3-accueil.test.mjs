@@ -11,7 +11,9 @@ import { blocCouleurs, couleursEcrites, DEBUT_COULEURS, FIN_COULEURS } from "../
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const lire = f => readFileSync(path.join(racine, f), "utf8");
 const accueil = lire("js/vues/accueil.js");
+const anime = lire("js/vues/accueil-anime.js");
 const css = lire("css/accueil.css");
+const cssAnime = lire("css/accueil-anime.css");
 const sansCommentaires = c => c.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("chaque carte porte data-vt-photo sur sa photo (contrat du routeur) et sa couleur de repli", () => {
@@ -38,20 +40,19 @@ test("css/accueil.css porte la couleur de chaque photo, au format hexadécimal",
 });
 
 test("l'arrivée au défilement est sous @supports et coupée en mouvement réduit", () => {
-  assert.match(css, /@supports \(animation-timeline: view\(\)\)\s*\{\s*\.card\s*\{[^}]*animation-timeline: view\(\)/);
-  const reduit = /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.card \{ animation: none; \}/;
-  assert.match(css, reduit);
+  assert.match(cssAnime, /@supports \(animation-timeline: view\(\)\)\s*\{\s*\.card\s*\{[^}]*animation-timeline: view\(\)/);
+  assert.match(cssAnime, /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.card \{ animation: none; \}/);
 });
 
 test("l'ancienne mécanique de filtrage (FLIP maison, rebond maison) a disparu", () => {
-  const js = sansCommentaires(accueil), feuille = sansCommentaires(css);
+  const js = sansCommentaires(accueil + anime), feuille = sansCommentaires(css + cssAnime);
   for (const mort of ["card-move", "card-enter", "no-anim", "requestAnimationFrame", "_lv", "_mv"]) assert.ok(!js.includes(mort) && !feuille.includes(mort), mort);
   assert.ok(!feuille.includes("chip-bounce") && !feuille.includes("leaf-jump") && !feuille.includes(".pop"));
-  assert.match(js, /mouvement\.flip\(/);
+  assert.match(js, /flip\(alEcran/);
 });
 
 test("aucune durée ni courbe en dur dans les animations de l'accueil", () => {
-  const feuille = sansCommentaires(css);
+  const feuille = sansCommentaires(css + cssAnime);
   assert.doesNotMatch(feuille, /animation:[^;]*\d(\.\d+)?m?s\s+(ease|linear|cubic)/);
   assert.doesNotMatch(feuille, /cubic-bezier/);
 });
@@ -61,7 +62,10 @@ test("l'ancre des brins : seuls les traits du bandeau gagnent pathLength, une fo
   assert.match(accueil, /REDUCE_MOTION\.matches\) return false/);
 });
 
-test("l'accueil n'importe pas le socle du mouvement de façon statique (chemin critique)", () => {
-  assert.doesNotMatch(accueil, /^import .*mouvement\.js/m);
-  assert.match(accueil, /import\("\.\.\/ui\/mouvement\.js"\)/);
+test("le mouvement de l'accueil (module et feuille) ne vient pas par import statique : chemin critique", () => {
+  assert.doesNotMatch(accueil, /^import .*(mouvement|accueil-anime)\.js/m);
+  assert.match(accueil, /import\("\.\/accueil-anime\.js"\)/);
+  assert.match(anime, /^import \{[^}]*\} from "\.\.\/ui\/mouvement\.js"/m);
+  assert.match(anime, /css\/accueil-anime\.css/);
+  assert.doesNotMatch(readFileSync(path.join(racine, "index.html"), "utf8"), /accueil-anime/);
 });

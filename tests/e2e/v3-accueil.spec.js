@@ -131,14 +131,15 @@ for (const reduit of [false, true]) {
       expect(await residus(page)).toEqual([]);
     });
 
-    test("état vide : l'illustration est un décor caché aux lecteurs d'écran", async ({ page }) => {
+    test("état vide : l'illustration est un décor tracé, caché aux lecteurs d'écran (absente en mouvement réduit)", async ({ page }) => {
       await page.goto("/");
+      if (!reduit) await armee(page);
       await page.locator("#search").fill("zzzzzz");
       await expect(page.locator(".grid-empty")).toBeVisible();
-      await expect(page.locator(".grid-empty .vide-illo")).toHaveAttribute("aria-hidden", "true");
       await expect(page.locator(".grid-empty")).toContainText("Aucune recette ne correspond");
       await pageStable(page);
-      // Le trait est tracé (ou, en mouvement réduit, simplement là).
+      if (reduit) { expect(await page.locator(".vide-illo").count()).toBe(0); return; }
+      await expect(page.locator(".grid-empty .vide-illo")).toHaveAttribute("aria-hidden", "true");
       expect(await page.locator(".grid-empty .vide-illo path").first().evaluate(p => getComputedStyle(p).strokeDashoffset)).toBe("0px");
     });
 

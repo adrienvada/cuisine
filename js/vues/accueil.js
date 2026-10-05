@@ -53,22 +53,27 @@ const criteres = new Set();
 const jai = new Set();
 let foins = new Map();
 
-/* Le socle du mouvement (flip, rebondir, rouler…) ne vient pas avec l'accueil : il
-   n'est pas sur le chemin du premier écran. On le tire une fois la page chargée, au
-   repos ; tant qu'il n'est pas là (ou s'il ne vient jamais), les filtres s'appliquent
-   d'un coup, ce qui est exactement ce que fait le mouvement réduit. */
-let mouvement = null;
+/* Le mouvement des filtres (accueil-anime.js, avec le socle js/ui/mouvement.js et sa feuille) n'est
+   pas sur le chemin du premier écran : on le tire au repos, une fois la page chargée. Tant qu'il n'est
+   pas là (ou s'il ne vient jamais), les filtres s'appliquent d'un coup, ce qui est exactement ce que
+   fait le mouvement réduit. */
+let anime = null;
 let demande = null;
-const chargerMouvement = () => (demande ??= import("../ui/mouvement.js").then(m => {
-  mouvement = m;
-  document.getElementById("grid")?.setAttribute("data-anime", "");
-  return m;
+const chargerAnime = () => (demande ??= import("./accueil-anime.js").then(m => {
+  anime = m;
+  armerGrille();
 }, () => null));
+const armerGrille = () => {
+  const grid = document.getElementById("grid");
+  if (!anime || !grid) return;
+  grid.setAttribute("data-anime", "");
+  anime.equiper(grid);
+};
 const auRepos = suite => ("requestIdleCallback" in window ? requestIdleCallback(suite, { timeout: 3000 }) : setTimeout(suite, 1500));
 const armer = () => {
-  if (mouvement || REDUCE_MOTION.matches) return;
-  if (document.readyState === "complete") auRepos(chargerMouvement);
-  else window.addEventListener("load", () => auRepos(chargerMouvement), { once: true });
+  if (anime || REDUCE_MOTION.matches) return;
+  if (document.readyState === "complete") auRepos(chargerAnime);
+  else window.addEventListener("load", () => auRepos(chargerAnime), { once: true });
 };
 
 /* Le bandeau s'écrit à l'encre la première fois de la session, pas à chaque retour. */
@@ -98,10 +103,6 @@ export function rafraichirFoins() {
   calculerFoins();
   if (document.getElementById("grid")) applyFilter(false);
 }
-
-/* Le bol fumant de l'état vide : un trait qui se dessine chaque fois que le message apparaît
-   (une animation CSS repart quand son élément cesse d'être caché). Décor seulement. */
-const VIDE = `<svg class="vide-illo trace" viewBox="0 0 64 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M9 24h46c0 11-9 19-23 19S9 35 9 24z"/><path pathLength="1" style="--i:2" d="M24 17c-4-4 3-6-1-11M33 17c-4-4 3-6-1-11M42 17c-4-4 3-6-1-11"/></svg>`;
 
 export function renderHome() {
   const anyFav = RECIPES.some(isFav);
@@ -136,7 +137,7 @@ export function renderHome() {
     </p>
     <div class="grid fade-in" id="grid">
       ${RECIPES.map(cardHtml).join("")}
-      <p class="empty grid-empty" style="grid-column:1/-1" hidden>${VIDE}Aucune recette ne correspond…<br>Essaie d'enlever un filtre — la prochaine fournée arrive bientôt !</p>
+      <p class="empty grid-empty" style="grid-column:1/-1" hidden>Aucune recette ne correspond…<br>Essaie d'enlever un filtre — la prochaine fournée arrive bientôt !</p>
     </div>
   `;
   majJai();
@@ -152,8 +153,8 @@ export function renderHome() {
       c.classList.toggle("on", c === b);
       c.setAttribute("aria-pressed", String(c === b));
     });
-    glisserPastille(b.parentElement, ancienne, b);
-    montrerPuce(b);
+    anime?.glisserPastille(b.parentElement, ancienne, b);
+    anime?.montrerPuce(b);
     applyFilter(true);
   });
   /* Les critères se cumulent : chacun resserre la grille un peu plus. */
@@ -164,15 +165,14 @@ export function renderHome() {
     if (!criteres.delete(id)) criteres.add(id);
     b.classList.toggle("on", criteres.has(id));
     b.setAttribute("aria-pressed", String(criteres.has(id)));
-    if (criteres.has(id)) { rebondir(b); montrerPuce(b); }
+    if (criteres.has(id)) { anime?.rebondir(b); anime?.montrerPuce(b); }
     applyFilter(true);
   });
   document.getElementById("jai-ouvrir").addEventListener("click", ouvrirJai);
   document.getElementById("jai-efface").addEventListener("click", () => { jai.clear(); majJai(); applyFilter(true); });
   const grid = document.getElementById("grid");
-  if (mouvement) grid.setAttribute("data-anime", "");
+  armerGrille();
   grid.addEventListener("click", partagerDepuisCarte);
-  grid.addEventListener("load", photoArrivee, true);
   applyFilter(false);
   armer();
 }
@@ -198,67 +198,6 @@ function partagerDepuisCarte(e) {
   else preparerPartage().then(partager, () => toast("Le partage ne s'est pas chargé"));
 }
 
-/* Le petit saut du socle quand une puce se choisit (rien tant que le socle n'est pas là). */
-const rebondir = b => { mouvement?.rebondir(b); };
-
-/* La rangée défile pour montrer la puce choisie, centrée autant que la rangée le permet.
-   (Pas scrollIntoView : il ferait aussi défiler la page.) */
-function montrerPuce(b) {
-  const rangee = b.parentElement;
-  const gauche = Math.max(0, b.offsetLeft - (rangee.clientWidth - b.offsetWidth) / 2);
-  rangee.scrollTo({ left: gauche, behavior: REDUCE_MOTION.matches ? "auto" : "smooth" });
-}
-
-/* La pastille verte d'une puce active qui change : un décor qui glisse de l'ancienne à la nouvelle
-   (translate et scale, avec le ressort vif du socle, par transition CSS : rien à charger, et un
-   nouveau choix en cours de route repart de l'endroit où la pastille est). La puce choisie ne
-   prend son propre fond qu'à l'arrivée ; le décor part alors, la puce rebondit. */
-function glisserPastille(rangee, ancienne, nouvelle) {
-  if (REDUCE_MOTION.matches || !ancienne || ancienne === nouvelle) return;
-  let p = rangee.querySelector(".pastille");
-  /* Où est la pastille en ce moment : celle en vol, sinon l'ancienne puce. */
-  let gauche = ancienne.offsetLeft, largeur = ancienne.offsetWidth;
-  if (p) {
-    const style = getComputedStyle(p);
-    gauche = parseFloat(style.translate) || 0;
-    largeur = p.offsetWidth * (parseFloat(style.scale) || 1);
-  } else {
-    p = document.createElement("span");
-    p.className = "pastille";
-    p.setAttribute("aria-hidden", "true");
-    rangee.prepend(p);
-  }
-  rangee.classList.add("en-vol");
-  p.style.transition = "none";
-  p.style.width = nouvelle.offsetWidth + "px";
-  p.style.height = nouvelle.offsetHeight + "px";
-  p.style.top = nouvelle.offsetTop + "px";
-  p.style.translate = `${gauche}px 0`;
-  p.style.scale = `${largeur / nouvelle.offsetWidth} 1`;
-  void p.offsetWidth;
-  p.style.transition = "";
-  p.style.translate = `${nouvelle.offsetLeft}px 0`;
-  p.style.scale = "1 1";
-  const fin = () => {
-    clearTimeout(p._fin);
-    if (!p.isConnected) return;
-    p.remove();
-    rangee.classList.remove("en-vol");
-    rebondir(nouvelle);
-  };
-  p.ontransitionend = e => { if (e.propertyName === "translate") fin(); };
-  clearTimeout(p._fin);
-  p._fin = setTimeout(fin, 700);
-}
-
-/* Une photo qui arrive en retard, une fois la page défilée, se fond sur sa couleur : jamais
-   celles du premier écran (c'est le LCP, il ne se fond pas). */
-function photoArrivee(e) {
-  const img = e.target;
-  if (!(img instanceof HTMLImageElement) || (window.scrollY < 8 && img.getBoundingClientRect().top < innerHeight)) return;
-  img.classList.add("photo-arrive");
-}
-
 /* Le bouton « J'ai… » et la ligne qui rappelle la sélection : ils disent
    pourquoi la grille est réduite, et la défont d'un geste sans rouvrir la feuille. */
 function majJai() {
@@ -278,7 +217,7 @@ function majNombre(n, animer) {
   const nb = document.getElementById("jai-nb");
   if (!nb) return;
   document.getElementById("jai-mot").textContent = n > 1 ? "recettes" : "recette";
-  if (animer && mouvement && !document.getElementById("jai-etat").hidden) mouvement.rouler(nb, n);
+  if (animer && anime && !document.getElementById("jai-etat").hidden) anime.rouler(nb, n);
   else nb.textContent = n;
 }
 
@@ -318,7 +257,7 @@ function ouvrirJai() {
     vider.disabled = jai.size === 0;
     /* Le nombre de recettes possibles roule quand il change ; le bouton garde une seule phrase pour les lecteurs d'écran. */
     const nb = ok.querySelector(".jai-nb");
-    if (jai.size && n > 1 && nb && mouvement) { mouvement.rouler(nb, n); return; }
+    if (jai.size && n > 1 && nb && anime) { anime.rouler(nb, n); return; }
     ok.innerHTML = !jai.size ? "Fermer" : n === 0 ? "Aucune recette" : n === 1 ? "Voir la recette" : `Voir les <span class="jai-nb">${n}</span> recettes`;
   };
   backdrop.addEventListener("click", e => {
@@ -330,7 +269,7 @@ function ouvrirJai() {
     }
     const b = e.target.closest(".jai-chip");
     if (!b) return;
-    if (!jai.delete(b.dataset.cle)) { jai.add(b.dataset.cle); rebondir(b); }
+    if (!jai.delete(b.dataset.cle)) { jai.add(b.dataset.cle); anime?.rebondir(b); }
     b.classList.toggle("on", jai.has(b.dataset.cle));
     b.setAttribute("aria-pressed", String(jai.has(b.dataset.cle)));
     rafraichir();
@@ -437,7 +376,7 @@ export function burstHeart(btn) {
    lisible si elle revient. Elle ne quitte jamais le DOM (cf. ordonner). */
 function finishLeave(el) {
   if (!el.classList.contains("card-leave")) return;
-  mouvement?.annuler(el, "sortie");
+  anime?.annuler(el, "sortie");
   el.classList.remove("card-leave");
   el.inert = false;
   el.removeAttribute("aria-hidden");
@@ -461,12 +400,9 @@ function ordonner(grid, voulues) {
 }
 
 /* Filtre la grille. Les cartes restent dans le DOM (cf. ordonner) : écartées, elles sortent
-   sur place puis sont cachées ; les autres changent d'ordre et de place par flip() du
-   socle, qui les fait glisser de leur ancienne place à la nouvelle (translate, jamais de
-   transform qui reste) et fait entrer en douceur, échelonnées, celles qui reviennent.
-   Pas sortir() pour les sortantes : il retire l'élément du DOM, et une carte retirée puis
-   recréée est le « candidat LCP qui disparaît » que ordonner() a supprimé. Mouvement
-   réduit, ou socle pas encore arrivé : tout se pose d'un coup. */
+   sur place puis sont cachées ; les autres changent d'ordre et de place (anime.filtrer, qui
+   passe par flip() du socle). Mouvement réduit, ou mouvement pas encore arrivé : tout se pose
+   d'un coup. */
 function applyFilter(animate) {
   const grid = document.getElementById("grid");
   if (!grid) return;
@@ -497,7 +433,7 @@ function applyFilter(animate) {
   const wantedSet = new Set(wanted);
   const cards = [...cardOf.values()];
 
-  if (!animate || !mouvement || REDUCE_MOTION.matches) {
+  if (!animate || !anime || REDUCE_MOTION.matches) {
     for (const el of cards) { finishLeave(el); el.classList.toggle("gone", !wantedSet.has(el)); }
     ordonner(grid, wanted);
     return;
@@ -505,25 +441,8 @@ function applyFilter(animate) {
 
   /* Les cartes à l'écran : ni cachées, ni déjà en train de sortir. */
   const alEcran = () => cards.filter(el => !el.classList.contains("gone") && !el.classList.contains("card-leave"));
-  mouvement.flip(alEcran, () => {
-    const sortantes = alEcran().filter(el => !wantedSet.has(el));
-    /* Mesurer toutes les sortantes avant d'en écrire une : elles quittent le flux, les autres remontent. */
-    const boite = grid.getBoundingClientRect();
-    const places = sortantes.map(el => el.getBoundingClientRect());
-    sortantes.forEach((el, i) => {
-      el.style.position = "absolute";
-      el.style.margin = "0";
-      el.style.width = places[i].width + "px";
-      el.style.left = places[i].left - boite.left + "px";
-      el.style.top = places[i].top - boite.top + "px";
-      el.classList.add("card-leave");
-      /* Plus focalisable ni lue dès le début de sa sortie (cf. sortir() du socle). */
-      el.inert = true;
-      el.setAttribute("aria-hidden", "true");
-      mouvement.animer(el, [{ opacity: 1, translate: "0 0", scale: "1" }, { opacity: 0, translate: "0 -8px", scale: "0.94" }],
-        { cle: "sortie", duree: "courte", easing: "entree", reprise: false }).then(fini => { if (fini) finishLeave(el); });
-    });
+  anime.filtrer(alEcran, () => alEcran().filter(el => !wantedSet.has(el)), grid, () => {
     for (const el of wanted) { finishLeave(el); el.classList.remove("gone"); }
     ordonner(grid, wanted);
-  });
+  }, finishLeave);
 }
