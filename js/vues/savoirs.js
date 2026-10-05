@@ -1,7 +1,8 @@
 /* L'onglet Savoirs : le catalogue des fondamentaux, leur page, leur feuille et l'astuce qui y renvoie. */
 
 import { state } from "../core/etat.js";
-import { CERTITUDES, figuresDe, fondById, fondMatches, fondsDe, fondsTous, recettesDuFond } from "../core/fonds.js";
+import { CERTITUDES, fondById, fondsDe, fondsTous } from "../core/fonds.js";
+import { figuresDe, fondMatches, recettesDuFond } from "../core/savoirs.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";

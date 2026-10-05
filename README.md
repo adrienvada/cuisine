@@ -487,7 +487,8 @@ js/core/format.js       Durées, quantités à l'échelle, dates, horloge, norma
 js/core/html.js         esc(), html`…`, raw()
 js/core/icones.js       Les icônes SVG
 js/core/recettes.js     Temps, verdicts, séances cuisinées, version composée (ingrédients et étapes effectifs)
-js/core/fonds.js        Les fondamentaux vus des recettes, et inversement
+js/core/fonds.js        Les fondamentaux vus des recettes : identifiants, chargement à la demande (avec les figures), certitudes
+js/core/savoirs.js      Ce que lisent les pages des Savoirs, hors du chemin de l'accueil : figures d'un savoir, recettes qui l'emploient, recherche
 js/core/recherche.js    Recherche de l'accueil : texte normalisé, filtres de régime, de temps et de saison, ingrédients du « J'ai… »
 js/core/adaptation.js   Allergènes d'une version, bornes des portions et des convives (PORTIONS_MIN/MAX, CONVIVES_MAX), portions permises, moule
 js/core/liens.js        Une version de recette dans l'adresse (?p=…&c=…&a=…), dans les deux sens

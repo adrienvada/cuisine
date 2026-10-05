@@ -2,7 +2,8 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fondById, fondsDe, fondamentauxCharges, recettesDuFond } from "../../js/core/fonds.js";
+import { fondById, fondsDe, fondamentauxCharges } from "../../js/core/fonds.js";
+import { recettesDuFond } from "../../js/core/savoirs.js";
 import { requeteDeVersion, versionDeRequete } from "../../js/core/liens.js";
 
 /* Pas de donnees.mjs ici : ce fichier vérifie justement ce que le carnet fait

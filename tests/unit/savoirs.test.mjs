@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { FONDAMENTAUX } from "./donnees.mjs";
 
-const { fondMatches } = await import("../../js/core/fonds.js");
+const { fondMatches } = await import("../../js/core/savoirs.js");
 
 const maillard = FONDAMENTAUX.find(f => f.id === "maillard");
 

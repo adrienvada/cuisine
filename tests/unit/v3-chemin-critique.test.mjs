@@ -27,7 +27,9 @@ test("le graphe statique de js/main.js n'emporte rien de ce que l'accueil n'util
   const horsChemin = [
     "js/ui/minuteurs.js", "js/ui/partage.js", "js/core/planning.js", "js/core/cuisine.js",
     "js/vues/reglages.js", "js/vues/courses.js", "js/vues/fiche.js", "js/vues/cuisine.js", "js/vues/menu.js",
-    "js/vues/savoirs.js", "js/vues/journal.js", "js/sync.js", "js/ui/miseajour.js", "js/ui/qr.js", "js/ui/voix.js"
+    "js/vues/savoirs.js", "js/vues/journal.js", "js/sync.js", "js/ui/miseajour.js", "js/ui/qr.js", "js/ui/voix.js",
+    // Les figures des savoirs et ce que seules leurs pages lisent (core/fonds.js, lui, sert au routeur et à la recherche).
+    "js/core/savoirs.js", "js/ui/figures.js"
   ];
   const presents = horsChemin.filter(m => graphe.includes(m));
   assert.deepEqual(presents, [], "ces modules reviennent sur le chemin de l'accueil : voir README, « Performance »");
