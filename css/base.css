@@ -170,7 +170,7 @@ a { color: var(--green); }
   z-index: 50;
 }
 
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) and (background: color-mix(in srgb, red 50%, transparent)) {
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .tabbar {
     background: color-mix(in srgb, var(--card) 86%, transparent);
     -webkit-backdrop-filter: blur(16px) saturate(1.15);
@@ -203,6 +203,8 @@ a { color: var(--green); }
 
 /* Sa pastille (.tab-pill, navigation.css) prend le fond quand elle est posée. */
 .tabbar a.active { color: var(--green-deep); background: var(--green-tint); }
+
+.tab-pill { display: none; }
 
 .cart-wrap { position: relative; display: inline-flex; }
 

@@ -70,6 +70,16 @@
   .btn.secondary:hover:not(:disabled), .btn-icon:hover { border-color: var(--green); }
 }
 
+/* Les boutons ronds des en-têtes (.topbar) posent une ombre fine qui se lève au survol ; les
+   états vides (.empty) retombent à la ligne en équilibre plutôt qu'en veuve. */
+.btn-icon { box-shadow: var(--ombre-0); }
+
+@media (hover: hover) {
+  .btn-icon:hover { box-shadow: var(--ombre-1); }
+}
+
+.empty { text-wrap: balance; }
+
 /* L'anneau de focus se resserre sur l'élément quand le focus arrive (le trait, lui, est
    tout de suite là : on ne perd jamais de vue où l'on est). Un élément qui a déjà sa propre
    animation, plus loin dans la cascade, garde la sienne. */
@@ -98,7 +108,7 @@ body.avec-minuteurs:not(.cooking):has(.actions) .toast { bottom: calc(154px + va
 
 /* La zone de toucher de la poignée déborde de 16 px autour d'elle (feuilles-geste.js) ; le
    fond suit le doigt sans transition pendant le geste. */
-.sheet-grip { cursor: grab; }
+.sheet-grip { cursor: grab; user-select: none; -webkit-user-select: none; }
 
 .sheet-grip::before { content: ""; position: absolute; inset: -16px -64px -12px; }
 

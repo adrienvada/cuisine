@@ -401,8 +401,10 @@ js/core/sens.js         Le sens d'une navigation (pur) : onglet, détail ou mode
 js/core/ressort.js      Le ressort amorti (pur) : durée, points, linear() ; durées et courbes du mouvement, résistance élastique, vitesse d'un geste
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
-js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
+js/ui/toast.js          Aiguillage du message passager (toast()) et pastilles des onglets : la seule part du message sur le chemin de l'accueil
+js/ui/toast-corps.js    Le message passager lui-même (avec bouton d'action facultatif), son décompte, son focus et sa voix ; chargé après le premier affichage ou au premier message
 js/ui/toast-mouvement.js  Mouvement des messages (trait du temps restant, écarter du doigt) et des pastilles (chiffre qui roule, saut), chargé au repos
+js/ui/confirmation.js   La question à deux issues (confirmer()), chargée à la première question
 js/ui/feuilles-geste.js Glisser la poignée d'une feuille pour la fermer, chargé à l'ouverture d'une feuille
 js/ui/transitions.js    Transitions de vue (View Transitions), photo partagée, pastille et icônes de la barre d'onglets, chargé après le premier affichage
 js/ui/annonces.js       L'unique région live : annoncer(texte)

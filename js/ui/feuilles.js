@@ -1,7 +1,5 @@
 /* Les feuilles (fenêtres qui montent du bas) : chacune est une entrée d'historique, le geste de retour la referme. */
 
-import { esc } from "../core/html.js";
-
 /* Une feuille est un état, et sur téléphone le geste de retour est la façon de
    refermer un état. Chaque feuille empile donc une entrée d'historique — à la
    même adresse, donc sans réveiller le routeur : le mode cuisine y garde son
@@ -111,31 +109,6 @@ export function closeSheets() {
   document.querySelectorAll(".sheet-backdrop").forEach(f => retirer(f, true));
 }
 
-/* La question à deux issues, sans confirm() : une feuille avec deux boutons.
-   `detail` est du balisage déjà sûr (le résultat d'un html`…`) ; le titre et le
-   texte sont échappés ici. La réponse arrive une fois la feuille réellement retirée, par
-   quelque chemin qu'elle se soit fermée — le geste de retour vaut « non ». */
-export function confirmer({ titre, texte, detail = "", oui = "Confirmer", non = "Annuler", danger = false }) {
-  return new Promise(resolve => {
-    const backdrop = document.createElement("div");
-    backdrop.className = "sheet-backdrop confirmation";
-    backdrop.innerHTML = `
-      <div class="sheet" role="alertdialog" aria-modal="true" aria-label="${esc(titre)}">
-        <div class="sheet-grip"></div>
-        <h3>${esc(titre)}</h3>
-        ${texte ? `<p class="sheet-sub conf-texte">${esc(texte)}</p>` : ""}
-        ${detail}
-        <div class="conf-boutons">
-          <button type="button" class="btn secondary" data-non autofocus>${esc(non)}</button>
-          <button type="button" class="btn primary${danger ? " danger" : ""}" data-oui>${esc(oui)}</button>
-        </div>
-      </div>`;
-    let reponse = false;
-    backdrop.addEventListener("click", e => {
-      if (e.target.closest("[data-oui]")) reponse = true;
-      else if (e.target !== backdrop && !e.target.closest("[data-non]")) return;
-      fermerFeuille();
-    });
-    ouvrirFeuille(backdrop, () => resolve(reponse));
-  });
-}
+/* La question à deux issues, sans confirm() : une feuille avec deux boutons
+   (js/ui/confirmation.js, chargé à la première question). Rend la promesse de la réponse. */
+export const confirmer = options => import("./confirmation.js").then(m => m.confirmer(options));

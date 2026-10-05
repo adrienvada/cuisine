@@ -109,7 +109,7 @@ test("base.css : la barre d'onglets est un papier calque avec repli opaque, sans
   const barre = /\.tabbar\s*\{[^}]*\}/.exec(base)[0];
   assert.match(barre, /background:\s*var\(--card\)/);
   assert.doesNotMatch(base, /html\[data-theme="dark"\] \.tabbar/);
-  assert.match(base, /@supports[^{]*backdrop-filter[^{]*color-mix[^{]*\{\s*\.tabbar\s*\{[^}]*color-mix\(in srgb, var\(--card\)/);
+  assert.match(base, /@supports[^{]*backdrop-filter[^{]*\{\s*\.tabbar\s*\{[^}]*color-mix\(in srgb, var\(--card\)/);
 });
 
 test("base.css : le fond des feuilles est un calque dont l'opacité suit le doigt, et la poignée se voit", () => {
@@ -127,16 +127,16 @@ test("base.css : le toast arrive à ressort et repart plus vite qu'il n'arrive",
 
 /* ---------- Hors du chemin de l'accueil ---------- */
 
-test("le chemin de l'accueil n'emporte ni les transitions, ni le mouvement des messages, ni le geste des feuilles", () => {
+test("le chemin de l'accueil n'emporte ni les transitions, ni le message lui-même, ni son mouvement, ni le geste des feuilles", () => {
   const graphe = grapheStatique(racine, "js/main.js");
-  for (const m of ["js/ui/transitions.js", "js/ui/toast-mouvement.js", "js/ui/feuilles-geste.js", "js/core/sens.js", "js/ui/mouvement.js", "js/ui/geste.js"]) {
+  for (const m of ["js/ui/transitions.js", "js/ui/toast-corps.js", "js/ui/toast-mouvement.js", "js/ui/feuilles-geste.js", "js/core/sens.js", "js/ui/mouvement.js", "js/ui/geste.js"]) {
     assert.ok(!graphe.includes(m), `${m} ne doit pas être importé statiquement`);
   }
   assert.doesNotMatch(lire("index.html"), /navigation\.css"[^>]*>(?![\s\S]*<\/noscript>)/, "navigation.css n'est dans la page que pour le repli sans JavaScript");
 });
 
 test("le routeur, les messages et les feuilles chargent leur mouvement par import(), jamais en tête de module", () => {
-  for (const [f, cible] of [["js/ui/routeur.js", "transitions"], ["js/ui/toast.js", "toast-mouvement"], ["js/ui/feuilles.js", "feuilles-geste"]]) {
+  for (const [f, cible] of [["js/ui/routeur.js", "transitions"], ["js/ui/toast.js", "toast-corps"], ["js/ui/toast-corps.js", "toast-mouvement"], ["js/ui/feuilles.js", "feuilles-geste"]]) {
     const src = sansCommentaires(lire(f));
     assert.match(src, new RegExp(`import\\("\\./${cible}\\.js"\\)`), f);
     assert.doesNotMatch(src, new RegExp(`^import[^\\n]*${cible}`, "m"), f);
