@@ -7,6 +7,8 @@ import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { byId } from "../core/recettes.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { vibrer } from "../ui/geste.js";
+import { animer, flip, sortir } from "../ui/mouvement.js";
 import { toast } from "../ui/toast.js";
 
 /* ---------- Photos : IndexedDB, sur l'appareil seulement ---------- */
@@ -138,16 +140,23 @@ function ligneHtml(e) {
   </li>`;
 }
 
+/* L'état vide : une feuille de basilic au trait qui se dessine, puis la phrase. */
+const videHtml = () => html`<div class="jr-vide">
+    <span class="jr-vide-illo trace" aria-hidden="true">${raw(ILLO.D.leaf)}</span>
+    <p>Rien de noté pour l'instant : garde ici la date, la note et la photo de chaque fois que tu la cuisines.</p>
+  </div>`;
+
 export function dessinerJournal(zone, r) {
   if (!zone) return;
   zoneCourante = { zone, r };
   zone.classList.add("section", "jr-zone");
   const liste = entreesDe(r.id);
+  libererUrls();
   zone.innerHTML = html`
     <h2><span class="h-title"><span class="h-deco">${raw(ICON.chef)}</span>Journal</span></h2>
     ${liste.length
       ? raw(html`<ul class="jr-liste">${liste.map(e => raw(ligneHtml(e)))}</ul>`)
-      : raw(html`<p class="jr-vide">Rien de noté pour l'instant : garde ici la date, la note et la photo de chaque fois que tu la cuisines.</p>`)}
+      : raw(videHtml())}
     <button type="button" class="btn secondary jr-ajout" id="jr-ajout">Ajouter au journal</button>`;
   zone.querySelector("#jr-ajout").addEventListener("click", () => ouvrirJournal(r.id));
   zone.querySelector(".jr-liste")?.addEventListener("click", e => {
@@ -160,10 +169,12 @@ export function dessinerJournal(zone, r) {
 }
 
 /* Les photos arrivent après le texte : la fiche s'affiche tout de suite, et une
-   photo absente de cet appareil se dit au lieu de rester un trou. */
+   photo absente de cet appareil se dit au lieu de rester un trou. Une vignette déjà
+   chargée n'est pas retouchée (une entrée qui s'ajoute ne fait pas clignoter les autres).
+   La photo se fond sur le fond de sa case une fois décodée, au lieu de surgir d'un coup. */
 async function chargerVignettes(zone) {
-  libererUrls();
-  for (const bouton of zone.querySelectorAll("[data-photo]")) {
+  for (const bouton of zone.querySelectorAll("[data-photo]:not([data-charge])")) {
+    bouton.dataset.charge = "1";
     const blob = await photoLire(bouton.dataset.photo);
     if (!bouton.isConnected) continue;
     if (!blob) {
@@ -175,12 +186,30 @@ async function chargerVignettes(zone) {
     }
     const url = URL.createObjectURL(blob);
     urlsVignettes.push(url);
-    bouton.innerHTML = `<img src="${url}" alt="Photo du plat" decoding="async">`;
+    const img = new Image();
+    img.alt = "Photo du plat";
+    img.decoding = "async";
+    img.addEventListener("load", () => animer(img, [{ opacity: 0 }], { duree: "moyenne", easing: "sortie", cle: "photo" }), { once: true });
+    img.src = url;
+    bouton.replaceChildren(img);
   }
 }
 
+/* La liste suit l'état sans être redessinée : les lignes déjà là sont reprises telles quelles, la
+   nouvelle arrive à sa place et les autres glissent pour lui faire de la place (flip). Seuls
+   le passage du vide à la première entrée, et l'inverse, redessinent la section. */
 function actualiser() {
-  if (zoneCourante && zoneCourante.zone.isConnected) dessinerJournal(zoneCourante.zone, zoneCourante.r);
+  if (!zoneCourante || !zoneCourante.zone.isConnected) return;
+  const { zone, r } = zoneCourante;
+  const ul = zone.querySelector(".jr-liste");
+  const liste = entreesDe(r.id);
+  if (!ul || !liste.length) return dessinerJournal(zone, r);
+  const existantes = new Map([...ul.children].map(li => [li.dataset.id, li]));
+  const modele = document.createElement("template");
+  modele.innerHTML = liste.map(ligneHtml).join("");
+  const voulues = [...modele.content.children].map(n => existantes.get(n.dataset.id) ?? n);
+  flip(ul, () => ul.replaceChildren(...voulues));
+  chargerVignettes(zone);
 }
 
 /* Supprimer retire l'entrée tout de suite ; la photo, elle, ne part qu'une fois le
@@ -193,8 +222,17 @@ function supprimerEntree(id) {
   if (i < 0) return;
   const [entree] = liste.splice(i, 1);
   save();
-  actualiser();
   protegees.add(entree.id);
+  /* La ligne sort en glissant (sortir la rend inerte tout de suite), puis les suivantes remontent. Le
+     focus qu'elle portait passe à sa voisine, ou au bouton d'ajout, avant qu'elle ne s'en aille. */
+  const ligne = zoneCourante?.zone.isConnected ? zoneCourante.zone.querySelector(`.jr-entree[data-id="${id}"]`) : null;
+  if (ligne) {
+    if (ligne.contains(document.activeElement)) {
+      const voisine = ligne.nextElementSibling || ligne.previousElementSibling;
+      (voisine?.querySelector("[data-suppr]") || zoneCourante.zone.querySelector("#jr-ajout"))?.focus({ preventScroll: true });
+    }
+    sortir(ligne).then(() => { if (!entreesDe(zoneCourante.r.id).length) actualiser(); });
+  } else actualiser();
   const purge = setTimeout(() => {
     protegees.delete(entree.id);
     if (entree.photo) photoSupprimer(entree.id);
@@ -329,6 +367,7 @@ export function ouvrirJournal(rid) {
       save();
       fermerFeuille();
       actualiser();
+      vibrer("tic");
       toast(echecPhoto ? "Ajouté au journal, sans la photo (stockage indisponible)" : "Ajouté au journal");
       fini = true;
     } finally {

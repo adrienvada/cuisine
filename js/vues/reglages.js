@@ -7,6 +7,8 @@ import {
   apercu, contenuExport, instantane, lireSauvegarde, nomFichier, remplacerEtat, restaurerEtat
 } from "../core/sauvegarde.js";
 import { confirmer, fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { tracer } from "../ui/mouvement.js";
+import { reglerVibrations, vibrationsActives, vibrer } from "../ui/geste.js";
 import { chargerSync } from "../ui/scripts.js";
 import { route } from "../ui/routeur.js";
 import { choisirTheme, modeTheme } from "../ui/theme.js";
@@ -44,13 +46,36 @@ const MODES = [
   ["sombre", "Sombre"]
 ];
 
+/* La pastille est un seul élément derrière les trois choix : elle glisse de l'un à l'autre
+   (translate, ressort vif) au lieu que le fond saute d'un bouton à l'autre. Les boutons
+   ne sont dessinés qu'une fois : le focus et la pastille survivent à un choix. */
 function themeHtml() {
   const actuel = modeTheme();
   return html`
-    <div class="reg-choix">
+    <div class="reg-choix" style="--n:${MODES.findIndex(([id]) => id === actuel)}">
+      <span class="reg-pastille" aria-hidden="true"></span>
       ${MODES.map(([id, nom]) => raw(html`<button type="button" class="reg-mode" data-mode="${id}" aria-pressed="${String(actuel === id)}">${nom}</button>`))}
     </div>
     <p class="reg-aide">Automatique suit le réglage de ton téléphone, y compris quand il change dans la journée.</p>`;
+}
+
+function majChoixTheme(zone) {
+  const actuel = modeTheme();
+  zone.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === actuel)));
+  zone.querySelector(".reg-choix").style.setProperty("--n", MODES.findIndex(([id]) => id === actuel));
+}
+
+/* Un interrupteur : un vrai bouton role="switch" (Espace et Entrée le basculent, les
+   lecteurs d'écran disent « activé / désactivé »), dont la poignée glisse avec un ressort.
+   La zone tactile fait 44 px de haut, la piste en dessine 32. */
+function vibrationsHtml() {
+  const actives = vibrationsActives();
+  return html`
+    <div class="reg-ligne">
+      <span class="reg-ligne-txt" id="reg-vib-nom">Vibrations</span>
+      <button type="button" class="reg-switch" id="reg-vib" role="switch" aria-checked="${String(actives)}" aria-labelledby="reg-vib-nom" aria-describedby="reg-vib-aide"><span class="reg-poignee" aria-hidden="true"></span></button>
+    </div>
+    <p class="reg-aide" id="reg-vib-aide">Un petit tic quand tu coches ou ajoutes, et une alerte quand un minuteur sonne. Ce réglage ne concerne que cet appareil.</p>`;
 }
 
 function sauvegardeHtml() {
@@ -77,6 +102,10 @@ export function ouvrirReglages() {
         <h4 id="reg-h-theme">Apparence</h4>
         <div id="reg-theme">${raw(themeHtml())}</div>
       </section>
+      <section class="reg-bloc" aria-labelledby="reg-h-vib">
+        <h4 id="reg-h-vib">Au toucher</h4>
+        <div id="reg-vibrations">${raw(vibrationsHtml())}</div>
+      </section>
       <section class="reg-bloc" aria-labelledby="reg-h-sync" id="reg-sync-bloc" hidden>
         <h4 id="reg-h-sync">Carnet partagé</h4>
         <div id="reg-sync"></div>
@@ -94,13 +123,12 @@ export function ouvrirReglages() {
     if (e.target === backdrop || e.target.closest("[data-fermer]")) return fermerFeuille();
     const mode = e.target.closest("[data-mode]");
     if (mode) {
-      choisirTheme(mode.dataset.mode);
-      q("#reg-theme").innerHTML = themeHtml();
-      /* Le bouton vient d'être redessiné : le focus clavier le suit. */
-      q(`[data-mode="${mode.dataset.mode}"]`).focus();
+      choisirTheme(mode.dataset.mode, mode);   // le cercle part du bouton touché
+      majChoixTheme(q("#reg-theme"));
       return;
     }
-    if (e.target.closest("[data-exporter]")) return exporterCarnet();
+    if (e.target.closest("#reg-vib")) return basculerVibrations(q("#reg-vib"));
+    if (e.target.closest("[data-exporter]")) return exporterCarnet(q("[data-exporter]"));
     if (e.target.closest("[data-importer]")) return q("#reg-fichier").click();
   });
   q("#reg-fichier").addEventListener("change", async e => {
@@ -121,6 +149,15 @@ export function ouvrirReglages() {
   });
 
   ouvrirFeuille(backdrop, () => { if (desabonner) desabonner(); });
+}
+
+/* Les vibrations sont une préférence de l'appareil (geste.js), pas de l'état du carnet. En
+   l'activant on sent tout de suite ce que ça donne ; en les coupant, rien ne vibre. */
+function basculerVibrations(bouton) {
+  const oui = bouton.getAttribute("aria-checked") !== "true";
+  reglerVibrations(oui);
+  bouton.setAttribute("aria-checked", String(oui));
+  if (oui) vibrer("tic");
 }
 
 /* ---------- Carnet partagé ---------- */
@@ -249,7 +286,28 @@ function blocSynchro(cs, zone) {
 
 /* ---------- Sauvegarde ---------- */
 
-function exporterCarnet() {
+/* « C'est fait » : la coche se trace dans le bouton, puis le libellé revient. Le nom
+   accessible reste celui du bouton (la coche est décorative, le texte « Exporté » s'y
+   ajoute le temps du retour). */
+const COCHE = '<svg class="reg-coche" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const retoursCoche = new WeakMap();
+
+function cocher(bouton, texte) {
+  if (!bouton?.isConnected) return;
+  clearTimeout(retoursCoche.get(bouton));
+  if (!bouton.dataset.libelle) bouton.dataset.libelle = bouton.innerHTML;
+  bouton.classList.add("fait");
+  bouton.innerHTML = `${COCHE}<span class="reg-fait-txt">${texte}</span>`;
+  tracer(bouton);
+  retoursCoche.set(bouton, setTimeout(() => {
+    if (!bouton.isConnected) return;
+    bouton.classList.remove("fait", "trace");
+    bouton.innerHTML = bouton.dataset.libelle;
+    delete bouton.dataset.libelle;
+  }, 1800));
+}
+
+function exporterCarnet(bouton) {
   const blob = new Blob([contenuExport(state)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const lien = document.createElement("a");
@@ -260,6 +318,8 @@ function exporterCarnet() {
   lien.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
   toast("Carnet exporté");
+  cocher(bouton, "Exporté");
+  vibrer("tic");
 }
 
 const MAX_IMPORT = 10 * 1024 * 1024;

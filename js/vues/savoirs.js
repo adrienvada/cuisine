@@ -5,6 +5,7 @@ import { CERTITUDES, fondById, fondMatches, fondsDe, fondsTous, recettesDuFond }
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
+import { flip, tracer } from "../ui/mouvement.js";
 import { shareFond } from "../ui/partage.js";
 import { app } from "../ui/routeur.js";
 
@@ -114,6 +115,12 @@ export function openFondSheet(id) {
       ${fondBodyHtml(f)}
       <button type="button" class="btn secondary f-close" id="f-close">Fermer</button>
     </div>`;
+  /* Le contenu arrive en échelon court sous le titre (.arrive, 35 ms par rang, sept au plus :
+     le reste arrive avec le dernier) ; la feuille elle-même glisse déjà, rien ne l'attend. */
+  backdrop.querySelectorAll(".sheet > :not(.sheet-grip):not(.f-top)").forEach((el, i) => {
+    el.style.setProperty("--i", i);
+    el.classList.add("arrive");
+  });
   /* Un lien vers une recette ne navigue pas tout de suite : on dépile d'abord
      l'entrée de la feuille, sinon les deux gestes se croisent et l'un annule
      l'autre. La navigation se fait donc une fois la feuille retirée. */
@@ -162,12 +169,32 @@ function listeFondamentaux(q) {
     <p class="f-compte">${fondsTous().length} ${fondsTous().length > 1 ? "fondamentaux" : "fondamental"} dans le carnet.</p>`;
 }
 
+/* Les brins du bandeau se tracent la première fois qu'on ouvre l'onglet dans la session ; en
+   revenant, ils sont déjà là. (Le module reste en mémoire tant que la page n'est pas rechargée.) */
+let bandeauTrace = false;
+
+/* La recherche réordonne la liste sans la redessiner de zéro : les cartes déjà là
+   sont reprises telles quelles (le même élément), donc flip() les voit glisser de leur ancienne
+   place à la nouvelle ; les nouvelles arrivent en douceur, les absentes s'en vont. */
+function reconcilier(zone, texte) {
+  const anciens = new Map([...zone.querySelectorAll(".f-item")].map(a => [a.getAttribute("href"), a]));
+  const modele = document.createElement("template");
+  modele.innerHTML = texte;
+  modele.content.querySelectorAll(".f-item").forEach(n => {
+    const ancien = anciens.get(n.getAttribute("href"));
+    if (ancien) n.replaceWith(ancien);
+  });
+  zone.replaceChildren(modele.content);
+}
+
 export function renderFondamentaux() {
   const q = state.fondQuery || "";
+  const tracee = !bandeauTrace;
+  bandeauTrace = true;
 
   app.innerHTML = html`
     <header class="masthead fade-in">
-      <div class="mast-row">${raw(ILLO.D.sprig)}<p class="eyebrow">Ce qui sert</p>${raw(ILLO.D.sprigR)}</div>
+      <div class="mast-row${tracee ? " trace" : ""}">${raw(ILLO.D.sprig)}<p class="eyebrow">Ce qui sert</p>${raw(ILLO.D.sprigR)}</div>
       <h1>Savoirs</h1>
       <p class="byline"><span>les mécanismes du <span class="u">carnet</span></span></p>
     </header>
@@ -185,7 +212,7 @@ export function renderFondamentaux() {
   const zone = document.getElementById("f-resultats");
   champ.addEventListener("input", () => {
     state.fondQuery = champ.value;
-    zone.innerHTML = listeFondamentaux(champ.value);
+    flip(() => zone.querySelectorAll(".f-item"), () => reconcilier(zone, listeFondamentaux(champ.value)));
   });
 }
 
@@ -195,11 +222,31 @@ export function renderFondamental(f) {
       <a class="btn-icon" href="#/fondamentaux" data-retour="#/fondamentaux">${ICON.back} Savoirs</a>
       <button class="btn-icon" id="f-share-page">${ICON.share} Partager</button>
     </div>
+    <div class="f-lecture" aria-hidden="true"></div>
     <header class="f-head fade-in">
       <p class="f-fam-tag">${f.famille}</p>
       <h1><span class="f-emoji">${f.emoji}</span>${f.t}</h1>
+      <div class="f-orne" aria-hidden="true">${ILLO.D.flourish}</div>
     </header>
     <div class="f-page">${fondBodyHtml(f, 2)}</div>
+    <div class="f-orne f-orne-fin" aria-hidden="true">${ILLO.D.sprig}${ILLO.D.leaf}${ILLO.D.sprigR}</div>
   `;
   document.getElementById("f-share-page").addEventListener("click", () => shareFond(f.id));
+  tracerALEntree(app.querySelectorAll(".f-orne"));
+}
+
+/* Les ornements se tracent quand ils entrent dans l'écran, une seule fois. Avant, leurs traits
+   sont cachés (css/savoirs.css, :not(.trace)) ; sans IntersectionObserver ils se tracent tout
+   de suite, et le moindre échec les laisse visibles, jamais invisibles. */
+function tracerALEntree(elements) {
+  const ici = [...elements];
+  if (!("IntersectionObserver" in window)) return ici.forEach(el => tracer(el));
+  const obs = new IntersectionObserver(entrees => {
+    for (const e of entrees) {
+      if (!e.isIntersecting) continue;
+      obs.unobserve(e.target);
+      tracer(e.target);
+    }
+  }, { threshold: 0.6 });
+  ici.forEach(el => obs.observe(el));
 }

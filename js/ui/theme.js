@@ -35,13 +35,52 @@ function appliquer() {
   if (meta) meta.setAttribute("content", dark ? "#15180F" : "#42603A");
 }
 
-export function choisirTheme(mode) {
+/* Le nouveau thème s'étend en cercle depuis `origine` (le bouton touché : un élément ou
+   { x, y }). C'est une transition de vue, repérée par html[data-vt="theme"] (css/reglages.css
+   en règle le cercle) : le routeur a ses propres types, et on ne s'y mêle pas, on ne
+   démarre pas par-dessus l'un des siens. Le cercle grandit jusqu'au coin le plus
+   éloigné (--vt-r). Sans l'API, en mouvement réduit, ou si l'aspect ne change pas
+   (Automatique quand le système est déjà dans ce thème), le thème change d'un coup. */
+function etendreEnCercle(origine) {
+  const racine = document.documentElement;
+  const r = origine instanceof Element ? origine.getBoundingClientRect() : null;
+  const x = r ? r.left + r.width / 2 : (origine?.x ?? innerWidth / 2);
+  const y = r ? r.top + r.height / 2 : (origine?.y ?? innerHeight / 2);
+  const rayon = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  racine.dataset.vt = "theme";
+  racine.style.setProperty("--vt-x", x + "px");
+  racine.style.setProperty("--vt-y", y + "px");
+  racine.style.setProperty("--vt-r", Math.ceil(rayon) + "px");
+  const fin = () => {
+    if (racine.dataset.vt !== "theme") return;
+    delete racine.dataset.vt;
+    racine.style.removeProperty("--vt-x");
+    racine.style.removeProperty("--vt-y");
+    racine.style.removeProperty("--vt-r");
+  };
+  try {
+    const transition = document.startViewTransition(appliquer);
+    transition.finished.then(fin, fin);
+  } catch {
+    appliquer();
+    fin();
+  }
+}
+
+/* Rend true si la bascule se fait en cercle (la mise à jour de la page arrive alors à
+   l'image suivante), false si elle est faite à l'instant même. */
+export function choisirTheme(mode, origine) {
+  const avant = document.documentElement.getAttribute("data-theme") === "dark";
   try {
     if (mode === "sombre") localStorage.setItem("theme", "dark");
     else if (mode === "clair") localStorage.setItem("theme", "light");
     else localStorage.removeItem("theme");
   } catch {}
-  appliquer();
+  const cercle = !!origine && typeof document.startViewTransition === "function" && !mouvementReduit()
+    && !document.documentElement.dataset.vt && themeSombre(mode) !== avant;
+  if (cercle) etendreEnCercle(origine);
+  else appliquer();
+  return cercle;
 }
 
 export function initialiserTheme() {

@@ -53,6 +53,17 @@
 [data-sync="attente"] > .reglages-point,
 .reglages-point[data-sync="attente"] { border: 2px solid var(--green); background: transparent; }
 
+/* Pendant la connexion, l'anneau respire doucement (opacité et échelle, rien d'autre) ; dès que
+   l'état change, l'animation s'arrête avec le sélecteur et le point se fige. */
+@media not (prefers-reduced-motion: reduce) {
+  [data-sync="attente"] > .reglages-point,
+  .reglages-point[data-sync="attente"] { animation: reglages-respire 1.8s var(--e-standard) infinite; }
+}
+
+@keyframes reglages-respire {
+  50% { opacity: 0.35; scale: 0.8; }
+}
+
 /* ---------- La feuille ---------- */
 
 .reglages-sheet .sheet { max-height: 88vh; }
@@ -90,8 +101,10 @@
 
 .reg-aide { margin: 10px 0 12px; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
 
-/* Trois choix côte à côte, comme un sélecteur segmenté. */
+/* Trois choix côte à côte, comme un sélecteur segmenté. La pastille derrière glisse sous le
+   choix actif : le tiers de la piste, moins les gouttières (3 px de marge, 3 px entre deux). */
 .reg-choix {
+  position: relative;
   display: flex;
   padding: 3px;
   gap: 3px;
@@ -100,7 +113,21 @@
   border: 1px solid var(--line);
 }
 
+.reg-pastille {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 12px) / 3);
+  border-radius: 11px;
+  background: var(--card);
+  box-shadow: var(--ombre-1);
+  translate: calc(var(--n, 0) * (100% + 3px)) 0;
+  transition: translate var(--ressort-vif-duree) var(--ressort-vif);
+}
+
 .reg-mode {
+  position: relative;
   flex: 1;
   min-height: 44px;
   padding: 0 6px;
@@ -110,9 +137,59 @@
   color: var(--ink-soft);
   font-size: 14.5px;
   font-weight: 600;
+  transition: color var(--d-courte) var(--e-standard);
 }
 
-.reg-mode[aria-pressed="true"] { background: var(--card); color: var(--green-deep); box-shadow: 0 1px 4px rgba(44, 51, 38, 0.18); }
+.reg-mode[aria-pressed="true"] { color: var(--green-deep); }
+
+/* Vibrations : une ligne, un interrupteur. La zone tactile fait 44 px de haut et 56 de large ;
+   la piste, 32 px de haut, est dessinée dedans. */
+.reg-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.reg-ligne-txt { font-size: 16px; font-weight: 600; color: var(--ink); }
+
+.reg-switch {
+  position: relative;
+  flex: none;
+  width: 56px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.reg-switch::before {
+  content: "";
+  position: absolute;
+  inset: 6px 0;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  border: 1px solid var(--champ-bord);
+  box-sizing: border-box;
+  transition: background-color var(--d-courte) var(--e-standard), border-color var(--d-courte) var(--e-standard);
+}
+
+.reg-switch[aria-checked="true"]::before { background: var(--green); border-color: var(--green); }
+
+.reg-poignee {
+  position: absolute;
+  top: 9px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--ombre-1);
+  translate: 0 0;
+  transition: translate var(--ressort-vif-duree) var(--ressort-vif);
+}
+
+.reg-switch[aria-checked="true"] .reg-poignee { translate: 22px 0; }
+.reg-switch:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+/* Export fait : la coche se trace (tracer(), base.css) devant le libellé qui revient ensuite. */
+.btn.fait { color: var(--green-deep); }
+.reg-coche { width: 20px; height: 20px; flex: none; margin-right: 6px; vertical-align: -4px; }
 
 .reg-duo { display: flex; gap: 10px; }
 .reg-duo .btn { min-height: 48px; padding: 12px 10px; font-size: 14.5px; }
@@ -201,4 +278,24 @@ html[data-theme="dark"] .btn.primary.danger { color: var(--sur-vert); }
 
 @media (prefers-reduced-motion: reduce) {
   .sheet-backdrop, .sheet, .toast { animation: none; }
+}
+
+/* ---------- Bascule clair / sombre : le cercle ----------
+   theme.js pose html[data-vt="theme"] et l'origine (--vt-x, --vt-y) puis le rayon qui atteint
+   le coin le plus éloigné (--vt-r). L'ancien thème reste là, immobile ; le nouveau
+   s'ouvre par-dessus en 450 ms. Rien de tout cela ne vaut en mouvement réduit : theme.js ne
+   lance alors pas la transition. */
+@media not (prefers-reduced-motion: reduce) {
+  html[data-vt="theme"]::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
+  html[data-vt="theme"]::view-transition-new(root) {
+    animation: theme-cercle 450ms var(--e-standard) both;
+    mix-blend-mode: normal;
+  }
+  /* Pendant les 450 ms la page reste utilisable : les clics passent à travers les images. */
+  html[data-vt="theme"]::view-transition { pointer-events: none; }
+}
+
+@keyframes theme-cercle {
+  from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 50%)); }
 }
