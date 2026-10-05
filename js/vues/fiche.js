@@ -262,13 +262,16 @@ function majPuces(zone, r) {
    réduit, tout est simplement écrit. */
 function majListe(ul, elements, { creer, patcher, anime }) {
   const existants = new Map([...ul.children].filter(li => !li.inert && li.dataset.cle).map(li => [li.dataset.cle, li]));
-  if (!anime || !existants.size || mouvementReduit()) {
+  if (!anime || !existants.size) {
     ul.replaceChildren(...elements.map(creer));
     return Promise.resolve(true);
   }
   const voulues = new Set(elements.map(x => x.cle));
-  return flip(ul, () => {
-    existants.forEach((li, cle) => { if (!voulues.has(cle)) sortir(li); });
+  /* Même en mouvement réduit les lignes qui restent sont gardées (et mises à jour sur place) :
+     un volet « Pourquoi ça marche » ouvert ne se referme pas. Seuls flip et sortir sont sautés. */
+  const reduit = mouvementReduit();
+  const ranger = () => {
+    existants.forEach((li, cle) => { if (!voulues.has(cle)) { if (reduit) li.remove(); else sortir(li); } });
     let pos = ul.firstElementChild;
     for (const item of elements) {
       while (pos && pos.inert) pos = pos.nextElementSibling;
@@ -277,7 +280,9 @@ function majListe(ul, elements, { creer, patcher, anime }) {
       else ul.insertBefore(li, pos);
       if (existants.has(item.cle)) patcher(li, item);
     }
-  });
+  };
+  if (reduit) { ranger(); return Promise.resolve(true); }
+  return flip(ul, ranger);
 }
 
 /* Des clés stables : le même texte revenu deux fois reçoit un rang. */

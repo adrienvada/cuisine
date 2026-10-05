@@ -649,7 +649,7 @@ html .pick-row .chip.pick {
 
 @supports (background: color-mix(in srgb, red 50%, transparent)) {
   .fb-in {
-    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
     -webkit-backdrop-filter: blur(14px) saturate(1.1);
     backdrop-filter: blur(14px) saturate(1.1);
   }

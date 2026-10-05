@@ -132,6 +132,32 @@ for (const reduit of [false, true]) {
       await expect(bouton).toHaveAttribute("aria-pressed", "false");
     });
 
+    test("« Pourquoi ça marche » reste ouvert quand les portions changent les quantités du texte", async ({ page }) => {
+      await page.goto(QUICHE);
+      const appel = page.locator(".s-cue").first();
+      await appel.scrollIntoViewIfNeeded();
+      await appel.click();
+      await expect(appel).toHaveAttribute("aria-expanded", "true");
+      const nb = await page.locator(".a-savoirs.ouvert").count();
+      await page.locator("#p-plus").click();
+      await expect(page.locator("#p-val")).toHaveText("7 personnes");
+      await pageStable(page);
+      await expect(page.locator(".a-savoirs.ouvert")).toHaveCount(nb);
+      await expect(appel).toHaveAttribute("aria-expanded", "true");
+    });
+
+    test("feuille d'un ingrédient : ses blocs arrivent avec elle (jamais en mouvement réduit)", async ({ page }) => {
+      await page.goto(QUICHE);
+      await page.locator(".ing-ligne").first().click();
+      const blocs = page.locator(".sheet-ing > :not(.sheet-grip)");
+      await expect(blocs.first()).toBeVisible();
+      expect(await blocs.count()).toBeGreaterThan(0);
+      // Neutralisée en réduit : la classe peut rester posée, l'animation, non.
+      const nom = await blocs.first().evaluate(e => getComputedStyle(e).animationName);
+      if (reduit) expect(nom).toBe("none");
+      else await expect(blocs.first()).toHaveClass(/arrive/);
+    });
+
     test("« Cuisiner » : le bouton est le dernier élément activé quand on le touche", async ({ page }) => {
       await page.goto(QUICHE);
       const lien = page.locator(".actions a.btn.primary");
