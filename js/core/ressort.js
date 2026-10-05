@@ -43,7 +43,7 @@ const DUREE_MAX = 4000;
 const arrondi = x => Math.round(x * 1000) / 1000 || 0;   // « || 0 » : jamais « -0 »
 
 /* Écart au repos (x − 1) à l'instant t (secondes) : solution exacte de
-   m·x″ + c·x′ + k·(x − 1) = 0, avec x(0) = 0 et x′(0) = vitesse. */
+   m·x'' + c·x' + k·(x − 1) = 0, avec x(0) = 0 et x'(0) = vitesse. */
 function ecart({ raideur, amortissement, masse, vitesse }) {
   const w0 = Math.sqrt(raideur / masse);
   const zeta = amortissement / (2 * Math.sqrt(raideur * masse));
