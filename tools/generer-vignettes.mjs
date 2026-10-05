@@ -16,14 +16,22 @@
    Source : img/originaux/<id>.jpg s'il existe (un original plus grand, 1 600 px, donne
    des vignettes plus nettes), sinon img/<id>.jpg.
 
+   Couleurs dominantes : chaque vignette laisse aussi, dans un bloc généré de
+   css/accueil.css, les deux couleurs (moyenne de sa moitié haute et de sa moitié basse)
+   sur lesquelles la photo se pose pendant son chargement. Un bloc de CSS, plutôt qu'une
+   donnée dans recipes.js ou un module : la feuille de l'accueil est déjà sur le chemin
+   critique, et le bloc ne lui coûte qu'une ligne par photo.
+
    Usage :  node tools/generer-vignettes.mjs             (régénère tout)
+            node tools/generer-vignettes.mjs --couleurs  (ne réécrit que le bloc de couleurs,
+                                                           à partir des vignettes présentes)
             node tools/generer-vignettes.mjs --verifier  (CI : code 1 si une photo n'a pas
-                                                           ses variantes)
+                                                           ses variantes ni sa couleur)
 
    À relancer après avoir ajouté ou remplacé une photo, puis committer img/v, img/c, img/h
    et sw.js (npm run sw : le contenu des vignettes entre dans la version du cache). */
 
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -76,6 +84,56 @@ function manquantes() {
   return trous;
 }
 
+/* ---------- Couleurs dominantes ---------- */
+
+export const DEBUT_COULEURS = "/* >>> couleurs des vignettes générées par tools/generer-vignettes.mjs — ne pas modifier à la main */";
+export const FIN_COULEURS = "/* <<< fin du bloc généré */";
+const FEUILLE = join(RACINE, "css", "accueil.css");
+
+const hex = ([r, v, b]) => "#" + [r, v, b].map(n => n.toString(16).padStart(2, "0")).join("");
+
+/* Le sélecteur d'une carte : l'identifiant de la photo est celui de sa recette
+   (img/<id>.jpg), la carte porte data-id. Sans guillemets quand l'identifiant s'écrit
+   tel quel en CSS. */
+const selecteur = id => `.card[data-id${/^[a-z_][a-z0-9_-]*$/i.test(id) ? `=${id}` : `="${id}"`}]`;
+
+/* Le bloc complet, repères compris. `couleurs` : Map id → [haut, bas] en hexadécimal. */
+export function blocCouleurs(couleurs) {
+  const lignes = [...couleurs].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, [haut, bas]]) => `${selecteur(id)}{--p:${haut},${bas}}`);
+  return [DEBUT_COULEURS, ...lignes, FIN_COULEURS].join("\n");
+}
+
+/* Moyenne de la moitié haute et de la moitié basse de la vignette : sharp réduit l'image
+   à une colonne de deux pixels, ce qui est exactement cette moyenne. */
+async function couleursDe(id) {
+  const sharp = (await import("sharp")).default;
+  const { data } = await sharp(chemin("v", id)).resize(1, 2, { fit: "fill" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  return [hex([...data.subarray(0, 3)]), hex([...data.subarray(3, 6)])];
+}
+
+/* Les couleurs déjà écrites dans la feuille : id → [haut, bas]. */
+export function couleursEcrites(css = readFileSync(FEUILLE, "utf8")) {
+  const debut = css.indexOf(DEBUT_COULEURS), fin = css.indexOf(FIN_COULEURS);
+  const lues = new Map();
+  if (debut < 0 || fin < debut) return lues;
+  for (const m of css.slice(debut, fin).matchAll(/\.card\[data-id="?([^"\]]+)"?\]\{--p:(#[0-9a-f]{6}),(#[0-9a-f]{6})\}/g)) lues.set(m[1], [m[2], m[3]]);
+  return lues;
+}
+
+async function ecrireCouleurs() {
+  const couleurs = new Map();
+  for (const id of photos()) if (existsSync(chemin("v", id))) couleurs.set(id, await couleursDe(id));
+  const css = readFileSync(FEUILLE, "utf8");
+  const debut = css.indexOf(DEBUT_COULEURS), fin = css.indexOf(FIN_COULEURS);
+  if (debut < 0 || fin < debut) {
+    console.error("css/accueil.css : les repères du bloc des couleurs sont introuvables.");
+    process.exit(1);
+  }
+  const neuf = css.slice(0, debut) + blocCouleurs(couleurs) + css.slice(fin + FIN_COULEURS.length);
+  if (neuf !== css) writeFileSync(FEUILLE, neuf);
+  console.log(`Couleurs : ${couleurs.size} vignettes.`);
+}
+
 async function generer() {
   const sharp = (await import("sharp")).default;
   for (const g of Object.keys(GENRES)) mkdirSync(join(RACINE, "img", g), { recursive: true });
@@ -99,16 +157,21 @@ async function generer() {
     }
     console.log(`${id}  (${source.largeur}×${source.hauteur})  ${sortis.join(" · ")}`);
   }
+  await ecrireCouleurs();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes("--verifier")) {
     const trous = manquantes();
+    const ecrites = couleursEcrites();
+    for (const id of photos()) if (!ecrites.has(id)) trous.push(`couleur de ${id} dans css/accueil.css`);
     if (trous.length) {
-      console.error(`Variantes manquantes (npm run vignettes) :\n  ${trous.join("\n  ")}`);
+      console.error(`Variantes ou couleurs manquantes (npm run vignettes) :\n  ${trous.join("\n  ")}`);
       process.exit(1);
     }
-    console.log(`Vignettes : ${photos().length} photos, toutes ont leurs variantes.`);
+    console.log(`Vignettes : ${photos().length} photos, toutes ont leurs variantes et leur couleur.`);
+  } else if (process.argv.includes("--couleurs")) {
+    await ecrireCouleurs();
   } else {
     await generer();
   }

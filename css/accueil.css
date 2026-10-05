@@ -59,6 +59,34 @@
 
 .masthead .byline svg { width: 15px; height: 13px; color: var(--terra); }
 
+/* La première fois de la session (.encre, posée par js/vues/accueil.js ; jamais en mouvement
+   réduit), le bandeau s'écrit : les brins se tracent (base.css, .trace, un instant après le
+   titre), le trait sous « Evadri » se tire de gauche à droite, le cœur bat une fois. Le titre
+   n'attend rien : tout est décor, et rien ne change de place. */
+.mast-row.trace [pathLength="1"] { animation-delay: calc(0.12s + var(--i, 0) * 60ms); }
+
+.encre .byline .u { border-bottom-color: transparent; position: relative; }
+
+.encre .byline .u::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 1.5px;
+  background: var(--gold-deco);
+  transform-origin: left;
+  animation: souligne var(--d-trace) var(--e-sortie) 0.55s both;
+}
+
+.encre .byline svg { animation: coeur-bat var(--d-longue) var(--e-standard) 0.95s; }
+
+@keyframes souligne { from { transform: scaleX(0); } }
+
+@keyframes coeur-bat {
+  20% { scale: 1.38; }
+  42% { scale: 1; }
+  62% { scale: 1.22; }
+}
+
 .searchbar {
   display: flex;
   align-items: center;
@@ -137,9 +165,13 @@ html[data-theme="dark"] .jai-btn.on { color: #1B2217; }
 
 .searchbar svg { width: 18px; height: 18px; color: var(--muted); flex: none; transform-box: fill-box; transform-origin: center; }
 
-/* Loupe qui tourne pendant la frappe. */
-.searchbar.typing svg { animation: spin-loupe 0.6s linear infinite; }
-@keyframes spin-loupe { to { transform: rotate(360deg); } }
+/* La loupe cherche pendant la frappe (la classe vient de main.js) : elle se balance autour de
+   son centre, au rythme des jetons ; en mouvement réduit, elle reste immobile (base.css). */
+.searchbar.typing svg { animation: loupe calc(var(--d-longue) * 1.2) var(--e-standard) infinite; }
+@keyframes loupe {
+  25% { rotate: -16deg; scale: 1.08; }
+  75% { rotate: 16deg; scale: 1.08; }
+}
 
 .searchbar input {
   flex: 1;
@@ -173,11 +205,15 @@ input[type="search"]::-webkit-search-cancel-button {
   margin: 0;
   cursor: pointer;
   background-color: var(--muted);
+  animation: croix var(--d-moyenne) var(--ressort-vif);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px no-repeat;
 }
 
-.chips { display: flex; gap: 8px; overflow-x: auto; padding: 7px 0; scrollbar-width: none; }
+/* La croix se pose en grandissant depuis rien, chaque fois que le champ cesse d'être vide. */
+@keyframes croix { from { opacity: 0; scale: 0.4; } }
+
+.chips { position: relative; display: flex; gap: 8px; overflow-x: auto; padding: 7px 0; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 
 .chip {
@@ -200,30 +236,24 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .chip.on { background: var(--green); border-color: var(--green); color: #FDFBF3; }
 
-/* Sélection d'une chip : petit rebond exagéré, et une feuille qui saute
-   par-dessus avant de retomber en fondu. */
-.chip.pop { animation: chip-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes chip-bounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.16); }
-  65% { transform: scale(0.94); }
-  100% { transform: scale(1); }
+/* La pastille de la puce active glisse d'une puce à l'autre (glisserPastille, accueil.js) :
+   un décor posé sous les puces, déplacé par translate et scale avec le ressort vif. Pendant
+   le vol, la puce choisie n'a pas encore son fond (c'est la pastille qui le porte) et son
+   texte ne vire au crème qu'au tiers du trajet, quand la pastille arrive dessous. */
+.chips .pastille {
+  position: absolute;
+  left: 0;
+  border-radius: 999px;
+  background: var(--green);
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition: translate var(--ressort-vif-duree) var(--ressort-vif), scale var(--ressort-vif-duree) var(--ressort-vif);
 }
 
-.chip.pop::after {
-  content: "🌿";
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  font-size: 14px;
-  line-height: 1;
-  pointer-events: none;
-  animation: leaf-jump 0.55s ease forwards;
-}
-@keyframes leaf-jump {
-  0% { opacity: 0; transform: translate(-50%, 4px) scale(0.6) rotate(-12deg); }
-  35% { opacity: 1; transform: translate(-50%, -16px) scale(1.05) rotate(10deg); }
-  100% { opacity: 0; transform: translate(-50%, -26px) scale(0.9) rotate(0deg); }
+.chips.en-vol .chip.on {
+  background: transparent;
+  border-color: transparent;
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), color var(--d-courte) calc(var(--ressort-vif-duree) * 0.3);
 }
 
 .grid {
@@ -234,23 +264,12 @@ input[type="search"]::-webkit-search-cancel-button {
   position: relative; /* ancre les cartes sortantes pendant leur fondu */
 }
 
-/* Filtrage fluide (FLIP) : les cartes ne sont jamais reconstruites —
-   écartées = fondu sur place, survivantes = glissement, entrantes = fondu. */
+/* Filtrage (flip() du socle, applyFilter dans accueil.js) : les cartes ne sont jamais
+   reconstruites. Écartées, elles sortent sur place (le script les pose en absolu et les anime)
+   puis disparaissent ; le reste glisse de sa place à la nouvelle en `translate`. */
 .card.gone { display: none; }
 
-.card.no-anim { transition: none !important; }
-
-.card.card-move { transition: transform 0.3s cubic-bezier(0.22, 0.72, 0.25, 1), opacity 0.24s ease; }
-
-.card.card-enter { opacity: 0; transform: translateY(10px) scale(0.97); }
-
-.card.card-leave {
-  opacity: 0;
-  transform: scale(0.94);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
-  z-index: 2;
-}
+.card.card-leave { opacity: 0; pointer-events: none; z-index: 2; }
 
 .grid.no-cat .card-cat { display: none; }
 
@@ -265,12 +284,40 @@ input[type="search"]::-webkit-search-cancel-button {
   overflow: hidden;
   text-decoration: none;
   color: var(--ink);
-  transition: transform 0.12s ease;
+  box-shadow: var(--ombre-1);
+  transition: box-shadow var(--d-moyenne) var(--e-sortie), scale var(--ressort-vif-duree) var(--ressort-vif);
 }
 
-.card:active { transform: scale(0.97); }
+/* À l'appui la carte se soulève : son ombre monte, elle grandit un rien, et revient avec le
+   ressort vif. Un court délai avant de la soulever : un doigt qui part en défilement ne la fait
+   pas sauter (le navigateur annule :active dès que le défilement prend la main). Le bouton
+   partager, posé sur la carte, a son propre retour : appuyer dessus ne soulève pas la carte. */
+.card:active:not(:has(.card-share:active)) {
+  scale: 1.02;
+  box-shadow: var(--ombre-3);
+  transition-duration: var(--d-courte), var(--d-appui);
+  transition-timing-function: var(--e-sortie);
+  transition-delay: 70ms;
+}
+
+/* Arrivée douce au défilement : la carte qui entre par le bas de l'écran se pose (animation
+   pilotée par le défilement, sans écouteur ni script). Ce qui est déjà à l'écran à l'ouverture
+   est au bout de sa course : rien du premier écran ne part d'une opacité nulle (le début est à
+   0,45, pour une carte coupée par le bas), et le LCP ne l'attend pas. */
+@supports (animation-timeline: view()) {
+  .card {
+    animation: carte-entre linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+@keyframes carte-entre { from { opacity: 0.45; transform: translateY(14px) scale(0.985); } }
 
 .card .visual {
+  /* Posée sur la couleur dominante de sa photo (bloc généré plus bas) pendant le chargement ;
+     --c, la couleur de la recette, quand la photo n'a pas la sienne. */
+  background: linear-gradient(var(--p, var(--c), var(--c)));
   height: 110px;
   flex: none;
   display: flex;
@@ -282,6 +329,10 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .card .visual img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Une photo qui arrive après coup (hors du premier écran) se fond sur sa couleur. */
+.card .visual img.photo-arrive { animation: photo-arrive var(--d-moyenne) var(--e-sortie) both; }
+@keyframes photo-arrive { from { opacity: 0; } }
 
 /* Variante WebP absente : le JPEG entier revient, recadré par le zoom comme avant les vignettes. */
 .card .visual img.zoom { transform: scale(3); }
@@ -380,22 +431,21 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
 
 .jai-actions .btn[disabled] { opacity: 0.45; }
 
+/* Les nombres qui roulent gardent leur largeur. */
+.jai-nb, #jai-nb { font-variant-numeric: tabular-nums; }
+
 @media (prefers-reduced-motion: reduce) {
   .jai-sheet { animation: none; }
 }
 
 .card .visual .card-share svg { width: 15px; height: 15px; }
 
-.card-share:active { transform: scale(0.9); background: var(--green-tint); }
+.card-share:active { background: var(--green-tint); }
 
-/* Icône de partage : un battement avant l'action, où qu'elle apparaisse. */
-.share-pulse { animation: share-pulse 0.4s ease; transform-box: fill-box; transform-origin: center; }
-@keyframes share-pulse {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  55% { transform: scale(0.92); }
-  100% { transform: scale(1); }
-}
+/* Icône de partage : un battement avant l'action, où qu'elle apparaisse (main.js pose la classe).
+   Le ressort de rebond du socle fait lui-même le dépassement : une seule image de départ. */
+.share-pulse { animation: share-pulse var(--ressort-rebond-duree) var(--ressort-rebond); transform-box: fill-box; transform-origin: center; }
+@keyframes share-pulse { from { scale: 1.4; } }
 
 .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; flex: 1; }
 
@@ -451,6 +501,41 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
   overflow-wrap: anywhere;
 }
 
+/* L'état vide : un bol fumant dessiné au trait, qui se trace à chaque apparition. */
+.vide-illo { display: block; width: 64px; height: 48px; margin: 8px auto 12px; color: var(--gold-deco); }
+
 @media (min-width: 480px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 }
+
+/* Mouvement réduit : tout est posé d'emblée, rien ne glisse (base.css coupe déjà les
+   animations ; ce qui suit est ce que le filet ne couvre pas). */
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+  .card:active:not(:has(.card-share:active)) { scale: none; }
+  .chips .pastille { display: none; }
+  .searchbar.typing svg { animation: none; }
+}
+
+/* >>> couleurs des vignettes générées par tools/generer-vignettes.mjs — ne pas modifier à la main */
+.card[data-id=beignets-brebis-menthe]{--p:#a07449,#6d4423}
+.card[data-id=cake-sale]{--p:#9b7e49,#b08b5b}
+.card[data-id=cocktail-concombre-menthe]{--p:#968f60,#90965e}
+.card[data-id=dip-chevre-herbes]{--p:#aba686,#b5b28e}
+.card[data-id=focaccia-romarin]{--p:#a78554,#8e6d40}
+.card[data-id=gravlax-saumon-yaourt-bulgare]{--p:#ba9060,#ba824b}
+.card[data-id=houmous-petits-pois-menthe]{--p:#92844d,#9a9e4a}
+.card[data-id=mayonnaise-maison]{--p:#a18f6e,#ddcb9a}
+.card[data-id=mi-cuit-chocolat-suzy-palatin]{--p:#9c877d,#442d25}
+.card[data-id=pesto-basilic-maison]{--p:#7a8644,#7c764e}
+.card[data-id=quiche-lorraine]{--p:#bd9052,#b6894f}
+.card[data-id=salade-champetre]{--p:#757745,#6c6f40}
+.card[data-id=salade-kale-pomme-oeuf]{--p:#8e8651,#84794d}
+.card[data-id=salade-lentilles-feta]{--p:#908556,#7a6844}
+.card[data-id=salade-mediterraneenne]{--p:#ad9067,#a47f52}
+.card[data-id=scoopable-cookies]{--p:#7f6447,#8a6b52}
+.card[data-id=tagliatelles-carotte-carbonara]{--p:#a16d38,#a96230}
+.card[data-id=tartines-figues-chevre-miel]{--p:#8b6846,#906b46}
+.card[data-id=torsades-pesto]{--p:#b48e52,#855b20}
+.card[data-id=veloute-butternut-shiitakes]{--p:#bb8e33,#a97e33}
+/* <<< fin du bloc généré */
