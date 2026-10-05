@@ -413,16 +413,17 @@ Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télé
 
 **Mesurer.** `npm run mesurer` ([`tools/mesurer-accueil.mjs`](tools/mesurer-accueil.mjs)) lance un serveur local HTTP/2 + gzip (comme GitHub Pages, `cache-control: max-age=600` ; certificat autosigné fabriqué à l'exécution par openssl dans un dossier temporaire, jamais committé ; ports 4561 à 4569) et Chromium de Playwright, profil toujours le même : 390×844 @2x, cache vide, service worker bloqué, 150 ms de latence, 1,6 Mbit/s descendant, 750 kbit/s montant, processeur ×4. Toute requête hors de localhost est introuvable (le serveur de synchro réel n'est jamais appelé). Sept passages par défaut, médiane et étendue de : FCP, **cartes** (Element Timing du titre de la première carte), **LCP** (temps et élément), CLS, octets transférés avant les cartes, requêtes, temps de script (longues tâches) avant les cartes. Options : `--retour` (retour à l'accueil depuis une fiche, tout en cache), `--sw` (seconde visite, service worker actif), `--detail` (les requêtes du dernier passage), `--racine <dossier>` (mesurer une autre copie, pour comparer avec un ancien commit), `--passages <n>`, `--json`. Les chiffres bougent d'une machine à l'autre et d'une minute à l'autre quand elle est partagée : on compare deux mesures faites l'une après l'autre sur la même machine, jamais à un chiffre absolu.
 
-| Médiane de 7 passages, même machine | avant (ad67ed3) | après |
+| Médiane de 7 passages, même machine, l'une après l'autre | avant (ad67ed3) | après |
 |---|---|---|
-| Cartes dessinées | 2 612 ms | 1 636 ms |
-| LCP (première photo) | 2 612 ms | 1 636 ms |
-| CLS | 0 | 0 |
-| Octets avant les cartes | 327,7 Ko | 179,4 Ko |
+| Cartes dessinées | 2 528 ms | 1 620 ms |
+| LCP (première photo) | 2 528 ms | 1 628 ms |
+| FCP | 1 248 ms | 1 284 ms (le bandeau attend sa police, voir « Polices ») |
+| CLS | 0 | 0,0005 |
+| Octets avant les cartes | 327,7 Ko | 180,0 Ko |
 | Requêtes avant les cartes | 56 | 41 |
-| Temps de script avant les cartes | 389 ms | 244 ms |
-| Retour à l'accueil depuis une fiche (processeur ×4, en cache ; l'outil n'attend plus les animations pilotées par le défilement, qui ne finissent jamais) | 301 ms (396651d, même outil) | 246 ms (de 213 à 267 ms) |
-| Seconde visite, service worker actif : cartes | 904 ms | 212 ms (LCP 508 ms) |
+| Temps de script avant les cartes | 256 ms | 272 ms |
+| Retour à l'accueil depuis une fiche (processeur ×4, en cache ; l'outil n'attend pas les animations pilotées par le défilement, qui ne finissent jamais) | 125 ms (échange direct) | 308 ms (transition de vue comprise : l'ancienne page est photographiée avant l'échange) |
+| Seconde visite, service worker actif : cartes | 708 ms | 264 ms (LCP 568 ms) |
 
 **Ce qui a gagné** (chaque poste a été mesuré seul) : les polices servies sont des sous-ensembles (`npm run polices`, voir plus bas) et seules deux sont préchargées, 31 Ko au lieu de 112 Ko ; les cinq feuilles des vues (13,5 Ko) ne se téléchargent plus au démarrage ; `substitutions.js` et `sync-config.js` ne se chargent qu'au besoin ; le graphe de modules de `js/main.js` perd les minuteurs, le partage, le calcul du rétroplanning, la feuille des réglages et la synchro (25 modules au lieu de 28, 61,6 Ko gzip au lieu de 79,4 Ko) ; une seule vignette est préchargée (celle du LCP) ; l'accueil ne se redessine plus à l'arrivée des fondamentaux (les cartes ne sont plus détachées puis rattachées : c'était le « candidat LCP qui disparaît ») ; le tout premier dessin ne se fond pas (0,22 s de page vide en moins).
 
@@ -438,7 +439,7 @@ Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télé
 - deux polices préchargées au plus, une vignette ;
 - la synchro, le service worker, les feuilles et les modules reportés partent après le premier affichage, jamais avant.
 
-**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 179,4 Ko, soit 0,6 Ko de marge : la vague « mouvement » a fait entrer sur le chemin de l'accueil le bandeau tracé, le soulignement, les brins et les jetons de mouvement (181,1 Ko avant que la feuille des réglages, `css/reglages-feuille.css`, n'en sorte). Chaque octet de plus se paie : un lot qui ajoute au chemin retire d'abord autre chose. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
+**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 180,0 Ko, sans marge. La vague « mouvement » a fait entrer sur le chemin de l'accueil le bandeau tracé, le soulignement, les brins et les jetons de mouvement (181,1 Ko, ramenés à 179,4 Ko en sortant la feuille des réglages, `css/reglages-feuille.css`) ; puis les figures des savoirs ont ajouté leurs teintes à `base.css` et leur chargement à `core/fonds.js` (180,7 Ko, ramenés à 180,0 Ko en déplaçant dans `core/savoirs.js` ce que seules les pages des Savoirs lisent). Prochains leviers : découper `js/recipes.js` (33 Ko compressés, lus en entier au démarrage), et sortir de `css/fiche.css` (bloquante) ce que l'accueil n'emprunte pas. Chaque octet de plus se paie : un lot qui ajoute au chemin retire d'abord autre chose. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
 
 ## Développement
 
