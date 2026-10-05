@@ -130,6 +130,17 @@ export function retourVers(hash) {
   else allerEnRemplacant(hash);
 }
 
+/* Les transitions de vue sont jouées par js/ui/transitions.js (T), chargé après le premier
+   affichage avec css/navigation.css : hors du chemin de l'accueil. Tant qu'il manque, ou sans
+   l'API, une navigation échange la vue d'un coup. `vueAffichee` : l'adresse de la vue
+   réellement dessinée (une redirection ou un redessin sur place ne la changent pas). */
+let T = null, ongletActuel = null, vueAffichee = null, imposee = null;
+
+/* preparerTransition({ type, origine }) — la prochaine navigation (elle seule) jouera cette
+   transition ("avant", "arriere", "onglet", "cuisine", "cuisine-sortie") depuis cette origine
+   ({ x, y } en pixels ; à défaut, le dernier élément activé). */
+export function preparerTransition({ type, origine } = {}) { imposee = { type, origine }; }
+
 /* L'onglet actif, pour l'œil (`active`) et pour les lecteurs d'écran
    (`aria-current`). */
 function marquerOnglet(nom) {
@@ -139,6 +150,8 @@ function marquerOnglet(nom) {
     if (actif) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
+  ongletActuel = nom;
+  if (T) T.onglet(nom);   // la pastille glisse
 }
 
 /* Un lien partagé porte la version de la recette (`?p=8&c=…&a=…`) : elle
@@ -176,7 +189,13 @@ document.addEventListener("fondamentaux-charges", () => {
    qu'après le premier affichage, donc sans retarder l'accueil. Dès qu'il est
    arrivé, la recherche par mécanisme se remet à jour. */
 function demarrerChargementFonds() {
-  const lancer = () => chargerFondamentaux().then(rafraichirFoins, () => {});
+  const lancer = () => {
+    chargerFondamentaux().then(rafraichirFoins, () => {});
+    import("./transitions.js").then(m => m.pret.then(() => {
+      T = m;
+      if (ongletActuel) m.onglet(ongletActuel, { anime: false });
+    }), () => {});
+  };
   requestAnimationFrame(() => setTimeout(lancer, 0));
 }
 
@@ -269,27 +288,29 @@ export function route({ garderDefilement = false } = {}) {
     return allerEnRemplacant(chemin);
   }
 
-  const dessiner = fondsOk => {
-    let titre = "Recettes";
+  /* Ce que la route dessine : l'adresse où aller à la place (`aller`), ou l'onglet, le titre
+     et le dessin (`rendu`, qui n'écrit dans la page que quand on l'appelle : une transition
+     n'enveloppe que l'échange du DOM, jamais une redirection). */
+  const choisir = fondsOk => {
+    let titre = "Recettes", onglet = "home", rendu = renderHome;
     if (parts[0] === "fondamental" && fondRenames()[parts[1]]) {
-      return allerEnRemplacant(`#/fondamental/${fondRenames()[parts[1]]}`);
+      return { aller: `#/fondamental/${fondRenames()[parts[1]]}` };
     }
     if (parts[0] === "fondamentaux" || (parts[0] === "fondamental" && (!fondsOk || fondById(parts[1])))) {
-      marquerOnglet("fond");
+      onglet = "fond";
       titre = parts[0] === "fondamental" && fondById(parts[1]) ? fondById(parts[1]).t : "Savoirs";
-      if (!fondsOk) afficherIndisponible("Les fondamentaux ne se sont pas chargés.");
-      else if (parts[0] === "fondamentaux") modules.savoirs.renderFondamentaux();
-      else modules.savoirs.renderFondamental(fondById(parts[1]));
+      if (!fondsOk) rendu = () => afficherIndisponible("Les fondamentaux ne se sont pas chargés.");
+      else if (parts[0] === "fondamentaux") rendu = () => modules.savoirs.renderFondamentaux();
+      else rendu = () => modules.savoirs.renderFondamental(fondById(parts[1]));
     } else if (parts[0] === "courses") {
-      marquerOnglet("courses");
+      onglet = "courses";
       titre = "Liste de courses";
-      modules.courses.renderCourses();
+      rendu = () => modules.courses.renderCourses();
     } else if (parts[0] === "menu") {
-      marquerOnglet("menu");
+      onglet = "menu";
       titre = "Au menu";
-      modules.menu.renderMenu();
+      rendu = () => modules.menu.renderMenu();
     } else if (parts[0] === "recette" && byId(parts[1])) {
-      marquerOnglet("home");
       const r = byId(parts[1]);
       titre = r.title;
       /* `#/recette/<id>/m/<clé>` : on édite l'entrée de menu plutôt que le
@@ -298,36 +319,55 @@ export function route({ garderDefilement = false } = {}) {
       let reste = parts.slice(2);
       if (reste[0] === "m") {
         const e = entreeDe(reste[1]);
-        if (!e || e.rid !== r.id) return allerEnRemplacant(`#/recette/${r.id}`);
+        if (!e || e.rid !== r.id) return { aller: `#/recette/${r.id}` };
         setEntreeCourante(e.k);
         reste = reste.slice(2);
       }
       const prefixe = entreeCourante() ? `#/recette/${r.id}/m/${entreeCourante()}` : `#/recette/${r.id}`;
       if (reste[0] === "cuisine") {
         titre = `Mode cuisine : ${r.title}`;
-        modules.cuisine.renderCook(r, reste[1]);
+        rendu = () => modules.cuisine.renderCook(r, reste[1]);
       } else {
         const step = autoResumeStep(r);
         // `replace` : la fiche ne reste pas dans l'historique, la croix ramènera
         // d'où l'on vient au lieu de retomber ici et de repartir en boucle.
-        if (step != null) return allerEnRemplacant(`${prefixe}/cuisine/${step}`);
-        modules.fiche.renderRecipe(r);
+        if (step != null) return { aller: `${prefixe}/cuisine/${step}` };
+        rendu = () => modules.fiche.renderRecipe(r);
       }
-    } else {
-      marquerOnglet("home");
-      renderHome();
     }
-    window.scrollTo(0, garderDefilement ? defilement : retrouve);
-    updateBadge();
-    // Un redessin sur place (« Réessayer » après une page indisponible, par exemple) rend aussi son titre à la vue ; `arrivee` n'y vaut jamais vrai : pas de focus déplacé.
-    annoncerVue(titre, arrivee && !premierAffichage, garderDefilement);
-    // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
-    touche = false;
-    fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;
-    if (premierAffichage) {
-      premierAffichage = false;
-      demarrerChargementFonds();
-    }
+    return { onglet, titre, rendu };
+  };
+
+  const dessiner = fondsOk => {
+    const c = choisir(fondsOk);
+    if (c.aller) return allerEnRemplacant(c.aller);
+    const demandee = garderDefilement ? null : imposee;
+    if (!garderDefilement) imposee = null;
+    /* L'échange du DOM, défilement compris, dans le même tour : à l'intérieur d'une
+       transition la nouvelle vue est prête (et à sa place : sinon la photo partagée volerait
+       vers un mauvais endroit) quand le navigateur en prend l'image. */
+    const echanger = () => {
+      if (numero !== dessin) return;
+      marquerOnglet(c.onglet);
+      c.rendu();
+      window.scrollTo(0, garderDefilement ? defilement : retrouve);
+      updateBadge();
+      // Un redessin sur place (« Réessayer » après une page indisponible, par exemple) rend aussi son titre à la vue ; `arrivee` n'y vaut jamais vrai : pas de focus déplacé.
+      annoncerVue(c.titre, arrivee && !premierAffichage, garderDefilement);
+      // Une fiche dessinée sans les fondamentaux se reprendra quand ils arriveront.
+      touche = false;
+      fondsAttendus = !fondsOk && parts[0] === "recette" ? numero : 0;
+      vueAffichee = chemin || "#/";
+      if (premierAffichage) {
+        premierAffichage = false;
+        demarrerChargementFonds();
+      }
+    };
+    /* Jamais de transition au premier affichage ni pour un redessin sur place. */
+    const plan = garderDefilement || premierAffichage || !T ? null : T.planifier({ de: vueAffichee, vers: chemin || "#/", nouvelle: arrivee, demandee });
+    const fait = plan && T.jouer(plan, echanger);
+    if (fait) return fait;
+    echanger();
   };
 
   /* Les modules dont la vue a besoin : le premier affichage de chaque route les

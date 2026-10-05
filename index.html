@@ -49,6 +49,7 @@
     <link rel="stylesheet" href="css/courses.css">
     <link rel="stylesheet" href="css/savoirs.css">
     <link rel="stylesheet" href="css/journal.css">
+    <link rel="stylesheet" href="css/navigation.css">
   </noscript>
   <!-- Les modules s'importent les uns les autres : sans ces préchargements, le
        navigateur ne découvre chaque import qu'après avoir lu le module qui le
@@ -102,6 +103,8 @@
   <main id="app"></main>
 
   <nav class="tabbar" aria-label="Navigation principale">
+    <!-- La pastille de l'onglet actif : posée et glissée par js/ui/transitions.js (décor). -->
+    <span class="tab-pill" aria-hidden="true"></span>
     <a href="#/" data-tab="home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <span>Recettes</span>

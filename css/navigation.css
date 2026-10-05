@@ -1,0 +1,199 @@
+/* Navigation — tout ce qui bouge entre les écrans : transitions de vue, pastille et icônes
+   de la barre d'onglets, pastilles de nombre, sortie des feuilles, trait des messages.
+   Cette feuille n'est pas sur le chemin de l'accueil : js/ui/transitions.js la pose juste
+   après base.css quand le premier affichage est fait. Sans elle (hors ligne, pas encore
+   arrivée), base.css suffit : l'onglet actif garde son fond, les feuilles partent sans
+   mouvement, le carnet marche pareil. Les jetons de durée et de courbe sont ceux de base.css. */
+
+/* ---------- La pastille de l'onglet actif ---------- */
+
+/* Posée et déplacée par transitions.js (translate, width, height en pixels) : elle glisse
+   d'un onglet à l'autre avec le ressort, et une nouvelle destination la reprend là où elle
+   est. Le fond de base.css (a.active) lui passe la main une fois qu'elle est en place. */
+.tabbar.avec-pastille .tab-pill {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 12px;
+  background: var(--green-tint);
+  pointer-events: none;
+  transition: translate var(--ressort-duree) var(--ressort), width var(--d-moyenne) var(--e-sortie), height var(--d-moyenne) var(--e-sortie);
+}
+
+.tabbar.avec-pastille .tab-pill.sans-glisse { transition: none; }
+
+.tabbar.avec-pastille a { position: relative; }
+
+.tabbar.avec-pastille a.active { background: transparent; }
+
+/* L'icône s'enfonce sous le doigt, un peu plus que l'onglet entier. */
+.tabbar a svg { transition: scale var(--ressort-vif-duree) var(--ressort-vif); }
+
+.tabbar a:active svg { scale: 0.86; transition-duration: var(--d-appui); transition-timing-function: var(--e-sortie); }
+
+/* Quand un onglet devient actif, son icône fait un petit geste qui lui est propre :
+   le livre se penche, les couverts se redressent, le panier roule, la fiole se balance. */
+.tabbar a.joue svg { animation-duration: 520ms; animation-timing-function: var(--e-sortie); }
+
+.tabbar a.joue[data-tab="home"] svg { animation-name: tab-livre; transform-origin: 20% 50%; }
+
+.tabbar a.joue[data-tab="menu"] svg { animation-name: tab-couverts; transform-origin: 50% 100%; }
+
+.tabbar a.joue[data-tab="courses"] svg { animation-name: tab-panier; }
+
+.tabbar a.joue[data-tab="fond"] svg { animation-name: tab-fiole; transform-origin: 50% 100%; }
+
+@keyframes tab-livre { 35% { rotate: -9deg; scale: 1.1; } 70% { rotate: 3deg; } }
+
+@keyframes tab-couverts { 30% { rotate: -14deg; } 65% { rotate: 7deg; } }
+
+@keyframes tab-panier { 0% { translate: -7px 0; } 55% { translate: 2px 0; } }
+
+@keyframes tab-fiole { 30% { rotate: 11deg; } 60% { rotate: -6deg; } 80% { rotate: 2deg; } }
+
+/* ---------- Composants communs ----------
+   Les finitions de ce qui sert partout : un bouton change d'état par un fondu (fond, liseré,
+   ombre, texte : jetons de durée), un bouton enfoncé perd son ombre, et au survol (souris
+   seulement) il se soulève un peu. Le ressort de l'appui (scale) reste celui de base.css. */
+.btn, .btn-icon {
+  transition: scale var(--ressort-vif-duree) var(--ressort-vif), background-color var(--d-courte) var(--e-standard),
+    border-color var(--d-courte) var(--e-standard), box-shadow var(--d-courte) var(--e-standard), color var(--d-courte) var(--e-standard);
+}
+
+.tabbar a { transition: scale var(--ressort-vif-duree) var(--ressort-vif), color var(--d-courte) var(--e-standard); }
+
+.btn.primary:active:not(:disabled) { box-shadow: var(--ombre-0); }
+
+@media (hover: hover) {
+  .btn.primary:hover:not(:disabled) { box-shadow: 0 8px 22px rgba(49, 73, 43, 0.36); }
+  .btn.secondary:hover:not(:disabled), .btn-icon:hover { border-color: var(--green); }
+}
+
+/* L'anneau de focus se resserre sur l'élément quand le focus arrive (le trait, lui, est
+   tout de suite là : on ne perd jamais de vue où l'on est). Un élément qui a déjà sa propre
+   animation, plus loin dans la cascade, garde la sienne. */
+:focus-visible { animation: anneau var(--d-courte) var(--e-sortie); }
+
+@keyframes anneau { from { outline-offset: 6px; } }
+
+/* Le message se pose au-dessus de la barre d'actions de la fiche (.actions, en papier calque,
+   64 px de haut, collée au-dessus des onglets) plutôt que dessus, et au-dessus du plateau des
+   minuteurs quand il y en a un. */
+body:has(.actions) .toast { bottom: calc(146px + var(--safe-b)); }
+
+body.avec-minuteurs:not(.cooking):has(.actions) .toast { bottom: calc(154px + var(--plateau-h, 0px) + var(--safe-b)); }
+
+/* ---------- Pastilles de nombre ---------- */
+
+.badge.entre { animation: badge-entre var(--ressort-rebond-duree) var(--ressort-rebond) both; }
+
+.badge.sort { animation: badge-sort calc(var(--d-moyenne) * 0.7) var(--e-entree) both; }
+
+@keyframes badge-entre { from { scale: 0.2; opacity: 0; } }
+
+@keyframes badge-sort { to { scale: 0.2; opacity: 0; } }
+
+/* ---------- Glisser une feuille ---------- */
+
+/* La zone de toucher de la poignée déborde de 16 px autour d'elle (feuilles-geste.js) ; le
+   fond suit le doigt sans transition pendant le geste. */
+.sheet-grip { cursor: grab; }
+
+.sheet-grip::before { content: ""; position: absolute; inset: -16px -64px -12px; }
+
+.sheet-backdrop.en-main::before { transition: none; }
+
+/* ---------- Sortie des feuilles ---------- */
+
+/* La feuille descend (depuis l'endroit où le doigt l'a laissée : le `to` seul part du style
+   courant) et le fond s'éclaircit. Elle est déjà inerte (feuilles.js) : la souris et le
+   toucher passent au travers. Ce qui part va plus vite que ce qui arrive (70 %). */
+.sheet-backdrop.sort { pointer-events: none; }
+
+.sheet-backdrop.sort .sheet { animation: sheet-sort calc(var(--ressort-vif-duree) * 0.7) var(--e-entree) both; }
+
+.sheet-backdrop.sort::before { animation: fond-sort calc(var(--ressort-vif-duree) * 0.7) linear both; }
+
+@keyframes sheet-sort { to { translate: 0 110%; } }
+
+@keyframes fond-sort { to { opacity: 0; } }
+
+/* ---------- Le trait du temps qui reste ---------- */
+
+/* Un message qui propose un geste (« Annuler ») montre en un trait fin combien de temps il
+   lui reste (toast.js l'anime ; il se fige quand on touche ou survole le message). */
+.toast-temps {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.4;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* ---------- Transitions de vue ----------
+   Le routeur pose html[data-vt] (avant, arriere, onglet, cuisine, cuisine-sortie) et
+   --vt-x / --vt-y avant de lancer la transition, et les retire à la fin ; le cercle du
+   mode cuisine est dans cuisine.css. Une règle par pseudo-élément : un navigateur qui ne
+   connaît pas l'un d'eux jetterait toute la règle d'une liste de sélecteurs. Rien de tout
+   cela ne joue en mouvement réduit (le routeur ne lance alors aucune transition). Pendant
+   une transition la page ne répond pas : toutes durent moins de 300 ms. */
+@media not (prefers-reduced-motion: reduce) {
+  /* Descendre : la nouvelle vue arrive de quelques dizaines de pixels sur le côté en
+     apparaissant, l'ancienne s'efface un peu plus vite. Derrière, le papier : pas d'éclair
+     de blanc au milieu du fondu. */
+  html[data-vt="avant"]::view-transition,
+  html[data-vt="arriere"]::view-transition { background: var(--paper); }
+
+  html[data-vt="avant"]::view-transition-old(root),
+  html[data-vt="arriere"]::view-transition-old(root) { animation: vt-sort calc(var(--d-moyenne) * 0.7) var(--e-entree) both; mix-blend-mode: normal; }
+
+  html[data-vt="avant"]::view-transition-new(root) { animation: vt-avant var(--d-moyenne) var(--e-sortie) both; mix-blend-mode: normal; }
+
+  html[data-vt="arriere"]::view-transition-new(root) { animation: vt-arriere var(--d-moyenne) var(--e-sortie) both; mix-blend-mode: normal; }
+
+  /* Changer d'onglet : un fondu enchaîné court (durées égales, donc le mélange par défaut
+     reste exact). */
+  html[data-vt="onglet"]::view-transition-old(root),
+  html[data-vt="onglet"]::view-transition-new(root) { animation-duration: 160ms; animation-timing-function: linear; }
+}
+
+@keyframes vt-sort { to { opacity: 0; } }
+
+@keyframes vt-avant { from { opacity: 0; translate: 28px 0; } }
+
+@keyframes vt-arriere { from { opacity: 0; translate: -28px 0; } }
+
+/* Ce qui est fixé à l'écran (la barre d'onglets, le message, le plateau des minuteurs) a son
+   propre calque pendant une transition de pages : sans cela il glisserait avec la page. Il ne
+   se fond pas non plus : on ne voit que le nouvel état, vivant (la pastille y glisse). Pas
+   pour le mode cuisine, dont le cercle les recouvre comme le reste. */
+html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) :is(.tabbar, #toast, #timer-tray) { view-transition-class: fixe; }
+
+html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) .tabbar { view-transition-name: barre-onglets; }
+
+html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) #toast { view-transition-name: message-toast; }
+
+html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) #timer-tray { view-transition-name: plateau-minuteurs; }
+
+::view-transition-group(*.fixe) { animation: none; }
+
+::view-transition-old(*.fixe) { display: none; }
+
+::view-transition-new(*.fixe) { animation: none; }
+
+/* La photo partagée (routeur : data-vt-photo, seule la paire de la recette concernée est
+   nommée) : la photo de la carte devient la grande photo de la fiche, et y retourne. Les deux
+   images se recadrent (cover) pendant que le cadre grandit, aux coins arrondis. */
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-group(photo-vt) { animation-duration: var(--d-moyenne); animation-timing-function: var(--e-standard); overflow: clip; border-radius: 14px; }
+}
+
+::view-transition-old(photo-vt) { height: 100%; object-fit: cover; }
+
+::view-transition-new(photo-vt) { height: 100%; object-fit: cover; }

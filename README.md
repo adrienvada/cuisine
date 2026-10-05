@@ -355,6 +355,7 @@ r/  f/                  Pages d'aperçu des recettes et des fondamentaux (géné
 
 css/polices.css         Polices locales (@font-face) : rien n'est demandé à un serveur de polices
 css/base.css            Palette (clair/sombre, contrastes mesurés par les tests), jetons de mouvement et d'élévation, retour d'appui, utilitaires (.arrive, .trace, .rouler), mise en page, onglets, boutons, toast, feuilles
+css/navigation.css      Ce qui bouge entre les écrans (transitions de vue, pastille et icônes des onglets, badges, sortie des feuilles, trait des messages), posée après le premier affichage par js/ui/transitions.js
 css/accueil.css         Accueil : en-tête, recherche, filtres, grille de vignettes
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/minuteurs.css       Plateau des bulles de minuteur
@@ -400,6 +401,9 @@ js/core/ressort.js      Le ressort amorti (pur) : durée, points, linear() ; dur
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
 js/ui/toast.js          Message passager (avec bouton d'action facultatif), pastilles des onglets
+js/ui/toast-mouvement.js  Mouvement des messages (trait du temps restant, écarter du doigt) et des pastilles (chiffre qui roule, saut), chargé au repos
+js/ui/feuilles-geste.js Glisser la poignée d'une feuille pour la fermer, chargé à l'ouverture d'une feuille
+js/ui/transitions.js    Transitions de vue (View Transitions), photo partagée, pastille et icônes de la barre d'onglets, chargé après le premier affichage
 js/ui/annonces.js       L'unique région live : annoncer(texte)
 js/ui/focus.js          garderFocus() : le focus clavier à travers un redessin
 js/ui/typo.js           Typographie française de tout ce qui s'affiche (espaces insécables), par typo() de core/format.js
