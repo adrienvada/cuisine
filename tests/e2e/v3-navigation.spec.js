@@ -347,6 +347,10 @@ for (const reduit of [false, true]) {
       await navPret(page);
       const toast = page.locator("#toast");
       const etatTrait = () => page.evaluate(() => document.querySelector("#toast .toast-temps")?.getAnimations().map(a => a.playState)[0] ?? null);
+      /* Le message est posé : son arrivée, ou la sortie du précédent qu'on vient d'écarter, est
+         finie. Mesuré en route, son centre tomberait à côté du doigt (hors de l'écran, pendant la
+         sortie vers la droite) et le geste ne le toucherait pas. */
+      const pose = () => expect.poll(() => toast.evaluate(t => t.getAnimations().filter(a => a.playState === "running").length)).toBe(0);
 
       await page.locator("[data-remove]").first().click();
       await expect(toast).toHaveClass(/visible/);
@@ -362,6 +366,7 @@ for (const reduit of [false, true]) {
       }
 
       // Écarté vers la droite : il part, l'entrée retirée ne revient pas.
+      await pose();
       let c = await centre(toast.locator(".toast-msg"));
       await page.mouse.move(c.x, c.y);
       await page.mouse.down();
@@ -373,6 +378,7 @@ for (const reduit of [false, true]) {
       // Vers le bas aussi.
       await page.locator("[data-remove]").first().click();
       await expect(toast).toHaveClass(/visible/);
+      await pose();
       c = await centre(toast.locator(".toast-msg"));
       await page.mouse.move(c.x, c.y);
       await page.mouse.down();
