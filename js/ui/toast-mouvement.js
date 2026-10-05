@@ -120,7 +120,7 @@ export function badge(b, n) {
   if (avant === 0) {
     b.textContent = n;
     b.hidden = false;
-    rejouer(b, "entre");
+    if (!mouvementReduit()) rejouer(b, "entre");
     return;
   }
   b.classList.remove("sort");

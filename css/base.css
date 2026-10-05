@@ -336,14 +336,13 @@ a { color: var(--green); }
   z-index: 200;
   box-shadow: 0 8px 24px rgba(44, 51, 38, 0.3);
   /* Toujours rendu, simplement invisible : sa région est annoncée à coup sûr. Il arrive à
-     ressort (translate et scale, transform garde le centrage) et repart vite. */
+     ressort (translate, qui laisse transform au centrage) et repart vite. */
   opacity: 0;
-  translate: 0 14px;
-  scale: 0.96;
+  translate: 0 10px;
   visibility: hidden;
   pointer-events: none;
   touch-action: none;
-  transition: opacity 120ms linear, translate 160ms var(--e-entree), scale 160ms var(--e-entree), visibility 0s linear 160ms;
+  transition: opacity 120ms linear, translate 160ms var(--e-entree), visibility 0s linear 160ms;
 }
 
 .toast[hidden] { display: none; }
@@ -351,10 +350,9 @@ a { color: var(--green); }
 .toast.visible {
   opacity: 1;
   translate: 0 0;
-  scale: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity var(--d-courte) var(--e-sortie), translate var(--ressort-duree) var(--ressort), scale var(--ressort-duree) var(--ressort);
+  transition: opacity var(--d-courte) var(--e-sortie), translate var(--ressort-duree) var(--ressort);
 }
 
 /* Le doigt commande pendant le geste d'écarter (toast-mouvement.js). */
@@ -378,7 +376,7 @@ body.avec-minuteurs:not(.cooking) .toast { bottom: calc(96px + var(--plateau-h, 
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast, .toast.visible { transition: none; animation: none; translate: 0 0; scale: 1; }
+  .toast, .toast.visible { transition: none; animation: none; translate: 0 0; }
 }
 
 .fade-in { animation: fade 0.22s ease; }

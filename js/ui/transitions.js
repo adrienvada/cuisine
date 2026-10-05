@@ -4,6 +4,7 @@
    pas là, ou si le navigateur ne connaît pas les View Transitions, la navigation est
    l'échange direct d'avant, et l'onglet actif garde son fond de base.css. */
 
+import { recetteDe, typeDe } from "../core/sens.js";
 import { mouvementReduit } from "./theme.js";
 import { prechauffer } from "./toast.js";
 
@@ -55,33 +56,6 @@ export function origineRecente() {
 
 /* ---------- Quelle transition ---------- */
 
-/* Une adresse est un onglet (une racine), un détail (une fiche, un savoir) ou le mode cuisine. */
-function genreDe(hash) {
-  const parts = (hash || "").replace(/^#\/?/, "").split("/").filter(Boolean);
-  if (parts[0] === "recette") return parts.includes("cuisine") ? "cuisine" : "detail";
-  return parts[0] === "fondamental" ? "detail" : "onglet";
-}
-
-/* La recette que montre une adresse de fiche, ou null. */
-const recetteDe = hash => {
-  const parts = (hash || "").replace(/^#\/?/, "").split("/");
-  return genreDe(hash) === "detail" && parts[0] === "recette" ? parts[1] : null;
-};
-
-/* Le sens de la navigation. Descendre (d'une racine vers un détail, ou vers une entrée
-   jamais vue) est « avant » ; remonter ou revenir sur une entrée déjà vue est « arriere » ;
-   passer d'une racine à l'autre est « onglet » ; le mode cuisine a ses deux cercles. */
-export function typeDe(de, vers, nouvelle) {
-  if (!de || de === vers) return null;
-  const a = genreDe(de), b = genreDe(vers);
-  if (b === "cuisine") return a === "cuisine" ? null : "cuisine";
-  if (a === "cuisine") return "cuisine-sortie";
-  if (a === "onglet" && b === "onglet") return "onglet";
-  if (a === "onglet") return "avant";
-  if (b === "onglet") return "arriere";
-  return nouvelle ? "avant" : "arriere";
-}
-
 /* planifier({ de, vers, nouvelle, demandee }) — ce que le routeur jouera pour passer de la vue
    `de` à la vue `vers` (adresses sans requête) : { type, origine, photo }, ou null s'il n'y a
    rien à jouer. `demandee` ({ type, origine }) vient de preparerTransition et l'emporte.
@@ -94,8 +68,7 @@ export function planifier({ de, vers, nouvelle, demandee }) {
   const cible = geste?.cible;
   const versFiche = recetteDe(vers), deFiche = recetteDe(de);
   const photo = type !== "avant" && type !== "arriere" ? null
-    : versFiche ? { id: versFiche, cote: "avant", cible }
-    : deFiche ? { id: deFiche, cote: "apres" } : null;
+    : versFiche || deFiche ? { id: versFiche || deFiche, cible } : null;
   return { type, origine, photo };
 }
 
@@ -116,14 +89,18 @@ function photoDe(racine, id, touchee) {
 /* ---------- La transition ---------- */
 
 let courante = null;
+/* Les éléments qui portent le nom de la photo partagée : un seul à la fois, effacés à la fin de la transition (ou à la suivante, si elle la saute). */
+let nommees = [];
+const effacerNoms = () => { nommees.forEach(e => { e.style.viewTransitionName = ""; }); nommees = []; };
 let jeton = 0;
 
-/* jouer({ type, origine, photo: { id, cote } }, rendre) — échange le DOM par `rendre()` à
+/* jouer({ type, origine, photo: { id, cible } }, rendre) — échange le DOM par `rendre()` à
    l'intérieur d'une transition de vue. `type` va sur <html data-vt>, `origine` ({ x, y })
-   dans --vt-x / --vt-y, avant tout. `photo.cote` dit où chercher la photo à nommer :
-   "avant" (dans la vue qu'on quitte : on ouvre cette recette) ou "apres" (dans la nouvelle :
-   on revient d'elle). Rend la promesse de l'échange, ou null si aucune transition n'a lieu
-   (alors rien n'a été appelé : le routeur échange lui-même). */
+   dans --vt-x / --vt-y, avant tout. `photo.id` est la recette dont la photo voyage : on
+   nomme sa photo visible dans la vue qu'on quitte (celle que `cible`, l'élément touché, désigne
+   s'il y en a deux) et, une fois la nouvelle dessinée, la sienne. Rend la promesse de
+   l'échange, ou null si aucune transition n'a lieu (alors rien n'a été appelé : le routeur
+   échange lui-même). */
 export function jouer({ type, origine, photo }, rendre) {
   if (typeof document.startViewTransition !== "function" || mouvementReduit() || document.visibilityState !== "visible") return null;
   const moi = ++jeton;
@@ -134,24 +111,24 @@ export function jouer({ type, origine, photo }, rendre) {
     racine.style.setProperty("--vt-x", origine.x + "px");
     racine.style.setProperty("--vt-y", origine.y + "px");
   }
-  const nommees = [];
+  effacerNoms();
   const nommer = el => { if (el) { el.style.viewTransitionName = NOM_PHOTO; nommees.push(el); } };
-  if (photo?.cote === "avant") nommer(photoDe(document, photo.id, photo.cible));
+  if (photo) nommer(photoDe(document, photo.id, photo.cible));
   let t;
   try {
     t = document.startViewTransition(() => {
       rendre();
-      if (photo?.cote === "apres") nommer(photoDe(document, photo.id, null));
+      if (photo) nommer(photoDe(document, photo.id, null));
     });
   } catch {
-    nommees.forEach(e => { e.style.viewTransitionName = ""; });
+    effacerNoms();
     racine.removeAttribute("data-vt");
     return null;
   }
   courante = t;
   const fin = () => {
-    nommees.forEach(e => { e.style.viewTransitionName = ""; });
-    if (jeton !== moi) return;
+    if (jeton !== moi) return;   // une autre a pris la suite : elle a déjà tout remis à zéro
+    effacerNoms();
     courante = null;
     racine.removeAttribute("data-vt");
     racine.style.removeProperty("--vt-x");

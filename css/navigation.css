@@ -181,11 +181,11 @@ html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) #toast { vie
 
 html:is([data-vt="avant"], [data-vt="arriere"], [data-vt="onglet"]) #timer-tray { view-transition-name: plateau-minuteurs; }
 
-::view-transition-group(*.fixe) { animation: none; }
+::view-transition-group(*.fixe) { animation-duration: 0s; }
 
 ::view-transition-old(*.fixe) { display: none; }
 
-::view-transition-new(*.fixe) { animation: none; }
+::view-transition-new(*.fixe) { animation-duration: 0s; }
 
 /* La photo partagée (routeur : data-vt-photo, seule la paire de la recette concernée est
    nommée) : la photo de la carte devient la grande photo de la fiche, et y retourne. Les deux

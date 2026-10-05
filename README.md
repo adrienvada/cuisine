@@ -397,6 +397,7 @@ js/core/cuisine.js      Mode cuisine, côté calcul : taille du texte, ingrédie
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
 js/core/journal.js      Journal, côté pur : dates en clair et tri des entrées d'une recette
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
+js/core/sens.js         Le sens d'une navigation (pur) : onglet, détail ou mode cuisine, d'où le type de transition de vue
 js/core/ressort.js      Le ressort amorti (pur) : durée, points, linear() ; durées et courbes du mouvement, résistance élastique, vitesse d'un geste
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
 
