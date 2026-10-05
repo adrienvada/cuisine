@@ -13,25 +13,27 @@
 
 import { APPORTS } from "../apports.js";
 import { allergenesDeEntree, MOMENT_TABLE } from "./menu.js";
-import { nomCourt } from "./planning.js";
-import { estDeSaison, sansFour } from "./recherche.js";
-import { effectiveIngredients, totalTime } from "./recettes.js";
+import { estDeSaison } from "./recherche.js";
+import { effectiveIngredients, effectiveSteps, totalTime } from "./recettes.js";
 
 /* Ce qui accompagne un repas sans en être un plat : jamais compté, jamais proposé. */
 const ACCOMPAGNE = ["Boissons", "Sauces"];
 
-/* Les manques, dans l'ordre où la phrase les dit, et ce qu'en dit l'étiquette d'une
-   recette proposée. */
-export const MANQUES = ["legumes", "proteines", "feculents", "frais"];
+/* Ce que dit l'étiquette d'une recette proposée : le mot de la cantine, plus court que
+   celui de la phrase (« de quoi caler »). */
+export const ETIQUETTES = { legumes: "légumes", proteines: "protéines", feculents: "féculents", frais: "fraîcheur" };
 
-export const ETIQUETTES = { legumes: "légumes", proteines: "protéines", feculents: "de quoi caler", frais: "fraîcheur" };
-
-/* Un apéro qui fait dîner : trois plats salés au moins. */
-const APERO_DINATOIRE = 3;
+/* Un apéro qui fait dîner : quatre plats salés au moins. À trois, c'est encore un
+   apéro, et le carnet ne le sermonne pas. */
+const APERO_DINATOIRE = 4;
 
 /* Le poids d'un manque comblé : un repas sans légumes ni protéines est plus incomplet
    qu'un repas sans pain (« du pain suffit »). */
 const POIDS = { legumes: 3, proteines: 3, feculents: 2, frais: 2 };
+
+/* En dessous, une recette comble trop peu, ou dérange trop (un plat carné dans un menu
+   végétarien), pour valoir une carte : le carnet préfère montrer moins, mais mieux. */
+const SCORE_MIN = 1.5;
 
 /* Les apports d'une recette, version composée comprise : un supplément peut en
    ajouter (des croûtons calent un velouté). `e` : une entrée du menu, ou rien pour
@@ -50,20 +52,27 @@ const sale = r => r.category !== "Desserts";
    compte, même si la base n'en a pas). */
 const vegetarienne = (r, e) => !effectiveIngredients(r, e).some(i => NON_VEGETARIEN.includes(i.cid));
 
+/* Le four, dans cette version de la recette : des tartines au chèvre frais n'y passent
+   pas, celles au chèvre chaud oui. */
+const auFour = (r, e) => effectiveSteps(r, e).some(s => s.four);
+
 /* analyser(entrees) — `entrees` : celles du menu, { e, r } (menuEntrees()).
-   Rend { actif, manques, riches } : `actif` dit si le menu forme un repas ; `manques`,
-   les ids de MANQUES qui ne sont couverts par aucun plat ; `riches`, les recettes qui
-   pèsent quand il manque de la fraîcheur (pour le dire). */
+   Rend { actif, manques } : `actif` dit si le menu forme un repas ; `manques`, ce qui
+   n'y est pas encore, dans l'ordre où la phrase le dit (legumes, proteines, feculents,
+   frais).
+   Un apéro dînatoire ne réclame pas de légumes : aucun apéro du carnet n'en porte une
+   vraie part, et le lui reprocher à chaque fois serait un sermon. La fraîcheur ne se
+   réclame que face à un plat salé riche : un mi-cuit au chocolat après un velouté ne
+   rend pas le repas lourd. */
 export function analyser(entrees) {
   const mets = entrees.filter(({ r }) => !ACCOMPAGNE.includes(r.category));
   const sales = mets.filter(({ r }) => sale(r));
-  const actif = mets.some(({ r }) => MOMENT_TABLE.includes(r.category)) || sales.length >= APERO_DINATOIRE;
-  if (!actif) return { actif: false, manques: [], riches: [] };
+  const aTable = mets.some(({ r }) => MOMENT_TABLE.includes(r.category));
+  if (!aTable && sales.length < APERO_DINATOIRE) return { actif: false, manques: [] };
   const apporte = (liste, id) => liste.some(({ r, e }) => apportsDe(r, e).includes(id));
-  const manques = ["legumes", "proteines", "feculents"].filter(id => !apporte(sales, id));
-  const riches = mets.filter(({ r, e }) => apportsDe(r, e).includes("riche")).map(({ r }) => r);
-  if (riches.length && !apporte(mets, "frais")) manques.push("frais");
-  return { actif: true, manques, riches: [...new Map(riches.map(r => [r.id, r])).values()] };
+  const manques = ["legumes", "proteines", "feculents"].filter(id => (aTable || id !== "legumes") && !apporte(sales, id));
+  if (apporte(sales, "riche") && !apporte(mets, "frais")) manques.push("frais");
+  return { actif: true, manques };
 }
 
 /* Ce que la recette comblerait : un dessert n'apporte pas de légumes à un repas, il
@@ -72,18 +81,24 @@ const comble = (r, apports, manques) => manques.filter(m => apports.includes(m) 
 
 /* suggerer(entrees, manques, options) — les recettes du carnet qui comblent le mieux
    ces manques, de la plus utile à la moins utile : celles qui en comblent plusieurs
-   d'abord, un plat qui se mange à table plutôt qu'un apéro, rien qui alourdisse un repas
-   qui manque de fraîcheur, rien de carné dans un menu végétarien, pas un four de plus
-   quand il chauffe déjà, la saison à égalité. Jamais une recette déjà au menu, ni une
-   qui contient un allergène que les invités évitent (version par défaut, celle qu'on
-   ajouterait). Options : `exclus` (ids d'allergènes), `compo` (rid → { choices, addons }
-   de la version qu'on ajouterait), `mois` (1 à 12), `max`. */
-export function suggerer(entrees, manques, { exclus = [], compo = () => ({}), mois = null, max = 3 } = {}) {
+   d'abord ; un plat qui se mange à table plutôt qu'un apéro quand il apporte des
+   légumes ou des protéines ; rien de riche tant que le menu n'a rien de frais (il
+   faudrait ensuite l'alléger) ; rien de carné dans un menu végétarien ; pas un four de
+   plus quand il chauffe déjà ; la saison en plus. À égalité : les recettes qu'on aime,
+   puis celles qu'on n'a pas faites depuis longtemps, puis la plus rapide.
+   Jamais une recette déjà au menu, ni une qui contient un allergène que les invités
+   évitent. Le four, les allergènes et le reste se lisent sur la version qu'on
+   ajouterait. Options : `exclus` (ids d'allergènes), `compo` (rid → { choices, addons }
+   de la version qu'on ajouterait), `mois` (1 à 12), `favori` (r → vrai si on l'aime),
+   `derniere` (r → l'instant où on l'a cuisinée pour la dernière fois, 0 si jamais),
+   `max`. */
+export function suggerer(entrees, manques, { exclus = [], compo = () => ({}), mois = null, favori = () => false, derniere = () => 0, max = 3 } = {}) {
   if (!manques.length) return [];
   const presents = new Set(entrees.map(({ r }) => r.id));
   const mets = entrees.filter(({ r }) => !ACCOMPAGNE.includes(r.category));
   const toutVegetarien = mets.length > 0 && mets.every(({ r, e }) => vegetarienne(r, e));
-  const fourOccupe = mets.some(({ r }) => !sansFour(r));
+  const aFrais = mets.some(({ r, e }) => apportsDe(r, e).includes("frais"));
+  const fourOccupe = mets.some(({ r, e }) => auFour(r, e));
   return RECIPES
     .filter(r => !presents.has(r.id) && !ACCOMPAGNE.includes(r.category))
     .map(r => {
@@ -93,32 +108,31 @@ export function suggerer(entrees, manques, { exclus = [], compo = () => ({}), mo
       if (!utiles.length) return null;
       if (exclus.length && allergenesDeEntree(r, conf, exclus).length) return null;
       let score = utiles.reduce((s, m) => s + POIDS[m], 0);
-      if (MOMENT_TABLE.includes(r.category)) score += 1;
-      if (manques.includes("frais") && apports.includes("riche")) score -= 2;
+      if (MOMENT_TABLE.includes(r.category) && utiles.some(m => m === "legumes" || m === "proteines")) score += 1;
+      if (!aFrais && apports.includes("riche")) score -= 2;
       if (toutVegetarien && !vegetarienne(r, conf)) score -= 3;
-      if (fourOccupe && !sansFour(r)) score -= 0.5;
+      if (fourOccupe && auFour(r, conf)) score -= 0.5;
       if (mois && estDeSaison(r, mois)) score += 0.5;
-      return { r, comble: utiles, score };
+      return { r, comble: utiles, score, aime: favori(r) ? 1 : 0, derniere: derniere(r) || 0, temps: totalTime(r, conf) };
     })
-    .filter(x => x && x.score > 0)
-    .sort((a, b) => b.score - a.score || totalTime(a.r) - totalTime(b.r) || a.r.title.localeCompare(b.r.title, "fr"))
-    .slice(0, max);
+    .filter(x => x && x.score >= SCORE_MIN)
+    .sort((a, b) => b.score - a.score || b.aime - a.aime || a.derniere - b.derniere || a.temps - b.temps || a.r.title.localeCompare(b.r.title, "fr"))
+    .slice(0, max)
+    .map(({ r, comble, score }) => ({ r, comble, score }));
 }
 
 /* « des légumes, des protéines et de quoi caler » : une liste à la française. */
 const enumerer = parts => (parts.length < 2 ? parts.join("") : `${parts.slice(0, -1).join(", ")} et ${parts[parts.length - 1]}`);
 
-/* phrase({ manques, riches }) — « Il manque des légumes et quelque chose de frais
-   pour alléger Quiche lorraine. » Le pain suffit à caler un repas : la phrase le dit
-   quand c'est le seul manque. Les plats riches sont nommés comme dans la frise (deux
-   au plus, sinon « le repas »). */
-export function phrase({ manques, riches }) {
-  const nommes = riches.length && riches.length <= 2 ? riches.map(r => nomCourt(r.title)).join(" et ") : "le repas";
+/* phrase(manques) — « Il manque encore des légumes et un peu de fraîcheur pour alléger
+   le repas. » Le pain suffit à caler un repas : la phrase le dit tant que les manques
+   sont deux au plus ; au-delà, il se lirait comme « le pain règle tout ». */
+export function phrase(manques) {
   const parts = manques.map(m => ({
     legumes: "des légumes",
     proteines: "des protéines",
-    feculents: manques.length === 1 ? "de quoi caler (du pain suffit)" : "de quoi caler",
-    frais: `quelque chose de frais pour alléger ${nommes}`
+    feculents: manques.length <= 2 ? "de quoi caler (du pain suffit)" : "de quoi caler",
+    frais: "un peu de fraîcheur pour alléger le repas"
   })[m]);
-  return `Il manque ${enumerer(parts)}.`;
+  return `Il manque encore ${enumerer(parts)}.`;
 }

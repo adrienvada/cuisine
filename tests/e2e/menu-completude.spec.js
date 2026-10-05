@@ -20,7 +20,7 @@ for (const reduit of [false, true]) {
       await page.goto(MENU);
       const bloc = page.locator(".manques");
       await expect(bloc).toBeVisible();
-      await expect(bloc.locator(".mq-phrase")).toHaveText("Il manque des légumes et quelque chose de frais pour alléger Quiche lorraine.");
+      await expect(bloc.locator(".mq-phrase")).toHaveText("Il manque encore des légumes et un peu de fraîcheur pour alléger le repas.");
       const recos = bloc.locator(".mq-reco");
       expect(await recos.count()).toBeGreaterThan(0);
       expect(await recos.count()).toBeLessThanOrEqual(3);
@@ -49,7 +49,7 @@ for (const reduit of [false, true]) {
       expect(rids[1]).toMatch(/^salade-/);
       await page.getByRole("button", { name: "Annuler" }).click();
       await expect(page.locator(".menu-card")).toHaveCount(1);
-      await expect(page.locator(".manques .mq-phrase")).toHaveText(/Il manque des légumes/);
+      await expect(page.locator(".manques .mq-phrase")).toHaveText(/Il manque encore des légumes/);
       expect((await lireCarnet(page)).menu.map(e => e.rid)).toEqual(["quiche-lorraine"]);
     });
 
@@ -73,10 +73,10 @@ for (const reduit of [false, true]) {
   });
 }
 
-test("silence : un apéro seul ne manque de rien", async ({ page, context }) => {
-  await preremplir(context, { carnet: { menu: [entree("cake-sale", { k: "c1" }), entree("torsades-pesto", { k: "t1" }), entree("cocktail-concombre-menthe", { k: "x1" })] } });
+test("silence : un apéro de trois plats salés n'est pas encore un dîner", async ({ page, context }) => {
+  await preremplir(context, { carnet: { menu: ["cake-sale", "torsades-pesto", "focaccia-romarin", "cocktail-concombre-menthe"].map((rid, i) => entree(rid, { k: `a${i}` })) } });
   await page.goto(MENU);
-  await expect(page.locator(".menu-card")).toHaveCount(3);
+  await expect(page.locator(".menu-card")).toHaveCount(4);
   await expect(page.locator(".squelette")).toBeVisible();
   await expect(page.locator(".manques")).toHaveCount(0);
 });

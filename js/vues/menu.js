@@ -46,7 +46,7 @@ import {
   planifier,
   texteEvenement
 } from "../core/planning.js";
-import { VERDICTS, byId, cookedOf, totalTimeText, verdictOf, versionSummary } from "../core/recettes.js";
+import { VERDICTS, byId, cookedOf, isFav, totalTimeText, verdictOf, versionSummary } from "../core/recettes.js";
 import { cookHref, cookingStep } from "../core/seance.js";
 import { annoncer } from "../ui/annonces.js";
 import { garderFocus } from "../ui/focus.js";
@@ -129,10 +129,16 @@ function manquesHtml(list, repas) {
   const tus = lireTus();
   const manques = analyse.manques.filter(m => !tus.includes(m));
   if (!analyse.actif || !manques.length) return "";
-  const recos = suggerer(list, manques, { exclus: repas.exclus, compo: versionAjoutee, mois: new Date().getMonth() + 1 });
-  const aucune = `Aucune recette du carnet ne le comble${repas.exclus.length ? " sans ce que tes invités évitent" : ""}.`;
+  const recos = suggerer(list, manques, {
+    exclus: repas.exclus,
+    compo: versionAjoutee,
+    mois: new Date().getMonth() + 1,
+    favori: isFav,
+    derniere: r => cookedOf(r).last
+  });
+  const aucune = `Rien à proposer pour l'instant${repas.exclus.length ? " avec ce que tes invités évitent" : " dans le carnet"}.`;
   return html`<section class="manques${entree()}" aria-labelledby="mq-phrase">
-    <p class="mq-phrase" id="mq-phrase">${phrase({ manques, riches: analyse.riches })}</p>
+    <p class="mq-phrase" id="mq-phrase">${phrase(manques)}</p>
     ${recos.length ? raw(html`<ul class="mq-liste">${recos.map(x => raw(recoHtml(x)))}</ul>`) : raw(html`<p class="mq-aucune">${aucune}</p>`)}
     <button class="mq-taire" data-taire="${manques.join(" ")}" aria-label="Ça me va comme ça : ne plus signaler ces manques pour ce repas">Ça me va comme ça</button>
   </section>`;

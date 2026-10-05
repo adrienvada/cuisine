@@ -43,31 +43,40 @@ test("un supplément ajoute son apport à la version composée, pas à la recett
   assert.deepEqual(apportsDe(velouté), ["legumes"]);
   assert.deepEqual(apportsDe(velouté, { addons: ["croutons"] }), ["legumes", "feculents"]);
   assert.deepEqual(apportsDe(velouté, { addons: ["graines-courge"] }), ["legumes"]);
+  // Une garniture ne cale pas : trois châtaignes sur un velouté.
+  assert.deepEqual(apportsDe(velouté, { addons: ["chataignes"] }), ["legumes"]);
+  // Deux ou trois radis par personne rafraîchissent un dip, mais ne font pas une part de légumes.
+  assert.deepEqual(apportsDe(recette("dip-chevre-herbes"), { addons: ["radis"] }), ["frais"]);
+  assert.deepEqual(apportsDe(recette("houmous-petits-pois-menthe"), { addons: ["pita"] }), ["frais", "feculents"]);
 });
 
 /* ---------- Quand le carnet parle ---------- */
 
 test("silence : un apéro seul, un dessert seul, une boisson ou une sauce ne forment pas un repas", () => {
   assert.equal(analyser(menu("cake-sale", "torsades-pesto", "cocktail-concombre-menthe")).actif, false);
+  // Trois plats salés, c'est encore un apéro : le carnet ne le sermonne pas.
+  assert.equal(analyser(menu("cake-sale", "torsades-pesto", "focaccia-romarin")).actif, false);
   assert.equal(analyser(menu("scoopable-cookies")).actif, false);
   assert.equal(analyser(menu("mayonnaise-maison", "cocktail-concombre-menthe")).actif, false);
   assert.equal(analyser([]).actif, false);
 });
 
-test("un plat qui se mange à table suffit ; un apéro de trois plats salés fait un dîner", () => {
+test("un plat qui se mange à table suffit ; un apéro de quatre plats salés fait un dîner", () => {
   assert.equal(analyser(menu("quiche-lorraine")).actif, true);
   assert.equal(analyser(menu("veloute-butternut-shiitakes")).actif, true);
-  assert.equal(analyser(menu("focaccia-romarin", "houmous-petits-pois-menthe", "beignets-brebis-menthe")).actif, true);
-  assert.equal(analyser(menu("focaccia-romarin", "beignets-brebis-menthe", "scoopable-cookies")).actif, false);
+  assert.equal(analyser(menu("focaccia-romarin", "houmous-petits-pois-menthe", "dip-chevre-herbes", "beignets-brebis-menthe")).actif, true);
+  assert.equal(analyser(menu("focaccia-romarin", "houmous-petits-pois-menthe", "beignets-brebis-menthe")).actif, false);
+  assert.equal(analyser(menu("focaccia-romarin", "beignets-brebis-menthe", "scoopable-cookies", "mi-cuit-chocolat-suzy-palatin")).actif, false);
 });
 
 /* ---------- Ce qui manque ---------- */
 
-test("une quiche seule : des légumes et quelque chose de frais", () => {
+test("une quiche seule : des légumes et un peu de fraîcheur", () => {
   const a = analyser(menu("quiche-lorraine"));
   assert.deepEqual(a.manques, ["legumes", "frais"]);
-  assert.deepEqual(ids(a.riches.map(r => ({ r }))), ["quiche-lorraine"]);
-  assert.equal(phrase(a), "Il manque des légumes et quelque chose de frais pour alléger Quiche lorraine.");
+  assert.equal(phrase(a.manques), "Il manque encore des légumes et un peu de fraîcheur pour alléger le repas.");
+  // Un houmous à l'apéro ne fait pas la part de légumes : il ne fait qu'alléger.
+  assert.deepEqual(analyser(menu("houmous-petits-pois-menthe", "quiche-lorraine")).manques, ["legumes"]);
 });
 
 test("un velouté seul : des protéines et de quoi caler ; avec ses croûtons, il cale", () => {
@@ -80,23 +89,30 @@ test("rien ne manque : la quiche et sa salade, le menu de la frise", () => {
   assert.deepEqual(analyser(menu("focaccia-romarin", "quiche-lorraine", "salade-mediterraneenne")).manques, []);
 });
 
-test("un dessert compte pour le riche et le frais, jamais pour les légumes ; boissons et sauces ne comptent pas", () => {
-  // Le gravlax est frais : le mi-cuit ne réclame rien de plus ; il manque les légumes et de quoi caler.
-  assert.deepEqual(analyser(menu("gravlax-saumon-yaourt-bulgare", "mi-cuit-chocolat-suzy-palatin")).manques, ["legumes", "feculents"]);
+test("un dessert peut alléger, jamais alourdir ni apporter des légumes ; boissons et sauces ne comptent pas", () => {
+  // Le gravlax a son pain suédois, il cale ; il ne manque que des légumes.
+  assert.deepEqual(analyser(menu("gravlax-saumon-yaourt-bulgare", "mi-cuit-chocolat-suzy-palatin")).manques, ["legumes"]);
+  // Un mi-cuit au chocolat après un velouté ne rend pas le repas lourd : pas de fraîcheur à réclamer.
+  assert.deepEqual(analyser(menu("veloute-butternut-shiitakes", "mi-cuit-chocolat-suzy-palatin")).manques, ["proteines", "feculents"]);
   // Le cocktail est frais, mais une boisson n'allège pas une quiche.
   assert.deepEqual(analyser(menu("quiche-lorraine", "cocktail-concombre-menthe")).manques, ["legumes", "frais"]);
   // La mayonnaise est riche, mais une sauce ne réclame pas de fraîcheur.
   assert.ok(!analyser(menu("veloute-butternut-shiitakes", "mayonnaise-maison")).manques.includes("frais"));
 });
 
-test("la phrase : « du pain suffit » quand c'est le seul manque ; « le repas » au-delà de deux plats riches", () => {
-  assert.equal(phrase({ manques: ["feculents"], riches: [] }), "Il manque de quoi caler (du pain suffit).");
-  assert.equal(phrase({ manques: ["proteines", "feculents"], riches: [] }), "Il manque des protéines et de quoi caler.");
-  const trois = ["quiche-lorraine", "beignets-brebis-menthe", "scoopable-cookies"].map(recette);
-  assert.equal(phrase({ manques: ["legumes", "proteines", "frais"], riches: trois }),
-    "Il manque des légumes, des protéines et quelque chose de frais pour alléger le repas.");
-  assert.equal(phrase({ manques: ["frais"], riches: trois.slice(0, 2) }),
-    "Il manque quelque chose de frais pour alléger Quiche lorraine et Beignets de brebis.");
+test("un apéro dînatoire ne se fait pas reprocher ses légumes, mais sa lourdeur oui", () => {
+  const apero = menu("cake-sale", "torsades-pesto", "focaccia-romarin", "beignets-brebis-menthe");
+  assert.deepEqual(analyser(apero).manques, ["frais"]);
+  // Fromage, pain, de quoi rafraîchir : un dînatoire complet, le carnet se tait.
+  assert.deepEqual(analyser(menu("focaccia-romarin", "houmous-petits-pois-menthe", "dip-chevre-herbes", "beignets-brebis-menthe")).manques, []);
+});
+
+test("la phrase : « du pain suffit » tant que les manques sont deux au plus", () => {
+  assert.equal(phrase(["feculents"]), "Il manque encore de quoi caler (du pain suffit).");
+  assert.equal(phrase(["proteines", "feculents"]), "Il manque encore des protéines et de quoi caler (du pain suffit).");
+  assert.equal(phrase(["legumes", "proteines", "feculents"]), "Il manque encore des légumes, des protéines et de quoi caler.");
+  assert.equal(phrase(["feculents", "frais"]), "Il manque encore de quoi caler (du pain suffit) et un peu de fraîcheur pour alléger le repas.");
+  assert.equal(phrase(["frais"]), "Il manque encore un peu de fraîcheur pour alléger le repas.");
 });
 
 /* ---------- Ce que le carnet propose ---------- */
@@ -119,6 +135,46 @@ test("un menu végétarien n'est pas complété par un plat carné quand d'autre
   const s = suggerer(m, analyser(m).manques, { mois: 10 });
   assert.ok(!ids(s).includes("quiche-lorraine"), ids(s).join(", "));
   assert.ok(ids(s).includes("salade-lentilles-feta"), ids(s).join(", "));
+  // Même à la dernière place : un plat carné dans un menu végétarien ne vaut pas une carte.
+  assert.ok(!ids(suggerer(m, analyser(m).manques, { mois: 10, max: 20 })).includes("quiche-lorraine"));
+});
+
+test("rien de riche tant que le menu n'a rien de frais : il faudrait ensuite l'alléger", () => {
+  // Le velouté n'appelle pas de fraîcheur, mais des beignets ou un cake l'alourdiraient.
+  const m = menu("veloute-butternut-shiitakes");
+  const s = suggerer(m, analyser(m).manques, { mois: 10 });
+  assert.equal(s.length, 3);
+  for (const x of s) assert.ok(!apportsDe(x.r).includes("riche"), x.r.id);
+  // Avec une salade déjà au menu, la question ne se pose plus.
+  const k = menu("salade-kale-pomme-oeuf");
+  assert.ok(ids(suggerer(k, ["feculents"], { mois: 10, max: 20 })).includes("torsades-pesto"));
+});
+
+test("le four se lit sur la version qu'on ajouterait : des tartines au chèvre frais n'y passent pas", () => {
+  const m = menu("quiche-lorraine");
+  const score = (id, compo) => suggerer(m, ["feculents"], { max: 20, compo }).find(x => x.r.id === id).score;
+  const chaud = rid => (rid === "tartines-figues-chevre-miel" ? { choices: { chevre: "chaud" }, addons: [] } : {});
+  assert.equal(score("tartines-figues-chevre-miel") - score("tartines-figues-chevre-miel", chaud), 0.5);
+  // La focaccia passe au four, déjà pris par la quiche.
+  assert.equal(score("salade-champetre") - score("focaccia-romarin"), 0.5);
+});
+
+test("en dessous du seuil, le carnet préfère se taire plutôt que de proposer un pis-aller", () => {
+  // Sans œufs, à une salade champêtre il manque des protéines : les tagliatelles aux lardons
+  // dans un menu végétarien ne valent pas une troisième carte.
+  const m = menu("salade-champetre");
+  assert.deepEqual(ids(suggerer(m, analyser(m).manques, { exclus: ["oeufs"], mois: 10 })), ["salade-mediterraneenne", "salade-lentilles-feta"]);
+});
+
+test("à égalité, les recettes qu'on aime d'abord, puis celles qu'on n'a pas faites depuis longtemps", () => {
+  const m = menu("quiche-lorraine");
+  const manques = analyser(m).manques;
+  const ordre = opts => ids(suggerer(m, manques, { mois: 10, max: 4, ...opts }));
+  assert.deepEqual(ordre({}), ["salade-kale-pomme-oeuf", "salade-mediterraneenne", "salade-champetre", "salade-lentilles-feta"]);
+  assert.deepEqual(ordre({ favori: r => r.id === "salade-lentilles-feta" }), ["salade-kale-pomme-oeuf", "salade-lentilles-feta", "salade-mediterraneenne", "salade-champetre"]);
+  assert.deepEqual(ordre({ derniere: r => (r.id === "salade-mediterraneenne" ? Date.UTC(2026, 9, 1) : null) }), ["salade-kale-pomme-oeuf", "salade-champetre", "salade-lentilles-feta", "salade-mediterraneenne"]);
+  // L'utilité passe avant tout : une recette aimée ne double pas une plus utile.
+  assert.equal(ordre({ favori: r => r.id === "salade-champetre" })[0], "salade-kale-pomme-oeuf");
 });
 
 test("les allergènes que les invités évitent écartent une suggestion (version qu'on ajouterait)", () => {
