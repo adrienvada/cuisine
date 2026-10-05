@@ -233,7 +233,8 @@ async function passageRetour(navigateur, url) {
     await page.evaluate(() => window.scrollTo(0, 900));
     await page.evaluate(() => { location.hash = "#/recette/focaccia-romarin"; });
     await page.waitForSelector(".hero");
-    await page.waitForFunction(() => document.getAnimations().every(a => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity));
+    // Les animations pilotées par le défilement (parallaxe de la fiche, arrivée des cartes) ne finissent jamais : seules celles de l'horloge comptent.
+    await page.waitForFunction(() => document.getAnimations().every(a => !(a.timeline instanceof DocumentTimeline) || a.playState !== "running" || a.effect?.getTiming().iterations === Infinity));
     const cdp = await ctx.newCDPSession(page);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: PROFIL.processeur });
     const r = await page.evaluate(() => new Promise(fin => {

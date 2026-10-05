@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "549c911236";
+const VERSION = "418c9cdc28";
 
 const CORE = [
   "./",
@@ -29,6 +29,7 @@ const CORE = [
   "css/minuteurs.css",
   "css/navigation.css",
   "css/polices.css",
+  "css/reglages-feuille.css",
   "css/reglages.css",
   "css/savoirs.css",
   "favicon.ico",

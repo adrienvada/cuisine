@@ -76,7 +76,7 @@ let signatureNotes = "";
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
 
 /* Une coche qui se trace d'un trait (.trace de base.css sur le conteneur). */
-const COCHE_TRACEE = ICON.check.replace("<path ", '<path pathLength="1" ');
+const COCHE_TRACEE = ICON.checkTrace;
 
 /* La structure d'un repas, présente en permanence sur la page — vide ou pas.
    Chaque ligne compte les recettes de la page où elle mène : annoncer un
@@ -335,7 +335,6 @@ function decorerVide() {
   if (enRedessin || mouvementReduit()) return;
   const illo = document.querySelector("#menu-root .empty-illo");
   if (illo) {
-    illo.querySelectorAll("svg path:not([fill-opacity])").forEach(p => p.setAttribute("pathLength", "1"));
     illo.classList.add("trace");
   }
   arriveeDouce(document.getElementById("menu-root"), ".empty, .sq-row, .sq-libre, .passes");

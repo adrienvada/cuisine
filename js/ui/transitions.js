@@ -202,6 +202,7 @@ if (typeof document !== "undefined") {
   document.addEventListener("focusin", e => {
     const el = e.target;
     if (!(el instanceof Element) || mouvementReduit() || !el.matches(":focus-visible") || typeof el.animate !== "function") return;
+    // 160 ms et la courbe « sortie » : DUREES.courte et COURBES.sortie (core/ressort.js), non importés ici pour que ce module du chemin de l'accueil reste léger.
     el.animate([{ outlineOffset: "6px" }, {}], { duration: 160, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
   });
 }

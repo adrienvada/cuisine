@@ -8,8 +8,7 @@ const REPAS = { convives: 6, heure: "20:00", date: "2099-06-15", exclus: [] };
 /* Ce que la page fait, vu de l'extérieur, avant tout script de l'appli :
    - chaque transition de vue lancée (le type posé sur <html>, l'origine, les photos nommées avant l'échange du DOM et après) ;
    - les sauts de pastille (Element.animate avec scale 1.18) ;
-   - les classes « joue » (icône d'onglet), « entre » et « sort » (badges, feuilles) vues à leur pose ;
-   - le lot « accueil » pose data-vt-photo sur la photo des cartes : tant qu'il n'est pas fusionné, un observateur le fait à sa place (sans effet une fois la vraie pose faite). */
+   - les classes « joue » (icône d'onglet), « entre » et « sort » (badges, feuilles) vues à leur pose. */
 const espionner = page => page.addInitScript(() => {
   window.__vt = [];
   window.__sauts = [];
@@ -58,10 +57,6 @@ const espionner = page => page.addInitScript(() => {
     }
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ["class"] });
   document.addEventListener("pointermove", () => { window.__dernierMouvement = performance.now(); }, true);
-  // La pose de data-vt-photo sur les cartes se fait au dessin de #app, avant que le routeur cherche les photos.
-  const poser = () => document.querySelectorAll(".card .visual:not([data-vt-photo])").forEach(v => { v.dataset.vtPhoto = v.closest(".card").dataset.id; });
-  const innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
-  Object.defineProperty(Element.prototype, "innerHTML", { ...innerHTML, set(v) { innerHTML.set.call(this, v); if (this.id === "app") poser(); } });
 });
 
 const navPret = page => page.waitForFunction(() => document.documentElement.hasAttribute("data-nav-pret"));

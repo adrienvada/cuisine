@@ -73,10 +73,11 @@
   height: 1.5px;
   background: var(--gold-deco);
   transform-origin: left;
-  animation: souligne var(--d-trace) var(--e-sortie) 0.55s backwards;
+  animation: souligne var(--d-trace) var(--e-sortie) backwards;
+  animation-delay: 0.55s;   /* après les brins : un seul tracé à la fois */
 }
 
-.encre .byline svg { animation: coeur-bat var(--d-longue) var(--e-standard) 0.95s; }
+.encre .byline svg { animation: coeur-bat var(--d-longue) var(--e-standard); animation-delay: 0.95s; }   /* le cœur bat quand le soulignement est tiré */
 
 @keyframes souligne { from { transform: scaleX(0); } }
 

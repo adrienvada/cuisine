@@ -463,3 +463,16 @@ html[data-theme="dark"] .cook-tampon { color: #E0A06F; border-color: #E0A06F; ba
 }
 
 .cook-etape > #timer-zone.repos { padding-bottom: 12px; background-image: linear-gradient(rgba(193, 145, 63, 0.1), rgba(193, 145, 63, 0.1)); box-shadow: 0 -10px 10px 6px var(--green-deep); }
+
+/* Un petit écran (320 px) : le minuteur collé en bas, avec la phrase de repos, prenait la
+   moitié de la zone de lecture. Anneau, compte et boutons se resserrent (les cibles gardent
+   44 px de haut) pour que la consigne reste lisible au-dessus. */
+@media (max-width: 360px) {
+  #timer-zone.repos { padding: 8px 10px; }
+  .cook-timer { gap: 4px 8px; }
+  .cook-anneau .anneau { width: 52px; height: 52px; }
+  .cook-anneau .anneau > svg:not(.cercle) { width: 21px; height: 21px; }
+  .cook-timer .clock { font-size: 30px; }
+  .cook-timer .t-btn { padding: 8px 12px; font-size: 13.5px; }
+  .cook-rappel { font-size: 13px; line-height: 1.3; }
+}

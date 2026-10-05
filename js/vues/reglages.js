@@ -11,6 +11,7 @@ import { mouvementReduit, tracer } from "../ui/mouvement.js";
 import { reglerVibrations, vibrationsActives, vibrer } from "../ui/geste.js";
 import { chargerSync } from "../ui/scripts.js";
 import { route } from "../ui/routeur.js";
+import { FEUILLE_REGLAGES, stylesDejaPrets, stylesPrets } from "../ui/styles.js";
 import { choisirTheme, modeTheme } from "../ui/theme.js";
 import { toast, updateBadge } from "../ui/toast.js";
 import { ETATS, majPoints } from "./reglages-entree.js";
@@ -66,7 +67,7 @@ function majChoixTheme(zone) {
 }
 
 /* Le nouveau thème s'étend en cercle depuis `origine` (le bouton touché). C'est une transition de
-   vue, repérée par html[data-vt="theme"] (css/reglages.css en règle le cercle) ; elle grandit
+   vue, repérée par html[data-vt="theme"] (css/reglages-feuille.css en règle le cercle) ; elle grandit
    jusqu'au coin le plus éloigné (--vt-r). Le routeur a ses propres types : on ne démarre pas par-dessus
    l'un des siens. Sans l'API ou en mouvement réduit, on rend false et theme.js pose le thème
    d'un coup (la mise à jour de la page arrive sinon à l'image suivante). */
@@ -119,7 +120,9 @@ function sauvegardeHtml() {
     <input type="file" id="reg-fichier" accept="application/json,.json" hidden>`;
 }
 
-export function ouvrirReglages() {
+export async function ouvrirReglages() {
+  // La feuille de style de la feuille n'est pas dans la page de l'accueil : pas de flash sans style.
+  if (!stylesDejaPrets([FEUILLE_REGLAGES])) await stylesPrets([FEUILLE_REGLAGES]);
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop reglages-sheet";
   backdrop.innerHTML = html`

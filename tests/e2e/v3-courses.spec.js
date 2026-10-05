@@ -132,7 +132,7 @@ test("liste terminée : barre d'or, tampon et herbes, une seule fois ; ni au ret
   await expect(page.locator(".tampon-fini")).toHaveClass(/pose/);
   await attendreCalme(() => couche(page).count(), { duree: 500 });
   await expect(couche(page)).toHaveCount(0);
-  await expect(page.locator(".fini")).toHaveText("Tout est dans le panier.");
+  await expect(page.locator(".fini")).toHaveText("Plus rien à acheter, bonne cuisine !");
 
   // Décocher une ligne : la liste n'est plus terminée, le tampon part ; la recocher la termine de nouveau.
   await page.locator("details.panier summary").click();

@@ -29,6 +29,7 @@ import {
   setRefreshZone,
   startTimer
 } from "../ui/minuteurs.js";
+import { DUREES } from "../core/ressort.js";
 import { animer, rouler } from "../ui/mouvement.js";
 import { shareRecipe } from "../ui/partage.js";
 import { app, noterAdresseCourante, retourVers } from "../ui/routeur.js";
@@ -37,6 +38,30 @@ import { toast } from "../ui/toast.js";
 import { decisionPage, limitesPage } from "./cuisine-gestes.js";
 import { extrasHtml } from "./fiche.js";
 import { astuceHtml } from "./savoirs.js";
+
+/* Les effets de la fin de recette (feuilles, tampon) : un seul import(), tiré dès la dernière
+   étape pour que « Terminer » n'attende rien. */
+let effetsP = null;
+const effetsPrets = () => (effetsP ??= import("../ui/effets.js").catch(e => { effetsP = null; throw e; }));
+
+/* Résolue quand la transition de vue en cours (le cercle de sortie du mode cuisine) est finie.
+   Appelée juste après le changement d'adresse : si aucune transition ne démarre dans les
+   600 ms (navigateur sans l'API, onglet caché), on n'attend pas plus ; si elle ne finit pas,
+   2 s au plus. Voir js/ui/transitions.js (html[data-vt]). */
+function finDeTransition() {
+  const racine = document.documentElement;
+  return new Promise(fin => {
+    let vue = !!racine.dataset.vt;
+    const fini = () => { observateur.disconnect(); clearTimeout(depart); clearTimeout(garde); fin(); };
+    const observateur = new MutationObserver(() => {
+      if (racine.dataset.vt) vue = true;
+      else if (vue) fini();
+    });
+    observateur.observe(racine, { attributes: true, attributeFilter: ["data-vt"] });
+    const depart = setTimeout(() => { if (!vue) fini(); }, 600);
+    const garde = setTimeout(fini, 2000);
+  });
+}
 
 let cookIdx = 0;
 
@@ -79,7 +104,7 @@ const ICONE_MICRO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 /* Le soulignement manuscrit du titre d'étape, tracé à l'encre à chaque nouvelle étape :
    la classe .trace (base.css) suffit, l'élément étant recréé avec l'étape. */
-const FLOURISH = ILLO.D.flourish.replace(/<path /g, '<path pathLength="1" ');
+const FLOURISH = ILLO.D.flourish;
 
 export function stopCookMode() {
   if (nettoyage) { nettoyage(); nettoyage = null; }
@@ -149,6 +174,8 @@ export function renderCook(r, step) {
       history.replaceState(history.state, "", `${prefixeCook}/cuisine/${cookIdx}`);
       noterAdresseCourante();
     }
+    // La fin approche : les feuilles et le tampon sont prêts à jaillir dès « Terminer ».
+    if (last && !REDUCE_MOTION.matches) effetsPrets().catch(() => {});
     const repere = reperer(app, document.activeElement);
     libererPlateau();
     if (glisseur) { glisseur.detruire(); glisseur = null; }
@@ -243,11 +270,12 @@ export function renderCook(r, step) {
     // La célébration part du bouton touché : sa place se lit avant que la page change.
     const bouton = document.getElementById("next");
     const rect = bouton && bouton.getBoundingClientRect();
-    celebrer(rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null);
+    const origine = rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
     markCooked(r.id);
     forgetCooking(cleSeance);
     cochesParSeance.delete(cleSeance);
     location.hash = prefixeCook;
+    celebrer(origine);
     const message = first ? "Bon appétit ! Un coup de cœur ?" : "Bon appétit !";
     // Le journal est un module à part : absent, le message reste celui d'avant.
     const journal = await import("./journal.js").catch(() => null);
@@ -257,14 +285,17 @@ export function renderCook(r, step) {
   };
 
   /* La dernière page est célébrée, une seule fois (terminer() ne repasse pas) : une vibration de
-     réussite, des feuilles qui jaillissent du bouton et un tampon « Bon appétit » encré par-dessus
-     la fiche où l'on atterrit. Les effets lourds se chargent à la demande ; en mouvement réduit
-     il ne reste que la vibration, que seul le réglage « Vibrations » gouverne. */
+     réussite tout de suite, puis des feuilles qui jaillissent du bouton et un tampon « Bon appétit »
+     encré par-dessus la fiche où l'on atterrit. Le cercle de sortie (navigation) se referme d'abord,
+     environ 300 ms : la fête attend sa fin, sinon ses premières images seraient cachées sous
+     l'ancienne vue. Les effets lourds se chargent à la demande (dès la dernière page, pour être
+     prêts) ; en mouvement réduit il ne reste que la vibration, que seul le réglage « Vibrations »
+     gouverne. */
   const celebrer = async origine => {
     vibrer("succes");
     if (REDUCE_MOTION.matches) return;
     try {
-      const effets = await import("../ui/effets.js");
+      const [effets] = await Promise.all([effetsPrets(), finDeTransition()]);
       effets.feuilles(origine || undefined);
       const marque = document.createElement("div");
       marque.className = "cook-tampon";
@@ -274,7 +305,7 @@ export function renderCook(r, step) {
       // Même si une animation se perd, le tampon ne reste jamais.
       setTimeout(() => marque.remove(), 3000);
       await effets.tampon(marque);
-      await animer(marque, [{ opacity: 1 }, { opacity: 0 }], { duree: 260, delai: 650, fill: "forwards", reprise: false });
+      await animer(marque, [{ opacity: 1 }, { opacity: 0 }], { duree: DUREES.moyenne, delai: 650, fill: "forwards", reprise: false });
       marque.remove();
     } catch {}
   };
@@ -438,7 +469,7 @@ export function renderCook(r, step) {
         const cible = cookIdx + sens;
         if (!sens || cible < 0 || cible >= steps.length) { relacher(corps, { x: 0, y: 0 }, { x: vx, y: 0 }); return; }
         const mon = ++jeton;
-        // La page poursuit son chemin en s'effaçant (vite : ce qui part est plus rapide que ce qui arrive).
+        // La page poursuit son chemin en s'effaçant. 110 ms, moins que la sortie ordinaire (70 % de --d-moyenne) : le doigt a déjà fait le plus gros du chemin, la page suivante ne doit pas attendre.
         animer(corps, [{ translate: `${x}px 0`, opacity: 1 }, { translate: `${x - sens * 70}px 0`, opacity: 0 }],
           { duree: 110, easing: "entree", cle: "page-sortie", fill: "forwards", reprise: false })
           .then(() => { if (mon === jeton) aller(sens); });

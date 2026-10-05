@@ -64,7 +64,7 @@ test("la CI relance npm run sw et compare sw.js ET index.html", () => {
 });
 
 test("feuilles CSS : seules celles de l'accueil sont dans la page, celles des vues viennent avec leur module, repli noscript", () => {
-  const liens = [...index.matchAll(/<link rel="stylesheet" href="(css\/[a-z]+\.css)"([^>]*)>/g)];
+  const liens = [...index.matchAll(/<link rel="stylesheet" href="(css\/[a-z-]+\.css)"([^>]*)>/g)];
   const dansNoscript = index.slice(index.indexOf("<noscript>"), index.indexOf("</noscript>"));
   const bloquantes = [];
   for (const [, href, reste] of liens) {

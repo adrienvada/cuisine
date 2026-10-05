@@ -36,7 +36,8 @@
 
 /* Quand un onglet devient actif, son icône fait un petit geste qui lui est propre :
    le livre se penche, les couverts se redressent, le panier roule, la fiole se balance. */
-.tabbar a.joue svg { animation-duration: 520ms; animation-timing-function: var(--e-sortie); }
+/* Un geste d'icône dure un peu plus qu'un état (--d-longue + 100 ms) : il se lit, il ne se subit pas. */
+.tabbar a.joue svg { animation-duration: calc(var(--d-longue) + 100ms); animation-timing-function: var(--e-sortie); }
 
 .tabbar a.joue[data-tab="home"] svg { animation-name: tab-livre; transform-origin: 20% 50%; }
 
@@ -165,7 +166,7 @@ body.avec-minuteurs:not(.cooking):has(.actions) .toast { bottom: calc(154px + va
   /* Changer d'onglet : un fondu enchaîné court (durées égales, donc le mélange par défaut
      reste exact). */
   html[data-vt="onglet"]::view-transition-old(root),
-  html[data-vt="onglet"]::view-transition-new(root) { animation-duration: 160ms; animation-timing-function: linear; }
+  html[data-vt="onglet"]::view-transition-new(root) { animation-duration: var(--d-courte); animation-timing-function: linear; }
 }
 
 @keyframes vt-sort { to { opacity: 0; } }

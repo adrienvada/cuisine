@@ -57,7 +57,7 @@ const POIGNEE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
 
 /* La coche et le trait de crayon sont des tracés (pathLength="1") : la feuille de style
    les dessine d'un trait en passant de décoché à coché, et les efface en plus court. */
-const TICK = ICON.check.replace("<path ", '<path pathLength="1" ');
+const TICK = ICON.checkTrace;
 const RATURE = '<svg class="rature" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M1 4.7C13 3.3 22 6 38 4.4S66 2.9 99 4.2"/></svg>';
 
 const articleLibre = nom => state.extras.push({ id: Date.now().toString(36), name: nom });
@@ -68,12 +68,11 @@ const versElement = texte => {
   return modele.content.firstElementChild;
 };
 
-/* La branche d'olivier du bandeau, ILLO.D.olive rendue traçable sans toucher à
-   js/illos.js : le rameau se dessine, puis les feuilles et les olives poussent. */
+/* La branche d'olivier du bandeau : le rameau (traçable, js/illos.js) se dessine, puis les
+   feuilles et les olives poussent. */
 function oliveTracable() {
   let k = 0;
   return ILLO.D.olive
-    .replace('<path d="M4 20', '<path pathLength="1" d="M4 20')
     // Chaque feuille entre dans un <g> qui, lui, pousse : l'ellipse porte déjà sa rotation (attribut transform).
     .replace(/<(ellipse|circle)\b[^>]*\/>/g, forme => `<g class="o-f" style="--k:${k++}">${forme}</g>`);
 }
@@ -155,11 +154,10 @@ const menuLigne = ids => ids.length
   ? html`<p class="menu-ligne" data-n="${ids.length}"><span>${ids.length} recette${ids.length > 1 ? "s" : ""} au menu</span> · <a href="#/menu">Modifier</a></p>`
   : `<p class="menu-ligne" data-n="0">Articles ajoutés à la main</p>`;
 
-const ENTETE = (termine, tracee) => html`
+const ENTETE = tracee => html`
   <header class="page-head courses-head fade-in">
     <div class="head-branch${tracee ? " trace" : ""}">${raw(tracee ? oliveTracable() : ILLO.D.olive)}</div>
     <h1>Liste de courses</h1>
-    <div class="tampon-fini${termine ? " pose" : ""}" aria-hidden="true">Tout est dans le panier</div>
   </header>`;
 
 /* Les blocs de la liste, dans l'ordre où ils s'affichent. Chacun porte sa clé
@@ -186,6 +184,7 @@ function blocs(liste) {
       <div class="avance-bloc">
         <div class="avance${complet(liste) ? " complete" : ""}" role="progressbar" aria-label="Avancement des courses" aria-valuemin="0" aria-valuemax="${liste.total}" aria-valuenow="${liste.faits}"><span style="clip-path:${clipBarre(pct)}"></span></div>
         <p class="avance-txt"><strong><span class="faits">${liste.faits}</span> / ${liste.total}</strong></p>
+        <div class="tampon-fini${complet(liste) ? " pose" : ""}" aria-hidden="true">Tout est dans le panier</div>
       </div>`, { fixe: true }));
   }
   if (liste.total || liste.placard.length) {
@@ -196,7 +195,7 @@ function blocs(liste) {
       </div>`));
   }
   for (const g of liste.rayons) liste_.push(section("r:" + g.rayon, "", g.rayon, g.items));
-  if (liste.total && !liste.rayons.length) liste_.push(bloc("fini", `<p class="fini">Tout est dans le panier.</p>`));
+  if (liste.total && !liste.rayons.length) liste_.push(bloc("fini", `<p class="fini">Plus rien à acheter, bonne cuisine !</p>`));
   if (liste.placard.length) {
     liste_.push(section("placard", "placard", "À vérifier au placard", liste.placard,
       `<p class="placard-aide">Coche ce que tu as déjà : ça ne compte pas dans ce qu'il te reste à acheter.</p>`));
@@ -273,8 +272,8 @@ function dessiner(arrivee) {
     celebree = false;
     app.innerHTML = html`
       <div id="courses-root" data-forme="vide">
-      ${raw(ENTETE(false, tracee))}
-      <div class="empty-illo cheers trace">${raw(ILLO.D.cheers.replace(/<path /g, '<path pathLength="1" '))}</div>
+      ${raw(ENTETE(tracee))}
+      <div class="empty-illo cheers trace">${raw(ILLO.D.cheers)}</div>
       <p class="empty">Ta liste est vide.<br>Ouvre une recette et touche <span class="nowrap">« Ajouter »</span> : les ingrédients se rangeront tout seuls par rayon, quantités fusionnées.<br>Ou ajoute directement un article ci-dessous.</p>
       <div style="text-align:center;margin-bottom:14px"><a class="btn-icon" href="#/">${raw(ICON.back)} Voir les recettes</a></div>
       ${raw(FORMULAIRE())}
@@ -291,7 +290,7 @@ function dessiner(arrivee) {
 
   app.innerHTML = html`
     <div id="courses-root" data-forme="${modeRanger ? "ranger" : "liste"}">
-    ${raw(ENTETE(celebree, tracee))}
+    ${raw(ENTETE(tracee))}
     ${raw(menuLigne(ids))}
     ${modeRanger
       ? raw(ecranRanger(liste))
