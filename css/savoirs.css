@@ -413,3 +413,18 @@ html[data-theme="dark"] .f-piege { background: #33241C; color: #E9C4AB; }
 .th-corps .fg { margin: 0; }
 .th-corps figcaption { padding: 2px 12px 8px; }
 @media (prefers-reduced-motion: reduce) { .th-encart summary > svg { transition: none; } }
+
+/* L'encart s'ouvre et se ferme en hauteur fluide, comme la liste des savoirs d'une étape :
+   le contenu d'un <details> (::details-content) passe de 0 à « auto » (interpolate-size).
+   Un navigateur qui ne connaît pas l'un des deux l'ouvre d'un coup, comme avant. */
+@media not (prefers-reduced-motion: reduce) {
+  @supports selector(::details-content) {
+    .th-encart { interpolate-size: allow-keywords; }
+    .th-encart::details-content {
+      height: 0;
+      overflow: clip;
+      transition: height var(--d-moyenne) var(--e-sortie), content-visibility var(--d-moyenne) allow-discrete;
+    }
+    .th-encart[open]::details-content { height: auto; }
+  }
+}
