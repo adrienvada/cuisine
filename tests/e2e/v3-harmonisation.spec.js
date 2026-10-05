@@ -29,7 +29,8 @@ test("réglages : touchée tout de suite, la feuille attend sa feuille de style 
   let liberer;
   const retenue = new Promise(fin => { liberer = fin; });
   await page.route("**/css/reglages-feuille.css", async route => { await retenue; await route.continue(); });
-  await page.goto("/");
+  // Sans attendre « load » : la feuille retenue peut être demandée avant, et load l'attendrait.
+  await page.goto("/", { waitUntil: "commit" });
   await page.locator("[data-reglages]").click();
   await expect(page.locator(".reglages-sheet")).toHaveCount(0);
   liberer();

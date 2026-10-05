@@ -250,7 +250,7 @@ Le carnet bouge comme un vrai carnet entre des mains qui cuisinent : l'encre se 
 - **`.souleve`** : une surface qui gagne de l'ombre (`--ombre-3`) à l'appui ou quand elle porte `.en-main` (posée par l'appelant de `glisser` le temps du geste).
 - **`.arrive`** : arrivée douce (fondu, 10 px, léger zoom), échelonnée par la variable `--i` (35 ms par rang, 7 au plus). Pas pour le premier écran.
 - **`.trace`** : sur un SVG (ou son conteneur), chaque forme `pathLength="1"` se dessine d'un trait ; `--i` décale (60 ms). Sans JavaScript, la classe posée au rendu suffit.
-- **Transitions de vue.** `base.css` règle le rythme des `::view-transition-*` (groupe 420 ms, ancien 70 % de 260 ms, nouveau 260 ms) et les saute en mouvement réduit ; **rien ne les déclenche encore** : c'est l'affaire du routeur (`document.startViewTransition`, à ne pas appeler en mouvement réduit).
+- **Transitions de vue.** `base.css` règle le rythme par défaut des `::view-transition-*` (groupe 420 ms, ancien 70 % de 260 ms, nouveau 260 ms) et les saute en mouvement réduit. Le routeur les joue par `js/ui/transitions.js` (`jouer()`, type posé sur `html[data-vt]` : `avant`, `arriere`, `onglet`, `cuisine`, `cuisine-sortie`, `theme`), jamais en mouvement réduit, au premier affichage ni en redessin sur place.
 
 ### Les aides (`js/ui/mouvement.js`, `js/ui/geste.js`)
 
@@ -297,9 +297,69 @@ const { feuilles, envoler, tampon } = await import("../ui/effets.js");
 - **`envoler(source, cible, options)`** : une pastille (image de la source, ou clone) rejoint la cible en arc, rétrécit, puis la cible rebondit. La promesse se résout à l'arrivée.
 - **`tampon(el)`** : un tampon encré qui tombe (1,3 → 1 avec le ressort rebond, inclinaison gardée, lueur dorée) ; `el` est déjà dans la page, en `opacity: 0`.
 
+### Le mouvement, écran par écran
+
+Pour chaque écran : ce qui bouge, pourquoi, avec quelle aide, et ce qu'il en reste en **mouvement réduit** (« réduit »). Partout, réduit veut dire : l'état final est posé tout de suite, aucun déplacement, aucune particule, aucun tracé ; seules les vibrations, qui suivent leur réglage, restent. Les durées sont les jetons ci-dessus.
+
+**Entre les écrans** (`js/ui/transitions.js` + `css/navigation.css`, posés après le premier affichage ; décision « d'où vers où » dans `js/core/sens.js`)
+- Une vue qui avance glisse de 28 px en 260 ms, la précédente s'efface en 70 % de ce temps ; en arrière, l'inverse ; entre onglets, un fondu de 160 ms (`document.startViewTransition`, type posé sur `html[data-vt]`). Pourquoi : dire si l'on entre dans quelque chose ou si l'on en revient.
+- La photo d'une carte (ou d'une vignette du menu) devient la grande photo de la fiche, et y retourne : seule la paire `data-vt-photo` de la recette touchée reçoit un `view-transition-name`, retiré à la fin. La barre d'onglets, le toast et le plateau de minuteurs ont leur calque et ne glissent pas avec la page.
+- La pastille de l'onglet actif glisse d'un onglet à l'autre (transition CSS à ressort, interruptible) ; l'icône de l'onglet fait son geste (le livre se penche, les couverts se redressent, le panier roule, la fiole se balance). Les badges : le chiffre roule (`rouler`), la pastille saute (`rebondir`) ; 0 → n elle arrive, n → 0 elle sort, `aria-hidden` dès le début.
+- Réduit : aucune transition de vue, pastille posée sans glisser, pas de geste d'icône.
+
+**Accueil** (`js/vues/accueil.js` sur le chemin critique ; tout le reste dans `accueil-anime.js` et `css/accueil-anime.css`, tirés au repos)
+- Le bandeau se trace une fois par session (brins, soulignement d'« Evadri », le cœur bat une fois) : un décor, pas une attente. Le premier dessin ne se fond pas et rien du premier écran ne part d'une opacité nulle.
+- Une carte s'enfonce à l'appui (ombre qui monte, `scale`), arrive au défilement (`animation-timeline: view()`, départ à 45 % d'opacité), pose sa photo sur sa couleur dominante le temps du chargement. Les filtres : la pastille glisse sous le choix, la grille se réordonne par `flip` (les cartes qui partent restent dans le DOM, `inert`, pour ne pas faire disparaître le candidat LCP). La recherche : la loupe se balance pendant la frappe, la croix du carnet se pose en grandissant. « J'ai… » : les puces cochées rebondissent, le nombre de recettes roule.
+- Un filtre tapé avant que le module de mouvement soit arrivé (au repos) s'applique d'un coup. Réduit : le module n'est jamais tiré (pas de bol fumant dans l'état vide, le texte seul).
+
+**Fiche** (`js/vues/fiche.js`)
+- La grande photo glisse un peu moins vite que la page (parallaxe de 11 px, `animation-timeline: scroll()`, sous `@supports`) ; un en-tête compact (retour, titre court, partage) apparaît quand le titre sort (IntersectionObserver, `inert` tant qu'il est caché).
+- Portions : le chiffre roule et les quantités suivent (elles roulent si l'unité ne change pas, fondent sinon) ; à la borne, le chiffre rebondit et la pastille se secoue. La valeur n'est écrite qu'une fois dans la région live (`#p-val`). « Compose ta version » : puces et lignes mises à jour sur place (le focus reste), lignes qui entrent et sortent par `flip` et `sortir`.
+- « Au menu » : la vignette (la photo si elle est à l'écran) s'envole vers l'onglet Au menu (`envoler`), le bouton passe en « Ajouté » avec une coche tracée. Le cœur des favoris saute et lâche un petit cœur. Les ingrédients et étapes hors écran arrivent au défilement.
+- Réduit : ni parallaxe, ni envol, ni roulement ; l'en-tête compact apparaît sans glisser.
+
+**Mode cuisine** (`js/vues/cuisine.js`, `cuisine-gestes.js`, `css/cuisine.css`)
+- On y entre par un cercle qui s'ouvre depuis « Cuisiner » (420 ms) et on en sort par un cercle qui se referme vers la croix (70 % de ce temps), tous deux `clip-path` sur la transition de vue.
+- Les pages se tournent au doigt : l'étape suit le doigt (axe verrouillé, élastique aux deux bouts) ; au lâcher, un quart de la largeur ou un lancer de 450 px/s fait tourner la page, sinon elle revient à ressort avec la vitesse du doigt. Boutons et flèches : la même animation, plus courte. La progression : le segment se remplit (ou se vide), « Étape 3 / 7 » roule, le soulignement du titre se retrace à chaque étape.
+- Fin : « Terminer » vibre (`succes`) et navigue ; les effets sont chargés dès la dernière étape et les feuilles et le tampon « Bon appétit » jaillissent une fois le cercle de sortie refermé, pour être vus en entier.
+- Taille du texte : l'étape part de l'ancienne taille et rejoint la nouvelle (260 ms), le bloc lu reste en haut.
+- Réduit : pas de cercle, pas de page qui glisse (changement d'étape instantané), ni feuilles ni tampon.
+
+**Minuteurs** (`js/ui/minuteurs.js`, `css/minuteurs.css`)
+- Un anneau se vide en continu (une seule animation CSS de `stroke-dashoffset` sur le temps restant, suspendue en pause, resynchronisée à chaque dessin). Le bouton « Minuteur 20 min » se transforme en anneau. Les dix dernières secondes battent ; à la sonnerie la bulle se secoue à chaque reprise du son (`vibrer("alerte")` une seule fois) ; « + 1 min » saute et son compte roule. Un repos se reconnaît (cadre pointillé, anneau qui respire lentement) ; le préchauffage fait onduler la flamme.
+- Les bulles ne sont pas recréées : celle qui part est `inert` et `aria-hidden` tout de suite, s'efface, et les voisines glissent.
+- Réduit : **l'anneau n'est pas animé** (le filet de `base.css` ferait finir toute animation en 0,01 ms, donc l'anneau se viderait d'un coup) ; `tick()` le fait avancer chaque seconde. Plus de battement, de secousse ni de souffle, « Prêt ! » prend une pastille dorée.
+
+**Menu** (`js/vues/menu.js`, `css/menu.css`)
+- Une carte retirée se replie en sortant (`sortir`, `inert` dès le début, le focus passe à la voisine) ; « Annuler » la remet à son rang et les autres s'écartent (`flip`). Convives et portions roulent, avec une secousse aux bornes.
+- La frise du rétroplanning se trace quand elle entre dans l'écran, une fois : le fil de haut en bas, puis les points à ressort vif, l'heure « À table » pulse ; les repos ont un fil calme et une icône qui se fond. Un conflit de planning se secoue une fois. « Ajouter au calendrier » : coche tracée. État vide : l'illustration se trace.
+- Réduit : la frise est posée dans son état final.
+
+**Courses** (`js/vues/courses.js`, `css/courses.css`)
+- Cocher : le rond se remplit (ressort vif), la coche se trace en 380 ms, le nom est rayé d'un trait de crayon, `vibrer("tic")`. La ligne reste 560 ms (1,6 s en rafale) puis part au panier par `sortir` + `flip`, sans redessiner la liste. Les articles libres : arrivée par `flip`, balayage à gauche pour supprimer (seuil d'un tiers de la ligne ou 650 px/s, « Annuler » rend la ligne), sélection de texte coupée pendant le geste.
+- La barre avance par `clip-path` à ressort, le compteur roule. Liste terminée, une seule fois : la barre devient or, le tampon « Tout est dans le panier » se pose sur la barre (sans couvrir le compteur), les herbes s'envolent, `vibrer("succes")`, une annonce ; la ligne manuscrite du bas dit ce qu'il reste à faire. Ranger les rayons : monter/descendre par `flip`, ou glisser la poignée de 44 px. Vider : les blocs partent en échelon puis l'illustration se trace.
+- Réduit : tampon et barre d'or posés, ni herbes ni balayage animé (le bouton ✕ reste).
+
+**Savoirs, un savoir, journal** (`js/vues/savoirs.js`, `journal.js`)
+- Le bandeau se trace une fois par page ouverte ; une recherche réordonne les cartes par `flip` ; elles arrivent au défilement. Un savoir : une barre de lecture de 3 px suit le défilement (`animation-timeline: scroll()`), les ornements se tracent en entrant dans l'écran, « Pourquoi ça marche » s'ouvre en hauteur (`interpolate-size`, d'un coup sans). Journal : l'entrée ajoutée arrive à sa place, la supprimée sort (`sortir`, « Annuler » la rend), l'état vide trace une feuille de basilic.
+- Réduit : tout est posé, rien ne se trace.
+
+**Réglages** (`js/vues/reglages.js`, `css/reglages-feuille.css`)
+- Le thème change par un cercle qui s'étend depuis le bouton touché (420 ms, transition de vue `data-vt="theme"`, la page reste utilisable) ; la pastille du sélecteur glisse sous le choix ; l'interrupteur « Vibrations » a une poignée à ressort ; le point de synchro respire pendant la connexion ; l'export trace une coche.
+- Réduit : le thème bascule directement, pas de respiration.
+
+**Feuilles, toasts, boutons** (`css/base.css`, `css/navigation.css`, `js/ui/feuilles-geste.js`, `toast-mouvement.js`)
+- Une feuille arrive à ressort, a une poignée et se ferme en glissant (au-delà de 140 px ou 30 % de la hauteur, ou à plus de 600 px/s) ; le fond suit le doigt ; elle est `inert` dès le début de sa sortie, `confirmer()` répond à ce moment. Un toast arrive à ressort, part en 160 ms, s'écarte au doigt (droite, gauche, bas) ; un trait fin dit le temps restant des messages à action et se fige au toucher ; il se place au-dessus de la barre d'actions de la fiche et du plateau de minuteurs.
+- Un bouton s'enfonce (`scale`) et reprend son ressort ; au clavier, l'anneau de focus se resserre en 160 ms (animation web sur `outline-offset`, sans remplacer l'animation de l'élément).
+- Réduit : les feuilles et toasts apparaissent et partent sans glisser, pas de trait de temps, pas de resserrement du focus.
+
+### L'exception au filet de mouvement réduit
+
+Le filet de `base.css` (`animation-duration: 0.01ms !important` sous `prefers-reduced-motion`) vaut pour tout, y compris une animation qui n'est pas un décor mais une **information** : l'anneau d'un minuteur, qui se vide au rythme du temps restant. Le laisser finir en 0,01 ms le viderait d'un coup ; l'anneau n'a donc aucune animation en réduit (`css/minuteurs.css` ne la déclare que hors réduit) et `tick()` (`js/ui/minuteurs.js`) le fait avancer chaque seconde. Toute nouvelle animation « informative » fait pareil plutôt que de contourner le filet par un `!important` de plus.
+
 ### Ce qu'on ne fait pas
 
-- Pas de durée ni de courbe en dur : un jeton, ou un nom de `DUREES` et `COURBES`.
+- Pas de durée ni de courbe en dur : un jeton, ou un nom de `DUREES` et `COURBES`. Ne restent en dur que les boucles qui respirent, battent ou secouent (leur période est celle du geste) et les décalages d'échelonnement ; `tests/unit/v3-harmonisation.test.mjs` fait échouer toute autre durée de `css/*.css`. Côté JS, les durées propres à un effet signature (l'envol 620 ms, les feuilles 1,1 s, la page qui finit sa course 110 ms, le tampon de fin) sont écrites à côté de l'effet, avec leur raison.
 - Pas d'animation de `width`, `height`, `top`, `left`, ni de `transform` écrit à la main sur un élément qui peut en avoir d'autres (on prend `translate`, `scale`, `rotate`).
 - Pas d'effet qui fait attendre : le premier écran, une saisie, un tap ne dépendent jamais de la fin d'une animation.
 - Pas de boucle `requestAnimationFrame` permanente, pas d'écouteur de `scroll` (IntersectionObserver, ou `animation-timeline` sous `@supports`).
@@ -308,7 +368,9 @@ const { feuilles, envoler, tampon } = await import("../ui/effets.js");
 
 ### Tester le mouvement
 
-Les tests importent les modules dans la page (`page.evaluate(() => import("/js/ui/mouvement.js"))`) après le `goto` habituel. Pour mesurer une page immobile : `pageStable(page)` (tests/e2e/outils.js) attend les feuilles, les polices et la fin des animations *finies*. Le mouvement réduit s'émule par `page.emulateMedia({ reducedMotion: "reduce" })` : tout effet se vérifie dans les deux modes. En réduit, le filet CSS laisse des transitions de 0,01 ms : pour prouver qu'une aide n'a rien animé, compter les `Animation` (WAAPI), pas les `CSSTransition`. Pour regarder une animation image par image : mettre en pause `document.getAnimations()` et fixer `currentTime`. Un test qui agit pendant une animation n'attend pas : c'est à l'effet d'être interruptible.
+Les tests importent les modules dans la page (`page.evaluate(() => import("/js/ui/mouvement.js"))`) après le `goto` habituel. Pour mesurer une page immobile : `pageStable(page)` (tests/e2e/outils.js) attend les feuilles, les polices et la fin des animations *finies*. Le mouvement réduit s'émule par `page.emulateMedia({ reducedMotion: "reduce" })` : tout effet se vérifie dans les deux modes. En réduit, le filet CSS laisse des transitions de 0,01 ms : pour prouver qu'une aide n'a rien animé, compter les `Animation` (WAAPI), pas les `CSSTransition`. **Les pièges connus.** (1) `<html data-nav-pret>` est posé environ 600 ms après le premier affichage, quand `transitions.js`, `navigation.css`, `toast-mouvement.js` et `geste.js` sont là : un test d'une transition, d'un toast animé ou d'un geste l'attend (`page.waitForSelector("html[data-nav-pret]")`) ; une navigation plus rapide n'a simplement pas de transition. (2) Les animations pilotées par le défilement (`ViewTimeline` : l'arrivée des cartes de l'accueil et de Savoirs) sont permanentes : un test qui compte `document.getAnimations()` sur ces écrans les écarte. (3) Un anneau de minuteur court pendant sa durée entière (deux heures pour une levée) : `pageStable` n'y arrive pas, on attend une mesure précise. (4) Une bulle de minuteur dans ses dix dernières secondes bat : Playwright ne la juge jamais « stable », le test qui la clique force le clic. (5) Un geste de la main se joue à la souris de Playwright (`page.mouse`), qui tient `setPointerCapture` ; un pointeur inventé (`new PointerEvent` avec un `pointerId` à soi) est toléré par `glisser()`. (6) Une vitesse de lancer se mesure sur des horodatages que le test maîtrise (événements espacés par une attente active dans la page), jamais sur la cadence de la machine.
+
+Pour regarder une animation image par image : mettre en pause `document.getAnimations()` et fixer `currentTime`. Un test qui agit pendant une animation n'attend pas : c'est à l'effet d'être interruptible.
 
 ## Performance
 
@@ -361,8 +423,8 @@ css/accueil-anime.css   Le mouvement de l'accueil (pastille des filtres, arrivé
 css/fiche.css           Fiche recette : héro, ingrédients, composition, étapes, coups de cœur
 css/minuteurs.css       Plateau des bulles de minuteur
 css/reglages.css        Réglages, la part de l'accueil : le bouton de l'en-tête et son point d'état
-css/reglages-feuille.css  Réglages : la feuille, la question à deux issues, le cercle du thème (au repos)
   (les feuilles qui suivent sont celles des vues chargées à la demande : elles ne sont plus dans index.html, hors du repli <noscript> ; le routeur les demande avec le module de la vue, à leur place dans la cascade, et js/ui/styles.js le fait attendre)
+css/reglages-feuille.css  Réglages : la feuille, la question à deux issues, le cercle du thème (au repos)
 css/cuisine.css         Mode cuisine plein écran
 css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
@@ -482,7 +544,7 @@ Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, 
 - le chargement : `images` (service worker, vignettes ; `outils-images.js`) ;
 - `verificateur.test.mjs` et `donnees.mjs` : le vérificateur de recettes et les données chargées pour les tests unitaires ;
 - les lots de la deuxième vague, `v2-*` : `a11y`, `chargement`, `courses-menu`, `css`, `culinaire-2`, `navigation`, `robustesse`, `synchro`, `tests` (la fiabilité de la suite) et `code` (un mécanisme par règle, la carte du README) ;
-- les lots de la troisième vague, `v3-*` : `fondations` (le socle du mouvement : ressort, aides, effets, retour d'appui) ;
+- les lots de la troisième vague, `v3-*` : `fondations` (le socle du mouvement : ressort, aides, effets, retour d'appui), `chemin-critique`, `accueil`, `fiche-menu`, `cuisine`, `courses`, `savoirs-reglages`, `navigation`, `repos` et `repos-2` (rétroplanning), `integration`, et `harmonisation` (ce qui tient l'ensemble : feuille des réglages hors du chemin de l'accueil, tampon des courses, minuteur à 320 px, fête de fin de recette) ;
 - `bugs-connus.spec.js`, les bugs en attente.
 
 Un test unitaire (`tests/unit/v2-code.test.mjs`) échoue quand un fichier de `js/`, `css/` ou `tools/` n'est pas cité dans ce README : ajouter un module, c'est ajouter sa ligne à la carte ci-dessus.
