@@ -147,6 +147,13 @@ html[data-theme="dark"] { --case-bord: #8F9384; --case-coche: #15180F; }
 
 .course-list input:checked ~ .lbl .nom { text-decoration-color: transparent; }
 
+/* Sur plusieurs lignes, un line-through remplace le trait de crayon (marquerMultiligne). */
+.course-list .nom.multi .rature { display: none; }
+
+.course-list input:checked ~ .lbl .nom.multi {
+  text-decoration: line-through solid var(--ink-soft) 1.5px;
+}
+
 .rature {
   position: absolute;
   left: -1px;

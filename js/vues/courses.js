@@ -439,6 +439,19 @@ function appliquerBlocs(racine, voulus) {
   ordonner(racine, finaux);
 }
 
+/* Un nom qui passe sur plusieurs lignes ne peut pas être barré d'un seul trait de
+   crayon (il tomberait entre deux lignes) : il garde un line-through, que la feuille de
+   style pose à sa place (.multi). Mesuré en une passe de lecture, puis une d'écriture. */
+function marquerMultiligne(racine) {
+  const noms = [...racine.querySelectorAll(".nom")].filter(n => n.checkVisibility?.());
+  const longs = noms.map(n => {
+    const c = getComputedStyle(n);
+    const haut = n.offsetHeight - parseFloat(c.paddingTop) - parseFloat(c.paddingBottom);
+    return haut > parseFloat(c.lineHeight) * 1.5;
+  });
+  noms.forEach((n, i) => n.classList.toggle("multi", longs[i]));
+}
+
 function synchroniser() {
   elaguerCoches();
   const racine = document.getElementById("courses-liste");
@@ -446,7 +459,7 @@ function synchroniser() {
   const ids = menuEntrees();
   const ml = racine.parentElement.querySelector(":scope > .menu-ligne");
   if (ml && ml.dataset.n !== String(ids.length)) ml.replaceWith(versElement(menuLigne(ids)));
-  flip(() => feuillesDe(racine), () => appliquerBlocs(racine, blocs(liste)));
+  flip(() => feuillesDe(racine), () => { appliquerBlocs(racine, blocs(liste)); marquerMultiligne(racine); });
   majProgression(liste);
 }
 
@@ -581,6 +594,7 @@ function brancher() {
     if (e.target.matches("details.panier")) panierOuvert = e.target.open;
   }, true);
   root.querySelectorAll("li.art").forEach(equiper);
+  marquerMultiligne(root);
   const ranger = root.querySelector(".ranger-liste");
   if (ranger) equiperRanger(ranger);
 }

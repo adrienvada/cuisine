@@ -58,6 +58,8 @@ test("décocher : la coche se défait, la ligne remonte dans son rayon, à sa pl
   expect(apres.length).toBe(avant.length + 1);
   // L'ordre est celui de la liste d'origine : la ligne n'est pas simplement ajoutée à la fin.
   await page.reload();
+  // reload n'attend pas la première vue (les vues se chargent à la demande) : on attend la liste.
+  await expect(page.locator("section.rayon:not(.placard) input[data-key]").first()).toBeAttached();
   await pageStable(page);
   expect(await page.locator("section.rayon:not(.placard) input[data-key]").evaluateAll(els => els.map(e => e.dataset.key))).toEqual(apres);
   expect(await lignesPropres(page)).toBe(true);
@@ -385,3 +387,16 @@ for (const [theme, largeur] of [["clair", 320], ["sombre", 320], ["clair", 375],
     expect(tampon.x + tampon.width).toBeLessThanOrEqual(largeur);
   });
 }
+
+test("un nom sur plusieurs lignes est barré d'un line-through (le trait de crayon tomberait entre deux lignes)", async ({ page, context }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await preremplir(context, { carnet: { extras: [{ id: "e9", name: "Un très long nom d'article libre qui passe sur plusieurs lignes à 320 pixels de large" }, { id: "e8", name: "Éponges" }] } });
+  await page.goto("/#/courses");
+  await pageStable(page);
+  const long = page.locator('li.art[data-art="x-e9"] .nom');
+  await expect(long).toHaveClass(/multi/);
+  await expect(page.locator('li.art[data-art="x-e8"] .nom')).not.toHaveClass(/multi/);
+  await page.locator('li.art[data-art="x-e9"] .tick').click();
+  await expect(long).toHaveCSS("text-decoration-line", "line-through");
+  await expect(long.locator(".rature")).toBeHidden();
+});
