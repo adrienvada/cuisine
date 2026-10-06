@@ -9,6 +9,7 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 - **Recettes** — grille de cartes avec recherche instantanée (par nom, ingrédient, tag) et filtres par catégorie.
 - **Portions ajustables** — les quantités se recalculent automatiquement.
 - **Au menu** — les recettes retenues pour le prochain repas, réunies dans leur onglet : photo, portions réglables, accès direct à la recette et au mode cuisine. C'est le menu qui alimente la liste de courses, pas l'inverse.
+- **Un repas complet** — sous « Compléter le repas », le menu dit ce qui manque encore dans les assiettes (des légumes, des protéines, de quoi caler, un peu de fraîcheur face à un plat riche) et propose trois recettes du carnet au plus pour le combler, ajoutées d'un geste. Il se tait tant que le menu n'est pas un repas, et quand il ne manque rien (voir « Ce qu'une recette apporte au repas »).
 - **Plusieurs versions d'une même recette** — deux cakes au même repas, l'un aux olives et à la feta, l'autre aux lardons et au comté : chacun est une entrée distincte du menu, avec sa garniture, ses suppléments, ses portions, sa séance de cuisine et ses minuteurs. Les courses additionnent les deux et mutualisent ce qu'ils partagent (la farine une seule fois, les garnitures séparément).
 - **Mode cuisine** — étapes plein écran, gros texte lisible les mains dans la farine, l'écran reste allumé. Les minuteurs (sonnerie + vibration) continuent de tourner où qu'on aille dans le carnet : leurs bulles restent affichées en bas et un appui ramène à l'étape concernée, la croix les arrête.
 - **Reprise** — l'étape en cours est retenue : en rouvrant la recette, le bouton propose « Reprendre — étape 3 / 5 » (ou « Repartir du début »). Si un minuteur de cette recette tourne, le mode cuisine se rouvre directement. Oubliée à la fin de la recette, ou d'elle-même au bout de 12 h.
@@ -78,6 +79,29 @@ Trois petits fichiers, indexés par le `cid` des ingrédients de `js/recipes.js`
 - [`js/substitutions.js`](js/substitutions.js) — `SUBSTITUTIONS` : pour les ingrédients qu'on peut vraiment remplacer, le remplacement avec sa proportion (`par`) et ce que ça change au plat (`note`). Pas de substitution qui ne marche pas, pas d'accolades dans les textes.
 
 **En ajoutant une recette**, passer ses nouveaux `cid` en revue : allergènes (et viande ou poisson dans `NON_VEGETARIEN`), saison s'il s'agit d'un produit frais, substitution si la question se pose vraiment. Une donnée absente vaut mieux qu'une donnée inventée. Le vérificateur contrôle que chaque clé est un `cid` existant, que les mois et les allergènes sont valides et que chaque substitution a son `par`.
+
+## Ce qu'une recette apporte au repas
+
+[`js/apports.js`](js/apports.js) dit, pour chaque recette, ce qu'elle apporte à un repas : c'est ce que lit le menu pour signaler un manque (`js/core/completude.js`). Cinq mots :
+
+- `legumes` — une vraie part de légumes : environ 100 g par personne de légumes cuits ou denses, 50 g de feuilles crues (un grand bol) ; pas une garniture d'herbes, ni trois radis ou une cuillerée de houmous ;
+- `proteines` — viande, poisson, œufs, fromage ou légumineuses en quantité de plat ;
+- `feculents` — pain, pâte, pâtes, pommes de terre, céréales, légumineuses : ce qui cale ;
+- `frais` — cru, croquant ou acidulé, ce qui allège un repas riche ;
+- `riche` — crème, beurre, fromage fondu, friture, feuilletage : ce qui pèse.
+
+```js
+"quiche-lorraine": ["proteines", "feculents", "riche"],
+"veloute-butternut-shiitakes": { base: ["legumes"], supplements: { croutons: ["feculents"] } },
+```
+
+Un supplément peut ajouter un apport (des croûtons calent un velouté, des pitas calent un houmous) : la forme `{ base, supplements }` le dit, et le menu lit la version composée de chaque entrée. On juge sur les quantités par personne de la version par défaut, pas sur le titre : une portion d'apéro ne compte que si elle nourrit vraiment, une garniture non plus (trois châtaignes sur un velouté ne calent pas), et le pain qui fait partie du plat compte (le pain suédois du gravlax). Chaque recette a son entrée, même vide (`[]`) ; boissons et sauces sont notées mais jamais comptées. `npm run verifier` contrôle les mots, les suppléments et qu'aucune recette n'est oubliée.
+
+**Les règles.** Le menu ne parle que s'il contient un plat qui se mange à table (Plats, Entrées, Soupes, Salades) ou quatre plats salés au moins (un apéro dînatoire : à trois, c'est encore un apéro). Il manque des légumes, des protéines ou de quoi caler quand aucun plat salé n'en apporte ; un apéro dînatoire ne se fait pas reprocher ses légumes, qu'aucun apéro du carnet ne porte. Il manque un peu de fraîcheur quand un plat salé est riche et qu'aucun plat n'est frais : un mi-cuit au chocolat après un velouté ne rend pas le repas lourd. La phrase dit « du pain suffit » tant que les manques sont deux au plus : « Il manque encore des protéines et de quoi caler (du pain suffit). »
+
+Les suggestions sont les recettes absentes du menu qui comblent le plus de manques ; un plat qui se mange à table d'abord quand il apporte des légumes ou des protéines ; rien de riche tant que le menu n'a rien de frais ; rien de carné dans un menu entièrement végétarien ; pas un four de plus quand il chauffe déjà ; la saison en plus. À égalité, les recettes qu'on aime d'abord, puis celles qu'on n'a pas faites depuis longtemps. Jamais une recette qui contient un allergène que les invités évitent, et tout se lit sur la version qu'on ajouterait (celle composée sur sa fiche). Un dessert ne peut qu'alléger. Une recette qui comble trop peu, ou dérange trop, ne vaut pas une carte : le carnet en montre moins plutôt que de proposer un pis-aller. « Ça me va comme ça » écarte ces manques pour ce repas : tant qu'une des recettes qui étaient au menu à ce moment-là y est encore (« Annuler » après « Vider le menu » rend le même repas). Un menu vidé puis rempli, d'ici, des courses, d'une fiche ou d'un autre appareil, est un autre repas, et ses manques peuvent revenir. C'est retenu sur l'appareil, et en mémoire le temps de la visite quand le stockage manque.
+
+Ce module et `js/apports.js` (un module, pas un script classique : seul le menu le lit) ne pèsent rien sur le chemin de l'accueil.
 
 ## Astuces et fondamentaux — la procédure, à suivre à la lettre
 
@@ -368,7 +392,8 @@ Pour chaque écran : ce qui bouge, pourquoi, avec quelle aide, et ce qu'il en re
 **Menu** (`js/vues/menu.js`, `css/menu.css`)
 - Une carte retirée se replie en sortant (`sortir`, `inert` dès le début, le focus passe à la voisine) ; « Annuler » la remet à son rang et les autres s'écartent (`flip`). Convives et portions roulent, avec une secousse aux bornes.
 - La frise du rétroplanning se trace quand elle entre dans l'écran, une fois : le fil de haut en bas, puis les points à ressort vif, l'heure « À table » pulse ; les repos ont un fil calme et une icône qui se fond. Un conflit de planning se secoue une fois. « Ajouter au calendrier » : coche tracée. État vide : l'illustration se trace.
-- Réduit : la frise est posée dans son état final.
+- « Compléter le repas » : le bloc de ce qui manque arrive en fondu (8 px de montée), change d'un fondu court quand le menu change ce qu'il dit, et se replie par `sortir` quand il ne manque plus rien ; un bloc qui dit la même chose ne bouge pas. « + » fait arriver la carte de la recette à son rang (comme « Annuler »). Le focus du bloc qui part passe aux moments du repas, juste en dessous ; au clavier, il suit la recette ajoutée, et « Annuler » le rend au bouton qui l'avait.
+- Réduit : la frise est posée dans son état final ; le bloc apparaît et disparaît sans fondu.
 
 **Courses** (`js/vues/courses.js`, `css/courses.css`)
 - Cocher : le rond se remplit (ressort vif), la coche se trace en 380 ms, le nom est rayé d'un trait de crayon, `vibrer("tic")`. La ligne reste 560 ms (1,6 s en rafale) puis part au panier par `sortir` + `flip`, sans redessiner la liste. Les articles libres : arrivée par `flip`, balayage à gauche pour supprimer (seuil d'un tiers de la ligne ou 650 px/s, « Annuler » rend la ligne), sélection de texte coupée pendant le geste.
@@ -462,7 +487,7 @@ css/reglages.css        Réglages, la part de l'accueil : le bouton de l'en-têt
   (les feuilles qui suivent sont celles des vues chargées à la demande : elles ne sont plus dans index.html, hors du repli <noscript> ; le routeur les demande avec le module de la vue, à leur place dans la cascade, et js/ui/styles.js le fait attendre)
 css/reglages-feuille.css  Réglages : la feuille, la question à deux issues, le cercle du thème (au repos)
 css/cuisine.css         Mode cuisine plein écran
-css/menu.css            Onglet Au menu : cartes, rétroplanning et structure d'un repas
+css/menu.css            Onglet Au menu : cartes, rétroplanning, ce qui manque au repas et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
 css/figures.css         Figures des savoirs : cadre, palette des schémas (classes fg-…, clair et sombre), apparition des tracés, zoom
@@ -476,6 +501,7 @@ js/illos.js             Données : les illustrations dessinées
 js/allergenes.js        Données : allergènes, produits non végétariens
 js/saisons.js           Données : mois de saison des fruits, légumes et herbes
 js/substitutions.js     Données : remplacements d'ingrédients et ce qu'ils changent
+js/apports.js           Données : ce que chaque recette apporte à un repas (un module, lu par le menu seul)
 js/sync-config.js       Données : l'adresse de la base de synchro
   (ces fichiers de données sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
 
@@ -489,6 +515,7 @@ js/core/html.js         esc(), html`…`, raw()
 js/core/icones.js       Les icônes SVG
 js/core/recettes.js     Temps, verdicts, séances cuisinées, version composée (ingrédients et étapes effectifs)
 js/core/fonds.js        Les fondamentaux vus des recettes : identifiants, chargement à la demande (avec les figures), certitudes
+js/core/completude.js   La complétude d'un repas : ce qui manque dans les assiettes et les recettes qui le comblent
 js/core/savoirs.js      Ce que lisent les pages des Savoirs, hors du chemin de l'accueil : figures d'un savoir, recettes qui l'emploient, recherche
 js/core/recherche.js    Recherche de l'accueil : texte normalisé, filtres de régime, de temps et de saison, ingrédients du « J'ai… »
 js/core/adaptation.js   Allergènes d'une version, bornes des portions et des convives (PORTIONS_MIN/MAX, CONVIVES_MAX), portions permises, moule
@@ -579,7 +606,7 @@ Les tests de bout en bout démarrent eux-mêmes `tests/serveur.mjs` (port 4173, 
 
 - le tronc du carnet : `accueil` (recherche, critères, « J'ai… »), `accueil-fiche`, `fiche`, `recettes`, `format`, `html`, `core` (la règle « core/ sans DOM ») ;
 - le mode cuisine : `cuisine`, `voix` (avec `tests/fixtures/voix.html` et `outils-voix.js`), `savoirs`, `figures` (le moteur de rendu des schémas, sa palette et ses données), `thermometre` (la figure transversale des Savoirs), `culinaire` (logique de cuisinier : un `cid` est un produit) ;
-- le menu et les courses : `menu`, `menu-courses`, `courses` (`outils-courses.js`) ;
+- le menu et les courses : `menu`, `menu-courses`, `completude` et `menu-completude` (ce qui manque pour un repas complet), `courses` (`outils-courses.js`) ;
 - le carnet lui-même : `journal`, `reglages` (`outils-reglages.js`), `synchro` (`outils-synchro.js` : le faux Supabase), `navigation` ;
 - le chargement : `images` (service worker, vignettes ; `outils-images.js`) ;
 - `verificateur.test.mjs` et `donnees.mjs` : le vérificateur de recettes et les données chargées pour les tests unitaires ;

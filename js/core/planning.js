@@ -99,7 +99,7 @@ export function instantTable({ date, heure }, maintenant) {
    une salade de lentilles ou de pois chiches, « Pesto » pour le basilic ou la
    roquette. Deux salades au même repas deviendraient indiscernables dans une
    phrase de conflit ou dans la frise. */
-const GENERIQUES = ["salade", "dip", "pesto", "velouté", "tartines", "mi-cuit"];
+const GENERIQUES = ["salade", "dip", "pesto", "velouté", "tartines", "mi-cuit", "tagliatelles", "beignets"];
 
 /* « Focaccia maison au romarin » → « Focaccia » : le début du titre, avant la
    première précision. Sert dans les phrases où le titre entier alourdirait.

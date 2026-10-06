@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "cefa16c5ca";
+const VERSION = "961ba5a395";
 
 const CORE = [
   "./",
@@ -91,7 +91,9 @@ const CORE = [
   "img/v/veloute-butternut-shiitakes.webp",
   "index.html",
   "js/allergenes.js",
+  "js/apports.js",
   "js/core/adaptation.js",
+  "js/core/completude.js",
   "js/core/courses.js",
   "js/core/cuisine.js",
   "js/core/etat.js",

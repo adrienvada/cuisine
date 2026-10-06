@@ -157,6 +157,100 @@
   color: var(--muted);
 }
 
+/* ---------- Ce qui manque pour un repas complet ----------
+   Au-dessus des moments du repas, une note du carnet : ce qui manque dans les
+   assiettes, et trois recettes au plus pour le combler. Une carte posée (trait plein),
+   quand les moments sont des places à prendre (pointillés). */
+
+.manques {
+  display: grid;
+  gap: 10px;
+  margin: 2px 0 12px;
+  padding: 14px 14px 4px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.mq-phrase { margin: 0; font-family: var(--serif); font-size: 19px; font-weight: 600; line-height: 1.25; color: var(--green-deep); text-wrap: balance; }
+
+.mq-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+.mq-reco { display: flex; align-items: center; gap: 10px; }
+
+.mq-carte {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.mq-carte:active { background: var(--green-tint); }
+
+.mq-visuel {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mq-visuel img { width: 100%; height: 100%; object-fit: cover; }
+
+.mq-visuel svg { width: 82%; height: 88%; }
+
+.mq-texte { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.mq-texte b {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.mq-texte small { font-family: var(--script); font-size: 16px; line-height: 1.15; color: var(--green); }
+
+.mq-ajout {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--green-tint);
+  color: var(--green-deep);
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mq-aucune { margin: 0; font-size: 14px; color: var(--muted); }
+
+.mq-taire {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font-size: 13.5px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* Carte du menu : rappel de la version composée */
 .mc-version { margin: 2px 0 0; font-family: var(--script); font-size: 15.5px; color: var(--green); }
 
