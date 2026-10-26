@@ -35,7 +35,7 @@ test("chargement : l'accueil n'importe aucune autre vue, qui viennent à la prem
   await indexAllege(page);
   page.on("request", r => { const m = /\/js\/vues\/([a-z]+)\.js/.exec(r.url()); if (m) vues.push(m[1]); });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.waitForTimeout(800);
   for (const nom of ["fiche", "cuisine", "menu", "savoirs", "journal"]) expect(vues, nom).not.toContain(nom);
 
@@ -48,7 +48,7 @@ test("chargement : la synchro et l'élagage des coches ne viennent qu'après le 
   const ordre = [];
   page.on("request", r => { const m = /\/js\/(sync|vues\/courses)\.js/.exec(r.url()); if (m) ordre.push(m[1]); });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect.poll(() => ordre.sort()).toEqual(["sync", "vues/courses"]);
 });
 
@@ -66,7 +66,7 @@ test("chargement : naviguer pendant le chargement d'une vue ne dessine jamais la
   const p = porte();
   await page.route("**/js/vues/menu.js", async route => { await p.ouverte; await route.continue(); });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.evaluate(() => { location.hash = "#/menu"; });
   await page.evaluate(() => { location.hash = "#/courses"; });
   await expect(page.locator("h1")).toHaveText("Liste de courses");
@@ -82,7 +82,7 @@ test("chargement : une vue attend sa feuille de style, qui vient avec son module
     await route.continue();
   });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.evaluate(() => { location.hash = "#/menu"; });
   await expect(page.locator("h1")).toHaveText("Au menu");
   expect(await page.evaluate(() => { const l = document.querySelector('link[href="css/menu.css"]'); return l.media + ":" + !!l.sheet; })).toBe(":true");
@@ -93,7 +93,7 @@ test("chargement : une vue attend sa feuille de style, qui vient avec son module
 test("titre : chaque vue donne son titre au document", async ({ page }) => {
   const SUFFIXE = " – Carnet de cuisine";
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect(page).toHaveTitle("Recettes" + SUFFIXE);
   for (const [hash, titre] of [
     ["#/menu", "Au menu"], ["#/courses", "Liste de courses"], ["#/fondamentaux", "Savoirs"],
@@ -110,7 +110,7 @@ test("titre : chaque vue donne son titre au document", async ({ page }) => {
 
 test("focus : arriver par un lien donne le focus au titre, un retour arrière non", async ({ page }) => {
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.locator(`${CARTES} .body`).first().tap();
   await expect(page.locator(".hero")).toBeVisible();
   await expect(page.locator("h1")).toBeFocused();
@@ -203,7 +203,7 @@ test("chargement : un module qui ne vient pas laisse une page honnête, un titre
   let echecs = 1;
   await page.route("**/js/vues/menu.js", route => (echecs-- > 0 ? route.abort() : route.continue()));
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.evaluate(() => { location.hash = "#/menu"; });
   await expect(page.getByText("Cette page ne s'est pas chargée")).toBeVisible();
   await expect(page).toHaveTitle("Page indisponible – Carnet de cuisine");

@@ -29,12 +29,23 @@ discovered: "au Murmure du Son, festival à Eu",   // → « Découverte au Murm
 discovered: "à l'hôtel Park Plaza Victoria, à Amsterdam",
 ```
 
+### Composer sa version : `choices` et `addons`
+
+Une recette se compose « façon fast-food » :
+
+- **`choices`** — des groupes à choix unique (la vinaigrette, la pâte, le fruit). Chaque option porte ses ingrédients et son étape (`step`) ; dans `steps`, l'emplacement est marqué `{ choice: "<id du groupe>" }` et prend l'étape de l'option choisie. La première option est la version par défaut.
+- **`addons`** — des suppléments cochables. Chaque supplément porte ses ingrédients et `step: { i, txt }`, le geste qui vient enrichir l'étape d'index `i` (insérer une étape décale tous les index qui suivent : le vérificateur le voit). `step.timer` (minutes) lui donne son propre compte à rebours en mode cuisine ; dès qu'un texte annonce une durée, il lui faut son minuteur, et `step.adds` dit à quel poste ce temps s'ajoute (voir plus bas).
+
+**Les quantités écrites au fil du texte** (note d'ingrédient, étape, astuce) s'entourent d'accolades pour suivre le curseur de portions — `{3 cl}`, `{1-2 c. à s.}` pour une fourchette, `{2}` sans unité —, sans quoi elles contredisent la colonne des quantités dès qu'on le bouge. Une quantité qui ne dépend pas des portions reste nue : une largeur en centimètres, un « 2 cl par verre », le poids d'un bocal du commerce. Les notes de `shop` ne sont jamais mises à l'échelle (elles se fondent entre recettes dans la liste de courses) : pas de quantité dedans.
+
+`course: false` exclut un ingrédient de la liste de courses (l'eau tiède) ; `optional: true` le marque facultatif.
+
 ### Annoter les étapes : `ing`, `four`, `moule`
 
-Trois champs alimentent le mode cuisine, le préchauffage et l'adaptation au moule (le détail est aussi en tête de `js/recipes.js`) :
+Trois champs alimentent le mode cuisine, le préchauffage et l'adaptation au moule :
 
 - **`ing`** — sur chaque étape de `steps` (sauf l'emplacement `{ choice: … }`) et sur le `step` de chaque option de `choices` : les ingrédients que l'étape met en œuvre, désignés par leur `cid` (ou, faute de `cid`, par leur `name` exact). Un ingrédient figure à l'étape où on le mesure, l'ajoute, le verse, le parsème — pas à celle où il n'est qu'évoqué — et aux deux étapes s'il sert en deux fois. L'eau, le sel ou l'huile du moule comptent quand le texte les fait utiliser. `ing: []` signifie « vérifié, rien à citer » ; sans le champ, l'étape n'est pas annotée. Les suppléments n'en ont pas besoin : leurs ingrédients vont à l'étape qu'ils enrichissent.
-- **`four`** — sur l'étape où le plat entre au four (ou y précuit) : la température en °C. Jamais pour la friture, la poêle ou un réchauffage facultatif. Si la température baisse en cours de cuisson, c'est la première ; le texte dit la suite.
+- **`four`** — sur l'étape où le plat entre au four (ou y précuit) : la température en °C. Jamais pour la friture, la poêle ou un réchauffage facultatif. Si la température baisse en cours de cuisson, c'est la première ; le texte dit la suite. Si le four doit être plus chaud à l'enfournement qu'en cuisson (préchauffer à 200 °C, puis baisser à 150 °C), `prechauffe` donne la chaleur de départ : c'est elle que lisent le préchauffage et les conflits de four.
 - **`moule`** — au niveau de la recette, seulement quand le texte donne la taille du moule ou du plat : `{ forme: "rond", diametre: 26 }`, `{ forme: "rectangle", largeur: 20, longueur: 30 }` ou `{ forme: "cake", longueur: 26 }`. Aucune taille inventée : sans indication dans le texte, pas de champ.
 
 Un quatrième champ, **`step.adds`**, porte le temps des options de choix. Sur le `step` d'une option de `choices` (ou d'un supplément) qui a un `timer`, il donne le poste où ce temps s'ajoute, `"prep"`, `"repos"` ou `"cuisson"`. Le `times` d'une recette décrit sa version par défaut (première option de chaque choix) ; une option plus longue (pâte maison : `timer: 30, adds: "repos"`, chèvre gratiné : `timer: 6, adds: "cuisson"`) allonge ce poste, et la vignette, la fiche, la carte du menu et le rétroplanning annoncent tous la même durée. Une option sans `adds` a son minuteur déjà compris dans `times`. Le vérificateur refuse une option dont les minuteurs dépassent le temps qu'annonce la carte.
@@ -464,7 +475,7 @@ Le carnet s'ouvre surtout au téléphone, parfois en 4G lente : ce qui se télé
 - deux polices préchargées au plus, une vignette ;
 - la synchro, le service worker, les feuilles et les modules reportés partent après le premier affichage, jamais avant.
 
-**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 180,0 Ko, sans marge. La vague « mouvement » a fait entrer sur le chemin de l'accueil le bandeau tracé, le soulignement, les brins et les jetons de mouvement (181,1 Ko, ramenés à 179,4 Ko en sortant la feuille des réglages, `css/reglages-feuille.css`) ; puis les figures des savoirs ont ajouté leurs teintes à `base.css` et leur chargement à `core/fonds.js` (180,7 Ko, ramenés à 180,0 Ko en déplaçant dans `core/savoirs.js` ce que seules les pages des Savoirs lisent). Prochains leviers : découper `js/recipes.js` (33 Ko compressés, lus en entier au démarrage), et sortir de `css/fiche.css` (bloquante) ce que l'accueil n'emprunte pas. Chaque octet de plus se paie : un lot qui ajoute au chemin retire d'abord autre chose. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
+**Budget.** 180 Ko (gzip, en-têtes compris) avant les cartes : `npm run mesurer` affiche « tenu » ou « DÉPASSÉ » (`BUDGET_OCTETS_KO`, en tête de l'outil) ; un test en tient une estimation sur les fichiers. Mesuré : 180,0 Ko, sans marge. La vague « mouvement » a fait entrer sur le chemin de l'accueil le bandeau tracé, le soulignement, les brins et les jetons de mouvement (181,1 Ko, ramenés à 179,4 Ko en sortant la feuille des réglages, `css/reglages-feuille.css`) ; puis les figures des savoirs ont ajouté leurs teintes à `base.css` et leur chargement à `core/fonds.js` (180,7 Ko, ramenés à 180,0 Ko en déplaçant dans `core/savoirs.js` ce que seules les pages des Savoirs lisent) ; puis la salade tiède d'automne a ajouté 2,3 Ko compressés à `js/recipes.js`, payés en sortant du fichier son long commentaire d'en-tête (3,1 Ko), passé dans ce README (« Composer sa version ») : 178,3 Ko à l'estimation du test. Prochains leviers : découper `js/recipes.js` (33 Ko compressés, lus en entier au démarrage), et sortir de `css/fiche.css` (bloquante) ce que l'accueil n'emprunte pas. Chaque octet de plus se paie : un lot qui ajoute au chemin retire d'abord autre chose. Un lot qui le dépasse dit ce qu'il a fait entrer et pourquoi, et mesure avant et après.
 
 ## Développement
 

@@ -11,11 +11,11 @@ const idsAffiches = page => page.$$eval(CARTES, els => els.map(e => e.dataset.id
 
 test("critères : ils se cumulent, et se défont d'un second appui", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 
   await critere(page, "Végétarien").click();
   await expect(critere(page, "Végétarien")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(CARTES)).toHaveCount(17);
+  await expect(page.locator(CARTES)).toHaveCount(18);
   // Le houmous est végétarien, le gravlax non.
   expect(await idsAffiches(page)).not.toContain("gravlax-saumon-yaourt-bulgare");
 
@@ -29,9 +29,9 @@ test("critères : ils se cumulent, et se défont d'un second appui", async ({ pa
 
   await critere(page, "Sans cuisson").click();
   await critere(page, "Rapide").click();
-  await expect(page.locator(CARTES)).toHaveCount(17);
+  await expect(page.locator(CARTES)).toHaveCount(18);
   await critere(page, "Végétarien").click();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 });
 
 test("critères : « Sans four » écarte la focaccia, et se cumule avec la catégorie", async ({ page }) => {
@@ -57,16 +57,16 @@ test("critères : aucun résultat affiche le message, en tutoyant", async ({ pag
 test("critères : la sélection n'est gardée que pendant la visite", async ({ page }) => {
   await page.goto("/");
   await critere(page, "Végétarien").click();
-  await expect(page.locator(CARTES)).toHaveCount(17);
+  await expect(page.locator(CARTES)).toHaveCount(18);
 
   await page.locator('.tabbar a[data-tab="courses"]').click();
   await page.locator('.tabbar a[data-tab="home"]').click();
   await expect(critere(page, "Végétarien")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(CARTES)).toHaveCount(17);
+  await expect(page.locator(CARTES)).toHaveCount(18);
 
   await page.reload();
   await expect(critere(page, "Végétarien")).toHaveAttribute("aria-pressed", "false");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 });
 
 test("De saison (juillet) : les recettes de saison, avec leur pastille", async ({ page }) => {
@@ -117,7 +117,7 @@ test("J'ai… : choisir des ingrédients trie les recettes et affiche « 3 / 5 �
   await expect(page.getByRole("button", { name: /^J'ai…/ })).toContainText("2");
 
   // Seules les recettes qui servent un ingrédient restent, les plus avancées d'abord.
-  await expect(page.locator(CARTES)).not.toHaveCount(20);
+  await expect(page.locator(CARTES)).not.toHaveCount(21);
   const pastilles = await page.$$eval(`${CARTES} .card-jai`, els => els.map(e => e.textContent));
   expect(pastilles.length).toBeGreaterThan(0);
   const trouves = pastilles.map(t => Number(t.split("/")[0]));
@@ -128,7 +128,7 @@ test("J'ai… : choisir des ingrédients trie les recettes et affiche « 3 / 5 �
 
   // « Effacer » défait la sélection sans rouvrir la feuille.
   await page.locator("#jai-efface").click();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect(page.locator("#jai-etat")).toBeHidden();
   await expect(page.locator(".card-jai:visible")).toHaveCount(0);
 });
@@ -146,7 +146,7 @@ test("J'ai… : « Tout effacer » dans la feuille, et le geste de retour la ref
   await feuille.locator(".jai-chip", { hasText: "Feta" }).click();
   await page.goBack();
   await expect(feuille).toBeHidden();
-  await expect(page.locator(CARTES)).not.toHaveCount(20);
+  await expect(page.locator(CARTES)).not.toHaveCount(21);
 });
 
 test("recherche : elle est gardée pendant la visite, pas d'une session à l'autre", async ({ page }) => {
@@ -163,7 +163,7 @@ test("recherche : elle est gardée pendant la visite, pas d'une session à l'aut
   expect((await lireCarnet(page)).query).toBeUndefined();
   await page.reload();
   await expect(page.locator("#search")).toHaveValue("");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 });
 
 test("vignette : le bouton partager n'est plus dans le lien, et ne navigue pas", async ({ page, context }) => {

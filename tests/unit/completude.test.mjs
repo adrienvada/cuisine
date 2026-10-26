@@ -169,10 +169,10 @@ test("en dessous du seuil, le carnet préfère se taire plutôt que de proposer 
 test("à égalité, les recettes qu'on aime d'abord, puis celles qu'on n'a pas faites depuis longtemps", () => {
   const m = menu("quiche-lorraine");
   const manques = analyser(m).manques;
-  const ordre = opts => ids(suggerer(m, manques, { mois: 10, max: 4, ...opts }));
-  assert.deepEqual(ordre({}), ["salade-kale-pomme-oeuf", "salade-mediterraneenne", "salade-champetre", "salade-lentilles-feta"]);
-  assert.deepEqual(ordre({ favori: r => r.id === "salade-lentilles-feta" }), ["salade-kale-pomme-oeuf", "salade-lentilles-feta", "salade-mediterraneenne", "salade-champetre"]);
-  assert.deepEqual(ordre({ derniere: r => (r.id === "salade-mediterraneenne" ? Date.UTC(2026, 9, 1) : null) }), ["salade-kale-pomme-oeuf", "salade-champetre", "salade-lentilles-feta", "salade-mediterraneenne"]);
+  const ordre = opts => ids(suggerer(m, manques, { mois: 10, max: 5, ...opts }));
+  assert.deepEqual(ordre({}), ["salade-kale-pomme-oeuf", "salade-mediterraneenne", "salade-champetre", "salade-lentilles-feta", "salade-tiede-courge-roquette-chevre"]);
+  assert.deepEqual(ordre({ favori: r => r.id === "salade-lentilles-feta" }), ["salade-kale-pomme-oeuf", "salade-lentilles-feta", "salade-mediterraneenne", "salade-champetre", "salade-tiede-courge-roquette-chevre"]);
+  assert.deepEqual(ordre({ derniere: r => (r.id === "salade-mediterraneenne" ? Date.UTC(2026, 9, 1) : null) }), ["salade-kale-pomme-oeuf", "salade-champetre", "salade-lentilles-feta", "salade-tiede-courge-roquette-chevre", "salade-mediterraneenne"]);
   // L'utilité passe avant tout : une recette aimée ne double pas une plus utile.
   assert.equal(ordre({ favori: r => r.id === "salade-champetre" })[0], "salade-kale-pomme-oeuf");
 });

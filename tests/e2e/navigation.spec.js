@@ -10,7 +10,7 @@ const proche = async (page, attendu, marge = 50) =>
 /* Fait défiler l'accueil et attend que la position soit atteinte. */
 async function defilerAccueil(page, y) {
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await page.evaluate(y => window.scrollTo(0, y), y);
   await expect.poll(() => defilement(page)).toBeGreaterThanOrEqual(y - 100);
   return defilement(page);
@@ -28,7 +28,7 @@ test("place : la flèche de retour d'une fiche ramène à la même position de l
   await proche(page, 0, 10);
 
   await page.locator("[data-retour]").first().tap();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await proche(page, milieu);
   expect(avant).toBeGreaterThan(0);
 });
@@ -53,7 +53,7 @@ test("place : changer d'onglet puis revenir retrouve la position de l'onglet", a
   await proche(page, 0, 10);
 
   await page.locator('.tabbar a[data-tab="home"]').click();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await proche(page, avant);
 });
 
@@ -131,9 +131,9 @@ test("fondamentaux : aucune requête avant le premier affichage de l'accueil, pu
     await route.continue();
   });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect.poll(() => page.evaluate(() => typeof FONDAMENTAUX !== "undefined")).toBe(true);
-  expect(cartesALaRequete).toBe(20);
+  expect(cartesALaRequete).toBe(21);
 });
 
 test("fondamentaux : la recherche par mécanisme marche dès qu'ils sont arrivés", async ({ page }) => {

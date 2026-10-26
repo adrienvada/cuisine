@@ -709,6 +709,33 @@ const FONDAMENTAUX = [
     source: ""
   },
   {
+    id: "fletrissement-feuilles",
+    t: "La feuille qui retombe",
+    emoji: "🥬",
+    famille: "Végétal & couleur",
+    accroche: "Une salade assaisonnée trop tôt, ou posée sous un ingrédient chaud, s'affaisse en un tas sombre et luisant : la feuille tenait par son eau, et on la lui a reprise.",
+    pourquoi: "Une feuille de salade ne tient pas debout grâce à ses fibres, mais grâce à l'eau. Chaque cellule garde son eau dans une grande poche, la vacuole, qui pousse contre la paroi comme une chambre à air dans un pneu : c'est la turgescence. Une feuille de laitue ou une pousse de roquette, faite à plus de 90 % d'eau et presque sans fibres, n'a rien d'autre pour se tenir. Que la pression baisse, et elle plie.\n\nTrois choses la font baisser. La chaleur d'abord : elle abîme les membranes des cellules qu'elle touche, qui laissent alors fuir leur eau ; c'est ainsi qu'on fait tomber des épinards à la poêle, et c'est ce qu'un ingrédient tiède fait, plus doucement, aux feuilles sur lesquelles on le pose. Le sel et le sucre ensuite : dissous dans la vinaigrette, ils tirent l'eau hors des cellules par osmose. L'huile enfin : la feuille est couverte d'une fine couche de cire, la cuticule, sur laquelle l'eau et le vinaigre perlent sans la mouiller, mais que l'huile, grasse comme elle, mouille et recouvre. Elle gagne peu à peu l'intérieur de la feuille, en chasse l'air, et la feuille fonce, devient translucide et s'affaisse.\n\nLa turgescence, l'osmose et la cuticule sont établies. La part de chacun dans une vraie salade, combien pour l'huile, combien pour le sel, en combien de minutes, n'a guère été mesurée : on connaît l'ordre des choses, pas ses proportions.",
+    certitude: "partiel",
+    cas: [
+      { q: "Feuille tendre ou feuille ferme ?",
+        r: "Roquette, mâche, jeunes pousses, laitues : une cuticule mince, presque pas de fibres, elles retombent dans les minutes qui suivent l'assaisonnement. On les assaisonne au moment de servir. Chou, kale, endive : une cuticule épaisse et des nervures qui portent, elles tiennent dans la vinaigrette et le chou s'y améliore même. Le kale, on le fait retomber exprès en le massant au sel et à l'huile : la main écrase en trois minutes les cellules que la vinaigrette mettrait des heures à attendrir." },
+      { q: "Une salade tiède, comment la monter ?",
+        r: "Ce qui est tiède boit la vinaigrette, la feuille la subit. Assaisonnez donc d'abord les éléments tièdes, laissez-les perdre leur fumée, et posez-les sur les feuilles plutôt que de tout mélanger : seules les feuilles du dessus, au contact, retombent un peu, ce qui fait justement le charme du plat. Mélangé au saladier, l'ensemble s'affaisse avant d'arriver à table. Un ingrédient brûlant, lui, ne fait pas retomber les feuilles : il les cuit." },
+      { q: "Pourquoi essorer à fond ?",
+        r: "Parce que l'huile et l'eau ne se mêlent pas. Une feuille mouillée est couverte d'un film d'eau qui fait écran entre la cire et l'huile : la vinaigrette glisse dessus et finit au fond du saladier, délavée par l'eau de rinçage. Une feuille sèche la retient, et il en faut moins." },
+      { q: "Peut-on rattraper une salade fatiguée ?",
+        r: "Avant l'assaisonnement, oui : plongée dans de l'eau bien froide, la feuille molle reprend de l'eau par osmose, les cellules se regonflent et elle se redresse ; il n'y a plus qu'à l'essorer. Après, non : l'huile ne se rince pas, et les cellules abîmées par la chaleur ne retiennent plus rien. Une salade retombée se mange comme elle est, ou part dans une soupe." }
+    ],
+    reperes: [
+      "Feuilles tendres : assaisonnées dans la minute qui précède le service, jamais avant.",
+      "Une dizaine de minutes dans de l'eau bien froide redresse une feuille molle qui n'a encore vu ni sel ni huile.",
+      "Bien essorée, une feuille ne perle plus quand on la secoue.",
+      "Une salade tiède se dresse en couches, feuilles dessous : on mélange à table, pas au saladier."
+    ],
+    piege: "Assaisonner la salade à l'avance pour gagner du temps, ou la retourner avec la garniture qui sort du four. À table, il reste un tas sombre et luisant au fond du plat, la moitié du volume a disparu, et rien ne le redressera.",
+    source: "Harold McGee, « On Food and Cooking », sur les feuilles de salade et leur assaisonnement."
+  },
+  {
     id: "infusion-froid",
     t: "L'infusion à froid",
     emoji: "🧊",
