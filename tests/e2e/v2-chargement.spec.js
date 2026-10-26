@@ -85,7 +85,7 @@ test.describe("service worker", () => {
       await expect.poll(() => page.evaluate(async () => {
         const c = await caches.open("carnet-execution");
         return (await c.keys()).filter(r => r.url.includes("/img/h/")).length;
-      }), { timeout: 30000 }).toBe(20);
+      }), { timeout: 30000 }).toBe(21);
 
       // Pas de page.context().setOffline : il ne coupe pas le service worker.
       await serveur.fermer();

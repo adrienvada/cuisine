@@ -41,6 +41,7 @@ export const APPORTS = {
   "salade-mediterraneenne": ["legumes", "proteines", "feculents", "frais"],
   "salade-champetre": ["legumes", "feculents", "frais"],
   "salade-lentilles-feta": ["legumes", "proteines", "feculents", "frais"],
+  "salade-tiede-courge-roquette-chevre": { base: ["legumes", "frais"], supplements: { croutons: ["feculents"] } },
   "mayonnaise-maison": ["riche"],
   "pesto-basilic-maison": ["riche"],
   "quiche-lorraine": ["proteines", "feculents", "riche"],

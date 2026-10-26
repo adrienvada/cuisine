@@ -44,6 +44,7 @@ const SAISONS = {
   figues: [8, 9, 10],
   "fruits-rouges": [6, 7, 8],
   orange: [1, 2, 3, 12],
+  poire: [9, 10, 11, 12],
 
   /* Herbes fraîches (pleine terre) */
   aneth: [6, 7, 8, 9],

@@ -8,7 +8,7 @@ test.describe("images", () => {
   test("la grille ne charge que des .webp légers, jamais la photo entière", async ({ page }) => {
     const vues = espionnerImages(page);
     await page.goto("/");
-    await expect(page.locator(".card")).toHaveCount(20);
+    await expect(page.locator(".card")).toHaveCount(21);
     await page.waitForLoadState("networkidle");
 
     expect(vues.length).toBeGreaterThan(0);
@@ -26,7 +26,7 @@ test.describe("images", () => {
     expect(visibles.length).toBeGreaterThan(2);
     const premier = poids(vues.filter(v => visibles.includes(v.chemin)));
     expect(premier, `images du premier écran : ${Math.round(premier / 1024)} Ko`).toBeLessThan(100 * 1024);
-    // La grille entière (20 vignettes) pèse moins que deux photos d'avant.
+    // La grille entière (21 vignettes) pèse moins que deux photos d'avant.
     expect(poids(vues), `grille entière : ${Math.round(poids(vues) / 1024)} Ko`).toBeLessThan(300 * 1024);
   });
 

@@ -43,7 +43,7 @@ test("les cartes portent data-vt-photo et une couleur dominante posée avant la 
     const v = c.querySelector(".visual");
     return { id: c.dataset.id, vt: v.dataset.vtPhoto, p: getComputedStyle(c).getPropertyValue("--p").trim(), fond: getComputedStyle(v).backgroundColor };
   }));
-  expect(infos).toHaveLength(20);
+  expect(infos).toHaveLength(21);
   for (const i of infos) {
     expect(i.vt).toBe(i.id);
     expect(i.p, i.id).toMatch(/^#[0-9a-f]{6}$/);
@@ -99,7 +99,7 @@ for (const reduit of [false, true]) {
 
       await page.locator("#chips .chip", { hasText: "Toutes" }).click();
       await pageStable(page);
-      await expect(page.locator(CARTES)).toHaveCount(20);
+      await expect(page.locator(CARTES)).toHaveCount(21);
       expect(await residus(page)).toEqual([]);
       expect(await page.locator(".card.card-leave").count()).toBe(0);
     });
@@ -131,7 +131,7 @@ for (const reduit of [false, true]) {
       expect(hauts).toEqual([...hauts].sort((a, b) => a - b));
       await page.locator("#search").fill("");
       await pageStable(page);
-      await expect(page.locator(CARTES)).toHaveCount(20);
+      await expect(page.locator(CARTES)).toHaveCount(21);
       expect(await residus(page)).toEqual([]);
     });
 
@@ -203,7 +203,7 @@ test("la croix d'effacement se pose en grandissant, efface et rend le champ au c
   await expect(page.locator("#search")).toBeFocused();
   await expect(croix).toBeHidden();
   await pageStable(page);
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 });
 
 test("en mouvement réduit la croix d'effacement reste celle du navigateur", async ({ page }) => {

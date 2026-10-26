@@ -1,101 +1,8 @@
 /* Données des recettes — Carnet de cuisine d'Evadri
-   Chaque ingrédient : qty/unit pour la recette, rayon + éventuel `shop`
-   (quantité/libellé côté courses), `cid` = identifiant commun pour fusionner
-   les quantités entre recettes, `course:false` = exclu de la liste.
-
-   Composer sa version, façon fast-food :
-   - `choices` : groupes à choix unique (ex. la vinaigrette). Chaque option
-     porte ses ingrédients et son étape ; dans `steps`, l'emplacement est
-     marqué `{ choice: "<id du groupe>" }` et prend l'étape de l'option choisie.
-   - `addons` : suppléments cochables. Chaque supplément porte ses ingrédients
-     et `step: { i, txt }` — le geste qui vient enrichir l'étape d'index `i`.
-     `step.timer` (minutes) lui donne son propre compte à rebours en mode
-     cuisine, indépendant de celui de l'étape : dès qu'un texte annonce une
-     durée, il lui faut son minuteur. `step.adds` dit à quel poste ce temps
-     s'ajoute — "prep", "repos" ou "cuisson" — pour que les temps affichés
-     deviennent des fourchettes.
-   - Une option de `choices` plus longue que la version par défaut (la pâte
-     maison de la quiche, le chèvre gratiné des tartines) le dit de la même
-     façon : `step.timer` + `step.adds`. `times` décrit la version par défaut ;
-     le temps de l'option s'y ajoute, au poste `adds`, partout où il s'affiche
-     (vignette, fiche, carte du menu, partage) et dans le rétroplanning. Une
-     option sans `adds` a son minuteur déjà compté dans `times`.
-
-   Quantités écrites au fil du texte (note d'ingrédient, étape, astuce) : les
-   entourer d'accolades pour qu'elles suivent le curseur de portions, sinon
-   elles contredisent la colonne des quantités dès qu'on le bouge.
-   `{3 cl}`, `{1-2 c. à s.}` pour une fourchette, `{2}` sans unité.
-   Une quantité qui ne dépend pas des portions reste nue : une largeur en
-   centimètres, un « 2 cl par verre », le poids d'un bocal du commerce.
-   Les notes de `shop` ne sont jamais mises à l'échelle — elles se fondent
-   entre recettes dans la liste de courses — donc pas de quantité dedans.
-
-   Un `cid` est UN produit à acheter, avec UN libellé de courses (`shop.label`,
-   sinon `name`) dans toutes les recettes : la liste n'en affiche qu'un. Ce qui est
-   propre à une recette va dans `shop.note` ou dans son `name`/`note`. Deux
-   produits différents (farine de pain / farine de gâteau, beurre doux / salé)
-   ont deux `cid`. `entier: true` marque ce qui se compte à la pièce sans se
-   couper (œufs, jaunes compris, cornichons…) : mis à l'échelle, il reste entier.
-   Un pot dont une fois suffit : `shop: { qty: null, qtyText: "1 pot" }`.
-
-   Annoter les étapes (mode cuisine, four, moule) :
-   - `ing` : sur chaque étape de `steps` (sauf l'emplacement `{ choice }`) et sur
-     le `step` de chaque option de `choices`, la liste des ingrédients que
-     l'étape met en œuvre, désignés par leur `cid` (ou, faute de `cid`, par leur
-     `name` exact). Un ingrédient figure à l'étape où on le mesure, l'ajoute, le
-     verse, le parsème — pas à celle où il n'est qu'évoqué — et aux deux étapes
-     s'il sert en deux fois. L'eau, le sel ou l'huile du moule comptent quand le
-     texte les fait utiliser. Une option peut citer les siens et ceux de la base.
-     `ing: []` dit « vérifié, rien à citer » ; l'absence du champ dit « pas fait ».
-     Les suppléments n'en ont pas : leurs ingrédients vont d'office à l'étape
-     qu'ils enrichissent.
-   - `four` : sur l'étape où le plat entre au four (ou y précuit), la température
-     en °C. Jamais pour la friture, la poêle ou un réchauffage facultatif. Si la
-     température change en cours de cuisson, c'est la première ; le texte dit la
-     suite. Si le four doit être plus chaud à l'enfournement qu'en cuisson
-     (préchauffer à 200 °C, puis baisser à 150 °C), `prechauffe` donne la chaleur
-     de départ : c'est elle que lisent le préchauffage et les conflits de four.
-   - `repos` : `true` sur l'étape dont le minuteur est une attente sans les mains
-     et sans chauffer — levée, pousse, repos au frais ou à température ambiante,
-     marinade, trempage, macération, refroidissement, raffermissement au
-     congélateur. Une étape qui mêle un geste et une attente (« mélangez…,
-     réservez au frais 1 h ») en est une quand le minuteur est l'attente. Le feu,
-     la friture et le four n'en sont pas (un repos ne porte jamais `four`) : le
-     rétroplanning les montre autrement. Les options de `choices` et les
-     suppléments qui disent `adds: "repos"` sont déjà des repos, sans autre
-     marque ; une option qui repose sans `adds` (son temps est déjà dans `times`,
-     c'est la version par défaut) porte `repos: true`. Pour la version par défaut,
-     la somme des minuteurs de repos est `times.repos` — le vérificateur y veille.
-     `reposLabel` sur une étape (en plus de celui de la recette) nomme ce repos-là
-     dans la frise quand la recette en compte plusieurs, de natures différentes
-     (le gravlax : marinade, puis congélateur).
-   - `repos: "pendant"` : une attente qui court PENDANT qu'on travaille à la suite
-     (l'oignon qui trempe pendant qu'on prépare le reste, les verres au
-     congélateur, la sauce réservée au frais). Elle garde son minuteur (le mode
-     cuisine le sonne) et son `reposLabel`, mais ne retient personne : elle
-     n'entre pas dans `times.repos`, et le rétroplanning la montre à part
-     (« Pendant ce temps »), sans libérer les mains. Elle démarre au début de son
-     étape, et la recette n'en attend la fin qu'à son terme, au service — sa durée
-     ne s'allonge que si l'attente dépasse le travail qu'elle recouvre. Le
-     vérificateur exige qu'elle tienne dans le temps de la recette (son minuteur
-     ne dépasse pas ce que `times` laisse après les minuteurs qui la précèdent),
-     qu'une étape suive, et refuse `four` et `adds` : `times` compte déjà le
-     travail qu'elle recouvre. Un repos qui bloque, lui, est `repos: true` : la
-     levée, la marinade, la pâte au frais avant de l'étaler, le refroidissement
-     avant le démoulage — on ne peut rien faire d'autre de cette recette
-     avant sa fin. Le doute se tranche ainsi : la suite de la recette peut-elle
-     commencer sans attendre ? Oui, c'est « pendant » ; non, c'est un repos.
-   - `moule` (au niveau de la recette) : seulement si le texte donne la taille du
-     moule ou du plat — `{ forme: "rond", diametre: 26 }`,
-     `{ forme: "rectangle", largeur: 20, longueur: 30 }` ou
-     `{ forme: "cake", longueur: 26 }`, en centimètres. Pas de taille dans le
-     texte, pas de champ.
-   - `tags` : « végétarien » si et seulement si la version par défaut (première
-     option de chaque choix, aucun supplément) ne contient ni viande ni poisson.
-
-   `discovered` (facultatif) : où la recette a été découverte. La phrase
-   commence par sa préposition, elle complète « Découverte … » —
-   « à l'hôtel … », « au Murmure du Son », « chez Mamie »… */
+   La forme d'une recette (choix, suppléments, quantités entre accolades,
+   ingrédients et courses, annotations `ing`, `four`, `repos`, `moule`) est
+   documentée dans le README, « Ajouter une recette » : ce fichier est lu en
+   entier au démarrage de l'accueil, chaque octet de commentaire s'y paie. */
 
 const RECIPES = [
   {
@@ -457,7 +364,7 @@ const RECIPES = [
     steps: [
       {
         t: "Préparer et masser le kale",
-        txt: "Lavez le kale, retirez les tiges centrales rigides et hachez finement les feuilles. Placez-les dans un saladier avec une pincée de sel et un filet d'huile d'olive, puis massez fermement les feuilles à la main pendant 3 minutes.", fond: "osmose-sel",
+        txt: "Lavez le kale, retirez les tiges centrales rigides et hachez finement les feuilles. Placez-les dans un saladier avec une pincée de sel et un filet d'huile d'olive, puis massez fermement les feuilles à la main pendant 3 minutes.", fond: ["osmose-sel","fletrissement-feuilles"],
         ing: ["kale", "sel-poivre", "huile-olive"],
         timer: 3,
         tip: { t: "Astuce du chef", txt: "Massez comme on pétrit une pâte, poignée après poignée. En trois minutes les feuilles foncent et le volume tombe de moitié : c'est le repère, arrêtez-vous là." }
@@ -1109,14 +1016,14 @@ const RECIPES = [
       },
       {
         t: "Lavage de la salade",
-        txt: "Lavez et essorez délicatement les feuilles de salade feuille de chêne.",
+        txt: "Lavez et essorez délicatement les feuilles de salade feuille de chêne.", fond: "fletrissement-feuilles",
         ing: ["feuille-chene"],
-        tip: { t: "Astuce du chef", txt: "Essorez parfaitement la salade : l'excès d'eau empêche la vinaigrette d'adhérer aux feuilles." }
+        tip: { t: "Astuce du chef", txt: "Lavez-la en premier, pendant que l'eau des pommes de terre chauffe, et laissez-la attendre essorée dans un torchon au frais : elle sera parfaitement sèche à l'heure de l'assemblage." }
       },
       { choice: "vinaigrette", fond: "emulsion" },
       {
         t: "Assemblage tiède",
-        txt: "Coupez les pommes de terre encore tièdes en rondelles, mélangez-les avec les haricots et les petits pois, puis nappez généreusement de vinaigrette. Ajoutez les feuilles de chêne au tout dernier moment et mélangez délicatement.", fond: ["amidon","chlorophylle","pectine-acidite"],
+        txt: "Coupez les pommes de terre encore tièdes en rondelles, mélangez-les avec les haricots et les petits pois, puis nappez généreusement de vinaigrette. Ajoutez les feuilles de chêne au tout dernier moment et mélangez délicatement.", fond: ["amidon","chlorophylle","pectine-acidite","fletrissement-feuilles"],
         ing: ["pommes-terre", "haricots-verts", "petits-pois", "feuille-chene"],
         tip: { t: "Astuce du chef", txt: "Nappez les rondelles pendant qu'elles fument encore : tièdes, elles boivent la vinaigrette. La feuille de chêne, elle, retombe au contact du tiède — elle n'arrive qu'à table." }
       }
@@ -1232,6 +1139,130 @@ const RECIPES = [
         txt: "Associez les lentilles tièdes ou refroidies, la pomme, les tomates et la feta émiettée, puis incorporez la vinaigrette.", fond: ["contraste-textures","acidite-finale"],
         ing: ["lentilles", "pomme", "tomates", "feta"],
         tip: { t: "Astuce du chef", txt: "Incorporez la pomme verte au tout dernier moment pour qu'elle conserve tout son croquant et sa fraîcheur au contraste des lentilles." }
+      }
+    ]
+  },
+
+  {
+    id: "salade-tiede-courge-roquette-chevre",
+    image: "img/salade-tiede-courge-roquette-chevre.jpg",
+    title: "Salade tiède d'automne : courge rôtie, roquette, figues & chèvre frais",
+    subtitle: "Fondante, poivrée et croquante, sous une vinaigrette à l'huile de noix",
+    category: "Salades",
+    tags: ["tiède", "automne", "végétarien"],
+    emoji: "🍂",
+    color: "#D98A3D",
+    times: { prep: 20, cuisson: 25 },
+    portions: { base: 4, label: "personnes" },
+    note: "En plat léger pour quatre, ou en entrée pour six. Quand les figues sont finies, la poire ou la grenade prennent le relais.",
+    ingredients: [
+      { name: "Courge butternut", qty: 1, unit: "", note: "environ {800 g}, ou un potimarron, qu'on n'épluche pas", rayon: "Fruits & légumes", cid: "butternut" },
+      { name: "Roquette", qty: 100, unit: "g", note: "ou des jeunes pousses d'épinards, ou moitié-moitié", rayon: "Fruits & légumes", cid: "roquette",
+        shop: { label: "Roquette" } },
+      { name: "Chèvre frais", qty: 150, unit: "g", note: "ou de la feta", rayon: "Fromages", cid: "chevre-frais",
+        shop: { label: "Chèvre frais" } },
+      { name: "Cerneaux de noix", qty: 2, unit: "poignée", rayon: "Fruits secs & graines", cid: "noix" },
+      { name: "Thym frais", qty: 4, unit: "brin", rayon: "Herbes fraîches", cid: "thym" },
+      { name: "Huile d'olive", qty: 2, unit: "c. à s.", note: "pour rôtir la courge", rayon: "Huiles, vinaigres & condiments", cid: "huile-olive",
+        shop: { label: "Huile d'olive vierge extra", qty: null } },
+      { name: "Huile de noix", qty: 3, unit: "c. à s.", note: "vinaigrette, ou de l'huile d'olive", rayon: "Huiles, vinaigres & condiments", cid: "huile-noix",
+        shop: { label: "Huile de noix", qty: 1, unit: "bouteille" } },
+      { name: "Vinaigre de cidre", qty: 1, unit: "c. à s.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "vinaigre-cidre" },
+      { name: "Moutarde à l'ancienne", qty: 1, unit: "c. à c.", note: "vinaigrette", rayon: "Huiles, vinaigres & condiments", cid: "moutarde-ancienne",
+        shop: { label: "Moutarde à l'ancienne", qty: null, qtyText: "1 pot" } },
+      { name: "Miel", qty: 1, unit: "c. à c.", note: "vinaigrette", optional: true, rayon: "Pâtisserie & épicerie sucrée", cid: "miel",
+        shop: { label: "Miel", qty: null, qtyText: "1 pot" } },
+      { name: "Sel et poivre", qty: null, rayon: "Épices & assaisonnements", cid: "sel-poivre",
+        shop: { label: "Sel fin, poivre noir du moulin" } }
+    ],
+    choices: [{
+      id: "fruit", label: "La touche fruitée",
+      options: [
+        { id: "figues", label: "Figues fraîches", emoji: "🟣",
+          ingredients: [
+            { name: "Figues noires", qty: 4, unit: "", note: "bien mûres", rayon: "Fruits & légumes", cid: "figues", entier: true,
+              shop: { label: "Figues noires", note: "bien mûres" } }
+          ],
+          step: { t: "Les figues",
+            txt: "Coupez les figues en quartiers, de la queue vers la base.",
+            ing: ["figues"],
+            tip: { t: "Astuce du chef", txt: "Gardez-les pour la toute fin et posez-les sur le dessus, face coupée vers le ciel : retournées avec les feuilles, elles s'écrasent et leur pulpe colle à la roquette." } } },
+        { id: "poire", label: "Poire", emoji: "🍐",
+          ingredients: [
+            { name: "Poire ferme", qty: 1, unit: "", note: "type Conférence, encore ferme", rayon: "Fruits & légumes", cid: "poire" },
+            { name: "Citron jaune", qty: 0.25, unit: "", note: "le jus, pour citronner la poire", rayon: "Fruits & légumes", cid: "citron",
+              shop: { label: "Citron jaune" } }
+          ],
+          step: { t: "La poire",
+            txt: "Coupez la poire en quartiers sans l'éplucher, ôtez le cœur et taillez-la en fines lamelles. Arrosez-les aussitôt d'un trait de jus de citron.", fond: "oxydation-enzymatique",
+            ing: ["poire", "citron"],
+            tip: { t: "Astuce du chef", txt: "Prenez-la ferme, presque croquante : une poire fondante s'effondre au contact de la courge tiède, quand une poire ferme fait le contrepoint de sa chair moelleuse." } } },
+        { id: "grenade", label: "Grenade", emoji: "🔴",
+          ingredients: [
+            { name: "Grenade", qty: 0.5, unit: "", rayon: "Fruits & légumes", cid: "grenade" }
+          ],
+          step: { t: "La grenade",
+            txt: "Coupez la grenade en deux. Tenez la moitié face coupée vers le bas au-dessus d'un saladier et tapotez fermement le dos de l'écorce avec une cuillère en bois : les grains tombent. Retirez les peaux blanches.",
+            ing: ["grenade"],
+            tip: { t: "Astuce du chef", txt: "Faites-le dans un saladier d'eau froide : le jus ne gicle plus partout, les grains coulent au fond et les peaux blanches, amères, remontent à la surface, où on les cueille à la main." } } }
+      ]
+    }],
+    addons: [
+      { id: "oignon-rouge", label: "Oignon rouge rôti", emoji: "🧅",
+        ingredients: [{ name: "Oignon rouge", qty: 1, unit: "", rayon: "Fruits & légumes", cid: "oignon-rouge" }],
+        step: { i: 0, txt: "Coupez l'oignon rouge en huit quartiers et rôtissez-les sur la plaque avec la courge : ils en ressortent doux, à peine caramélisés." } },
+      { id: "graines-courge", label: "Graines de courge torréfiées", emoji: "🌰",
+        ingredients: [{ name: "Graines de courge", qty: 2, unit: "c. à s.", rayon: "Fruits secs & graines", cid: "graines-courge",
+          shop: { label: "Graines de courge", qty: null, qtyText: "1 sachet" } }],
+        step: { i: 1, timer: 3, adds: "cuisson", txt: "Après les noix, torréfiez les graines de courge 3 min dans la même poêle, jusqu'à ce qu'elles gonflent et commencent à crépiter.", fond: "torrefaction" } },
+      { id: "croutons", label: "Croûtons dorés", emoji: "🍞",
+        ingredients: [{ name: "Pain de campagne", qty: 2, unit: "tranche", rayon: "Boulangerie", cid: "pain",
+          shop: { label: "Pain de campagne" } }],
+        step: { i: 6, txt: "Faites dorer à la poêle des dés de pain de campagne avec un filet d'huile d'olive, et parsemez-en la salade au moment de servir : elle devient un vrai repas." } },
+      { id: "jambon-cru", label: "Jambon cru", emoji: "🥓",
+        ingredients: [{ name: "Jambon cru", qty: 4, unit: "tranche", note: "type prosciutto", rayon: "Boucherie & charcuterie", cid: "jambon-cru" }],
+        step: { i: 6, txt: "Déchirez le jambon cru en lanières et glissez-les entre la courge et les fruits : son sel répond au sucré de la courge et du miel." } }
+    ],
+    steps: [
+      {
+        t: "La courge rôtie",
+        txt: "Préchauffez le four à 200 °C. Épluchez la courge (le potimarron se garde avec sa peau), ôtez les graines et taillez la chair en cubes de 2 cm. Sur une plaque couverte de papier cuisson, mélangez-les avec l'huile d'olive, les feuilles de thym, du sel et du poivre, étalez-les en une seule couche et enfournez 25 minutes, en les retournant à mi-cuisson.", fond: ["eau-coloration","maillard","assaisonnement-couches"],
+        ing: ["butternut", "huile-olive", "thym", "sel-poivre"],
+        four: 200,
+        timer: 25,
+        tip: { t: "Astuce du chef", txt: "Pour éplucher une butternut sans y laisser un doigt, coupez d'abord le col et le bulbe, posez chaque morceau à plat sur sa face coupée, puis descendez l'économe ou le couteau de haut en bas. La courge est prête quand les faces posées sur la plaque sont dorées et que la pointe d'un couteau entre sans résistance." }
+      },
+      {
+        t: "Les noix torréfiées",
+        txt: "Pendant que la courge rôtit, faites dorer les cerneaux de noix 4 à 5 minutes dans une poêle à sec, à feu moyen, en remuant. Versez-les aussitôt sur une assiette, et concassez-les grossièrement dès qu'ils ne brûlent plus les doigts.", fond: "torrefaction",
+        ing: ["noix"],
+        timer: 5,
+        tip: { t: "Astuce du chef", txt: "Concassez à la main, en cassant chaque cerneau en deux ou trois : au couteau, on fait une poudre qui disparaît dans la vinaigrette, et on perd le croquant qui répond au fondant de la courge." }
+      },
+      { choice: "fruit" },
+      {
+        t: "La vinaigrette",
+        txt: "Dans un bol, délayez la moutarde à l'ancienne et le miel dans le vinaigre de cidre avec une pincée de sel et un tour de poivre, puis versez l'huile de noix en fouettant.", fond: "emulsion",
+        ing: ["moutarde-ancienne", "miel", "vinaigre-cidre", "sel-poivre", "huile-noix"],
+        tip: { t: "Astuce du chef", txt: "Goûtez-la sur une feuille de roquette plutôt qu'à la cuillère. Seule, elle doit paraître un peu trop vive : la courge, le fruit et le miel vont l'arrondir." }
+      },
+      {
+        t: "La roquette",
+        txt: "Lavez la roquette et essorez-la soigneusement.", fond: "fletrissement-feuilles",
+        ing: ["roquette"],
+        tip: { t: "Astuce du chef", txt: "Si elle a l'air fatiguée, laissez-la tremper dans un saladier d'eau très froide pendant que la courge rôtit : elle se redresse. Essorez-la ensuite en deux fois plutôt qu'en une, le panier trop plein garde l'eau." }
+      },
+      {
+        t: "Le chèvre",
+        txt: "Sortez le chèvre du réfrigérateur au dernier moment et émiettez-le à la main en gros morceaux irréguliers.", fond: "froid-raffermit",
+        ing: ["chevre-frais"],
+        tip: { t: "Astuce du chef", txt: "Des éclats francs, pas une crème : posés sur la courge tiède, ils fondent à peine sur les bords et gardent leur fraîcheur acidulée au cœur." }
+      },
+      {
+        t: "L'assemblage tiède",
+        txt: "Laissez tiédir la courge le temps de dresser. Retournez la roquette avec la moitié de la vinaigrette et étalez-la dans un grand plat. Posez dessus la courge, puis le fruit, le chèvre et les noix, et arrosez du reste de vinaigrette. Servez aussitôt.", fond: ["fletrissement-feuilles","contraste-textures"],
+        ing: ["roquette", "butternut", "chevre-frais", "noix"],
+        tip: { t: "Astuce du chef", txt: "La roquette dessous, la courge dessus, et surtout pas de grand mélange au saladier : seules les feuilles qui touchent la courge retombent un peu, les autres restent poivrées et croquantes. On mélange à table." }
       }
     ]
   },

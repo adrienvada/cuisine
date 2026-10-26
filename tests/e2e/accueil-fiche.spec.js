@@ -6,16 +6,16 @@ import { test, expect, preremplir, lireCarnet } from "./outils.js";
    celles-ci sont, tout de suite, l'ensemble que le filtre vient de décider. */
 const CARTES = ".card:not(.gone):not(.card-leave)";
 
-test("accueil : 20 vignettes, les filtres par catégorie et la recherche", async ({ page }) => {
+test("accueil : 21 vignettes, les filtres par catégorie et la recherche", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".card")).toHaveCount(20);
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(".card")).toHaveCount(21);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 
   await page.locator("#chips").getByRole("button", { name: "Apéro", exact: true }).click();
   await expect(page.locator(CARTES)).toHaveCount(7);
 
   await page.locator("#chips").getByRole("button", { name: "Toutes", exact: true }).click();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
 
   await page.locator("#search").fill("feta");
   await expect(page.locator(CARTES)).toHaveCount(5);

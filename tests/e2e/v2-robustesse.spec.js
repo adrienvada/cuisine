@@ -61,7 +61,7 @@ test("stockage corrompu : l'appli démarre sur un carnet vide et garde la copie 
   const erreurs = surveillerErreurs(page);
   await poserBrut(context, "{pas du json");
   await page.goto("/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   expect(erreurs).toEqual([]);
   expect(await page.evaluate(() => localStorage.getItem("carnet-cuisine-v1-illisible"))).toBe("{pas du json");
 
@@ -88,7 +88,7 @@ test("getItem qui lève (Safari, cookies bloqués) : l'appli démarre quand mêm
     Storage.prototype.getItem = function () { throw new DOMException("refusé", "SecurityError"); };
   });
   await page.goto("/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   expect(erreurs).toEqual([]);
   await page.goto("/#/menu");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -105,7 +105,7 @@ test("JSON valide mais de mauvaise forme : nettoyé, aucune vue ne reste blanche
     }
   });
   await page.goto("/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect(page.locator("#menu-badge")).toHaveText("1");
 
   await page.goto("/#/menu");
@@ -131,7 +131,7 @@ test("stockage plein : le démarrage va jusqu'à la synchro", async ({ page, con
   await stockagePlein(context);
   const erreurs = surveillerErreurs(page);
   await page.goto("/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect(page.locator("html")).toHaveAttribute("data-synchro", "ok");
   expect(serveur.lectures).toBeGreaterThan(0);
   expect(erreurs).toEqual([]);

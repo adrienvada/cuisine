@@ -115,7 +115,9 @@ const SUBSTITUTIONS = {
   ],
   "chevre-frais": [
     { par: "Fromage de brebis frais ou ricotta, même poids.",
-      note: "Perd l'acidité caractéristique du chèvre. Plus doux, marche en garniture, tartinade ou farce." }
+      note: "Perd l'acidité caractéristique du chèvre. Plus doux, marche en garniture, tartinade ou farce." },
+    { par: "Feta, même poids.",
+      note: "En salade. Plus salée et plus ferme : elle s'émiette en morceaux nets au lieu d'éclats crémeux. Saler moins le reste du plat." }
   ],
   "brebis-frais": [
     { par: "Chèvre frais, même poids.",
@@ -137,7 +139,9 @@ const SUBSTITUTIONS = {
   ],
   noix: [
     { par: "Noix de pécan ou noisettes, même poids.",
-      note: "Salades, gâteaux, garnitures. La pécan est plus sucrée et moins amère, la noisette plus ronde ; les trois sont des fruits à coque." }
+      note: "Salades, gâteaux, garnitures. La pécan est plus sucrée et moins amère, la noisette plus ronde ; les trois sont des fruits à coque." },
+    { par: "Graines de courge, même poids.",
+      note: "Salades et garnitures, torréfiées à sec. Plus fines et moins grasses, le croquant est là, pas le goût de noix. Ce ne sont pas des fruits à coque : la solution quand un convive y est allergique." }
   ],
   pecan: [
     { par: "Noix, même poids.",
@@ -210,7 +214,11 @@ const SUBSTITUTIONS = {
       note: "Fond davantage à la cuisson, là où la pépite garde sa forme. Aussi bon, moins joli." }
   ],
 
-  /* Herbes fraîches */
+  /* Herbes fraîches et feuilles */
+  roquette: [
+    { par: "Jeunes pousses d'épinards, même poids, ou moitié-moitié.",
+      note: "Crues, en salade. Plus douces et plus tendres, sans le piquant poivré de la roquette ; elles retombent aussi vite au contact d'un ingrédient tiède." }
+  ],
   persil: [
     { par: "Cerfeuil, même quantité.",
       note: "Plus délicat, anisé. Ajouter en fin de cuisson : il ne résiste pas à la chaleur." }
@@ -226,6 +234,10 @@ const SUBSTITUTIONS = {
   ciboulette: [
     { par: "Tiges vertes d'oignon nouveau, finement ciselées, même quantité.",
       note: "Plus piquantes. Marche cru, en finition." }
+  ],
+  thym: [
+    { par: "Pour 1 c. à s. de feuilles de thym frais : 1 c. à c. de thym séché.",
+      note: "En cuisson : rôtis, mijotés, légumes au four, mêlé à l'huile avant d'enfourner. Plus sec et moins vert en bouche ; cru, en finition, il ne remplace pas le frais." }
   ],
   romarin: [
     { par: "Pour 1 c. à s. de romarin frais haché : 1 c. à c. de romarin séché.",

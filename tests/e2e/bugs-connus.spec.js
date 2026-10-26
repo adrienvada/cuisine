@@ -280,7 +280,7 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
      donc la restauration native : c'est à l'application de retrouver sa place. */
   await page.addInitScript(() => { history.scrollRestoration = "manual"; });
   await page.goto("/#/");
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   /* Polices chargées et entrée de page finie avant de défiler : un texte qui se recompose
      au-dessus de l'écran déplace la page (ancrage du défilement), et une position lue trop
      tôt serait périmée. */
@@ -309,7 +309,7 @@ test("B9a — accueil défilé, recette ouverte, retour : même position à 50 p
   expect(avant).toBeGreaterThanOrEqual(1200);
 
   await page.goBack();
-  await expect(page.locator(CARTES)).toHaveCount(20);
+  await expect(page.locator(CARTES)).toHaveCount(21);
   await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - avant)).toBeLessThanOrEqual(50);
 });
 

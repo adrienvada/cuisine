@@ -14,7 +14,7 @@
    toute seule quand l'un d'eux change. */
 
 /* >>> bloc généré par tools/version-sw.mjs — ne pas modifier à la main */
-const VERSION = "961ba5a395";
+const VERSION = "d93a2fa2ff";
 
 const CORE = [
   "./",
@@ -64,6 +64,7 @@ const CORE = [
   "img/c/salade-kale-pomme-oeuf.webp",
   "img/c/salade-lentilles-feta.webp",
   "img/c/salade-mediterraneenne.webp",
+  "img/c/salade-tiede-courge-roquette-chevre.webp",
   "img/c/scoopable-cookies.webp",
   "img/c/tagliatelles-carotte-carbonara.webp",
   "img/c/tartines-figues-chevre-miel.webp",
@@ -84,6 +85,7 @@ const CORE = [
   "img/v/salade-kale-pomme-oeuf.webp",
   "img/v/salade-lentilles-feta.webp",
   "img/v/salade-mediterraneenne.webp",
+  "img/v/salade-tiede-courge-roquette-chevre.webp",
   "img/v/scoopable-cookies.webp",
   "img/v/tagliatelles-carotte-carbonara.webp",
   "img/v/tartines-figues-chevre-miel.webp",
@@ -182,6 +184,7 @@ const HEROS = [
   "img/h/salade-kale-pomme-oeuf.webp",
   "img/h/salade-lentilles-feta.webp",
   "img/h/salade-mediterraneenne.webp",
+  "img/h/salade-tiede-courge-roquette-chevre.webp",
   "img/h/scoopable-cookies.webp",
   "img/h/tagliatelles-carotte-carbonara.webp",
   "img/h/tartines-figues-chevre-miel.webp",
