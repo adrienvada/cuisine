@@ -11,7 +11,7 @@ test.describe("feuilles CSS", () => {
     await page.goto("/");
     const liens = page.locator("link[rel=stylesheet][data-vue]");
     await expect.poll(() => liens.evaluateAll(ls => ls.map(l => l.getAttribute("href").split("/").pop()).sort()))
-      .toEqual(["courses.css", "cuisine.css", "figures.css", "journal.css", "menu.css", "reglages-feuille.css", "savoirs.css"]);
+      .toEqual(["courses.css", "cuisine.css", "figures.css", "journal.css", "menu.css", "reglages-feuille.css", "saison.css", "savoirs.css"]);
     await expect.poll(() => liens.evaluateAll(ls => ls.every(l => l.media === "" || l.media === "all"))).toBe(true);
     // Toutes les règles sont bien là : celles des vues comme celles de l'accueil.
     await expect.poll(() => page.evaluate(() => [...document.styleSheets].filter(s => s.href && s.cssRules.length === 0).length)).toBe(0);
@@ -26,9 +26,9 @@ test.describe("feuilles CSS", () => {
     expect(await page.evaluate(() => ["savoirs.css", "journal.css"].every(n => [...document.styleSheets].some(s => s.href && s.href.endsWith(n) && s.cssRules.length > 0)))).toBe(true);
   });
 
-  test("les vues hors accueil sont stylées : menu, courses, savoirs, cuisine", async ({ page }) => {
+  test("les vues hors accueil sont stylées : menu, courses, saison, savoirs, cuisine", async ({ page }) => {
     await page.goto("/");
-    for (const [route, regle] of [["#/menu", "menu.css"], ["#/courses", "courses.css"], ["#/fondamentaux", "savoirs.css"], ["#/recette/quiche-lorraine/cuisine/0", "cuisine.css"]]) {
+    for (const [route, regle] of [["#/menu", "menu.css"], ["#/courses", "courses.css"], ["#/saison", "saison.css"], ["#/fondamentaux", "savoirs.css"], ["#/recette/quiche-lorraine/cuisine/0", "cuisine.css"]]) {
       await page.evaluate(r => { location.hash = r; }, route);
       await expect(page.locator("#app > *").first()).toBeVisible();
       expect(await page.evaluate(n => [...document.styleSheets].some(s => s.href && s.href.endsWith(n) && s.cssRules.length > 0), regle)).toBe(true);

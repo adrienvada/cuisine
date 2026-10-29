@@ -29,7 +29,9 @@ test("le graphe statique de js/main.js n'emporte rien de ce que l'accueil n'util
     "js/vues/reglages.js", "js/vues/courses.js", "js/vues/fiche.js", "js/vues/cuisine.js", "js/vues/menu.js",
     "js/vues/savoirs.js", "js/vues/journal.js", "js/sync.js", "js/ui/miseajour.js", "js/ui/qr.js", "js/ui/voix.js",
     // Les figures des savoirs et ce que seules leurs pages lisent (core/fonds.js, lui, sert au routeur et à la recherche).
-    "js/core/savoirs.js", "js/ui/figures.js"
+    "js/core/savoirs.js", "js/ui/figures.js",
+    // L'onglet Saison, son calendrier et ses calculs.
+    "js/vues/saison.js", "js/calendrier.js", "js/core/saison.js"
   ];
   const presents = horsChemin.filter(m => graphe.includes(m));
   assert.deepEqual(presents, [], "ces modules reviennent sur le chemin de l'accueil : voir README, « Performance »");
@@ -77,6 +79,7 @@ test("chaque vue demande les feuilles de ce qu'elle dessine, et toutes sont dans
   assert.deepEqual(feuillesDes(["cuisine"]), ["cuisine", "savoirs", "figures", "journal"]);
   assert.deepEqual(feuillesDes(["fiche", "cuisine"]), ["savoirs", "figures", "journal", "cuisine"]);
   assert.deepEqual(feuillesDes(["savoirs"]), ["savoirs", "figures"]);
+  assert.deepEqual(feuillesDes(["saison"]), ["saison"]);
   assert.deepEqual(feuillesDes([]), []);
   const noscript = index.slice(index.indexOf("<noscript>"), index.indexOf("</noscript>"));
   for (const nom of FEUILLES_DES_VUES) {

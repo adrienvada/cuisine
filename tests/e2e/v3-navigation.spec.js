@@ -232,13 +232,13 @@ for (const reduit of [false, true]) {
       expect(erreurs).toEqual([]);
     });
 
-    test("barre d'onglets : quatre cibles de 44 px au moins, sans débordement à 320 et 375 px", async ({ page }) => {
+    test("barre d'onglets : cinq cibles de 44 px au moins, sans débordement à 320 et 375 px", async ({ page }) => {
       for (const largeur of [320, 375]) {
         await page.setViewportSize({ width: largeur, height: 740 });
         await page.goto("/");
         await navPret(page);
         const onglets = await page.locator(".tabbar a").evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return [r.width, r.height, r.left, r.right]; }));
-        expect(onglets).toHaveLength(4);
+        expect(onglets).toHaveLength(5);
         for (const [l, h, g, d] of onglets) { expect(l).toBeGreaterThanOrEqual(44); expect(h).toBeGreaterThanOrEqual(44); expect(g).toBeGreaterThanOrEqual(0); expect(d).toBeLessThanOrEqual(largeur); }
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         const pastille = await page.locator(".tab-pill").boundingBox();

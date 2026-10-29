@@ -133,6 +133,7 @@ function retourDe() {
   const p = hashPrecedent() || "";
   if (p === "#/menu") return { href: p, texte: "Au menu" };
   if (p === "#/courses") return { href: p, texte: "Courses" };
+  if (p === "#/saison") return { href: p, texte: "Saison" };
   if (p === "#/fondamentaux" || p.startsWith("#/fondamental/")) return { href: p, texte: "Savoirs" };
   return { href: "#/", texte: "Recettes" };
 }

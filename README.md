@@ -15,6 +15,7 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 - **Reprise** — l'étape en cours est retenue : en rouvrant la recette, le bouton propose « Reprendre — étape 3 / 5 » (ou « Repartir du début »). Si un minuteur de cette recette tourne, le mode cuisine se rouvre directement. Oubliée à la fin de la recette, ou d'elle-même au bout de 12 h.
 - **Liste de courses** — calculée à partir du menu : les ingrédients fusionnent par rayon, dans l'ordre d'un parcours de supermarché (fruits & légumes, crèmerie, épicerie…), quantités additionnées. Le fond de placard (sel, huiles, épices…) est présenté à part, « à vérifier ». Cochable au magasin, partageable par message, articles libres en plus.
 - **Savoirs** — les *fondamentaux* : les mécanismes qui reviennent d'une recette à l'autre (l'émulsion, Maillard, l'osmose du sel), expliqués une fois pour toutes, et illustrés de schémas, courbes et échelles (voir « Figures des savoirs »). Une pastille dorée sous l'astuce d'une étape les ouvre sans quitter la recette, même en mode cuisine. L'onglet les réunit, la recherche les fouille, et chacun se partage par lien.
+- **Saison** — l'onglet des produits de saison, mois par mois : ce qui **arrive**, ce qui est **en pleine saison**, ce qui vit ses **dernières semaines**, par famille (légumes, fruits, herbes). Un produit s'ouvre sur sa saison (une frise des douze mois), un conseil pour le choisir ou le garder, et les recettes du carnet qui l'emploient. Le mois en cours propose aussi d'ouvrir l'accueil sur ses recettes de saison (voir « Le calendrier des saisons »).
 - **Partage** — depuis la vignette, la fiche recette ou le mode cuisine : un résumé (temps, ingrédients aux portions affichées) et le lien vers la recette illustrée, envoyés via la feuille de partage du téléphone. « Partager le repas » envoie le menu entier d'un coup. Un fondamental se partage de la même façon.
 - **PWA** — installable sur l'écran d'accueil (Safari : Partager → « Sur l'écran d'accueil »), fonctionne hors ligne.
 
@@ -86,10 +87,18 @@ Il attrape les erreurs qui ne font pas planter l'application mais lui font affic
 Trois petits fichiers, indexés par le `cid` des ingrédients de `js/recipes.js`, alimentent les allergènes, le filtre végétarien, les recettes de saison et les substitutions :
 
 - [`js/allergenes.js`](js/allergenes.js) — les 14 allergènes réglementaires (`ALLERGENES_LISTE`), ceux de chaque `cid` (`ALLERGENES`) et les `cid` qui ne sont pas végétariens (`NON_VEGETARIEN`). Pour un produit du commerce dont la composition varie, on met l'allergène probable et on le dit en commentaire : l'étiquette fait foi.
-- [`js/saisons.js`](js/saisons.js) — `SAISONS` : les mois (1 à 12) où un fruit, un légume ou une herbe fraîche est de saison en France. Un `cid` absent ne dépend pas de la saison.
+- [`js/saisons.js`](js/saisons.js) — `SAISONS` : les mois (1 à 12) où un fruit, un légume ou une herbe fraîche est de saison en France. Un `cid` absent ne dépend pas de la saison. L'onglet Saison a son propre calendrier, plus large, qui doit lui donner raison (voir « Le calendrier des saisons »).
 - [`js/substitutions.js`](js/substitutions.js) — `SUBSTITUTIONS` : pour les ingrédients qu'on peut vraiment remplacer, le remplacement avec sa proportion (`par`) et ce que ça change au plat (`note`). Pas de substitution qui ne marche pas, pas d'accolades dans les textes.
 
 **En ajoutant une recette**, passer ses nouveaux `cid` en revue : allergènes (et viande ou poisson dans `NON_VEGETARIEN`), saison s'il s'agit d'un produit frais, substitution si la question se pose vraiment. Une donnée absente vaut mieux qu'une donnée inventée. Le vérificateur contrôle que chaque clé est un `cid` existant, que les mois et les allergènes sont valides et que chaque substitution a son `par`.
+
+## Le calendrier des saisons
+
+L'onglet Saison (`js/vues/saison.js`, `css/saison.css`) lit [`js/calendrier.js`](js/calendrier.js) : environ 70 fruits, légumes et herbes de France métropolitaine, chacun avec ses mois de saison (`mois`, ou `"annee"` pour ce qu'on trouve frais toute l'année : légumes de garde, cultures en cave, herbes vivaces), sa famille, un emoji, une note facultative (le choisir, le garder) et les `cid` des recettes qui le désignent. La forme est documentée en tête du fichier ; `IMPORTES` nomme ce que les recettes achètent sans saison chez nous (avocat, citron, gingembre, grenade).
+
+- **Les phases** (`js/core/saison.js`, pur, testé sous Node) : au mois m, un produit **arrive** (premier mois d'une période), est **en pleine saison**, ou vit sa **fin** (dernier mois). Une période peut passer d'une année à l'autre (la butternut, de septembre à février) et un produit peut en avoir deux (l'épinard, au printemps et à l'automne). `periodeEnClair()` la dit en français.
+- **Une seule vérité** : `js/saisons.js` (le filtre « De saison » de l'accueil) et `js/calendrier.js` ne se contredisent pas. Pour un `cid` connu de `SAISONS`, le calendrier dit exactement les mêmes mois ; un `cid` de fruit, de légume ou d'herbe absent de `SAISONS` y est `"annee"` ou dans `IMPORTES`. `npm run verifier` le contrôle, avec la forme des entrées ; il signale seulement, sans erreur, un produit frais des recettes que le calendrier ne connaît pas encore. **En ajoutant une recette**, un produit frais nouveau s'ajoute aux deux fichiers.
+- **Le poids** : `js/calendrier.js` est un module que seul l'onglet importe ; rien de l'onglet n'est sur le chemin de l'accueil, hormis son lien dans la barre et `montrerDeSaison()` dans `js/vues/accueil.js` (« Les voir » ouvre l'accueil sur le seul filtre « De saison »).
 
 ## Ce qu'une recette apporte au repas
 
@@ -501,6 +510,7 @@ css/cuisine.css         Mode cuisine plein écran
 css/menu.css            Onglet Au menu : cartes, rétroplanning, ce qui manque au repas et structure d'un repas
 css/courses.css         Onglet Courses : liste par rayon, articles libres
 css/savoirs.css         Savoirs : astuces, feuille et page des fondamentaux
+css/saison.css          Onglet Saison : le mois, les produits par phase, la feuille d'un produit et sa frise
 css/figures.css         Figures des savoirs : cadre, palette des schémas (classes fg-…, clair et sombre), apparition des tracés, zoom
 css/journal.css         Journal des recettes cuisinées : feuille d'ajout, photos, liste
 
@@ -513,6 +523,7 @@ js/allergenes.js        Données : allergènes, produits non végétariens
 js/saisons.js           Données : mois de saison des fruits, légumes et herbes
 js/substitutions.js     Données : remplacements d'ingrédients et ce qu'ils changent
 js/apports.js           Données : ce que chaque recette apporte à un repas (un module, lu par le menu seul)
+js/calendrier.js        Données : le calendrier des fruits, légumes et herbes de saison (un module, lu par l'onglet Saison seul)
 js/sync-config.js       Données : l'adresse de la base de synchro
   (ces fichiers de données sont des scripts classiques qui déclarent des globales ; les outils de tools/ les lisent avec new Function)
 
@@ -538,6 +549,7 @@ js/core/cuisine.js      Mode cuisine, côté calcul : taille du texte, ingrédie
 js/core/seance.js       Cuisine en cours : étape reprise, reprise automatique
 js/core/journal.js      Journal, côté pur : dates en clair et tri des entrées d'une recette
 js/core/fusion.js       Fusion à trois voies de l'état synchronisé (pur)
+js/core/saison.js       Les saisons des produits (pur) : phase au mois m (arrive, pleine, fin), période en clair, recettes qui emploient un produit
 js/core/sens.js         Le sens d'une navigation (pur) : onglet, détail ou mode cuisine, d'où le type de transition de vue
 js/core/ressort.js      Le ressort amorti (pur) : durée, points, linear() ; durées et courbes du mouvement, résistance élastique, vitesse d'un geste
 js/core/sauvegarde.js   normaliserEtat() (stockage, fichier importé, autre appareil), export du carnet, aperçu du remplacement
@@ -578,6 +590,7 @@ js/vues/menu.js         Au menu
 js/vues/courses.js      Courses
 js/vues/courses-gestes.js Décisions pures de la liste : signature d'une ligne, seuil du balayage, géométrie du glisser-déposer des rayons
 js/vues/savoirs.js      Savoirs : catalogue, page et feuille d'un fondamental, astuces
+js/vues/saison.js       Onglet Saison : produits du mois par phase et par famille, feuille d'un produit
 js/vues/journal.js      Journal des recettes cuisinées : feuille d'ajout, photos (IndexedDB), liste
 js/vues/reglages-entree.js  Ce que l'accueil sait des réglages sans charger la feuille : le bouton et son point d'état, la demande de persistance
 js/vues/reglages.js     Réglages : thème, carnet partagé (carnetSync), export et import (module reporté : main.js le tire après le premier affichage ou au premier appui)
