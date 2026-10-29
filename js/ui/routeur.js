@@ -24,7 +24,8 @@ const chargeurs = {
   cuisine: q => import("../vues/cuisine.js" + q),
   menu: q => import("../vues/menu.js" + q),
   courses: q => import("../vues/courses.js" + q),
-  savoirs: q => import("../vues/savoirs.js" + q)
+  savoirs: q => import("../vues/savoirs.js" + q),
+  saison: q => import("../vues/saison.js" + q)
 };
 const modules = {};
 /* Un import() échoué reste échoué pour la même adresse (le navigateur retient
@@ -43,7 +44,7 @@ const charger = nom => (modules[nom]
    une page que l'on redessine (Safari, les PWA installées) : on coupe sa
    restauration et on la tient nous-mêmes.
    Chaque entrée de l'historique reçoit une clé dans son `state` ; revenir sur
-   une entrée déjà vue (retour, avance, flèche) retrouve sa position. Les quatre
+   une entrée déjà vue (retour, avance, flèche) retrouve sa position. Les cinq
    onglets, eux, se retrouvent aussi par leur adresse : changer d'onglet puis
    revenir ramène là où l'on était. Une page où l'on arrive par un lien
    (entrée neuve, hors onglets) commence en haut.
@@ -52,7 +53,7 @@ const charger = nom => (modules[nom]
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
 const CLE_POSITIONS = "carnet-positions";
-const ONGLETS = ["#/", "#/menu", "#/courses", "#/fondamentaux"];
+const ONGLETS = ["#/", "#/menu", "#/courses", "#/saison", "#/fondamentaux"];
 const MAX_POSITIONS = 80;
 
 let posEntrees = new Map(), posOnglets = new Map();
@@ -283,6 +284,10 @@ export function route({ garderDefilement = false } = {}) {
       marquerOnglet("courses");
       titre = "Liste de courses";
       modules.courses.renderCourses();
+    } else if (parts[0] === "saison") {
+      marquerOnglet("saison");
+      titre = "Saison";
+      modules.saison.renderSaison();
     } else if (parts[0] === "menu") {
       marquerOnglet("menu");
       titre = "Au menu";
@@ -350,6 +355,7 @@ export function route({ garderDefilement = false } = {}) {
   const noms = parts[0] === "fondamentaux" || parts[0] === "fondamental" ? ["savoirs"]
     : parts[0] === "courses" ? ["courses"]
     : parts[0] === "menu" ? ["menu"]
+    : parts[0] === "saison" ? ["saison"]
     : recette ? [parts[2] === "cuisine" || (parts[2] === "m" && parts[4] === "cuisine") ? "cuisine" : "fiche", "savoirs"]
     : [];
   /* « Pourquoi ça marche » et la feuille d'un savoir (fiche, mode cuisine) passent par

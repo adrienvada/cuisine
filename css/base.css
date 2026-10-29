@@ -214,7 +214,7 @@ a { color: var(--green); }
   border-radius: 12px;
   text-decoration: none;
   color: var(--muted);
-  font-size: 11.5px;               /* quatre onglets : un point de moins pour que rien ne se coupe */
+  font-size: 11.5px;               /* cinq onglets : un point de moins pour que rien ne se coupe, même à 320 px */
   font-weight: 500;
 }
 

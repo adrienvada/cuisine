@@ -55,6 +55,7 @@ import { fileURLToPath } from "node:url";
 import { SINGULIERS_PORTIONS } from "../js/core/format.js";
 import { EMPLACEMENTS, TONS as TONS_FIGURES, TYPES as TYPES_FIGURES, balisesEquilibrees, figureHtml, usagesInvalides } from "../js/ui/figures.js";
 import { APPORTS } from "../js/apports.js";
+import { FAMILLES_SAISON, IMPORTES, PRODUITS, SANS_CALENDRIER } from "../js/calendrier.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const src = readFileSync(join(ROOT, "js", "recipes.js"), "utf8");
@@ -631,6 +632,52 @@ for (const r of RECIPES) {
 }
 for (const id of Object.keys(APPORTS)) if (!RECIPES.some(r => r.id === id)) ko(`js/apports.js : « ${id} » n'est pas une recette du carnet`);
 
+/* Le calendrier de l'onglet Saison (js/calendrier.js) : des entrées bien formées, et
+   aucune contradiction avec js/saisons.js, que lit le filtre « De saison » de l'accueil.
+   Pour un cid de SAISONS, les mêmes mois ; un produit frais absent de SAISONS ne
+   dépend pas de la saison, il est donc "annee" ou importé. */
+const RAYONS_FRAIS = ["Fruits & légumes", "Herbes fraîches"];
+const cidsFrais = new Set();
+for (const r of RECIPES) {
+  const lots = [r.ingredients, ...(r.choices || []).flatMap(c => c.options.map(o => o.ingredients)), ...(r.addons || []).map(a => a.ingredients)];
+  for (const l of lots) for (const i of l || []) if (i.cid && RAYONS_FRAIS.includes(i.rayon)) cidsFrais.add(i.cid);
+}
+const idsFamilles = FAMILLES_SAISON.map(f => f.id);
+const idsProduits = new Set();
+const cidsCalendrier = new Map();   // cid → produit
+const memesMois = (a, b) => a.length === b.length && [...a].sort((x, y) => x - y).every((m, i) => m === [...b].sort((x, y) => x - y)[i]);
+for (const p of PRODUITS) {
+  const ou = `calendrier.js : « ${p.id || p.nom} »`;
+  if (!/^[a-z0-9-]+$/.test(p.id || "")) ko(`${ou} : id en minuscules sans accent, avec des tirets`);
+  if (idsProduits.has(p.id)) ko(`${ou} : id répété`);
+  idsProduits.add(p.id);
+  if (!p.nom || !p.emoji) ko(`${ou} : il faut un nom et un emoji`);
+  if (!idsFamilles.includes(p.famille)) ko(`${ou} : famille « ${p.famille} » inconnue (${idsFamilles.join(", ")})`);
+  if (p.mois !== "annee") {
+    if (!Array.isArray(p.mois) || p.mois.length < 2 || p.mois.length > 11 || !p.mois.every(m => Number.isInteger(m) && m >= 1 && m <= 12) || new Set(p.mois).size !== p.mois.length) {
+      ko(`${ou} : mois doit lister de 2 à 11 mois distincts de 1 à 12, ou valoir "annee"`);
+    }
+  }
+  if (/[{}]/.test(`${p.nom} ${p.note || ""}`)) ko(`${ou} : accolade dans le texte — réservée aux quantités mises à l'échelle`);
+  for (const cid of p.cids || []) {
+    if (!cids.has(cid)) ko(`${ou} : « ${cid} » n'est le cid d'aucun ingrédient`);
+    if (cidsCalendrier.has(cid)) ko(`${ou} : « ${cid} » est déjà le cid de « ${cidsCalendrier.get(cid).id} »`);
+    cidsCalendrier.set(cid, p);
+    if (SAISONS[cid] && (p.mois === "annee" || !memesMois(SAISONS[cid], p.mois))) {
+      ko(`${ou} : saisons.js donne à « ${cid} » les mois ${SAISONS[cid].join(", ")}, le calendrier ${p.mois === "annee" ? "toute l'année" : p.mois.join(", ")} — l'accueil et l'onglet Saison se contrediraient`);
+    }
+    if (!SAISONS[cid] && p.mois !== "annee") ko(`${ou} : « ${cid} » a une saison ici mais pas dans saisons.js — l'y ajouter avec les mêmes mois`);
+  }
+}
+const cidsImportes = new Set(IMPORTES.flatMap(x => x.cids || []));
+for (const cid of cidsImportes) {
+  if (!cids.has(cid)) ko(`calendrier.js : IMPORTES cite « ${cid} », cid inconnu`);
+  if (SAISONS[cid]) ko(`calendrier.js : « ${cid} » est importé, mais saisons.js lui donne une saison`);
+  if (cidsCalendrier.has(cid)) ko(`calendrier.js : « ${cid} » est à la fois importé et dans PRODUITS`);
+}
+for (const cid of Object.keys(SAISONS)) if (!cidsCalendrier.has(cid)) ko(`calendrier.js : « ${cid} » a une saison dans saisons.js mais aucun produit du calendrier — l'onglet Saison l'ignorerait`);
+const fraisSansCalendrier = [...cidsFrais].filter(c => !cidsCalendrier.has(c) && !cidsImportes.has(c) && !SANS_CALENDRIER.includes(c));
+
 if (erreurs.length) {
   console.error(`${erreurs.length} problème(s) :\n` + erreurs.map(e => `  ✗ ${e}`).join("\n"));
   process.exit(1);
@@ -639,6 +686,7 @@ if (erreurs.length) {
 console.log(`${RECIPES.length} recettes vérifiées : ancrages, minuteurs et ingrédients cohérents.`);
 console.log(`${FONDAMENTAUX.length} fondamentaux vérifiés : identifiants, familles et certitudes cohérents.`);
 console.log(`${nbFigures} figure(s) vérifiée(s) pour ${Object.keys(FIGURES).length} fondamental(aux) : types, titres, alt, emplacements, aucune couleur en dur ; ${THERMOMETRE.length} repère(s) du thermomètre.`);
+console.log(`Calendrier vérifié : ${PRODUITS.length} produits de saison, d'accord avec saisons.js.`);
 console.log(`Référentiels vérifiés : ${Object.keys(ALLERGENES).length} allergènes, ${Object.keys(SAISONS).length} saisons, ${Object.keys(SUBSTITUTIONS).length} substitutions, les apports au repas des ${Object.keys(APPORTS).length} recettes.`);
 
 /* Pour information seulement — jamais une erreur. Un fondamental sans recette
@@ -652,4 +700,5 @@ const sansFond = RECIPES.filter(r => ![
 
 if (orphelins.length) console.log(`  · ${orphelins.length} pas encore rattaché(s) : ${orphelins.map(f => f.id).join(", ")}`);
 if (sansFond.length) console.log(`  · ${sansFond.length} recette(s) sans aucun fondamental : ${sansFond.map(r => r.id).join(", ")}`);
+if (fraisSansCalendrier.length) console.log(`  · ${fraisSansCalendrier.length} produit(s) frais des recettes absent(s) du calendrier de l'onglet Saison : ${fraisSansCalendrier.join(", ")}`);
 if (etapesSansIng) console.log(`  · ${etapesSansIng} étape(s) sur ${etapesTotal} sans ing (liste des ingrédients de l'étape) : ils n'apparaîtront pas en mode cuisine`);

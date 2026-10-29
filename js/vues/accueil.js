@@ -53,6 +53,16 @@ const criteres = new Set();
 const jai = new Set();
 let foins = new Map();
 
+/* L'onglet Saison renvoie ici sur « De saison » seul : rien d'autre ne filtre, la
+   grille montre donc toutes les recettes du mois. */
+export function montrerDeSaison() {
+  requete = "";
+  jai.clear();
+  criteres.clear();
+  criteres.add("de-saison");
+  if (state.filter !== "Toutes") { state.filter = "Toutes"; save(); }
+}
+
 /* Le mouvement (accueil-anime.js, le socle et sa feuille) vient au repos, page chargée ; sans lui,
    les filtres s'appliquent d'un coup, comme en mouvement réduit. */
 let anime = null;

@@ -1,0 +1,218 @@
+/* L'onglet Saison : le mois regardé, les produits par phase (ça arrive, pleine saison,
+   dernières semaines), et la feuille d'un produit avec sa frise des douze mois.
+   Le bandeau (.masthead) et les puces (.chip) viennent d'accueil.css. */
+
+/* ---------- Le mois ---------- */
+
+.sa-mois {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 2px;
+}
+
+.sa-mois .btn-icon { width: 44px; justify-content: center; padding: 0; flex: none; }
+.sa-mois .btn-icon svg { width: 18px; height: 18px; }
+.sa-suiv svg { transform: scaleX(-1); }
+
+.sa-mois-nom {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--green-deep);
+  line-height: 1.1;
+}
+
+.sa-mois-nom small {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 2px;
+}
+
+.sa-retour { text-align: center; margin: 0; }
+.sa-retour[hidden] { display: none; }
+
+.sa-lien {
+  background: none;
+  border: 0;
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--green);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Centrées quand elles tiennent ; sur un écran trop étroit, elles défilent depuis la
+   première (un justify-content: center couperait la première à gauche). */
+.sa-familles { margin-bottom: 4px; }
+.sa-familles > :first-child { margin-left: auto; }
+.sa-familles > :last-child { margin-right: auto; }
+
+/* ---------- Les recettes du mois ---------- */
+
+.sa-recettes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  background: var(--green-tint);
+  border-radius: var(--radius);
+}
+
+.sa-recettes p { margin: 0; flex: 1; font-size: 14px; color: var(--ink); }
+.sa-recettes .btn { flex: none; padding: 10px 16px; min-height: 44px; font-size: 14.5px; }
+
+/* ---------- Les phases ---------- */
+
+.sa-phase { margin-top: 22px; }
+
+.sa-phase h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--sa-ton, var(--green));
+  font-family: var(--serif);
+  font-size: 23px;
+  color: var(--green-deep);
+}
+
+.sa-phase h2 small {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sa-arrive { --sa-ton: var(--green); }
+.sa-pleine { --sa-ton: var(--gold-deco); }
+.sa-fin { --sa-ton: var(--terra); }
+
+.sa-grille {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 8px;
+}
+
+.sa-produit {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--ombre-0);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sa-produit:active { transform: scale(0.98); }
+
+.sa-produit .sa-emoji { grid-row: 1 / span 2; font-size: 22px; line-height: 1; }
+.sa-nom { font-size: 14.5px; font-weight: 600; line-height: 1.2; }
+.sa-nb { font-size: 12px; color: var(--muted); }
+
+/* ---------- Toute l'année, et ce qui vient d'ailleurs ---------- */
+
+.sa-annee {
+  margin-top: 26px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 14px;
+}
+
+.sa-annee summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  cursor: pointer;
+}
+
+.sa-annee summary::-webkit-details-marker { display: none; }
+.sa-annee summary span { display: flex; flex-direction: column; }
+.sa-annee summary b { font-size: 15px; color: var(--green-deep); }
+.sa-annee summary small { font-size: 12.5px; color: var(--muted); }
+.sa-annee summary svg { width: 16px; height: 16px; flex: none; color: var(--muted); transform: rotate(90deg); transition: transform var(--d-moyenne) var(--e-standard); }
+.sa-annee[open] summary svg { transform: rotate(-90deg); }
+.sa-annee .sa-grille { padding-bottom: 14px; }
+
+.sa-importes {
+  margin: 18px 4px 8px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- La feuille d'un produit ---------- */
+
+.sheet-produit h3 { display: flex; align-items: center; gap: 10px; }
+.sheet-produit h3 .sa-emoji { font-size: 26px; }
+
+.sa-frise {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  margin: 14px 0 6px;
+}
+
+.sa-frise span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--paper-deep);
+}
+
+.sa-frise span.on { background: var(--green); color: var(--sur-vert); }
+.sa-frise span.ici { outline: 2px solid var(--gold-deco); outline-offset: 1px; }
+
+.sa-phrase { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: var(--green-deep); }
+.sa-phrase.sa-hors { color: var(--muted); }
+.sa-note { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); }
+
+.sa-carnet { margin-top: 16px; }
+.sa-carnet h4 { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold); }
+.sa-carnet ul { list-style: none; margin: 0; padding: 0; }
+.sa-carnet li { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--line-soft); }
+.sa-carnet li:first-child { border-top: 0; }
+.sa-carnet a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--green-deep); font-weight: 600; font-size: 14.5px; text-decoration: none; }
+.sa-carnet small { font-size: 12.5px; color: var(--muted); }
+
+.sa-fermer { width: 100%; margin-top: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sa-produit:active { transform: none; }
+  .sa-annee summary svg { transition: none; }
+}
