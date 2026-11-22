@@ -698,3 +698,6 @@ html:has(.fiche-barre) { scroll-padding-top: 64px; }
   [data-attend] { opacity: 1 !important; translate: none !important; }
   .actions { box-shadow: none; }
 }
+
+/* Une recette supprimée du carnet reste lisible (lien partagé, menu en cours) : la fiche le dit. */
+.fiche-masquee { margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--paper-deep); font-size: 14px; color: var(--ink-soft); }

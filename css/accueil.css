@@ -461,3 +461,18 @@ html[data-theme="dark"] .card-saison { color: #1B2217; }
 .card[data-id=torsades-pesto]{--p:#9d7539}
 .card[data-id=veloute-butternut-shiitakes]{--p:#b38633}
 /* <<< fin du bloc généré */
+
+/* ---------- Appui long sur une vignette ----------
+   La carte s'enfonce doucement le temps de l'appui (js/vues/accueil.js) : on sent que
+   quelque chose se prépare. Au doigt, ni aperçu de lien (iOS) ni sélection du titre. Le
+   menu qui s'ouvre ensuite est habillé par css/reglages-feuille.css. */
+@media (pointer: coarse) {
+  .card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .card img { -webkit-touch-callout: none; }
+}
+
+.card.appui { scale: 0.96; transition: scale var(--d-longue) var(--e-standard); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card.appui { scale: 1; box-shadow: 0 0 0 2px var(--green); transition: none; }
+}

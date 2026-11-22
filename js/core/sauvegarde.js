@@ -130,6 +130,7 @@ const NORMALISEURS = {
   historique: v => liste(v, repasPasse),
   repas,
   notes: v => dico(v, chaine),
+  masquees: v => dico(v, x => estNombre(x) ? x : undefined),
   notesPerso: v => dico(v, x => estObjet(x) && estTexte(x.txt) ? { ...x } : undefined),
   checked: v => dico(v, x => x ? true : undefined),
   cooked: v => dico(v, x => estObjet(x) && estNombre(x.count) ? { ...x, count: Math.max(0, x.count), last: estNombre(x.last) ? x.last : null } : undefined),
@@ -194,6 +195,7 @@ const LIGNES = [
   ["Recettes notées", "notes"],
   ["Notes personnelles", "notesPerso"],
   ["Recettes cuisinées", "cooked"],
+  ["Recettes supprimées", "masquees"],
   ["Repas passés", "historique"],
   ["Journal", "journal"]
 ];

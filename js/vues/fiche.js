@@ -33,8 +33,10 @@ import {
   choiceList,
   cookedText,
   customizable,
+  demasquer,
   effectiveIngredients,
   effectiveSteps,
+  estMasquee,
   optionOf,
   selectedAddons,
   tempsDe,
@@ -346,6 +348,7 @@ export function renderRecipe(r) {
       ${discoveredHtml(r)}
       <div class="timerow" id="timerow">${tempsHtml(r)}</div>
       <p class="allergenes" id="allergenes" hidden></p>
+      ${estMasquee(r) ? `<p class="fiche-masquee" id="fiche-masquee">Tu as supprimé cette recette du carnet. <button type="button" class="lien-nu" id="fiche-remettre">La remettre</button></p>` : ""}
     </div>
 
     <aside class="note-perso" id="note-perso-tete" hidden></aside>
@@ -397,6 +400,12 @@ export function renderRecipe(r) {
     ${resume ? `<button class="link-restart" id="restart-cook">Repartir du début</button>` : ""}
     <p class="menu-info" id="menu-info"></p>
   `;
+  document.getElementById("fiche-remettre")?.addEventListener("click", () => {
+    demasquer(r.id);
+    document.getElementById("fiche-masquee").remove();
+    vibrer("tic");
+    toast("Recette remise dans le carnet");
+  });
 
   /* Les portions de CETTE version : celles de l'entrée du menu quand on en édite
      une, celles du brouillon sinon — portionsOf / compo tranchent. */

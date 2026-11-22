@@ -4,6 +4,7 @@
 
 import { figuresChargees, fondIds, fondRenames } from "./fonds.js";
 import { normaliser } from "./format.js";
+import { recettesDuCarnet } from "./recettes.js";
 
 /* Les figures d'un fondamental : un tableau, vide si le fichier n'est pas là ou
    si la fiche n'en a pas. Jamais d'exception. */
@@ -18,7 +19,7 @@ export function figuresDe(id) {
    se calcule depuis le menu. Un fondamental ne tient donc aucun registre. */
 export function recettesDuFond(id) {
   const vise = f => (fondRenames()[f] || f) === id;
-  return RECIPES.filter(r =>
+  return recettesDuCarnet().filter(r =>
     r.steps.some(s => fondIds(s).some(vise)) ||
     (r.choices || []).some(c => c.options.some(o => fondIds(o.step).some(vise))) ||
     (r.addons || []).some(a => fondIds(a.step).some(vise)));
