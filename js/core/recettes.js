@@ -7,6 +7,29 @@ import { compo } from "./menu.js";
 
 export const byId = id => RECIPES.find(r => r.id === id);
 
+/* ---------- Recettes supprimées du carnet ----------
+   Les recettes vivent dans le code (js/recipes.js) : « supprimer » une recette
+   la retire du carnet de l'utilisateur, pas du site. Elle n'apparaît plus dans
+   l'accueil, les suggestions, les saisons ni les savoirs, mais tout ce qui la
+   nomme déjà (menu en cours, journal, lien partagé) la retrouve, et les
+   réglages la remettent d'un geste. `state.masquees` : { id: horodatage },
+   synchronisé comme les coups de cœur. */
+export const estMasquee = r => !!(r && state.masquees?.[r.id]);
+
+/* Les recettes du carnet, celles qu'on a supprimées en moins. */
+export const recettesDuCarnet = () => RECIPES.filter(r => !estMasquee(r));
+
+export function masquer(id) {
+  (state.masquees ??= {})[id] = Date.now();
+  save();
+}
+
+export function demasquer(id) {
+  if (!state.masquees?.[id]) return;
+  delete state.masquees[id];
+  save();
+}
+
 /* Temps qu'ajoutent les options de choix retenues (pâte maison : 30 min au frais ;
    chèvre gratiné : 6 min de four). Le temps de recette, `times`, décrit la version
    par défaut ; une option plus longue le dit par `step.timer` + `step.adds` (le

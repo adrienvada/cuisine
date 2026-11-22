@@ -14,7 +14,7 @@
 import { APPORTS } from "../apports.js";
 import { allergenesDeEntree, MOMENT_TABLE } from "./menu.js";
 import { estDeSaison } from "./recherche.js";
-import { effectiveIngredients, effectiveSteps, totalTime } from "./recettes.js";
+import { effectiveIngredients, effectiveSteps, recettesDuCarnet, totalTime } from "./recettes.js";
 
 /* Ce qui accompagne un repas sans en être un plat : jamais compté, jamais proposé. */
 const ACCOMPAGNE = ["Boissons", "Sauces"];
@@ -99,7 +99,7 @@ export function suggerer(entrees, manques, { exclus = [], compo = () => ({}), mo
   const toutVegetarien = mets.length > 0 && mets.every(({ r, e }) => vegetarienne(r, e));
   const aFrais = mets.some(({ r, e }) => apportsDe(r, e).includes("frais"));
   const fourOccupe = mets.some(({ r, e }) => auFour(r, e));
-  return RECIPES
+  return recettesDuCarnet()
     .filter(r => !presents.has(r.id) && !ACCOMPAGNE.includes(r.category))
     .map(r => {
       const conf = compo(r.id) || {};

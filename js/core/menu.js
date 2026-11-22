@@ -3,7 +3,7 @@
 import { CONVIVES_MAX } from "./adaptation.js";
 import { buildCourseList } from "./courses.js";
 import { save, state } from "./etat.js";
-import { byId, effectiveIngredients, effectiveSteps, selectedAddons, tempsDe, totalTime } from "./recettes.js";
+import { byId, effectiveIngredients, effectiveSteps, recettesDuCarnet, selectedAddons, tempsDe, totalTime } from "./recettes.js";
 
 /* Clé unique d'un appareil à l'autre : deux téléphones qui ajoutent chacun une
    entrée ne doivent jamais produire la même adresse une fois synchronisés. */
@@ -138,7 +138,7 @@ export const MOMENTS = [
   { id: "boisson", nom: "Boissons", label: "une boisson", cats: ["Boissons"] }
 ];
 
-export const nbRecettes = cats => RECIPES.filter(r => cats.includes(r.category)).length;
+export const nbRecettes = cats => recettesDuCarnet().filter(r => cats.includes(r.category)).length;
 
 /* Où envoyer un moment qui n'a qu'une seule catégorie ; pour « à table », qui
    en a plusieurs (Plats, Entrées, Soupes, Salades), c'est son propre id qui
@@ -146,7 +146,7 @@ export const nbRecettes = cats => RECIPES.filter(r => cats.includes(r.category))
    que d'envoyer systématiquement sur la mieux fournie. */
 export function catDuMoment(x) {
   return x.cats
-    .filter(c => RECIPES.some(r => r.category === c))
+    .filter(c => recettesDuCarnet().some(r => r.category === c))
     .sort((a, b) => nbRecettes([b]) - nbRecettes([a]))[0];
 }
 

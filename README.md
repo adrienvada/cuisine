@@ -16,8 +16,13 @@ Le carnet de recettes d'Evadri — un site pensé pour smartphone : recettes ill
 - **Liste de courses** — calculée à partir du menu : les ingrédients fusionnent par rayon, dans l'ordre d'un parcours de supermarché (fruits & légumes, crèmerie, épicerie…), quantités additionnées. Le fond de placard (sel, huiles, épices…) est présenté à part, « à vérifier ». Cochable au magasin, partageable par message, articles libres en plus.
 - **Savoirs** — les *fondamentaux* : les mécanismes qui reviennent d'une recette à l'autre (l'émulsion, Maillard, l'osmose du sel), expliqués une fois pour toutes, et illustrés de schémas, courbes et échelles (voir « Figures des savoirs »). Une pastille dorée sous l'astuce d'une étape les ouvre sans quitter la recette, même en mode cuisine. L'onglet les réunit, la recherche les fouille, et chacun se partage par lien.
 - **Saison** — l'onglet des produits de saison, mois par mois : ce qui **arrive**, ce qui est **en pleine saison**, ce qui vit ses **dernières semaines**, par famille (légumes, fruits, herbes). Un produit s'ouvre sur sa saison (une frise des douze mois), un conseil pour le choisir ou le garder, et les recettes du carnet qui l'emploient. Le mois en cours propose aussi d'ouvrir l'accueil sur ses recettes de saison (voir « Le calendrier des saisons »).
+- **Appui long sur une recette** — le doigt posé une demi-seconde sur une vignette (ou un clic droit, ou la touche « menu » du clavier) ouvre le menu de la recette : l'ajouter au menu (ou une autre version), l'en retirer, la cuisiner tout de suite, en faire un coup de cœur, la partager, ou la **supprimer du carnet**. Chaque geste se défait par le « Annuler » de son message (voir « Recettes supprimées »).
 - **Partage** — depuis la vignette, la fiche recette ou le mode cuisine : un résumé (temps, ingrédients aux portions affichées) et le lien vers la recette illustrée, envoyés via la feuille de partage du téléphone. « Partager le repas » envoie le menu entier d'un coup. Un fondamental se partage de la même façon.
 - **PWA** — installable sur l'écran d'accueil (Safari : Partager → « Sur l'écran d'accueil »), fonctionne hors ligne.
+
+## Recettes supprimées
+
+Les recettes vivent dans le code : « supprimer » une recette la retire du carnet de l'utilisateur, pas du site. Elle est rangée dans `state.masquees` (`{ id: horodatage }`, synchronisé entre appareils, exporté avec la sauvegarde) et disparaît de l'accueil, du « J'ai… », des suggestions du menu, de l'onglet Saison et des recettes d'un savoir (`recettesDuCarnet()`, `js/core/recettes.js`). Ce qui la nomme déjà la retrouve : le menu en cours, le journal, un lien partagé ; sa fiche dit alors qu'elle est supprimée et propose de la remettre. Les réglages en tiennent la liste (« Recettes supprimées », la plus récente d'abord), chacune avec son bouton « Remettre ». Une recette qu'on veut vraiment retirer du site s'enlève de `js/recipes.js`.
 
 ## Ajouter une recette
 
@@ -581,6 +586,7 @@ js/ui/qr.js             QR code en SVG (qrSvg), sur js/vendor/qrcode-generator.j
 js/ui/figures.js        Figures des savoirs : des données de js/figures.js vers du SVG (module pur, testé sous Node)
 
 js/vues/accueil.js      Accueil : grille, recherche, filtres (la seule vue chargée avec le premier affichage)
+js/vues/accueil-actions.js  Le menu d'une recette (appui long sur sa vignette) : menu, cuisiner, coup de cœur, partager, supprimer du carnet ; chargé au premier appui
 js/vues/accueil-anime.js  Le mouvement de l'accueil : pastille qui glisse, grille par flip, nombres qui roulent ; tiré au repos, après le chargement
 js/vues/fiche.js        Fiche recette et feuille « composer / ajouter »
 js/vues/ingredient.js   Feuille d'un ingrédient : quantité, « j'en ai moins », substitutions, allergènes

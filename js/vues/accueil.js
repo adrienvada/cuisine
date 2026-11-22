@@ -12,6 +12,7 @@ import {
   byCategoryOrder,
   cookedOf,
   isFav,
+  recettesDuCarnet,
   tempsDe,
   verdictOf
 } from "../core/recettes.js";
@@ -113,9 +114,10 @@ export function rafraichirFoins() {
 }
 
 export function renderHome() {
-  const anyFav = RECIPES.some(isFav);
+  const carnet = recettesDuCarnet();
+  const anyFav = carnet.some(isFav);
   if (state.filter === FAV_FILTER && !anyFav) { state.filter = "Toutes"; save(); }
-  const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(RECIPES.map(r => r.category))].sort(byCategoryOrder)];
+  const cats = ["Toutes", ...(anyFav ? [FAV_FILTER] : []), ...[...new Set(carnet.map(r => r.category))].sort(byCategoryOrder)];
   const chipLabel = c => (c === FAV_FILTER ? "♥ Coups de cœur" : c);
   calculerFoins();
   const encre = encrePremiere();
@@ -181,6 +183,7 @@ export function renderHome() {
   const grid = document.getElementById("grid");
   armerGrille();
   grid.addEventListener("click", partagerDepuisCarte);
+  brancherAppuiLong(grid);
   applyFilter(false);
   armer();
 }
@@ -205,6 +208,37 @@ function partagerDepuisCarte(e) {
   if (partage) partager(partage);
   else preparerPartage().then(partager, () => toast("Le partage ne s'est pas chargé"));
 }
+
+/* Appui long (ou clic droit, touche « menu ») sur une vignette : le menu de la recette,
+   js/vues/accueil-actions.js, chargé au premier appui. Bouger le doigt, c'est défiler. */
+let actions = null;
+const chargerActions = () => (actions ??= import("./accueil-actions.js").catch(e => { actions = null; throw e; }));
+const menuCarte = (carte, appui) => chargerActions().then(m => m.ouvrirActions(carte.dataset.id, appui), () => toast("Le menu de la recette ne s'est pas chargé"));
+
+let a = null;
+const oublier = () => { if (a) { clearTimeout(a.t); a.c.classList.remove("appui"); a = null; } };
+if (typeof window !== "undefined") addEventListener("scroll", oublier, { passive: true });
+
+function brancherAppuiLong(grid) {
+  grid.addEventListener("pointerdown", e => {
+    oublier();
+    const c = e.target.closest(".card");
+    if (!c || !e.isPrimary || e.pointerType === "mouse" || e.target.closest("[data-share]")) return;
+    chargerActions().catch(() => {});
+    a = { c, x: e.clientX, y: e.clientY, t: setTimeout(() => { oublier(); menuCarte(c, true); }, 450) };
+    c.classList.add("appui");
+  });
+  grid.addEventListener("pointermove", e => { if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) > 10) oublier(); });
+  for (const t of ["pointerup", "pointercancel", "pointerleave"]) grid.addEventListener(t, oublier);
+  grid.addEventListener("contextmenu", e => {
+    const c = e.target.closest(".card");
+    if (c) { e.preventDefault(); oublier(); menuCarte(c, false); }
+  });
+}
+
+/* La grille se recompose (une recette supprimée, remise, d'ici ou d'un autre appareil). */
+export const refiltrer = () => applyFilter(true);
+if (typeof document !== "undefined") document.addEventListener("carnet-synchro", () => applyFilter(false));
 
 /* Le bouton « J'ai… » et la ligne qui rappelle la sélection : ils disent
    pourquoi la grille est réduite, et la défont d'un geste sans rouvrir la feuille. */
@@ -234,7 +268,7 @@ function majNombre(n, animer) {
    (elle rejouerait son animation et perdrait son défilement), seuls les boutons
    changent. La grille, derrière, se recompose à la fermeture. */
 function ouvrirJai() {
-  const catalogue = catalogueJai(RECIPES);
+  const catalogue = catalogueJai(recettesDuCarnet());
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop";
   backdrop.innerHTML = `
@@ -302,7 +336,7 @@ function ouvrirJai() {
 function visibles() {
   const mots = motsDe(requete), mois = new Date().getMonth() + 1;
   const actifs = FILTRES.filter(f => criteres.has(f.id));
-  const liste = RECIPES.filter(r => inFilter(r) && trouve(foins.get(r.id) ?? "", mots) && actifs.every(f => f.test(r, mois)));
+  const liste = recettesDuCarnet().filter(r => inFilter(r) && trouve(foins.get(r.id) ?? "", mots) && actifs.every(f => f.test(r, mois)));
   if (jai.size) {
     const score = new Map(liste.map(r => [r, scoreJai(r, jai)]));
     return liste.filter(r => score.get(r).trouves > 0).sort((a, b) => {
@@ -324,12 +358,20 @@ export function inFilter(r) {
   return r.category === state.filter;
 }
 
+/* Le coup de cœur et le compteur d'une vignette (vide s'il n'y a ni l'un ni l'autre). */
+export function tagrowHtml(r) {
+  const v = VERDICTS.find(x => x.id === verdictOf(r));
+  const c = cookedOf(r);
+  return v || c.count ? `<div class="tagrow">
+          ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
+          ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
+        </div>` : "";
+}
+
 /* Une carte par recette, créée une seule fois par visite de l'accueil.
    Filtrer ne reconstruit plus rien : les cartes restent dans le DOM et
    `applyFilter` ne fait que les montrer, les cacher et les déplacer. */
 function cardHtml(r) {
-  const v = VERDICTS.find(x => x.id === verdictOf(r));
-  const c = cookedOf(r);
   /* Un <article>, pas un lien : le bouton partager ne peut pas vivre dans un
      <a>. Le lien porte le titre, et son ::after s'étire sur toute la carte
      (cf. accueil.css) ; le bouton, frère du lien, passe au-dessus. */
@@ -343,10 +385,7 @@ function cardHtml(r) {
       </div>
       <div class="body">
         <h3 elementtiming="carte-titre"><a class="card-lien" href="#/recette/${r.id}">${r.title}</a></h3>
-        ${v || c.count ? `<div class="tagrow">
-          ${v ? `<span class="verdict-tag v-${v.id}">${v.tag || v.label}</span>` : ""}
-          ${c.count ? `<span class="cook-count">cuisinée ${c.count}×</span>` : ""}
-        </div>` : ""}
+        ${tagrowHtml(r)}
         <div class="card-foot">
           ${r.discovered ? `<div class="card-disc">${ICON.pin}<span>${abbrevDiscovered(r.discovered)}</span></div>` : ""}
           <div class="meta">${timeChipsHtml(r)}</div>

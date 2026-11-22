@@ -4,6 +4,7 @@
 import { FAMILLES_SAISON, IMPORTES, PRODUITS } from "../calendrier.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
+import { recettesDuCarnet } from "../core/recettes.js";
 import { estDeSaison } from "../core/recherche.js";
 import { INITIALES_MOIS, moisDecale, NOMS_MOIS, periodeEnClair, phaseDe, produitsDeLAnnee, produitsDuMois, recettesDu, toutLAnnee } from "../core/saison.js";
 import { fermerFeuille, ouvrirFeuille } from "../ui/feuilles.js";
@@ -27,8 +28,8 @@ const PHASES = [
   { id: "fin", titre: "Dernières semaines", sous: "à ne pas manquer avant l'an prochain" }
 ];
 
-/* Le nombre de recettes du carnet qui emploient le produit, d'après RECIPES. */
-const nbRecettes = p => recettesDu(p, RECIPES).length;
+/* Le nombre de recettes du carnet qui emploient le produit (celles qu'on a supprimées en moins). */
+const nbRecettes = p => recettesDu(p, recettesDuCarnet()).length;
 
 function tuile(p) {
   const n = nbRecettes(p);
@@ -43,7 +44,7 @@ function tuile(p) {
    le filtre « De saison » de l'accueil. */
 function encartRecettes(m) {
   if (m !== moisCourant()) return "";
-  const n = RECIPES.filter(r => estDeSaison(r, m)).length;
+  const n = recettesDuCarnet().filter(r => estDeSaison(r, m)).length;
   if (!n) return "";
   return html`<div class="sa-recettes">
     <p><b>${n === 1 ? "1 recette du carnet est" : `${n} recettes du carnet sont`}</b> de saison ce mois-ci.</p>
@@ -164,7 +165,7 @@ export function ouvrirProduit(p) {
   if (!p) return;
   const m = moisAffiche();
   const phase = phaseDe(p, m);
-  const recettes = recettesDu(p, RECIPES);
+  const recettes = recettesDu(p, recettesDuCarnet());
   const backdrop = document.createElement("div");
   backdrop.className = "sheet-backdrop";
   backdrop.innerHTML = html`

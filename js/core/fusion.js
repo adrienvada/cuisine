@@ -2,7 +2,7 @@
 
 /* Les champs qui voyagent entre appareils. Tout le reste de l'état (recherche,
    minuteurs, étape de cuisine, réglages…) reste propre à l'appareil. */
-export const CHAMPS_SYNCHRO = ["menu", "checked", "extras", "notes", "cooked", "notesPerso", "repas", "historique", "journal", "ordreRayons"];
+export const CHAMPS_SYNCHRO = ["menu", "checked", "extras", "notes", "cooked", "notesPerso", "repas", "historique", "journal", "ordreRayons", "masquees"];
 
 /* Les listes dont chaque entrée porte sa clé. */
 const CLES_LISTES = { menu: "k", extras: "id", historique: "id", journal: "id" };
@@ -113,7 +113,7 @@ function fusionnerChamp(nom, base, local, serveur) {
   if (nom === "ordreRayons" || !estDico(local) || !estDico(serveur)) return celuiQuiAChange(base, local, serveur);
   if (nom === "cooked") return fusionnerDico(base, local, serveur, departagerCuisine);
   if (nom === "notesPerso") return fusionnerDico(base, local, serveur, departagerNote);
-  return fusionnerDico(base, local, serveur, departagerProfond);   // checked, notes, repas (champ par champ, exclusions en ensemble)
+  return fusionnerDico(base, local, serveur, departagerProfond);   // checked, notes, masquees, repas (champ par champ, exclusions en ensemble)
 }
 
 /* base : la dernière version serveur connue de cet appareil ; local : l'état

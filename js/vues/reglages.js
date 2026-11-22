@@ -3,6 +3,7 @@
 import { migrer, save, state } from "../core/etat.js";
 import { html, raw } from "../core/html.js";
 import { ICON } from "../core/icones.js";
+import { byId, demasquer } from "../core/recettes.js";
 import {
   apercu, contenuExport, instantane, lireSauvegarde, nomFichier, remplacerEtat, restaurerEtat
 } from "../core/sauvegarde.js";
@@ -14,6 +15,7 @@ import { route } from "../ui/routeur.js";
 import { FEUILLE_REGLAGES, stylesDejaPrets, stylesPrets } from "../ui/styles.js";
 import { choisirTheme, modeTheme } from "../ui/theme.js";
 import { toast, updateBadge } from "../ui/toast.js";
+import { rafraichirAccueil } from "./accueil-actions.js";
 import { ETATS, majPoints } from "./reglages-entree.js";
 
 /* ---------- La synchro, vue d'ici ---------- */
@@ -110,6 +112,20 @@ function vibrationsHtml() {
     <p class="reg-aide" id="reg-vib-aide">Un petit tic quand tu coches ou ajoutes, et une alerte quand un minuteur sonne. Ce réglage ne concerne que cet appareil.</p>`;
 }
 
+/* Les recettes supprimées du carnet (appui long sur une vignette), les plus récentes
+   d'abord, chacune avec son bouton pour la remettre. Le bloc n'existe que s'il y en a. */
+const supprimees = () => Object.entries(state.masquees || {})
+  .map(([id, quand]) => ({ r: byId(id), quand })).filter(x => x.r)
+  .sort((a, b) => b.quand - a.quand).map(x => x.r);
+
+function supprimeesHtml() {
+  return html`
+    <p class="reg-aide">Elles n'apparaissent plus dans le carnet ni dans les suggestions. Remets-les quand tu veux.</p>
+    <ul class="reg-supprimees">
+      ${supprimees().map(r => raw(html`<li><span>${r.title}</span><button type="button" class="btn secondary" data-remettre="${r.id}" aria-label="Remettre ${r.title} dans le carnet">Remettre</button></li>`))}
+    </ul>`;
+}
+
 function sauvegardeHtml() {
   return html`
     <p class="reg-aide">Un fichier avec tout ton carnet : menu, courses, notes, recettes cuisinées. Utile pour changer de téléphone ou garder une copie.</p>
@@ -144,6 +160,10 @@ export async function ouvrirReglages() {
         <h4 id="reg-h-sync">Carnet partagé</h4>
         <div id="reg-sync"></div>
       </section>
+      <section class="reg-bloc" aria-labelledby="reg-h-supp" id="reg-supp-bloc"${supprimees().length ? "" : " hidden"}>
+        <h4 id="reg-h-supp">Recettes supprimées</h4>
+        <div id="reg-supp">${raw(supprimeesHtml())}</div>
+      </section>
       <section class="reg-bloc" aria-labelledby="reg-h-sauve">
         <h4 id="reg-h-sauve">Sauvegarde</h4>
         <div id="reg-sauve">${raw(sauvegardeHtml())}</div>
@@ -163,6 +183,8 @@ export async function ouvrirReglages() {
     }
     if (e.target.closest("#reg-vib")) return basculerVibrations(q("#reg-vib"));
     if (e.target.closest("[data-exporter]")) return exporterCarnet(q("[data-exporter]"));
+    const remettre = e.target.closest("[data-remettre]");
+    if (remettre) return remettreRecette(remettre, q);
     if (e.target.closest("[data-importer]")) return q("#reg-fichier").click();
   });
   q("#reg-fichier").addEventListener("change", async e => {
@@ -183,6 +205,23 @@ export async function ouvrirReglages() {
   });
 
   ouvrirFeuille(backdrop, () => { if (desabonner) desabonner(); });
+}
+
+/* La recette revient dans le carnet ; sa ligne s'en va, et le bloc avec la dernière. Le
+   focus passe à la ligne suivante (ou au titre du bloc d'après) plutôt que de tomber dans le vide. */
+function remettreRecette(bouton, q) {
+  demasquer(bouton.dataset.remettre);
+  vibrer("tic");
+  const ligne = bouton.closest("li");
+  const suivante = ligne.nextElementSibling || ligne.previousElementSibling;
+  ligne.remove();
+  if (suivante) suivante.querySelector("button").focus({ preventScroll: true });
+  else {
+    q("#reg-supp-bloc").hidden = true;
+    q("[data-exporter]").focus({ preventScroll: true });
+  }
+  toast("Recette remise dans le carnet");
+  rafraichirAccueil();
 }
 
 /* Les vibrations sont une préférence de l'appareil (geste.js), pas de l'état du carnet. En

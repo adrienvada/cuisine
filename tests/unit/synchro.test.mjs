@@ -10,7 +10,7 @@ const e = (k, extra = {}) => ({ k, rid: "r-" + k, portions: null, ...extra });
 const cles = liste => liste.map(x => x.k);
 
 test("fusion : le contrat des champs synchronisés", () => {
-  assert.deepEqual(CHAMPS_SYNCHRO, ["menu", "checked", "extras", "notes", "cooked", "notesPerso", "repas", "historique", "journal", "ordreRayons"]);
+  assert.deepEqual(CHAMPS_SYNCHRO, ["menu", "checked", "extras", "notes", "cooked", "notesPerso", "repas", "historique", "journal", "ordreRayons", "masquees"]);
 });
 
 /* ---------- listes à clé ---------- */
